@@ -7,3 +7,9 @@ This repository contains the code of the projects presented in my personal websi
   - If you find a mistake or typo pleanse let me know. 
   
   - Comments and suggestions are always welcome.
+
+  ---
+
+  contact: juanitorduz@gmail.com
+
+  ---

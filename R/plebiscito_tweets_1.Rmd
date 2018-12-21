@@ -1,0 +1,878 @@
+---
+title: 'Text Mining, Networks and Visualization: Plebiscito Tweets'
+categories: R
+date: '2018-12-20'
+tags: network, d3, text_mining
+authors: Dr. Juan Camilo Orduz
+---
+ 
+Nowadays social media generates a vast amount of raw data (text, images, videos, etc). It is a very interesting challenge to discover techniques to get insights on the content and development of social media data. In addition, as a fundamental component of the analysis, it is important to find ways of communicating the results, i.e. data visualization. In this post I want to present a small case study where I analyze Twitter text data. The aim is not to give a complete analysis (as it would require many interations), but rather to describe how to to start. The emphasis of this post is in the data manipulation and data visualization. In particular, I describe how networks (graphs) can be used as data structures to describe text relations (some measure of pairwise count occurrences).
+
+The topic I chose to run the analysis is the Colombian peace agreement referendum (Plebiscito), celebrated on `2016-10-02`. You can find more information about it [here](https://en.wikipedia.org/wiki/2016_Colombian_peace_agreement_referendum). In a previous [post](https://juanitorduz.github.io/plebiscito/) I described how to get (scraping) the referendum results data per town. 
+
+The analysis is done in [R](https://www.r-project.org) and it is mainly motivated by the techniques presented in the book [**Text Mining with R**](https://www.tidytextmining.com). 
+
+# 1. Data Source 
+
+The data for the analysis consists of ~ 33.7K Twitter posts, generated between the `2016-10-02` and `2016-10-03`, containing relevant hashtags related the the Plebiscito. The data is freely available at [Plebicito Tweets 2016](https://data.world/bikthor/plebiscito-colombia-2016) on the website [data.world](https://data.world). The raw data was collected (using Twitter API) by [Victor Ramirez](http://vicdata.blog/). On his website you can find the [data gathering description](http://vicdata.blog/2016/10/analisis-del-plebiscito-en-twitter/) and a [brief initial analysis](https://databricks-prod-cloudfront.cloud.databricks.com/public/4027ec902e239c93eaaa8714f173bcfc/5880661007902040/3381779279095296/4578283640257970/latest.html). The hashtags tracked were:
+
+  - \#HoyVotoSi, \#SiALaPaz, \#YoVotoSi 
+  - \#HoyVotoNo, \#SoyColombiaNO, \#YoVotoNo
+  
+**Remark:** No user-specific data was used. All account references on the tweets were deleted. 
+
+# 2. Prepare Notebook
+
+```{r, echo=FALSE}
+library(knitr)
+knitr::opts_knit$set(warning=FALSE, message=FALSE)
+```
+
+Let us load the required libraries. 
+
+```{r, warning=FALSE, message=FALSE}
+# Data Wrangling and Visualization
+library(glue)
+library(cowplot)
+library(magrittr)
+library(plotly)
+library(tidyverse)
+library(widyr)
+# Date & Time Manipulation.
+library(hms)
+library(lubridate) 
+# Text Mining
+library(tidytext)
+library(tm)
+library(wordcloud)
+# Network Analysis
+library(igraph)
+# Network Visualization (D3.js)
+library(networkD3)
+
+# Set notebook directory.
+MAIN.DIR <- here::here()
+```
+
+# 3. Read Data 
+
+```{r, cache=FALSE}
+# Set file path.
+file.name <- glue('{MAIN.DIR}/static/Data/plebiscito.json')
+
+# Read each line. 
+tweets.raw.list <- map(.x = read_lines(file = file.name), 
+                       .f = rjson::fromJSON)
+
+# Parse subset of the data into a tibble. 
+tweets.raw.df <- tweets.raw.list %>% 
+  
+                    map_df(.f = ~ data.frame(
+                                    # Select non-user related data.
+                                    ID = .x$id_str,
+                                    Created_At = .x$created_at,
+                                    Text = .x$text, 
+                                    stringsAsFactors = FALSE
+                                    )
+                           ) %>% 
+                    as_tibble()
+
+tweets.raw.df %>% 
+  # We  do not want to display accounts.
+  filter(!str_detect(string = Text, pattern = '@')) %>% 
+  head 
+```
+
+Let us see the structure of this tibble.  
+
+```{r}
+tweets.raw.df %>% glimpse
+```
+
+We parse the `Created_At` column into a date format. Note that in the raw file it has type `character`.
+
+```{r}
+tweets.raw.df %>% slice(1:4) %>% pull(Created_At) 
+```
+
+```{r}
+tweets.raw.df %<>% 
+  mutate(Created_At = Created_At %>% 
+                        # Remove zeros.
+                        str_remove_all(pattern = '\\+0000') %>%
+                        # Parse date.
+                        parse_date_time(orders = '%a %b %d %H%M%S %Y'))
+
+tweets.raw.df %>% 
+  filter(!str_detect(string = Text, pattern = '@')) %>% 
+  head
+```
+
+# 4. Timeline Analysis
+
+As the `Created_At` column makes reference to the [UTC](https://www.timeanddate.com/worldclock/timezone/utc) time, we neet to substract 5 hours from it to get the Colombian time. 
+
+```{r}
+# We substract seconds, that is why we need three factors. 
+tweets.raw.df %<>% mutate(Created_At = Created_At - 5*60*60)
+```
+
+Let us compute the time range:
+
+```{r}
+tweets.raw.df %>% pull(Created_At) %>% min
+```
+```{r}
+tweets.raw.df %>% pull(Created_At) %>% max
+```
+
+We see that the time frame covered by this data set is essentially the day and the day after the referendum. 
+
+We create a new variable which "forgets" the seconds of `Create_At` column. 
+
+```{r}
+tweets.raw.df %<>% 
+  mutate(Created_At_Round = Created_At %>% round(units = 'mins') %>% as.POSIXct)
+```
+
+We now plot the time series of tweets count per minute. 
+
+```{r, fig.width=9, fig.align='center'}
+plt <- tweets.raw.df %>% 
+        count(Created_At_Round) %>% 
+        ggplot(mapping = aes(x = Created_At_Round, y = n)) +
+        theme_light() +
+        geom_line() +
+        xlab(label = 'Date') +
+        ylab(label = NULL) +
+        ggtitle(label = 'Number of Tweets per Minute')
+
+plt %>% ggplotly
+```
+
+There is an interesting peak at around `2016-10-02 19:28:00`, which is essentially when the referendum results where known. Let us have a look at some tweets after durinng this peak:
+
+```{r}
+results.time <- as.POSIXct(x = '2016-10-02 19:28:00')
+
+tweets.raw.df %>% 
+  filter(Created_At_Round > results.time ) %>% 
+  select(Text) %>% 
+  filter(!str_detect(string = Text, pattern = '@')) %>% 
+  pull(Text) %>% 
+  head(20) 
+```
+
+Indeed, the comments reflect the reactions around the referendum results. 
+
+# 5. Text Normalization
+
+We want to clean and normalize the text for the analysis. We are mainly interested in the content of the tweets, not the hashtags or accounts. 
+
+```{r}
+tweets.df <- tweets.raw.df %>% 
+               # Remove column.
+               select(-  Created_At) %>% 
+               # Convert to lowercase. 
+               mutate(Text = Text %>% str_to_lower) %>% 
+               # Remove unwanted characters. 
+               mutate(Text= Text %>% str_remove_all(pattern = '\\n')) %>% 
+               mutate(Text = Text %>% str_remove_all(pattern = '&amp')) %>% 
+               mutate(Text = Text %>% str_remove_all(pattern = 'https://t.co/[a-z,A-Z,0-9]*')) %>% 
+               mutate(Text = Text %>% str_remove_all(pattern = 'http://t.co/[a-z,A-Z,0-9]*')) %>% 
+               mutate(Text = Text %>% str_remove_all(pattern = 'https')) %>% 
+               mutate(Text = Text %>% str_remove_all(pattern = 'http')) %>% 
+               # Remove hashtags.
+               mutate(Text = Text %>% str_remove_all(pattern = '#[a-z,A-Z]*')) %>% 
+               # Remove accounts.
+               mutate(Text = Text %>% str_remove_all(pattern = '@[a-z,A-Z]*')) %>% 
+                # Remove retweets.
+               mutate(Text = Text %>% str_remove_all(pattern = 'rt [a-z,A-Z]*: ')) %>% 
+               mutate(Text = Text %>% str_remove(pattern = '^(rt)')) %>% 
+               mutate(Text = Text %>% str_remove_all(pattern = '\\_')) 
+
+# Replace accents. 
+replacement.list <- list('á' = 'a', 'é' = 'e', 'í' = 'i', 'ó' = 'o', 'ú' = 'u')
+
+tweets.df %<>% 
+  mutate(Text = chartr(old = names(replacement.list) %>% str_c(collapse = ''), 
+                       new = replacement.list %>% str_c(collapse = ''),
+                       x = Text))
+```
+
+In addition, we convert out text into a corpus to use the [tm](https://cran.r-project.org/web/packages/tm/tm.pdf) library. 
+
+```{r, warning=FALSE}
+corpus <-  Corpus(x = VectorSource(x = tweets.df$Text))
+
+tweets.text <- corpus %>% 
+                tm_map(removePunctuation) %>% 
+                tm_map(removeNumbers) %>% 
+                tm_map(removeWords, stopwords('spanish')) %>% 
+                tm_map(PlainTextDocument) # %>% 
+                # We could also use stemming by uncommenting the folowing line. 
+                # tm_map(stemDocument, 'spanish')
+
+# Recover data into original tibble.
+tweets.df %<>% mutate(Text = tweets.text[[1]]$content)
+```
+
+
+We now want to extract only the hashtags of each tweet. We implement a function for this purpose. 
+
+```{r}
+GetHashtags <- function(tweet) {
+
+  hashtag.vector <- str_extract_all(string = tweet, pattern = '#\\S+', simplify = TRUE) %>% 
+                    as.character
+  
+  hashtag.string <- NA
+  
+  if (length(hashtag.vector) > 0) {
+    
+    hashtag.string <-   hashtag.vector %>% str_c(collapse = ', ')
+    
+  } 
+
+  return(hashtag.string)
+}
+```
+
+And apply it to our data:
+
+```{r}
+hashtags.df <- tibble(Hashtags = tweets.raw.df$Text %>% 
+                                  map_chr(.f = ~ GetHashtags(tweet = .x)))
+
+hashtags.df %>% head
+```
+
+We merge these data frames together. 
+
+```{r}
+tweets.df %<>% bind_cols(hashtags.df) 
+```
+
+Finally, let us split the data before and after the results of the referendum are known, i.e. we split the `Created_At_Round` column with respect to the `results.time`. 
+
+```{r}
+# "m" will represent before. results.time. 
+tweets.m.df <- tweets.df %>% 
+                filter(Created_At_Round < results.time) %>% 
+                select(ID, Text)
+
+# "p" will represent after results.time. 
+tweets.p.df <- tweets.df %>% 
+                filter(Created_At_Round >= results.time) %>% 
+                select(ID, Text)
+```
+
+# 6. Words Count
+
+## 6.1 Tweets
+
+We begin by counting the most popular words in the tweets. 
+
+```{r}
+# Remove the shortcut 'q' for 'que'.
+extra.stop.words <- c('q')
+
+stopwords.df <- tibble(word = c(stopwords(kind = 'es'), 
+                              # We have some tweets in english.
+                                stopwords(kind = 'en'),  
+                                extra.stop.words))
+
+words.df <- tweets.df %>% 
+             unnest_tokens(input = Text, output = word) %>% 
+             anti_join(y = stopwords.df, by = 'word')
+
+
+word.count <- words.df %>% count(word, sort = TRUE)
+
+word.count %>% head(10)
+```
+
+We can visualize these counts in a bar plot. 
+
+```{r, fig.width=9, fig.align='center'}
+plt <- word.count %>% 
+        # Set count threshold. 
+        filter(n > 700) %>%
+        mutate(word = reorder(word, n)) %>%
+        ggplot(aes(x = word, y = n)) +
+        theme_light() + 
+        geom_col(fill = 'black', alpha = 0.8) +
+        xlab(NULL) +
+        coord_flip() +
+        ggtitle(label = 'Top Word Count')
+
+plt %>% ggplotly
+```
+
+Another popular method to visualize word count data is through a word cloud. 
+
+```{r fig.align='center'}
+wordcloud(words = word.count$word, 
+          freq = word.count$n, 
+          min.freq = 200, 
+          colors = brewer.pal(8, 'Dark2'))
+```
+
+We can do the same for the split data:
+
+```{r, fig.width=10, fig.align='center'}
+# Before results. 
+words.m.df <- tweets.m.df %>% 
+               unnest_tokens(input = Text, output = word) %>% 
+               anti_join(y = stopwords.df, by = 'word')
+
+word.count.m <- words.m.df %>% count(word, sort = TRUE)
+
+plt.m <- word.count.m %>% 
+          filter(n > 500) %>%
+          mutate(word = reorder(word, n)) %>%
+          ggplot(aes(x = word, y = n)) +
+          theme_light() + 
+          geom_col(fill = 'blue', alpha = 0.8) +
+          xlab(NULL) +
+          coord_flip() +
+          ggtitle(label = 'Top Word Count (Before Results)')
+
+# After results. 
+words.p.df <- tweets.p.df %>% 
+               unnest_tokens(input = Text, output = word) %>% 
+               anti_join(y = stopwords.df, by = 'word')
+
+
+word.count.p <- words.p.df %>% count(word, sort = TRUE)
+
+plt.p <- word.count.p %>% 
+          filter(n > 500) %>%
+          mutate(word = reorder(word, n)) %>%
+          ggplot(aes(x = word, y = n)) +
+          theme_light() + 
+          geom_col(fill = 'red', alpha = 0.8) +
+          xlab(NULL) +
+          coord_flip() +
+          ggtitle(label = 'Top Word Count (After Results)')
+
+plot_grid(... = plt.m, plt.p)
+```
+
+```{r,fig.align='center'}
+# Before the results. 
+wc.m <- wordcloud(words = word.count.m$word, 
+          freq = word.count.m$n, 
+          min.freq = 200, 
+          colors=brewer.pal(8, 'Dark2'))
+```
+
+```{r, fig.align='center'}
+# After the results.
+wordcloud(words = word.count.p$word, 
+          freq = word.count.p$n, 
+          min.freq = 100, 
+          colors=brewer.pal(8, 'Dark2'))
+```
+
+We can indeed see how the wording changes in these two time frames. 
+
+## 6.2 Hashtags 
+
+We can run an analogous analysis for hastags. 
+
+```{r}
+hashtags.unnested.df <- tweets.df %>% 
+                          select(Created_At_Round, Hashtags) %>% 
+                          unnest_tokens(input = Hashtags, output = hashtag)
+  
+hashtags.unnested.count <- hashtags.unnested.df %>% 
+                            count(hashtag) %>% 
+                            drop_na 
+```
+
+We plot the correspondinng word cloud. 
+
+```{r, fig.align='center'}
+wordcloud(words = str_c('#',hashtags.unnested.count$hashtag), 
+          freq = hashtags.unnested.count$n, 
+          min.freq = 40, 
+          colors=brewer.pal(8, 'Dark2'))
+```
+
+The most popular hashtag for the 'YES' and 'NO' are  \#hoyvotosi \#notono respectively. Let us see the volume development of these hastags. 
+
+```{r, fig.width=9, fig.align='center'}
+plt <- hashtags.unnested.df %>% 
+        filter(hashtag %in% c('hoyvotosi', 'votono')) %>% 
+        count(Created_At_Round, hashtag) %>% 
+        ggplot(mapping = aes(x  = Created_At_Round, y = n, color = hashtag)) +
+        theme_light() + 
+        xlab(label = 'Date') +
+        ggtitle(label = 'Top Hastags Counts') +
+        geom_line() + 
+        scale_color_manual(values = c('hoyvotosi' = 'green3', 'votono' = 'red'))
+
+plt %>% ggplotly
+```
+
+Overall, the tweets supporting the 'YES' had much more volume. But this was not reflected on the results. 
+
+**Remark:** Compare with a [brief initial analysis](https://databricks-prod-cloudfront.cloud.databricks.com/public/4027ec902e239c93eaaa8714f173bcfc/5880661007902040/3381779279095296/4578283640257970/latest.html) on the hastag volume over time.
+
+# 7. Network Analysis 
+
+In this section we are going to describe how to encode and visualize tex data as a weighted netwok (graph). The main ideas is to count pairwise relative occurence of words.  
+
+## 7.1 Bigram Analysis
+
+### 7.1.1 Network Definition
+
+We want to count pairwise occurences of words which apperar together in the text, this is what is known as *bigram count*. 
+
+```{r}
+bi.gram.words <- tweets.df %>% 
+                  unnest_tokens(input = Text, 
+                                output = bigram, 
+                                token = 'ngrams', 
+                                n = 2) %>% 
+                  filter(! is.na(bigram))
+
+bi.gram.words %>% select(bigram) %>% head(10)
+```
+
+Next, we filter for stop words and remove white spaces. 
+
+```{r}
+bi.gram.words %<>% 
+  separate(col = bigram, into = c('word1', 'word2'), sep = ' ') %>% 
+  filter(! word1 %in% stopwords.df$word) %>% 
+  filter(! word2 %in% stopwords.df$word) %>% 
+  filter(! is.na(word1)) %>% 
+  filter(! is.na(word2)) 
+```
+
+Finally, we group and count by bigram.
+
+```{r}
+bi.gram.count <- bi.gram.words %>% count(word1, word2, sort = TRUE)
+
+bi.gram.count %>% head
+```
+
+How to define a weighted network from a bigram count? 
+
+  - Each word wis going to represent a node. 
+  - Two words ae going to be connected if they appear as a bigram. 
+  - The weight of an edge is the numer of times the bigram appears in the corpus. 
+  - (Optional) We are free to decide if we want the graph to be directed or not. 
+  
+We are going to use the [igraph](https://igraph.org/redirect.html) library to work with networks. 
+
+**Remark:** The reference [A User’s Guide to Network Analysis in R](https://www.amazon.de/Users-Guide-Network-Analysis/dp/3319238825/ref=sr_1_1?ie=UTF8&qid=1545301676&sr=8-1&keywords=network+analysis+R) is highly recomended if you want to go deeper into network analysis in R. 
+
+For visualization purposes, we can set a `threshold ` which defines the minimal weight allowed in the graph:
+
+```{r}
+threshold <- 280
+
+network <-  bi.gram.count %>%
+              filter(n > threshold) %>%
+              graph_from_data_frame(directed = FALSE)
+```
+
+Let us see how the `network` object looks like:
+
+```{r}
+network
+```
+
+### 7.1.2 Visualization
+
+To visualize the network ([here](http://kateto.net/network-visualization) is a great reference for it) we can simply use the `plot` function with some additional parameters:
+
+```{r, fig.align='center', out.width='1000px'}
+ plot(network, 
+      vertex.size = 1,
+      vertex.label.color = 'black', 
+      vertex.label.cex = 0.7, 
+      vertex.label.dist = 1,
+      edge.color = 'gray', 
+      main = 'Bigram Count Network', 
+      sub = glue('Weight Threshold: {threshold}'), 
+      alpha = 50)
+```
+
+We can add some additional information to the visualization: Set the sizes of the nodes and the edges by the dregree and weight respectively.
+
+```{r, fig.align='center', out.width='1000px'}
+# Store the degree.
+V(network)$degree <- degree(graph = network)
+
+# Compute the weight shares.
+E(network)$width <- E(network)$n/max(E(network)$n)
+
+ plot(network, 
+      vertex.color = 'lightblue',
+      # Scale node size by degree.
+      vertex.size = 2*V(network)$degree,
+      vertex.label.color = 'black', 
+      vertex.label.cex = 0.6, 
+      vertex.label.dist = 1.6,
+      edge.color = 'gray', 
+      # Set edge width proportional to the weight relative value.
+      edge.width = 3*E(network)$width ,
+      main = 'Bigram Count Network', 
+      sub = glue('Weight Threshold: {threshold}'), 
+      alpha = 50)
+```
+
+We can extract the biggest connected component of the network as follows:
+
+```{r}
+# Get all connected components
+clusters(graph = network)
+```
+
+```{r}
+# Select biggest connected component.  
+V(network)$cluster <- clusters(graph = network)$membership
+
+cc.network <- induced_subgraph(graph = network,
+                               vids = which(V(network)$cluster == which.max(clusters(graph = network)$csize)))
+
+cc.network 
+```
+
+```{r, fig.align='center', out.width='1000px'}
+# Store the degree.
+V(cc.network)$degree <- degree(graph = cc.network)
+
+# Compute the weight shares.
+E(cc.network)$width <- E(cc.network)$n/max(E(cc.network)$n)
+
+ plot(cc.network, 
+      vertex.color = 'lightblue',
+      # Scale node size by degree.
+      vertex.size = 2*V(cc.network)$degree,
+      vertex.label.color = 'black', 
+      vertex.label.cex = 0.6, 
+      vertex.label.dist = 1.6,
+      edge.color = 'gray', 
+      # Set edge width proportional to the weight relative value.
+      edge.width = 3*E(cc.network)$width ,
+      main = 'Bigram Count Network (Biggest Connected Component)', 
+      sub = glue('Weiight Threshold: {threshold}'), 
+      alpha = 50)
+```
+
+We can go a steph further and make our visualization more dynamic using the [networkD3](https://christophergandrud.github.io/networkD3/) library.
+
+```{r, fig.align='center', out.height='1000px', out.width='1000px'}
+# Treshold
+threshold <- 250
+
+network <-  bi.gram.count %>%
+              filter(n > threshold) %>%
+              graph_from_data_frame(directed = FALSE)
+
+# Store the degree.
+V(network)$degree <- degree(graph = network)
+# Compute the weight shares.
+E(network)$width <- E(network)$n/max(E(network)$n)
+
+# Create networkD3 object.
+network.D3 <- igraph_to_networkD3(g = network)
+# Define node size.
+network.D3$nodes %<>% mutate(Degree = 10*V(network)$degree)
+# Degine color group (I will explore this feature later).
+network.D3$nodes %<>% mutate(Group = 1)
+# Define edges width. 
+network.D3$links$Width <- 10*E(network)$width
+
+forceNetwork(Links = network.D3$links, 
+             Nodes = network.D3$nodes, 
+             Source = 'source', 
+             Target = 'target',
+             NodeID = 'name',
+             Group = 'Group', 
+             opacity = 0.9,
+             Value = 'Width',
+             Nodesize = 'Degree', 
+             # We input a JavaScript function.
+             linkWidth = JS("function(d) { return Math.sqrt(d.value); }"), 
+             fontSize = 12,
+             zoom = TRUE, 
+             opacityNoHover = 1)
+```
+
+Let us now decrease the threshold to get a more complex network (zoom out to see it all!). 
+
+```{r, fig.align='center', out.height='1000px', out.width='1000px'}
+# Treshold
+threshold <- 80
+
+network <-  bi.gram.count %>%
+              filter(n > threshold) %>%
+              graph_from_data_frame(directed = FALSE)
+
+# Store the degree.
+V(network)$degree <- degree(graph = network)
+# Compute the weight shares.
+E(network)$width <- E(network)$n/max(E(network)$n)
+
+# Create networkD3 object.
+network.D3 <- igraph_to_networkD3(g = network)
+# Define node size.
+network.D3$nodes %<>% mutate(Degree = 3*V(network)$degree)
+# Degine color group (I will explore this feature later).
+network.D3$nodes %<>% mutate(Group = 1)
+# Define edges width. 
+network.D3$links$Width <- 10*E(network)$width
+
+forceNetwork(Links = network.D3$links, 
+             Nodes = network.D3$nodes, 
+             Source = 'source', 
+             Target = 'target',
+             NodeID = 'name',
+             Group = 'Group', 
+             opacity = 0.9,
+             Value = 'Width',
+             Nodesize = 'Degree', 
+             # We input a JavaScript function.
+             linkWidth = JS("function(d) { return Math.sqrt(d.value); }"), 
+             fontSize = 12,
+             zoom = TRUE, 
+             opacityNoHover = 1)
+```
+
+# 7.2 Skipgram Analyis
+
+### 7.2.1 Network Definition
+
+Now we are going to consider *skipgrams*, which allow a "jump" in thw word count: 
+
+```{r}
+skip.window <- 2
+
+skip.gram.words <- tweets.df %>% 
+                    unnest_tokens(input = Text, 
+                                  output = skipgram, 
+                                  token = 'skip_ngrams', 
+                                  n = skip.window) %>% 
+                    filter(! is.na(skipgram))
+```
+
+For example, consider the tweet:
+
+```{r}
+tweets.df %>% slice(4) %>% pull(Text)
+```
+
+The skipgrams are:
+
+```{r}
+skip.gram.words %>% select(skipgram) %>% slice(10:20)
+```
+
+We now count the skipgrams containing two words. 
+
+```{r}
+skip.gram.words$num_words <- skip.gram.words$skipgram %>% 
+                              map_int(.f = ~ ngram::wordcount(.x))
+
+skip.gram.words %<>% filter(num_words == 2) %>% select(- num_words)
+
+skip.gram.words %<>% 
+  separate(col = skipgram, into = c('word1', 'word2'), sep = ' ') %>% 
+  filter(! word1 %in% stopwords.df$word) %>% 
+  filter(! word2 %in% stopwords.df$word) %>% 
+  filter(! is.na(word1)) %>% 
+  filter(! is.na(word2)) 
+
+skip.gram.count <- skip.gram.words  %>% count(word1, word2, sort = TRUE)
+
+skip.gram.count %>% head
+```
+
+### 7.2.2 Visualization
+
+Similarly as above, we construct and visualize the corresponding network (we select the biggest connected component):
+
+```{r, fig.align='center', out.height='1000px', out.width='1000px'}
+# Treshold
+threshold <- 80
+
+network <-  skip.gram.count %>%
+              filter(n > threshold) %>%
+              graph_from_data_frame(directed = FALSE)
+
+# Select biggest connected component.  
+V(network)$cluster <- clusters(graph = network)$membership
+
+cc.network <- induced_subgraph(graph = network,
+                               vids = which(V(network)$cluster == which.max(clusters(graph = network)$csize)))
+
+# Store the degree.
+V(cc.network)$degree <- degree(graph = cc.network)
+# Compute the weight shares.
+E(cc.network)$width <- E(cc.network)$n/max(E(cc.network)$n)
+
+# Create networkD3 object.
+network.D3 <- igraph_to_networkD3(g = cc.network)
+# Define node size.
+network.D3$nodes %<>% mutate(Degree = 2*V(cc.network)$degree)
+# Degine color group (I will explore this feature later).
+network.D3$nodes %<>% mutate(Group = 1)
+# Define edges width. 
+network.D3$links$Width <- 10*E(cc.network)$width
+
+forceNetwork(Links = network.D3$links, 
+             Nodes = network.D3$nodes, 
+             Source = 'source', 
+             Target = 'target',
+             NodeID = 'name',
+             Group = 'Group', 
+             opacity = 0.9,
+             Value = 'Width',
+             Nodesize = 'Degree', 
+             # We input a JavaScript function.
+             linkWidth = JS("function(d) { return Math.sqrt(d.value); }"), 
+             fontSize = 12,
+             zoom = TRUE, 
+             opacityNoHover = 1)
+```
+
+### 7.2.3 Community Detection
+
+We can try to find clusters within the network. We use the [Louvain Method](https://en.wikipedia.org/wiki/Louvain_Modularity) for community detection:
+
+```{r}
+comm.det.obj <- cluster_louvain(graph = cc.network, weights = E(cc.network)$n)
+
+comm.det.obj
+```
+
+We see that 12 groups where identified and the modularity is 0.7 (which is good, as it is close to 1). Now we encode the membership as a node atribute (zoom and click on each node to explore the clusters). 
+
+```{r}
+V(cc.network)$membership <- membership(comm.det.obj)
+```
+
+```{r, fig.align='center', out.height='1000px', out.width='1000px'}
+# We use the membership label to color the nodes.
+network.D3$nodes$Group <- V(cc.network)$membership
+
+forceNetwork(Links = network.D3$links, 
+             Nodes = network.D3$nodes, 
+             Source = 'source', 
+             Target = 'target',
+             NodeID = 'name',
+             Group = 'Group', 
+             opacity = 0.9,
+             Value = 'Width',
+             Nodesize = 'Degree', 
+             # We input a JavaScript function.
+             linkWidth = JS("function(d) { return Math.sqrt(d.value); }"), 
+             fontSize = 12,
+             zoom = TRUE, 
+             opacityNoHover = 1)
+```
+
+Let us collect the words per cluster:
+
+```{r}
+membership.df <- tibble(word = V(cc.network) %>% names,
+                        cluster = V(cc.network)$membership)
+
+V(cc.network)$membership %>%
+  unique %>% 
+  sort %>% 
+  map_chr(.f = function(cluster.id) {
+    
+    membership.df %>% 
+      filter(cluster == cluster.id) %>% 
+      # Get 15 at most 15 words per cluster.
+      slice(1:15) %>% 
+      pull(word) %>% 
+      str_c(collapse = ', ')
+    
+  }) 
+
+```
+
+## 7.3 Correlation Analysis (Phi Coefficient)
+
+### 7.3.1 Network Definition
+
+*The focus of the phi coefficient is how much more likely it is that either both word X and Y appear, or neither do, than that one appears without the other.* ([Text Mining with R](https://www.tidytextmining.com/ngrams.html), Section 4.2.2). You can read more about this correlation measure [here](https://en.wikipedia.org/wiki/Phi_coefficient).
+
+```{r, warning=FALSE}
+cor.words <- words.df %>% 
+              group_by(word) %>% 
+              filter(n() > 10) %>% 
+              pairwise_cor(item = word, feature = ID) 
+```
+
+### 7.3.1 Visualization
+
+Let us visualize the correlation of two important nodes in the network:
+
+```{r}
+topic.words <- c('uribe', 'santos', 'farc')
+```
+
+
+```{r, fig.align='center', out.height='1000px', out.width='1000px'}
+# Set correlation threshold. 
+threshold = 0.1
+
+network <-  cor.words %>%
+              # filter for relevant nodes.
+              filter((item1 %in% topic.words | item2 %in% topic.words)) %>% 
+              rename(n = correlation) %>% 
+              filter(n > threshold) %>%
+              graph_from_data_frame()
+  
+V(network)$degree <- degree(graph = network)
+
+E(network)$width <- E(network)$n/max(E(network)$n)
+
+network.D3 <- igraph_to_networkD3(g = network)
+
+network.D3$nodes %<>% mutate(Degree = 4*V(network)$degree)
+
+# Define color groups. 
+network.D3$nodes$Group <- network.D3$nodes$name %>% 
+                            as.character %>% 
+                            map_dbl(.f = function(name) {
+                                        index <- which(name == topic.words) 
+                                        ifelse(test = length(index) > 0,
+                                               yes = index, 
+                                               no = 0)
+                            })
+
+network.D3$links %<>% mutate(Width = 10*E(network)$width)
+
+forceNetwork(Links = network.D3$links, 
+             Nodes = network.D3$nodes, 
+             Source = 'source', 
+             Target = 'target',
+             NodeID = 'name',
+             Group = 'Group', 
+             # We color the nodes using JavaScript code.
+             colourScale = JS('d3.scaleOrdinal().domain([0,1,2]).range(["gray", "blue", "red", "black"])'), 
+             opacity = 0.8,
+             Value = 'Width',
+             Nodesize = 'Degree', 
+             # We define edge properties using JavaScript code.
+             linkWidth = JS("function(d) { return Math.sqrt(d.value); }"), 
+             linkDistance = JS("function(d) { return 550/(d.value + 1); }"), 
+             fontSize = 18,
+             zoom = TRUE, 
+             opacityNoHover = 1)
+```
+
+# 8. Conclusions & Remarks 
+
+In this post we explored how to get first insights from social media text data (Twitter). First, we presented how clean and normalize text data. Next, as a first approach, we saw how (pairwise) word counts give important information about the content and relations of the input text corpus. In addition, we studied how use networks as data structures to analyze and represent various count measures (bigram, skipgram, correlation). We also showed how we can cluster these words to get meaningful groups defining topics. But this is just the beginning! Next steps will include going into the *meaning* and *class* of the words (part of speech tagging and named entity recognition). We will explore these techniques in a future post.
