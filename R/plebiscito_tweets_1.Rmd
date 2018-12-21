@@ -746,7 +746,7 @@ forceNetwork(Links = network.D3$links,
 
 ### 7.2.3 Node Importance
 
-There are [many](https://en.wikipedia.org/wiki/Centrality) notions of note importance in a network ([A User’s Guide to Network Analysis in R](https://www.springer.com/de/book/9783319238821), Section 7.2). Here we compare three of them 
+There are [many](https://en.wikipedia.org/wiki/Centrality) notions of node importance in a network ([A User’s Guide to Network Analysis in R](https://www.springer.com/de/book/9783319238821), Section 7.2). Here we compare three of them 
 
   - Degree centrality
   - Closeness centrality
@@ -755,9 +755,9 @@ There are [many](https://en.wikipedia.org/wiki/Centrality) notions of note impor
 ```{r}
 # Compute the centrality measures for the biggest connected component from above.
 node.impo.df <- tibble(word = V(cc.network)$name,  
-                 degree = degree(graph = cc.network),
-                 closeness = closeness(graph = cc.network), 
-                 betweenness = betweenness(graph = cc.network))
+                       degree = degree(graph = cc.network),
+                       closeness = closeness(graph = cc.network), 
+                       betweenness = betweenness(graph = cc.network))
 ```
 
 Now we rank the nodes with respect to these centrality measures:
