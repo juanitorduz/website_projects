@@ -469,7 +469,7 @@ How to define a weighted network from a bigram count?
   
 We are going to use the [igraph](https://igraph.org/redirect.html) library to work with networks. 
 
-**Remark:** The reference [A User’s Guide to Network Analysis in R](https://www.amazon.de/Users-Guide-Network-Analysis/dp/3319238825/ref=sr_1_1?ie=UTF8&qid=1545301676&sr=8-1&keywords=network+analysis+R) is highly recomended if you want to go deeper into network analysis in R. 
+**Remark:** The reference [A User’s Guide to Network Analysis in R](https://www.springer.com/de/book/9783319238821) is highly recomended if you want to go deeper into network analysis in R. 
 
 For visualization purposes, we can set a `threshold ` which defines the minimal weight allowed in the graph:
 
@@ -743,7 +743,65 @@ forceNetwork(Links = network.D3$links,
              opacityNoHover = 1)
 ```
 
-### 7.2.3 Community Detection
+
+### 7.2.3 Node Importance
+
+There are [many](https://en.wikipedia.org/wiki/Centrality) notions of note importance in a network ([A User’s Guide to Network Analysis in R](https://www.springer.com/de/book/9783319238821), Section 7.2). Here we compare three of them 
+
+  - Degree centrality
+  - Closeness centrality
+  - Betweenness centrality
+
+```{r}
+# Compute the centrality measures for the biggest connected component from above.
+node.impo.df <- tibble(word = V(cc.network)$name,  
+                 degree = degree(graph = cc.network),
+                 closeness = closeness(graph = cc.network), 
+                 betweenness = betweenness(graph = cc.network))
+```
+
+Now we rank the nodes with respect to these centrality measures:
+
+- Degree centrality
+
+```{r}
+node.impo.df %>% arrange(- degree) %>% head(10)
+```
+
+- Closeness centrality
+
+```{r}
+node.impo.df %>% arrange(- closeness) %>% head(10)
+```
+
+- Betweenness centrality
+
+```{r}
+node.impo.df %>% arrange(- betweenness) %>% head(10)
+```
+
+Let us see the distribution of these centrality measures.
+
+```{r, fig.align='center', fig.width = 6, fig.height=8}
+plt.deg <- node.impo.df %>% 
+            ggplot(mapping = aes(x = degree)) +
+            theme_light() +
+            geom_histogram(fill = 'blue', alpha = 0.8, bins = 30)
+
+plt.clo <- node.impo.df %>% 
+            ggplot(mapping = aes(x = closeness)) +
+            theme_light() +
+            geom_histogram(fill = 'red', alpha = 0.8, bins = 30)
+
+plt.bet <- node.impo.df %>% 
+            ggplot(mapping = aes(x = betweenness)) +
+            theme_light() +
+            geom_histogram(fill = 'green4', alpha = 0.8, bins = 30)
+
+plot_grid(... = plt.deg, plt.clo, plt.bet, ncol = 1, align = 'v')
+```
+
+### 7.2.4 Community Detection
 
 We can try to find clusters within the network. We use the [Louvain Method](https://en.wikipedia.org/wiki/Louvain_Modularity) for community detection:
 
@@ -753,7 +811,11 @@ comm.det.obj <- cluster_louvain(graph = cc.network, weights = E(cc.network)$n)
 comm.det.obj
 ```
 
-We see that 12 groups where identified and the modularity is 0.7 (which is good, as it is close to 1). Now we encode the membership as a node atribute (zoom and click on each node to explore the clusters). 
+We see that 12 groups where identified and the [modularity](https://en.wikipedia.org/wiki/Modularity_(networks)) is 0.7 (which is good, as it is close to 1). 
+
+*Modularity is as chance-corrected statistic, and is defined as the fraction of ties that fall within the given groups minus the expected such fraction if the ties were distributed at random.* ([A User’s Guide to Network Analysis in R](https://www.springer.com/de/book/9783319238821), Section 8.3.1)
+
+Now we encode the membership as a node atribute (zoom and click on each node to explore the clusters). 
 
 ```{r}
 V(cc.network)$membership <- membership(comm.det.obj)
