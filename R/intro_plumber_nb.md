@@ -220,7 +220,7 @@ model.list <- readRDS(file = 'model_list.rds')
 #* @param wt
 #* @param qsec
 #* @param am
-#* @get /predict
+#* @post /predict
 CalculatePrediction <- function(wt, qsec, am){
   
   wt %<>% as.numeric
@@ -250,11 +250,11 @@ r <- plumb(file = 'plumber.R')
 r$run(port = 8000)
 ```
 
-We can use a `GET` request to obtain predictions. 
+We can use a `POST` request to obtain predictions. 
 
 
 ```r
-GET(url = 'http://localhost:8000/predict?am=1&qsec=16.46&wt=2.62') %>% content
+GET(url = 'http://localhost:8000/predict?am=1&qsec=16.46&wt=2.62') %>% content()
 ```
 
 ```
