@@ -1,0 +1,1584 @@
+---
+title: "satRday Berlin 2019: Remedies for Severe Class Imbalance, a Case Study"
+date: 2019-06-15
+categories: R
+tags: machine_learning
+authors: Dr. Juan Camilo Orduz
+slug: class_imbalance
+---
+
+In this post I present a concrete case study illustrating some techniques to improve model performance in class-imbalanced classification problems. The methodologies described here are based on *Chapter 16: Remedies for Severe Class Imbalance* of the (great!) book [Applied Predictive Modeling](http://appliedpredictivemodeling.com/) by Max Kuhn and Kjell Johnson. I absolutely recommend this reference to anyone interested in predictive modeling. 
+
+This notebook should serve as an extension of my talk given at [satRday Berlin 2019: A conference for R users in Berlin](https://berlin2019.satrdays.org/). 
+
+# The Data Set
+
+The data set we are going to work with is the one suggested in Exercise 16.1 of the reference mentioned above: 
+
+*The [“adult” data set](https://archive.ics.uci.edu/ml/datasets/Adult) at the [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/index.php) is derived from census records. In these data, the goal is to predict whether a person’s income was large (defined in 1994 as more than $50K) or small. The predictors include educational level, type of job (e.g., never worked, and local government), capital gains/losses, work hours per week, native country, and so on.*
+
+The data are contained in the [arules](https://cran.r-project.org/web/packages/arules/index.html) package.
+
+**Remark** The objective of this post is **not** to find the "best" predictive modeling, but rather explore the techniques to handle class imbalance. There is a large amount of literature around this concrete data set, e.g. see [this post](https://rpubs.com/H_Zhu/235617) or the [Kaggle kernels](https://www.kaggle.com/uciml/adult-census-income). 
+
+# Prepare Notebook
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=FALSE, warning=FALSE)
+```
+
+```{r}
+# Load Libraries
+library(caret)
+library(gbm)
+library(magrittr)
+library(pROC)
+library(tidyverse)
+
+# Allow parallel computation.
+library(parallel)
+library(doParallel)
+
+# Load Data
+data(AdultUCI, package = "arules")
+raw_data <- AdultUCI
+```
+
+# Data Audit
+
+Let us start with first exploration of the data set:
+
+```{r}
+# See Data Structure. 
+glimpse(raw_data)
+```
+
+The variable we are interested to predict is `income`. Let us see its distribution. 
+
+```{r}
+raw_data %>% 
+  count(income) %>% 
+  mutate(share = n / sum(n))
+```
+
+The first thing we see is that 1/3 of the data has no `income` label. 
+
+In addition, as described in the [arules](https://cran.r-project.org/web/packages/arules/index.html) package's documentation, the `fnlwgt` (final weight) and `education` can be removed from the data. The last one being another representation of the attribute `education-num`. To see this 
+
+```{r}
+raw_data %>% 
+  select(education, `education-num`) %>% 
+  table()
+```
+
+In addition, let us see the distribution (share) of the variable `country`:
+
+```{r, fig.align="center"}
+raw_data %>% 
+  count(`native-country`) %>%
+  mutate(n = n / sum(n)) %>% 
+  mutate(`native-country` = reorder(`native-country` , n)) %>% 
+  ggplot(mapping = aes(x = `native-country`, y = n)) +
+    geom_bar(stat = "identity", color = "black") + 
+    coord_flip() +
+    labs(title = "Country Distribution", x = "", y = "")
+```
+
+Most of the samples come from the United States. In a first iteration, we are going to omit this variable as well. 
+
+We therefore consider the filtered data set:
+
+```{r}
+format_raw_data <- function(df) {
+  
+  output_df_df <- df %>% 
+   filter(!is.na(income)) %>% 
+   select(- fnlwgt, - education, - `native-country`)
+  
+  return(output_df_df)
+}
+
+data_df <- format_raw_data(df = raw_data)
+```
+
+**Remark:** We could have done a deeper analysis on the `NA` values for the variable `income`, but we just drop them for simplicity. 
+
+We are going to store function, models and other parameters in a list (to be able to user later).
+
+```{r}
+# Define storing list. 
+model_list <- vector(mode = "list")
+
+model_list[["functions"]] <- list(format_raw_data = format_raw_data)
+```
+
+
+# Exploratory Data Analysis
+
+## Dependent Variable 
+
+Let us see the distribution of the `income` variable. 
+
+```{r}
+data_df %>% 
+  count(income) %>% 
+  mutate(n = n / sum(n))
+```
+
+```{r, fig.align="center"}
+data_df %>% 
+  count(income) %>% 
+  ggplot(mapping = aes(x = income, y = n, fill = income)) +
+  geom_bar(stat = "identity", color = "black") +
+  labs(title = "Income Distribution", y = "") +
+  scale_fill_brewer(palette = "Set1")
+```
+
+That is, the `income` variable is not balanced.
+
+## Independent Variables 
+
+Next we explore each predictor variable. 
+
+- Age 
+
+```{r, fig.align="center"}
+data_df %>% 
+  ggplot(mapping = aes(x = age, y = ..density.., fill = income)) +
+  geom_density(alpha = 0.8) +
+  labs(title = "Age Distribution") +
+  scale_fill_brewer(palette = "Set1")
+```
+
+```{r, fig.align="center"}
+data_df %>% 
+  ggplot(mapping = aes(x = income, y = age, fill = income)) +
+  geom_boxplot() +
+  labs(title = "Age Distribution") +
+  scale_fill_brewer(palette = "Set1")
+```
+
+It seems that the `age` attribute could potentially be a good predictor for `income`. 
+
+- Workclass 
+
+Many of the features are categorical variables, therefore we write generic functions to generate the plots. 
+
+```{r, fig.align="center"}
+get_bar_plot <- function (df, var_name, sort_cols = TRUE) {
+  
+  var_name_sym <- rlang::sym(var_name)
+  
+  count_df <- df %>% count(!!var_name_sym ) 
+  
+  if (sort_cols) {
+    count_df %<>% mutate(!!var_name_sym  := reorder(!!var_name_sym , n))
+  }
+     
+  count_df %>% 
+    ggplot(mapping = aes(x = !!var_name_sym , y = n)) +
+    geom_bar(stat = "identity", fill = "purple4") + 
+    coord_flip() +
+    labs(title = var_name) + scale_fill_brewer(palette = "Set1")
+    
+}
+
+get_bar_plot(df = data_df, var_name = "workclass")
+```
+
+```{r, fig.align="center"}
+get_split_bar_plot <- function(df, var_name, group_var_name, sort_cols = TRUE) {
+  
+  var_name_sym <- rlang::sym(var_name)
+  group_var_name_sym <- rlang::sym(group_var_name)
+  
+  count_df <- df %>% count(!!var_name_sym, !!group_var_name_sym) 
+  
+  if (sort_cols) {
+    count_df %<>% mutate(!!var_name_sym  := reorder(!!var_name_sym , n))
+  }
+  
+  count_df %>% 
+    ggplot(mapping = aes(x = !!var_name_sym, y = n, fill = !!group_var_name_sym)) +
+    geom_bar(stat = "identity", color = "black") + 
+    coord_flip() +
+    labs(title = var_name) +
+    facet_grid(cols = vars(!!group_var_name_sym)) +
+    scale_fill_brewer(palette = "Set1")
+}
+
+get_split_bar_plot(df = data_df, var_name = "workclass", group_var_name = "income")
+```
+
+```{r, fig.align="center"}
+get_stacked_bar_plot <- function(df, var_name, group_var_name, sort_cols = TRUE) {
+  
+  var_name_sym <- rlang::sym(var_name)
+  group_var_name_sym <- rlang::sym(group_var_name)
+  
+  count_df <- df %>% count(!!var_name_sym, !!group_var_name_sym) 
+  
+  if (sort_cols) {
+    count_df %<>% mutate(!!var_name_sym  := reorder(!!var_name_sym , n))
+  }
+  
+  count_df %>% 
+    ggplot(mapping = aes(x = !!var_name_sym, y = n, fill = !!group_var_name_sym)) +
+    geom_bar(stat = "identity", color = "black", position = "fill") + 
+    coord_flip() +
+    labs(title = glue::glue("{var_name} - Share")) +
+    scale_fill_brewer(palette = "Set1")
+}
+
+get_stacked_bar_plot(df = data_df, var_name = "workclass", group_var_name = "income")
+```
+
+- Education 
+
+For the `education-num` plots we keep the ranking on the axis. 
+
+```{r, fig.align="center"}
+get_bar_plot(df = data_df, var_name = "education-num", sort_cols = FALSE)
+```
+
+
+```{r, fig.align="center"}
+get_split_bar_plot(df = data_df, var_name = "education-num", group_var_name = "income", sort_cols = FALSE)
+```
+
+```{r, fig.align="center"}
+get_stacked_bar_plot(df = data_df, var_name = "education-num", group_var_name = "income", sort_cols = FALSE)
+```
+
+This plot shows that `education-num` might be a good predictor. 
+
+- Marital Status
+
+```{r, fig.align="center"}
+get_bar_plot(df = data_df, var_name = "marital-status")
+```
+
+
+```{r, fig.align="center"}
+get_split_bar_plot(df = data_df, var_name = "marital-status", group_var_name = "income")
+```
+
+```{r}
+get_stacked_bar_plot(df = data_df, var_name = "marital-status", group_var_name = "income")
+```
+
+
+- Occupation
+
+```{r, fig.align="center"}
+get_bar_plot(df = data_df, var_name = "occupation")
+```
+
+
+```{r, fig.align="center"}
+get_split_bar_plot(df = data_df, var_name = "occupation", group_var_name = "income")
+```
+
+```{r, fig.align="center"}
+get_stacked_bar_plot(df = data_df, var_name = "occupation", group_var_name = "income")
+```
+
+- Relationship
+
+```{r, fig.align="center"}
+get_bar_plot(df = data_df, var_name = "relationship")
+```
+
+
+```{r, fig.align="center"}
+get_split_bar_plot(df = data_df, var_name = "relationship", group_var_name = "income")
+```
+
+```{r, fig.align="center"}
+get_stacked_bar_plot(df = data_df, var_name = "relationship", group_var_name = "income")
+```
+
+- Race
+
+```{r, fig.align="center"}
+get_bar_plot(df = data_df, var_name = "race")
+```
+
+
+```{r, fig.align="center"}
+get_split_bar_plot(df = data_df, var_name = "race", group_var_name = "income")
+```
+
+```{r, fig.align="center"}
+get_stacked_bar_plot(df = data_df, var_name = "race", group_var_name = "income")
+```
+
+- Sex 
+
+```{r, fig.align="center"}
+get_bar_plot(df = data_df, var_name = "sex")
+```
+
+
+```{r, fig.align="center"}
+get_split_bar_plot(df = data_df, var_name = "sex", group_var_name = "income")
+```
+
+```{r, fig.align="center"}
+get_stacked_bar_plot(df = data_df, var_name = "sex", group_var_name = "income")
+```
+
+The variable `sex` might also be a good predictor. 
+
+- Capital Gain
+
+We transform the `capital-gain` and `capital-loss` via $x\mapsto \log(x + 1)$ to overcome the skewness of their distribution. 
+
+```{r, fig.align="center"}
+data_df %>% 
+  ggplot(mapping = aes(x = log(`capital-gain` + 1), y = ..density.., fill = income)) +
+  geom_density(alpha = 0.8) +
+  labs(title = "Log Capital Gain") +
+  scale_fill_brewer(palette = "Set1")
+```
+
+```{r, fig.align="center"}
+data_df %>% 
+  ggplot(mapping = aes(x = log(`capital-gain` + 1), y = age, fill = income)) +
+  geom_boxplot() +
+  labs(title = "Log Capital Gain") +
+  scale_fill_brewer(palette = "Set1")
+```
+
+- Capital Loss
+
+```{r, fig.align="center"}
+data_df %>% 
+  ggplot(mapping = aes(x = log(`capital-loss` + 1), y = ..density.., fill = income)) +
+  geom_density(alpha = 0.8) +
+  labs(title = "Capital Loss") +
+  scale_fill_brewer(palette = "Set1")
+```
+
+```{r, fig.align="center"}
+data_df %>% 
+  ggplot(mapping = aes(x = log(`capital-loss` + 1), y = age, fill = income)) +
+  geom_boxplot() +
+  labs(title = "Log Capital Loss") +
+  scale_fill_brewer(palette = "Set1")
+```
+
+- Hours per Week
+
+```{r, fig.align="center"}
+data_df %>% 
+  ggplot(mapping = aes(x = `hours-per-week`, y = ..density.., fill = income)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Hours per Week") +
+  scale_fill_brewer(palette = "Set1")
+```
+
+```{r, fig.align="center"}
+data_df %>% 
+  ggplot(mapping = aes(x = `hours-per-week`, y = age, fill = income)) +
+  geom_boxplot() +
+  labs(title = "Hours per Week") +
+  scale_fill_brewer(palette = "Set1")
+```
+
+# Feature Engineering 
+
+We save the transformations into a function (to be applied to new data). 
+
+```{r}
+transform_data <- function (df) {
+  
+  output_df <- df %>% 
+    mutate(capital_gain_log = log(`capital-gain` + 1), 
+           capital_loss_log = log(`capital-loss` + 1)) %>% 
+    select(- `capital-gain`, - `capital-loss`) %>% 
+    drop_na()
+  
+  return(output_df)
+}
+
+df <- transform_data(df = data_df)
+```
+
+Next, we format the data so that it is usable for machine learning models. 
+
+```{r}
+format_data <- function (df) {
+  
+  # Define observation matrix and target vector. 
+  X <- df %>% select(- income)
+  y <- df %>% pull(income) %>% fct_rev()
+  
+  # Add dummy variables. 
+  dummy_obj <- dummyVars("~ .", data = X, sep = "_")
+  
+  X <- predict(object = dummy_obj, newdata = X) %>% as_tibble()
+  
+  # Remove predictors with near zero variance. 
+  cols_to_rm <- colnames(X)[nearZeroVar(x = X, freqCut = 5000)]
+  
+  X %<>% select(- cols_to_rm) 
+  
+  return(list(X = X, y = y))
+}
+
+format_data_list <- format_data(df = df)
+
+X <- format_data_list$X
+y <- format_data_list$y
+```
+
+```{r}
+# Add function to model list. 
+model_list$functions$transform_data <- transform_data
+model_list$functions$format_data <- format_data
+```
+
+
+# Data Split 
+
+Let us now split the data. We are interested in generating three partitions:
+
+- Training Set: Data to fit the model. 
+- Evaluation Set: Data used post-processing techniques. 
+- Test Set: Data used to evaluate model performance. 
+
+```{r}
+# Set seed to make results reproducible. 
+seed <-  set.seed(seed = 1)
+
+model_list$seed <- seed
+
+split_data <- function (X, y) {
+  
+  # Split train - other
+  split_index_1 <- createDataPartition(y = y, p = 0.7)$Resample1
+  
+  X_train <- X[split_index_1, ]
+  y_train <- y[split_index_1]
+  
+  X_other <- X[- split_index_1, ]
+  y_other <- y[- split_index_1]
+  
+  split_index_2 <- createDataPartition(y = y_other, p = 1/3)$Resample1
+  
+  # Split evaluation - test
+  X_eval <- X_other[split_index_2, ]
+  y_eval <- y_other[split_index_2]
+  
+  X_test <- X_other[- split_index_2, ]
+  y_test <- y_other[- split_index_2]
+  
+  output_list <- list(
+    
+    X_train = X_train,
+    y_train = y_train, 
+    X_eval = X_eval,
+    y_eval = y_eval, 
+    X_test = X_test,
+    y_test = y_test
+    
+  )
+  
+  return(output_list)
+}
+
+split_data_list <- split_data(X = X, y = y)
+
+X_train <- split_data_list$X_train
+y_train <- split_data_list$y_train
+
+X_eval <- split_data_list$X_eval
+y_eval <- split_data_list$y_eval
+
+X_test <- split_data_list$X_test
+y_test <- split_data_list$y_test
+```
+
+```{r}
+# Add function to model list. 
+model_list$functions$split_data <- split_data
+```
+
+
+# Performance Metrics 
+
+Before the model fit process, let us briefly recall some common performance metrics for classification problems.
+
+- [Confision Matrix](https://en.wikipedia.org/wiki/Confusion_matrix) 
+
+```{r, fig.align="center", echo=FALSE}
+tibble(
+  ` ` = c("Prediction Positive", "Prediction Negative"),
+  `Condition Positive` = c("TP", "FN"), 
+  `Condition Negative` = c("FP", "TN"), 
+) %>% knitr::kable(align = c("l", "c", "c")) %>% 
+  kableExtra::kable_styling(position = "center")
+```
+
+  - TP = True Positive
+  - TN = True Negative 
+  - FP = False Positive
+  - FN = False Negative
+  - N = TP + TN + FP + FN
+
+- Accuracy 
+
+$$
+\text{acc} = \frac{TP + TN}{N}
+$$
+
+- [Kappa](https://en.wikipedia.org/wiki/Cohen%27s_kappa) 
+
+$$
+\kappa = \frac{p_o - p_e}{1 - p_e}
+$$
+where 
+
+  - $p_e$ = Expected Accuracy (random chance).
+  - $p_o$ = Observed Accuracy. 
+  
+The kappa metric can be thought as a modification of the accuracy metric based on the class proportions. 
+
+- [Sensitivity and Specitivity](https://en.wikipedia.org/wiki/Sensitivity_and_specificity)
+
+  - Sensitivity
+
+$$
+\text{sens} = \frac{TP}{TP + FN}
+$$
+
+  - Specitivity
+
+$$
+\text{spec} = \frac{TN}{TN + FP}
+$$
+
+- AUC
+
+This metric refers to the area under the curve of the [ROC](https://en.wikipedia.org/wiki/Receiver_operating_characteristic) curve. It does not depend on the cutoff probability threshold for the predicted classes. 
+
+# Prediction Models
+
+Next, we are going to train various machine learning models to compare performance and explore some techniques to overcome the class imbalance problem. We will start with very simple models in order to benchmark the performance metrics discussed above. 
+
+## Trivial Model
+
+Let us consider the model which always predicts `income` = `small`.
+
+```{r}
+y_pred_trivial <- map_chr(.x = y_test, .f = ~ "small") %>% 
+  as_factor(ordered = TRUE, levels = c("small", "large"))
+
+# Confusion Matrix. 
+conf_matrix_trivial <-  confusionMatrix(data = y_pred_trivial, reference =  y_test)
+conf_matrix_trivial
+```
+
+Note that the accuracy is 0.75. Nevertheless, both kappa and the senitivity metrics vanish. Let us see the ROC curve:
+
+```{r, fig.align="center"}
+roc_curve_trivial <- roc(response = y_test, predictor = rep(0, length(y_pred_trivial)))
+
+auc_trivial <- roc_curve_trivial %>% 
+  auc() %>% 
+  round(digits = 3)
+
+plot(roc_curve_trivial)
+title(main = str_c("Trivial Model - ROC AUC (Test Set) = ", auc_trivial))
+```
+
+## Random Model
+
+Next, Let us now generate random predictions based on the proportion of the target variable. 
+
+```{r}
+prop <- sum(y_train == "large") / length(y_train)
+
+y_pred_random_num <- rbernoulli(n = length(y_test), p = prop) %>% as.numeric()
+
+y_pred_random <- y_pred_random_num %>% 
+  map_chr(.f = ~ ifelse(test = (.x == 0), yes = "small", no = "large")) %>% 
+  as_factor(ordered = TRUE, levels = c("small", "large"))
+
+# Confusion Matrix. 
+conf_matrix_random <-  confusionMatrix(data = y_pred_random, reference =  y_test)
+conf_matrix_random
+```
+
+Note that the accuracy in this case is 0.63 (still above 0.5). Also, we see how this random model has a non-vanishing sensitivity. Moreover, note that the sentitivity and specificity concide (approximately) with the parameter `prop` and 1 - `prop` respectively. 
+
+```{r, fig.align="center"}
+roc_curve_random <- roc(response = y_test, predictor = y_pred_random_num)
+
+auc_random <- roc_curve_random %>% 
+  auc() %>% 
+  round(digits = 3)
+
+plot(roc_curve_random)
+title(main = str_c("Random Model - ROC AUC (Train) = ", auc_random))
+```
+
+## Set Sampling Method
+
+Now we want to train models with non-trivial prediction power. In order to avoid overfitting, we are going to define a cross-validation schema. 
+
+```{r}
+# We use the same wrapper functions for the summara functions as Section 16.9 (Computing)
+
+ five_stats <- function (...) {
+  
+  c(twoClassSummary(...), defaultSummary(...))
+  
+}
+
+four_stats <- function (data, lev = levels(data$obs), model = NULL) {
+  
+  acc_kapp <- postResample(pred = data[, "pred"], obs = data[, "obs"])
+  
+  out <- c(
+    acc_kapp, 
+    sensitivity(pred = data[, "pred"], obs = data[, "obs"], reference = lev[1]), 
+    specificity(pred = data[, "pred"], obs = data[, "obs"], reference = lev[2])
+  )
+  
+  names(out)[3:4] <- c("Sens", "Spec")
+  
+  return(out)
+}
+
+# Define cross valitatilon.
+cv_num <- 7
+
+train_control <- trainControl(method = "cv",
+                              number = cv_num,
+                              classProbs = TRUE, 
+                              summaryFunction = five_stats,
+                              allowParallel = TRUE, 
+                              verboseIter = FALSE)
+
+# Change summaryFunction and set classProbs = False. 
+train_control_no_prob <- train_control
+train_control_no_prob$summaryFunction <- four_stats
+train_control_no_prob$classProbs <- FALSE
+```
+
+## PLS + Logistic Regression
+
+The first model we are going to train is a [logistic regression](https://en.wikipedia.org/wiki/Logistic_regression). As we might have multicollinearity, we run [partial least squares](https://en.wikipedia.org/wiki/Partial_least_squares_regression) to reduce the dimension of the predictor space (we also scale and center). The *number of components* to select is an hyperparameter which we tune via cross-validation. Let us select `Accuracy` as the metric to evaluate model performance.
+
+```{r}
+# Parallel Computation.
+cl <- makePSOCKcluster(detectCores())
+registerDoParallel(cl)
+
+# Train model.
+pls_model_1 <- train(x = X_train,
+                     y = y_train,
+                     method = "pls",
+                     family = binomial(link = "logit"), 
+                     tuneLength = 10,
+                     preProcess = c("scale", "center"), 
+                     trControl = train_control,
+                     metric = "Accuracy")
+
+stopCluster(cl)
+```
+
+```{r}
+model_list$models <- list(pls_model_1 = pls_model_1)
+pls_model_1
+```
+
+Let us plot the cross-valitation results:
+
+```{r, fig.align="center"}
+plot(pls_model_1)
+```
+
+```{r}
+# Number of components. 
+pls_model_1$finalModel$ncomp
+```
+
+Let us generate predictions on the test set. 
+
+```{r}
+get_pred_df <- function(model_obj, X, threshold = 0.5) {
+  
+  y_pred_num <- predict(object = model_obj, newdata = X, type = "prob") %>% pull(large)
+  
+  y_pred <- y_pred_num %>% 
+    map_chr(.f = ~ ifelse(test = .x > threshold, yes = "large", no = "small")) %>% 
+    as_factor()
+
+  pred_df <- tibble(
+    y_test = y_test,  
+    y_test_num = map_dbl(.x = y_test, 
+                         .f =  ~ ifelse(test = (.x == "small"), yes = 0, no = 1)), 
+    y_pred = y_pred, 
+    y_pred_num
+  )
+  
+  return(pred_df)
+}
+```
+
+
+```{r}
+pred_df <- get_pred_df(model_obj = pls_model_1, X = X_test)
+# Confusion Matrix. 
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, reference =  y_test)
+conf_matrix_test
+```
+
+Note that the sensitivity is around 0.56. This shows that this model does is very conservative when trying to predict a `large` label. Let us see this through the predicted distributions.
+
+```{r, fig.align="center"}
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5, 
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4") +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - PLS Model 1 (Max Accuracy)", 
+       subtitle = "Prediction Cut = 0.5", 
+       x = "test label", 
+       y = "predicted probability")
+```
+
+```{r, fig.align="center"}
+roc_curve_test <- roc(response = y_test, 
+                      pred_df$y_pred_num, 
+                      levels = c("small", "large"))
+
+auc_pls <- roc_curve_test %>% 
+  auc() %>% 
+  round(digits = 3)
+
+plot(roc_curve_test)
+title(main = str_c("PLS Model 1 - ROC AUC (Test) = ", auc_pls))
+```
+
+## Generalized Boosted Regression Model (GBM)
+
+Now we consider a boosted tree model (stochastic gradient boosting), see [gbm](https://cran.r-project.org/web/packages/gbm/index.html). There are some hyperparameters to tune:
+
+- `n.trees`
+- `interaction.depth`
+- `shrinkage` (kept constant)
+- `n.minobsinnode`(kept constant)
+
+```{r}
+# Parallel Computation.
+cl <- makePSOCKcluster(detectCores())
+registerDoParallel(cl)
+
+# Train model.
+gbm_model_1 <- train(x = X_train,
+                     y = y_train,
+                     method = "gbm",
+                     tuneLength = 7,
+                     trControl = train_control,
+                     metric = "Accuracy", 
+                     verbose = FALSE)
+
+stopCluster(cl)
+```
+
+```{r}
+model_list$models$gbm_model_1 <- gbm_model_1
+gbm_model_1
+```
+
+Let us generate predictions on the test set. 
+
+```{r}
+pred_df <- get_pred_df(model_obj = gbm_model_1, X = X_test)
+# Confusion Matrix. 
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, reference =  y_test)
+conf_matrix_test
+```
+
+The accuracy, the sesitivity and specificity are higher that the pls model above. Let us see the predicted distribution on the test set. 
+
+```{r, fig.align="center"}
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5, 
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4", show.legend = TRUE) +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - GBM Model 1 (Max Accuracy)", 
+       subtitle = "Prediction Cut = 0.5", 
+       x = "test label", 
+       y = "predicted probability")
+```
+
+```{r, fig.align="center"}
+roc_curve_test <- roc(response = y_test, 
+                      pred_df$y_pred_num, 
+                      levels = c("small", "large"))
+
+auc_gbm <- roc_curve_test %>% 
+  auc() %>% 
+  round(digits = 3)
+
+plot(roc_curve_test)
+title(main = str_c("GBM Model 1 - ROC AUC (Test) = ", auc_gbm))
+```
+
+Let us compute the variable importance ranking for this model. 
+
+```{r, fig.align="center"}
+gbm_model_1$finalModel %>% 
+  varImp() %>% 
+  rownames_to_column(var = "Variable") %>% 
+  mutate(Overall = Overall / sum(Overall)) %>% 
+  mutate(Variable = reorder(Variable, Overall)) %>% 
+  arrange(- Overall) %>% 
+  head(15) %>% 
+  ggplot(mapping = aes(x = Variable, y = Overall)) +
+  geom_bar(stat = "identity", fill = "dark green") + 
+  ggtitle(label = 'GBM Model 1 -Variable Importance - Top 15') +
+  coord_flip()
+```
+
+Overall, we see that the gbm model has better metrics than the pls model. 
+
+# Remedies for Class Imbalance
+
+"The simplest approach to counteracting the negative effects of class imbalance is to tune the model to maximize the accuracy of the minority class" [Applied Predictive Modeling, Section 16.3](http://appliedpredictivemodeling.com/). To do this we set `metric` = "Sens" in the [tain](https://www.rdocumentation.org/packages/caret/versions/4.47/topics/train) function. 
+
+## Model Fit - Maximize Sensitivity
+
+- PLS Model
+
+```{r}
+# Parallel Computation.
+cl <- makePSOCKcluster(detectCores())
+registerDoParallel(cl)
+
+# Train model.
+pls_model_2 <- train(x = X_train,
+                     y = y_train,
+                     method = "pls",
+                     family = binomial(link = "logit"), 
+                     tuneLength = 10,
+                     preProcess = c("scale", "center"), 
+                     trControl = train_control,
+                     metric = "Sens", 
+                     verbose = FALSE)
+
+stopCluster(cl)
+```
+
+```{r}
+model_list$models$pls_model_2 = pls_model_2
+pls_model_2
+```
+
+Let us see the performance metrics on the test set. 
+
+```{r}
+pred_df <- get_pred_df(model_obj = pls_model_2, X = X_test)
+# Confusion Matrix. 
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, reference =  y_test)
+conf_matrix_test
+```
+
+We do not see a significant increase in sensitivity. 
+
+Let us plot the predicted probability distributions on the test set. 
+
+```{r, fig.align="center"}
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5, 
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4", show.legend = TRUE) +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - PLS Model 2 (Max Sens)", 
+       subtitle = "Prediction Cut = 0.5", 
+       x = "test label", 
+       y = "predicted probability")
+```
+
+- GBM Model
+
+We proceed in a similar way for the gbm model. 
+
+```{r}
+# Parallel Computation.
+cl <- makePSOCKcluster(detectCores())
+registerDoParallel(cl)
+
+# Train model.
+gbm_model_2 <- train(x = X_train,
+                     y = y_train,
+                     method = "gbm",
+                     tuneLength = 7,
+                     trControl = train_control,
+                     metric = "Sens", 
+                     verbose = FALSE)
+
+stopCluster(cl)
+```
+
+```{r}
+model_list$models$gbm_model_2 <- gbm_model_2
+```
+
+Let us see the sensitivity as a function of the `n.trees` and `interaction.depth`. 
+
+```{r, fig.align="center"}
+gbm_model_2$results %>% 
+  ggplot(mapping = aes(x = n.trees, y = Sens, color  = interaction.depth)) +
+  geom_point() +
+  labs(title = "Model Sensitivity") 
+```
+
+We see a positive trends which stabilizes.
+
+Let us see the metrics on the test set. 
+
+```{r}
+pred_df <- get_pred_df(model_obj = gbm_model_2, X = X_test)
+# Confusion Matrix. 
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, reference =  y_test)
+conf_matrix_test
+```
+
+We do not see a significant increase in sensitivity. 
+
+```{r, fig.align="center"}
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5, 
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4") +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - GBM Model 2 (Max Sens)", 
+       subtitle = "Prediction Cut = 0.5", 
+       x = "test label", 
+       y = "predicted probability")
+```
+
+## Model Fit - Alternate Cutoffs
+
+We can use the ROC curve to select an alternative cutoff to label the predicted classes [Applied Predictive Modeling, Section 16.4](http://appliedpredictivemodeling.com/). It is important to do this cutoff selection on the evaluation set. 
+
+- PLS Model
+
+```{r}
+# Parallel Computation.
+cl <- makePSOCKcluster(detectCores())
+registerDoParallel(cl)
+
+# Train model.
+pls_model_3 <- train(x = X_train,
+                     y = y_train,
+                     method = "pls",
+                     family = binomial(link = "logit"), 
+                     tuneLength = 10,
+                     preProcess = c("scale", "center"), 
+                     trControl = train_control,
+                     metric = "ROC", 
+                     verbose = FALSE)
+
+stopCluster(cl)
+```
+
+```{r}
+model_list$models$pls_model_3 = pls_model_3
+```
+
+Let us see the metrics and ROC curve of the evaluation set:
+
+```{r}
+y_pred_eval <- predict(object = pls_model_3, newdata = X_eval, type = "prob") %>% 
+  pull(large) %>% 
+  # If the probability is larger than 0.5 we predict large. 
+  map_chr(.f = ~ ifelse(test = .x > 0.5, yes = "large", no = "small")) %>% 
+  as_factor()
+
+# Confusion Matrix. 
+conf_matrix_eval <- confusionMatrix(data = y_pred_eval, reference =  y_eval)
+conf_matrix_eval
+```
+
+```{r, fig.align="center"}
+y_pred_eval_num <- predict(object = pls_model_3, newdata = X_eval, type = "prob") %>% pull(large)
+  
+roc_curve_eval <- roc(response = y_eval, 
+                      predictor = y_pred_eval_num,
+                      levels = c("small", "large"))
+
+auc_pls <- roc_curve_eval %>% 
+  auc() %>% 
+  round(digits = 3)
+
+plot(roc_curve_eval)
+title(main = str_c("PLS Model 3 - ROC AUC (Eval) = ", auc_pls))
+```
+
+We can use the ROC curve to select the most appropiate prediction cutoff. Depending on the specific prediction problem, one could try to find a balance between sensitivity and specificity. One possibility is to choose the closest point of the ROC curve to the to the upper left corner.  
+
+```{r}
+best_point_eval <- coords(
+  roc = roc_curve_eval, x = "best", 
+   best.method = "closest.topleft"
+)
+
+model_list$best_point <- list(pls_model_3 = best_point_eval)
+
+best_point_eval
+```
+
+```{r, fig.align="center"}
+# Get points to plot the ROC curve. 
+all_roc_coords <- coords(roc = roc_curve_eval, x = "all", as.list = FALSE)
+
+all_roc_cords_df <- all_roc_coords %>% 
+  t() %>%  
+  as_tibble()
+
+all_roc_cords_df %>% 
+  ggplot() +
+  geom_line(mapping = aes(x = 1- specificity, y = sensitivity)) +
+  geom_abline(slope = 1, intercept = 0, linetype = 2) +
+  geom_point(mapping = aes(x = (1- best_point_eval[["specificity"]]), 
+                           y = best_point_eval[["sensitivity"]], 
+                           color = "optimal point"), 
+             
+             size = 4) +
+  geom_point(mapping = aes(x = (1 - conf_matrix_eval$byClass[["Specificity"]]), 
+                           y = conf_matrix_eval$byClass[["Sensitivity"]], 
+                           color = "initial cutoff"),
+             size = 4) +
+  labs(title = "PLS Model 3 - ROC Curve (Eval)") 
+```
+
+Let us now evaluate the model predictions with this new cutoff point on the test set:
+
+```{r, fig.align="center"}
+pred_df <- get_pred_df(model_obj = pls_model_3, X = X_test, threshold = best_point_eval["threshold"])
+
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5,
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4") +
+  geom_abline(slope = 0, 
+              intercept = best_point_eval["threshold"], 
+              linetype = 2, 
+              color = "dark green") +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - PLS Model 3 (New Cutoff)", 
+       subtitle = str_c("Prediction Cut = ", round(best_point_eval["threshold"], 3)), 
+       x = "test label", 
+       y = "predicted probability")
+```
+
+```{r}
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, reference =  y_test)
+conf_matrix_test
+```
+
+We indeed see that the sensitivity increases to around 0.8 on the test set. The tradeoff is a decrease in specificity.
+
+- GBM Model
+
+```{r}
+# Parallel Computation.
+cl <- makePSOCKcluster(detectCores())
+registerDoParallel(cl)
+
+# Train model.
+gbm_model_3 <- train(x = X_train,
+                     y = y_train,
+                     method = "gbm",
+                     tuneLength = 7,
+                     trControl = train_control,
+                     metric = "ROC", 
+                     verbose = FALSE)
+
+stopCluster(cl)
+```
+
+```{r}
+model_list$models$gbm_model_3 = gbm_model_3
+```
+
+Let us see the metrics and ROC curve of the evaluation set:
+
+```{r}
+y_pred_eval <- predict(object = gbm_model_3, newdata = X_eval, type = "prob") %>% 
+  pull(large) %>% 
+  # If the probability is larger than 0.5 we predict large. 
+  map_chr(.f = ~ ifelse(test = .x > 0.5, yes = "large", no = "small")) %>% 
+  as_factor()
+
+# Confusion Matrix. 
+conf_matrix_eval <- confusionMatrix(data = y_pred_eval, reference =  y_eval)
+conf_matrix_eval
+```
+
+```{r, fig.align="center"}
+y_pred_eval_num <- predict(object = gbm_model_3, newdata = X_eval, type = "prob") %>% pull(large)
+  
+roc_curve_eval <- roc(response = y_eval, 
+                      predictor = y_pred_eval_num,
+                      levels = c("small", "large"))
+
+auc_gbm <- roc_curve_eval %>% 
+  auc() %>% 
+  round(digits = 3)
+
+plot(roc_curve_eval)
+title(main = str_c("GBM Model 3 - ROC AUC (Eval) = ", auc_gbm))
+```
+
+```{r}
+best_point_eval <- coords(
+  roc = roc_curve_eval, x = "best", 
+   best.method = "closest.topleft"
+)
+
+model_list$best_point$gbm_model_3 <- best_point_eval
+
+best_point_eval
+```
+
+```{r, fig.align="center"}
+# Get points to plot the ROC curve. 
+all_roc_coords <- coords(roc = roc_curve_eval, x = "all", as.list = FALSE)
+
+all_roc_cords_df <- all_roc_coords %>% 
+  t() %>%  
+  as_tibble()
+
+all_roc_cords_df %>% 
+  ggplot() +
+  geom_line(mapping = aes(x = 1- specificity, y = sensitivity)) +
+  geom_abline(slope = 1, intercept = 0, linetype = 2) +
+  geom_point(mapping = aes(x = (1- best_point_eval[["specificity"]]), 
+                           y = best_point_eval[["sensitivity"]], 
+                           color = "optimal point"), 
+             
+             size = 4) +
+  geom_point(mapping = aes(x = (1 - conf_matrix_eval$byClass[["Specificity"]]), 
+                           y = conf_matrix_eval$byClass[["Sensitivity"]], 
+                           color = "initial cutoff"),
+             size = 4) +
+  labs(title = "GBM Model 3 - ROC Curve (Eval)") 
+```
+
+Let us now evaluate the model predictions with this new cutoff point on the test set:
+
+```{r, fig.align="center"}
+pred_df <- get_pred_df(model_obj = gbm_model_3, X = X_test, threshold = best_point_eval["threshold"])
+
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5,
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4") +
+  geom_abline(slope = 0, 
+              intercept = best_point_eval["threshold"], 
+              linetype = 2, 
+              color = "dark green") +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - GBM Model 3 (New Cutoff)", 
+       subtitle = str_c("Prediction Cut = ", round(best_point_eval["threshold"], 3)), 
+       x = "test label", 
+       y = "predicted probability")
+```
+
+```{r}
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred , reference =  y_test)
+conf_matrix_test
+```
+
+In this case, the sensitivity increases to around 0.86. This model is appropiated if sensitivity is the most relevant metric for the application.
+
+# Sampling Methods
+
+Next, we explore sampling methods. The aim is to balance the class frequency in the training set itself 
+[Applied Predictive Modeling, Section 16.7](http://appliedpredictivemodeling.com/).
+
+- **Up-sampling** is any technique that simulates or imputes additional data points to improve balance across classes.
+- **Down-sampling** is any technique that reduces the number of samples to improve the balance across classes. 
+
+We explore the effect of up-sampling. 
+
+## Up Sampling
+
+```{r}
+# Generate new training set. 
+df_upSample_train <- upSample(x = X_train, 
+                             y = y_train, 
+                             yname = "income")
+
+X_upSample_train <- df_upSample_train %>% select(- income) 
+y_upSample_train <- df_upSample_train %>% pull(income) 
+
+# Get new training data dimension. 
+dim(df_upSample_train)
+```
+
+Let us see the class count:
+
+```{r}
+table(df_upSample_train$income)
+```
+
+Now we train the models on this new training data. 
+
+- PLS Model
+
+```{r}
+# Parallel Computation.
+cl <- makePSOCKcluster(detectCores())
+registerDoParallel(cl)
+
+# Train model.
+pls_model_4 <- train(x = X_upSample_train,
+                     y = y_upSample_train,
+                     method = "pls",
+                     family = binomial(link = "logit"), 
+                     tuneLength = 10,
+                     preProcess = c("scale", "center"), 
+                     trControl = train_control,
+                     metric = "ROC", 
+                     verbose = FALSE)
+
+stopCluster(cl)
+```
+
+```{r}
+model_list$models$pls_model_4 = pls_model_4
+```
+
+```{r}
+pred_df <- get_pred_df(model_obj = pls_model_4, X = X_test)
+# Confusion Matrix. 
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, reference =  y_test)
+conf_matrix_test
+```
+
+For this model, the sensitivity is higher than the one obtained after optimizing the probability cutoff. 
+
+```{r, fig.align="center"}
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5, 
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4", show.legend = TRUE) +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - PLS Model 4 (Up Sampling)", 
+       subtitle = "Prediction Cut = 0.5", 
+       x = "test label", 
+       y = "predicted probability")
+```
+
+```{r, fig.align="center"}
+roc_curve_test <- roc(response = y_test, 
+                      pred_df$y_pred_num, 
+                      levels = c("small", "large"))
+
+auc_pls <- roc_curve_test %>% 
+  auc() %>% 
+  round(digits = 3)
+
+plot(roc_curve_test)
+title(main = str_c("PLS Model 4 - ROC AUC (Test) = ", auc_pls))
+```
+
+- GBM Model
+
+```{r}
+# Parallel Computation.
+cl <- makePSOCKcluster(detectCores())
+registerDoParallel(cl)
+
+# Train model.
+gbm_model_4 <- train(x = X_upSample_train,
+                     y = y_upSample_train,
+                     method = "gbm",
+                     tuneLength = 7,
+                     trControl = train_control,
+                     metric = "ROC", 
+                     verbose = FALSE)
+
+stopCluster(cl)
+```
+
+```{r}
+model_list$models$gbm_model_4 = gbm_model_4 
+```
+
+```{r}
+pred_df <- get_pred_df(model_obj = gbm_model_4 , X = X_test)
+# Confusion Matrix. 
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, reference =  y_test)
+conf_matrix_test
+```
+
+```{r, fig.align="center"}
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5, 
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4", show.legend = TRUE) +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - GBM Model 4 (Up Sampling)", 
+       subtitle = "Prediction Cut = 0.5", 
+       x = "test label", 
+       y = "predicted probability")
+```
+
+```{r, fig.align="center"}
+roc_curve_test <- roc(response = y_test, 
+                      pred_df$y_pred_num, 
+                      levels = c("small", "large"))
+
+auc_gbm <- roc_curve_test %>% 
+  auc() %>% 
+  round(digits = 3)
+
+plot(roc_curve_test)
+title(main = str_c("GBM Model 4 - ROC AUC (Test) = ", auc_gbm))
+```
+
+## SMOTE
+
+"The synthetic minority over-sampling technique (SMOTE) is a data sampling procedure that uses both up-sampling and down-sampling, depending on the class, and has three operational paameters: the amount of up-sampling, the amount of down-sampling, and the number of neighbors that are used to impute new cases. To up-sample for the minority class, SMOTE synthesizes new cases. To do this, a data point is randomly selected from the minority class and its K-nearest neighbors are determined". [Applied Predictive Modeling, Section 16.7](http://appliedpredictivemodeling.com/)
+
+```{r}
+# Get new training set.
+df_smote_train <-  DMwR::SMOTE(
+  form = income ~ ., 
+  data = as.data.frame(bind_cols(income = y_train, X_train))
+)
+
+X_smote_train <- df_smote_train  %>% select(- income) 
+y_smote_train <- df_smote_train  %>% pull(income) 
+
+# Get new training data dimension. 
+dim(df_smote_train)
+```
+
+```{r}
+table(df_smote_train$income)
+```
+
+- PLS Model
+
+```{r}
+# Parallel Computation.
+cl <- makePSOCKcluster(detectCores())
+registerDoParallel(cl)
+
+# Train model.
+pls_model_5 <- train(x = X_smote_train,
+                     y = y_smote_train,
+                     method = "pls",
+                     family = binomial(link = "logit"), 
+                     tuneLength = 10,
+                     preProcess = c("scale", "center"), 
+                     trControl = train_control,
+                     metric = "ROC", 
+                     verbose = FALSE)
+
+stopCluster(cl)
+```
+
+```{r}
+model_list$models$pls_model_5 = pls_model_5
+```
+
+```{r}
+pred_df <- get_pred_df(model_obj = pls_model_5 , X = X_test)
+# Confusion Matrix. 
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, reference =  y_test)
+conf_matrix_test
+```
+
+```{r, fig.align="center"}
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5, 
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4", show.legend = TRUE) +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - PLS Model 5 (SMOTE)", 
+       subtitle = "Prediction Cut = 0.5", 
+       x = "test label", 
+       y = "predicted probability")
+```
+
+```{r, fig.align="center"}
+roc_curve_test <- roc(response = y_test, 
+                      pred_df$y_pred_num, 
+                      levels = c("small", "large"))
+
+auc_pls <- roc_curve_test %>% 
+  auc() %>% 
+  round(digits = 3)
+
+plot(roc_curve_test)
+title(main = str_c("PLS Model 5 - ROC AUC (Test) = ", auc_pls))
+```
+
+- GBM Model
+
+```{r}
+# Parallel Computation.
+cl <- makePSOCKcluster(detectCores())
+registerDoParallel(cl)
+
+# Train model.
+gbm_model_5 <- train(x = X_smote_train,
+                     y = y_smote_train,
+                     method = "gbm",
+                     tuneLength = 7,
+                     trControl = train_control,
+                     metric = "ROC", 
+                     verbose = FALSE)
+
+stopCluster(cl)
+```
+
+```{r}
+model_list$models$gbm_model_5 = gbm_model_5
+```
+
+```{r}
+pred_df <- get_pred_df(model_obj = gbm_model_5 , X = X_test)
+# Confusion Matrix. 
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, reference =  y_test)
+conf_matrix_test
+```
+
+```{r, fig.align="center"}
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5, 
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4", show.legend = TRUE) +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - GBM Model 5 (SMOTE)", 
+       subtitle = "Prediction Cut = 0.5", 
+       x = "test label", 
+       y = "predicted probability")
+```
+
+```{r, fig.align="center"}
+roc_curve_test <- roc(response = y_test, 
+                      pred_df$y_pred_num, 
+                      levels = c("small", "large"))
+
+auc_gbm <- roc_curve_test %>% 
+  auc() %>% 
+  round(digits = 3)
+
+plot(roc_curve_test)
+title(main = str_c("GBM Model 5 - ROC AUC (Test) = ", auc_gbm))
+```
+
+# Model Summary
+
+Let us parse the model results. 
+
+```{r}
+models_summary <- names(model_list$models) %>% 
+  
+  map_df(.f = function(m_name) {
+    
+    m <- model_list$models[[m_name]]
+    
+    m_threshold <- 0.5
+    
+    if (m_name %in% names(model_list$best_point)) {
+      
+      m_threshold <- model_list$best_point[[m_name]][["threshold"]]
+      
+    }
+    
+    y_pred <- predict(object = m , newdata = X_test, type = "prob") %>% 
+    pull(large) %>% 
+    # If the probability is larger than 0.5 we predict large. 
+    map_chr(.f = ~ ifelse(test = .x > m_threshold, yes = "large", no = "small")) %>% 
+    as_factor()
+  
+    # Confusion Matrix. 
+    conf_matrix_test <- confusionMatrix(data = y_pred, reference =  y_test)
+    
+    conf_matrix_test$byClass %>% 
+      t() %>% 
+      as_tibble() %>% 
+      select(Sensitivity, Specificity, Precision, Recall, F1) 
+  }
+)
+
+models_summary %<>% 
+  add_column(Model = names(model_list$models), .before = "Sensitivity") %>% 
+  separate(col = Model, into = c("Method", "Model", "Tag"), sep = "_") %>% 
+  select(- Model) %>% 
+  mutate(
+    Tag = case_when(
+      Tag == 1 ~ "Accuracy", 
+      Tag == 2 ~ "Sens", 
+      Tag == 3 ~ "Alt Cutoff", 
+      Tag == 4 ~ "Up Sampling", 
+      Tag == 5 ~ "SMOTE", 
+    )
+  ) 
+
+models_summary %>% arrange(Method)
+```
+
+```{r}
+saveRDS(object = model_list, file = "model_list.rds")
+```
+
+
+
+
+
