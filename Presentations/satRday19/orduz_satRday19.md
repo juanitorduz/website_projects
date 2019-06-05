@@ -94,7 +94,7 @@ df <- data_df %>%
 
 # Define observation matrix and target vector. 
 X <- df %>% select(- income)
-y <- df %>% pull(income)
+y <- df %>% pull(income) %>% fct_rev()
 
 # Add dummy variables. 
 dummy_obj <- dummyVars("~ .", data = X, sep = "_")
@@ -131,7 +131,7 @@ y_test <- y_other[- split_index_2]
 ```
 
 
-Confision Matrix
+Confusion Matrix
 ========================================================
 
 <table class="table" style="margin-left: auto; margin-right: auto;">
@@ -254,11 +254,11 @@ conf_matrix_trivial <-  confusionMatrix(data = y_pred_trivial,
   </tr>
   <tr>
    <td style="text-align:center;"> sensitivity </td>
-   <td style="text-align:center;"> 1.000 </td>
+   <td style="text-align:center;"> 0.000 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> specificity </td>
-   <td style="text-align:center;"> 0.000 </td>
+   <td style="text-align:center;"> 1.000 </td>
   </tr>
 </tbody>
 </table>
@@ -267,3 +267,150 @@ Trivial Model - ROC
 ========================================================
 
 <img src="orduz_satRday19-figure/unnamed-chunk-13-1.png" title="plot of chunk unnamed-chunk-13" alt="plot of chunk unnamed-chunk-13" style="display: block; margin: auto;" />
+
+Train Control + Train in Caret
+========================================================
+
+```
+ five_stats <- function (...) {
+  
+  c(twoClassSummary(...), defaultSummary(...))
+  
+}
+
+# Define cross validation.
+cv_num <- 7
+
+train_control <- trainControl(method = "cv",
+                              number = cv_num,
+                              classProbs = TRUE, 
+                              summaryFunction = five_stats,
+                              allowParallel = TRUE, 
+                              verboseIter = FALSE)
+```
+
+```
+model_obk <- train(x = X_train,
+                  y = y_train,
+                  method = method,
+                  tuneLength = 10,
+                  # For linear models we scale and center. 
+                  preProcess = c("scale", "center"), 
+                  trControl = train_control,
+                  metric = metric)
+```
+
+
+PLS Model - Max Accuracy
+========================================================
+
+
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:center;"> accuracy </th>
+   <th style="text-align:center;"> kappa </th>
+   <th style="text-align:center;"> sensitivity </th>
+   <th style="text-align:center;"> specificity </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:center;"> 0.835 </td>
+   <td style="text-align:center;"> 0.519 </td>
+   <td style="text-align:center;"> 0.544 </td>
+   <td style="text-align:center;"> 0.931 </td>
+  </tr>
+</tbody>
+</table>
+
+<img src="orduz_satRday19-figure/unnamed-chunk-16-1.png" title="plot of chunk unnamed-chunk-16" alt="plot of chunk unnamed-chunk-16" style="display: block; margin: auto;" />
+
+GBM Model - Max Accuracy
+========================================================
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:center;"> accuracy </th>
+   <th style="text-align:center;"> kappa </th>
+   <th style="text-align:center;"> sensitivity </th>
+   <th style="text-align:center;"> specificity </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:center;"> 0.87 </td>
+   <td style="text-align:center;"> 0.632 </td>
+   <td style="text-align:center;"> 0.653 </td>
+   <td style="text-align:center;"> 0.943 </td>
+  </tr>
+</tbody>
+</table>
+
+<img src="orduz_satRday19-figure/unnamed-chunk-18-1.png" title="plot of chunk unnamed-chunk-18" alt="plot of chunk unnamed-chunk-18" style="display: block; margin: auto;" />
+
+PLS Model - Max Sensitivity
+========================================================
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:center;"> accuracy </th>
+   <th style="text-align:center;"> kappa </th>
+   <th style="text-align:center;"> sensitivity </th>
+   <th style="text-align:center;"> specificity </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:center;"> 0.836 </td>
+   <td style="text-align:center;"> 0.524 </td>
+   <td style="text-align:center;"> 0.552 </td>
+   <td style="text-align:center;"> 0.93 </td>
+  </tr>
+</tbody>
+</table>
+
+<img src="orduz_satRday19-figure/unnamed-chunk-20-1.png" title="plot of chunk unnamed-chunk-20" alt="plot of chunk unnamed-chunk-20" style="display: block; margin: auto;" />
+
+
+GBM Model - Max Sensitivity
+========================================================
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:center;"> accuracy </th>
+   <th style="text-align:center;"> kappa </th>
+   <th style="text-align:center;"> sensitivity </th>
+   <th style="text-align:center;"> specificity </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:center;"> 0.879 </td>
+   <td style="text-align:center;"> 0.66 </td>
+   <td style="text-align:center;"> 0.684 </td>
+   <td style="text-align:center;"> 0.944 </td>
+  </tr>
+</tbody>
+</table>
+
+<img src="orduz_satRday19-figure/unnamed-chunk-22-1.png" title="plot of chunk unnamed-chunk-22" alt="plot of chunk unnamed-chunk-22" style="display: block; margin: auto;" />
+
+GBM Model - Max Sensitivity
+========================================================
+
+<img src="orduz_satRday19-figure/unnamed-chunk-23-1.png" title="plot of chunk unnamed-chunk-23" alt="plot of chunk unnamed-chunk-23" style="display: block; margin: auto;" />
+
+PLS Model - Alternative Cut-Off
+========================================================
+
+<img src="orduz_satRday19-figure/unnamed-chunk-24-1.png" title="plot of chunk unnamed-chunk-24" alt="plot of chunk unnamed-chunk-24" style="display: block; margin: auto;" />
+
+PLS Model - Alternative Cut-Off
+========================================================
+
+<img src="orduz_satRday19-figure/unnamed-chunk-25-1.png" title="plot of chunk unnamed-chunk-25" alt="plot of chunk unnamed-chunk-25" style="display: block; margin: auto;" />
