@@ -590,7 +590,7 @@ auc_trivial <- roc_curve_trivial %>%
   round(digits = 3)
 
 plot(roc_curve_trivial)
-title(main = str_c("Trivial Model - ROC AUC (Test Set) = ", auc_trivial))
+title(main = str_c("Trivial Model - ROC AUC (Test Set) = ", auc_trivial), line = 2.5)
 ```
 
 ## Random Model
@@ -621,7 +621,7 @@ auc_random <- roc_curve_random %>%
   round(digits = 3)
 
 plot(roc_curve_random)
-title(main = str_c("Random Model - ROC AUC (Train) = ", auc_random))
+title(main = str_c("Random Model - ROC AUC (Train) = ", auc_random), line = 2.5)
 ```
 
 ## Set Sampling Method
@@ -652,7 +652,7 @@ four_stats <- function (data, lev = levels(data$obs), model = NULL) {
   return(out)
 }
 
-# Define cross valitatilon.
+# Define cross validation.
 cv_num <- 7
 
 train_control <- trainControl(method = "cv",
@@ -741,7 +741,7 @@ Note that the sensitivity is around 0.56. This shows that this model does is ver
 
 ```{r, fig.align="center"}
 pred_df %>% 
-  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = y_test_num, y = pred_df$y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -765,7 +765,7 @@ auc_pls <- roc_curve_test %>%
   round(digits = 3)
 
 plot(roc_curve_test)
-title(main = str_c("PLS Model 1 - ROC AUC (Test) = ", auc_pls))
+title(main = str_c("PLS Model 1 - ROC AUC (Test) = ", auc_pls), line = 2.5)
 ```
 
 ## Generalized Boosted Regression Model (GBM)
@@ -836,7 +836,7 @@ auc_gbm <- roc_curve_test %>%
   round(digits = 3)
 
 plot(roc_curve_test)
-title(main = str_c("GBM Model 1 - ROC AUC (Test) = ", auc_gbm))
+title(main = str_c("GBM Model 1 - ROC AUC (Test) = ", auc_gbm), line = 2.5)
 ```
 
 Let us compute the variable importance ranking for this model. 
@@ -1036,7 +1036,7 @@ auc_pls <- roc_curve_eval %>%
   round(digits = 3)
 
 plot(roc_curve_eval)
-title(main = str_c("PLS Model 3 - ROC AUC (Eval) = ", auc_pls))
+title(main = str_c("PLS Model 3 - ROC AUC (Eval) = ", auc_pls), line = 2.5)
 ```
 
 We can use the ROC curve to select the most appropiate prediction cutoff. Depending on the specific prediction problem, one could try to find a balance between sensitivity and specificity. One possibility is to choose the closest point of the ROC curve to the to the upper left corner.  
@@ -1156,7 +1156,7 @@ auc_gbm <- roc_curve_eval %>%
   round(digits = 3)
 
 plot(roc_curve_eval)
-title(main = str_c("GBM Model 3 - ROC AUC (Eval) = ", auc_gbm))
+title(main = str_c("GBM Model 3 - ROC AUC (Eval) = ", auc_gbm), line = 2.5)
 ```
 
 ```{r}
@@ -1318,7 +1318,7 @@ auc_pls <- roc_curve_test %>%
   round(digits = 3)
 
 plot(roc_curve_test)
-title(main = str_c("PLS Model 4 - ROC AUC (Test) = ", auc_pls))
+title(main = str_c("PLS Model 4 - ROC AUC (Test) = ", auc_pls), line = 2.5)
 ```
 
 - GBM Model
@@ -1377,7 +1377,7 @@ auc_gbm <- roc_curve_test %>%
   round(digits = 3)
 
 plot(roc_curve_test)
-title(main = str_c("GBM Model 4 - ROC AUC (Test) = ", auc_gbm))
+title(main = str_c("GBM Model 4 - ROC AUC (Test) = ", auc_gbm), line = 2.5)
 ```
 
 ## SMOTE
@@ -1460,7 +1460,7 @@ auc_pls <- roc_curve_test %>%
   round(digits = 3)
 
 plot(roc_curve_test)
-title(main = str_c("PLS Model 5 - ROC AUC (Test) = ", auc_pls))
+title(main = str_c("PLS Model 5 - ROC AUC (Test) = ", auc_pls), line = 2.5)
 ```
 
 - GBM Model
@@ -1519,7 +1519,7 @@ auc_gbm <- roc_curve_test %>%
   round(digits = 3)
 
 plot(roc_curve_test)
-title(main = str_c("GBM Model 5 - ROC AUC (Test) = ", auc_gbm))
+title(main = str_c("GBM Model 5 - ROC AUC (Test) = ", auc_gbm), line = 2.5)
 ```
 
 # Model Summary
