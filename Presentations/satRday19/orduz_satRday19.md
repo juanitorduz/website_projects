@@ -2,8 +2,13 @@
 .reveal .slides section .slideContent{
     font-size: 20pt;
 }
-</style>
 
+/* slide titles */
+.reveal h1 { 
+  font-size: 100px;
+}
+
+</style>
 
 Some Remedies for Several Class Imbalance
 ========================================================
@@ -11,19 +16,23 @@ author: Dr. Juan Orduz
 date: satRday Berlin  - 15.06.2019
 autosize: true
 
-Motivation  
+Content 
 ========================================================
 
-- Data Set Description
-- Some Model Performance Metrics
-- ...
+### Data Set Description
 
-Content
-========================================================
+### Data Preparation  
 
-- Data Set Description
-- Some Model Performance Metrics
-- ...
+### Some Model Performance Metrics
+
+### Machine Learning Models
+
+- PLS 
+- GBM
+
+### Experiments & Results 
+
+### References & Contact 
 
 
 Data Set
@@ -35,27 +44,27 @@ Data Set
 data(AdultUCI, package = "arules")
 raw_data <- AdultUCI
 
-glimpse(raw_data, width = 65)
+glimpse(raw_data, width = 60)
 ```
 
 ```
 Observations: 48,842
 Variables: 15
-$ age              <int> 39, 50, 38, 53, 28, 37, 49, 52, 31, 4…
-$ workclass        <fct> State-gov, Self-emp-not-inc, Private,…
-$ fnlwgt           <int> 77516, 83311, 215646, 234721, 338409,…
-$ education        <ord> Bachelors, Bachelors, HS-grad, 11th, …
-$ `education-num`  <int> 13, 13, 9, 7, 13, 14, 5, 9, 14, 13, 1…
-$ `marital-status` <fct> Never-married, Married-civ-spouse, Di…
-$ occupation       <fct> Adm-clerical, Exec-managerial, Handle…
-$ relationship     <fct> Not-in-family, Husband, Not-in-family…
-$ race             <fct> White, White, White, Black, Black, Wh…
-$ sex              <fct> Male, Male, Male, Male, Female, Femal…
-$ `capital-gain`   <int> 2174, 0, 0, 0, 0, 0, 0, 0, 14084, 517…
-$ `capital-loss`   <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
-$ `hours-per-week` <int> 40, 13, 40, 40, 40, 40, 16, 45, 50, 4…
-$ `native-country` <fct> United-States, United-States, United-…
-$ income           <ord> small, small, small, small, small, sm…
+$ age              <int> 39, 50, 38, 53, 28, 37, 49, 52, …
+$ workclass        <fct> State-gov, Self-emp-not-inc, Pri…
+$ fnlwgt           <int> 77516, 83311, 215646, 234721, 33…
+$ education        <ord> Bachelors, Bachelors, HS-grad, 1…
+$ `education-num`  <int> 13, 13, 9, 7, 13, 14, 5, 9, 14, …
+$ `marital-status` <fct> Never-married, Married-civ-spous…
+$ occupation       <fct> Adm-clerical, Exec-managerial, H…
+$ relationship     <fct> Not-in-family, Husband, Not-in-f…
+$ race             <fct> White, White, White, Black, Blac…
+$ sex              <fct> Male, Male, Male, Male, Female, …
+$ `capital-gain`   <int> 2174, 0, 0, 0, 0, 0, 0, 0, 14084…
+$ `capital-loss`   <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,…
+$ `hours-per-week` <int> 40, 13, 40, 40, 40, 40, 16, 45, …
+$ `native-country` <fct> United-States, United-States, Un…
+$ income           <ord> small, small, small, small, smal…
 ```
 
 
@@ -120,7 +129,8 @@ y_train <- y[split_index_1]
 X_other <- X[- split_index_1, ]
 y_other <- y[- split_index_1]
 
-split_index_2 <- createDataPartition(y = y_other, p = 1/3)$Resample1
+split_index_2 <- createDataPartition(y = y_other, 
+                                     p = 1/3)$Resample1
 
 # Split evaluation - test
 X_eval <- X_other[split_index_2, ]
@@ -205,16 +215,39 @@ $$
 \text{prec} = \frac{TP}{TP + FP}
 $$
 
-- AUC
+- [$F_\beta$](https://en.wikipedia.org/wiki/F1_score)
 
-This metric refers to the area under the curve of the [ROC](https://en.wikipedia.org/wiki/Receiver_operating_characteristic) curve. It does not depend on the cutoff probability threshold for the predicted classes. 
+$$
+F_\beta = (1 + \beta^2)\frac{\text{prec}\times \text{recall}}{\beta^2\text{prec} + \text{recall}}
+$$
+
+
+ROC Curve
+========================================================
+
+The [ROC](https://en.wikipedia.org/wiki/Receiver_operating_characteristic) is created by plotting the true positive rate (= sensitivity) against the false positive rate (1 − specificity) at various propability threshold. 
+
+<div align="center">
+<img src="roc_example.png" width=450 height=450>
+</div>
+
+- AUC : Area under the [ROC](https://en.wikipedia.org/wiki/Receiver_operating_characteristic) curve. 
+
 
 Machine Learning Models
 ========================================================
 
-0. Trivial Model
-1. Partial Least Squares + Logistic Regression
-2. Stochastic Gradient Boosting
+### 1. Trivial Model
+
+Always predict the same class.
+
+### 2. Partial Least Squares + Logistic Regression
+
+Supervided dimensionality reduction. 
+
+### 3. Stochastic Gradient Boosting
+
+Tree ensemble model. 
 
 Trivial Model
 ========================================================
@@ -268,6 +301,8 @@ Trivial Model - ROC
 
 <img src="orduz_satRday19-figure/unnamed-chunk-13-1.png" title="plot of chunk unnamed-chunk-13" alt="plot of chunk unnamed-chunk-13" style="display: block; margin: auto;" />
 
+We can use the [pROC](https://cran.r-project.org/web/packages/pROC/pROC.pdf) package. 
+
 Train Control + Train in Caret
 ========================================================
 
@@ -317,10 +352,10 @@ PLS Model - Max Accuracy
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.835 </td>
-   <td style="text-align:center;"> 0.519 </td>
-   <td style="text-align:center;"> 0.544 </td>
-   <td style="text-align:center;"> 0.931 </td>
+   <td style="text-align:center;"> 0.84 </td>
+   <td style="text-align:center;"> 0.535 </td>
+   <td style="text-align:center;"> 0.557 </td>
+   <td style="text-align:center;"> 0.935 </td>
   </tr>
 </tbody>
 </table>
@@ -341,10 +376,10 @@ GBM Model - Max Accuracy
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.87 </td>
-   <td style="text-align:center;"> 0.632 </td>
-   <td style="text-align:center;"> 0.653 </td>
-   <td style="text-align:center;"> 0.943 </td>
+   <td style="text-align:center;"> 0.878 </td>
+   <td style="text-align:center;"> 0.654 </td>
+   <td style="text-align:center;"> 0.669 </td>
+   <td style="text-align:center;"> 0.948 </td>
   </tr>
 </tbody>
 </table>
@@ -365,10 +400,10 @@ PLS Model - Max Sensitivity
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.836 </td>
-   <td style="text-align:center;"> 0.524 </td>
-   <td style="text-align:center;"> 0.552 </td>
-   <td style="text-align:center;"> 0.93 </td>
+   <td style="text-align:center;"> 0.842 </td>
+   <td style="text-align:center;"> 0.542 </td>
+   <td style="text-align:center;"> 0.565 </td>
+   <td style="text-align:center;"> 0.934 </td>
   </tr>
 </tbody>
 </table>
@@ -390,10 +425,10 @@ GBM Model - Max Sensitivity
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.879 </td>
-   <td style="text-align:center;"> 0.66 </td>
-   <td style="text-align:center;"> 0.684 </td>
-   <td style="text-align:center;"> 0.944 </td>
+   <td style="text-align:center;"> 0.885 </td>
+   <td style="text-align:center;"> 0.676 </td>
+   <td style="text-align:center;"> 0.692 </td>
+   <td style="text-align:center;"> 0.949 </td>
   </tr>
 </tbody>
 </table>
@@ -414,3 +449,298 @@ PLS Model - Alternative Cut-Off
 ========================================================
 
 <img src="orduz_satRday19-figure/unnamed-chunk-25-1.png" title="plot of chunk unnamed-chunk-25" alt="plot of chunk unnamed-chunk-25" style="display: block; margin: auto;" />
+
+GMB Model - Alternative Cut-Off
+========================================================
+
+<img src="orduz_satRday19-figure/unnamed-chunk-26-1.png" title="plot of chunk unnamed-chunk-26" alt="plot of chunk unnamed-chunk-26" style="display: block; margin: auto;" />
+
+GBM Model - Alternative Cut-Off
+========================================================
+
+<img src="orduz_satRday19-figure/unnamed-chunk-27-1.png" title="plot of chunk unnamed-chunk-27" alt="plot of chunk unnamed-chunk-27" style="display: block; margin: auto;" />
+
+Sampling Methods - Up/Down Sampling
+========================================================
+
+- **Up-sampling** is any technique that simulates or imputes additional data points to improve balance across classes.
+
+- **Down-sampling** is any technique that reduces the number of samples to improve the balance across classes. 
+
+In [caret](http://topepo.github.io/caret/index.html): 
+```
+df_upSample_train <- upSample(x = X_train, 
+                              y = y_train, 
+                              yname = "income")
+
+X_upSample_train <- df_upSample_train %>% select(- income) 
+y_upSample_train <- df_upSample_train %>% pull(income)
+```
+
+PLS Model - Up Sampling
+========================================================
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:center;"> accuracy </th>
+   <th style="text-align:center;"> kappa </th>
+   <th style="text-align:center;"> sensitivity </th>
+   <th style="text-align:center;"> specificity </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:center;"> 0.792 </td>
+   <td style="text-align:center;"> 0.531 </td>
+   <td style="text-align:center;"> 0.859 </td>
+   <td style="text-align:center;"> 0.77 </td>
+  </tr>
+</tbody>
+</table>
+
+<img src="orduz_satRday19-figure/unnamed-chunk-29-1.png" title="plot of chunk unnamed-chunk-29" alt="plot of chunk unnamed-chunk-29" style="display: block; margin: auto;" />
+
+GBM Model - Up Sampling
+========================================================
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:center;"> accuracy </th>
+   <th style="text-align:center;"> kappa </th>
+   <th style="text-align:center;"> sensitivity </th>
+   <th style="text-align:center;"> specificity </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:center;"> 0.848 </td>
+   <td style="text-align:center;"> 0.638 </td>
+   <td style="text-align:center;"> 0.875 </td>
+   <td style="text-align:center;"> 0.84 </td>
+  </tr>
+</tbody>
+</table>
+
+<img src="orduz_satRday19-figure/unnamed-chunk-31-1.png" title="plot of chunk unnamed-chunk-31" alt="plot of chunk unnamed-chunk-31" style="display: block; margin: auto;" />
+
+Sampling Methods - SMOTE
+========================================================
+
+The synthetic minority over-sampling technique (**SMOTE**) is a data sampling procedure that uses both up-sampling and down-sampling. To up-sample for the minority class, SMOTE synthesizes new cases: data point is randomly selected from the minority class and its K-nearest neighbors are determined. 
+
+We can use the [DMwR](https://cran.r-project.org/web/packages/DMwR/index.html) package:
+
+```
+df_smote_train <-  DMwR::SMOTE(
+  form = income ~ ., 
+  data = as.data.frame(bind_cols(income = y_train, X_train))
+)
+
+X_smote_train <- df_smote_train  %>% select(- income) 
+y_smote_train <- df_smote_train  %>% pull(income) 
+```
+
+PLS Model - SMOTE
+========================================================
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:center;"> accuracy </th>
+   <th style="text-align:center;"> kappa </th>
+   <th style="text-align:center;"> sensitivity </th>
+   <th style="text-align:center;"> specificity </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:center;"> 0.824 </td>
+   <td style="text-align:center;"> 0.554 </td>
+   <td style="text-align:center;"> 0.732 </td>
+   <td style="text-align:center;"> 0.854 </td>
+  </tr>
+</tbody>
+</table>
+
+<img src="orduz_satRday19-figure/unnamed-chunk-33-1.png" title="plot of chunk unnamed-chunk-33" alt="plot of chunk unnamed-chunk-33" style="display: block; margin: auto;" />
+
+GBM Model - SMOTE
+========================================================
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:center;"> accuracy </th>
+   <th style="text-align:center;"> kappa </th>
+   <th style="text-align:center;"> sensitivity </th>
+   <th style="text-align:center;"> specificity </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:center;"> 0.878 </td>
+   <td style="text-align:center;"> 0.651 </td>
+   <td style="text-align:center;"> 0.655 </td>
+   <td style="text-align:center;"> 0.952 </td>
+  </tr>
+</tbody>
+</table>
+
+<img src="orduz_satRday19-figure/unnamed-chunk-35-1.png" title="plot of chunk unnamed-chunk-35" alt="plot of chunk unnamed-chunk-35" style="display: block; margin: auto;" />
+
+Model Summary - PLS
+========================================================
+
+
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:center;"> Method </th>
+   <th style="text-align:center;"> Tag </th>
+   <th style="text-align:center;"> Sensitivity </th>
+   <th style="text-align:center;"> Specificity </th>
+   <th style="text-align:center;"> Precision </th>
+   <th style="text-align:center;"> Recall </th>
+   <th style="text-align:center;"> F1 </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:center;"> pls </td>
+   <td style="text-align:center;"> Accuracy </td>
+   <td style="text-align:center;"> 0.557 </td>
+   <td style="text-align:center;"> 0.935 </td>
+   <td style="text-align:center;"> 0.738 </td>
+   <td style="text-align:center;"> 0.557 </td>
+   <td style="text-align:center;"> 0.635 </td>
+  </tr>
+  <tr>
+   <td style="text-align:center;"> pls </td>
+   <td style="text-align:center;"> Sens </td>
+   <td style="text-align:center;"> 0.565 </td>
+   <td style="text-align:center;"> 0.934 </td>
+   <td style="text-align:center;"> 0.740 </td>
+   <td style="text-align:center;"> 0.565 </td>
+   <td style="text-align:center;"> 0.641 </td>
+  </tr>
+  <tr>
+   <td style="text-align:center;"> pls </td>
+   <td style="text-align:center;"> Alt Cutoff </td>
+   <td style="text-align:center;"> 0.838 </td>
+   <td style="text-align:center;"> 0.795 </td>
+   <td style="text-align:center;"> 0.575 </td>
+   <td style="text-align:center;"> 0.838 </td>
+   <td style="text-align:center;"> 0.682 </td>
+  </tr>
+  <tr>
+   <td style="text-align:center;"> pls </td>
+   <td style="text-align:center;"> Up Sampling </td>
+   <td style="text-align:center;"> 0.859 </td>
+   <td style="text-align:center;"> 0.770 </td>
+   <td style="text-align:center;"> 0.553 </td>
+   <td style="text-align:center;"> 0.859 </td>
+   <td style="text-align:center;"> 0.673 </td>
+  </tr>
+  <tr>
+   <td style="text-align:center;"> pls </td>
+   <td style="text-align:center;"> SMOTE </td>
+   <td style="text-align:center;"> 0.732 </td>
+   <td style="text-align:center;"> 0.854 </td>
+   <td style="text-align:center;"> 0.625 </td>
+   <td style="text-align:center;"> 0.732 </td>
+   <td style="text-align:center;"> 0.674 </td>
+  </tr>
+</tbody>
+</table>
+
+Model Summary - GMB
+========================================================
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:center;"> Method </th>
+   <th style="text-align:center;"> Tag </th>
+   <th style="text-align:center;"> Sensitivity </th>
+   <th style="text-align:center;"> Specificity </th>
+   <th style="text-align:center;"> Precision </th>
+   <th style="text-align:center;"> Recall </th>
+   <th style="text-align:center;"> F1 </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:center;"> gbm </td>
+   <td style="text-align:center;"> Accuracy </td>
+   <td style="text-align:center;"> 0.669 </td>
+   <td style="text-align:center;"> 0.948 </td>
+   <td style="text-align:center;"> 0.809 </td>
+   <td style="text-align:center;"> 0.669 </td>
+   <td style="text-align:center;"> 0.732 </td>
+  </tr>
+  <tr>
+   <td style="text-align:center;"> gbm </td>
+   <td style="text-align:center;"> Sens </td>
+   <td style="text-align:center;"> 0.692 </td>
+   <td style="text-align:center;"> 0.949 </td>
+   <td style="text-align:center;"> 0.818 </td>
+   <td style="text-align:center;"> 0.692 </td>
+   <td style="text-align:center;"> 0.750 </td>
+  </tr>
+  <tr>
+   <td style="text-align:center;"> gbm </td>
+   <td style="text-align:center;"> Alt Cutoff </td>
+   <td style="text-align:center;"> 0.876 </td>
+   <td style="text-align:center;"> 0.827 </td>
+   <td style="text-align:center;"> 0.627 </td>
+   <td style="text-align:center;"> 0.876 </td>
+   <td style="text-align:center;"> 0.731 </td>
+  </tr>
+  <tr>
+   <td style="text-align:center;"> gbm </td>
+   <td style="text-align:center;"> Up Sampling </td>
+   <td style="text-align:center;"> 0.875 </td>
+   <td style="text-align:center;"> 0.840 </td>
+   <td style="text-align:center;"> 0.644 </td>
+   <td style="text-align:center;"> 0.875 </td>
+   <td style="text-align:center;"> 0.742 </td>
+  </tr>
+  <tr>
+   <td style="text-align:center;"> gbm </td>
+   <td style="text-align:center;"> SMOTE </td>
+   <td style="text-align:center;"> 0.655 </td>
+   <td style="text-align:center;"> 0.952 </td>
+   <td style="text-align:center;"> 0.819 </td>
+   <td style="text-align:center;"> 0.655 </td>
+   <td style="text-align:center;"> 0.728 </td>
+  </tr>
+</tbody>
+</table>
+
+Other Techniques
+========================================================
+
+- Adjusting Prior Probabilities
+
+- Cost-Sensitive Training
+
+- ...
+
+
+References & Contact 
+========================================================
+
+### Book: 
+
+[Applied Predictive Modeling](http://appliedpredictivemodeling.com/), by Max Kuhn and Kjell Johnson.
+
+### Blog Post:
+
+[https://juanitorduz.github.io/class_imbalance](https://juanitorduz.github.io/class_imbalance)
+
+### Contact:
+
+<juanitorduz@gmail.com>
