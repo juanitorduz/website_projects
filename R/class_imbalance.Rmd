@@ -517,8 +517,7 @@ tibble(
   ` ` = c("Prediction Positive", "Prediction Negative"),
   `Condition Positive` = c("TP", "FN"), 
   `Condition Negative` = c("FP", "TN"), 
-) %>% knitr::kable(align = c("l", "c", "c")) %>% 
-  kableExtra::kable_styling(position = "center")
+) %>% knitr::kable(align = c("l", "c", "c"))
 ```
 
   - TP = True Positive
@@ -545,23 +544,34 @@ where
   
 The kappa metric can be thought as a modification of the accuracy metric based on the class proportions. 
 
-- [Sensitivity and Specitivity](https://en.wikipedia.org/wiki/Sensitivity_and_specificity)
-
-  - Sensitivity
+- [Sensitivity](https://en.wikipedia.org/wiki/Sensitivity_and_specificity) (= Recall)
 
 $$
 \text{sens} = \frac{TP}{TP + FN}
 $$
 
-  - Specitivity
+- [Specitivity](https://en.wikipedia.org/wiki/Sensitivity_and_specificity)
 
 $$
 \text{spec} = \frac{TN}{TN + FP}
 $$
 
+ - [Precision](https://en.wikipedia.org/wiki/Precision_and_recall)
+
+$$
+\text{prec} = \frac{TP}{TP + FP}
+$$
+
+- [$F_\beta$](https://en.wikipedia.org/wiki/F1_score)
+
+$$
+F_\beta = (1 + \beta^2)\frac{\text{prec}\times \text{recall}}{\beta^2\text{prec} + \text{recall}}
+$$
+
+
 - AUC
 
-This metric refers to the area under the curve of the [ROC](https://en.wikipedia.org/wiki/Receiver_operating_characteristic) curve. It does not depend on the cutoff probability threshold for the predicted classes. 
+This metric refers to the area under the curve of the [ROC](https://en.wikipedia.org/wiki/Receiver_operating_characteristic) curve, which is created by plotting the true positive rate (= sensitivity) against the false positive rate (1 − specificity) at various propability threshold. The AUC does not depend on the cutoff probability threshold for the predicted classes. 
 
 # Prediction Models
 
@@ -709,9 +719,9 @@ pls_model_1$finalModel$ncomp
 Let us generate predictions on the test set. 
 
 ```{r}
-get_pred_df <- function(model_obj, X, threshold = 0.5) {
+get_pred_df <- function(model_obj, X_test, y_test, threshold = 0.5) {
   
-  y_pred_num <- predict(object = model_obj, newdata = X, type = "prob") %>% pull(large)
+  y_pred_num <- predict(object = model_obj, newdata = X_test, type = "prob") %>% pull(large)
   
   y_pred <- y_pred_num %>% 
     map_chr(.f = ~ ifelse(test = .x > threshold, yes = "large", no = "small")) %>% 
@@ -731,7 +741,7 @@ get_pred_df <- function(model_obj, X, threshold = 0.5) {
 
 
 ```{r}
-pred_df <- get_pred_df(model_obj = pls_model_1, X = X_test)
+pred_df <- get_pred_df(model_obj = pls_model_1, X_test = X_test, y_test = y_test)
 # Confusion Matrix. 
 conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, reference =  y_test)
 conf_matrix_test
@@ -741,7 +751,9 @@ Note that the sensitivity is around 0.56. This shows that this model does is ver
 
 ```{r, fig.align="center"}
 pred_df %>% 
-  ggplot(mapping = aes(x = y_test_num, y = pred_df$y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = pred_df$y_test_num, 
+                       y = pred_df$y_pred_num, 
+                       fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -802,7 +814,7 @@ gbm_model_1
 Let us generate predictions on the test set. 
 
 ```{r}
-pred_df <- get_pred_df(model_obj = gbm_model_1, X = X_test)
+pred_df <- get_pred_df(model_obj = gbm_model_1, X_test = X_test, y_test = y_test)
 # Confusion Matrix. 
 conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, reference =  y_test)
 conf_matrix_test
@@ -812,7 +824,9 @@ The accuracy, the sesitivity and specificity are higher that the pls model above
 
 ```{r, fig.align="center"}
 pred_df %>% 
-  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = pred_df$y_test_num, 
+                       y = pred_df$y_pred_num, 
+                       fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -892,7 +906,7 @@ pls_model_2
 Let us see the performance metrics on the test set. 
 
 ```{r}
-pred_df <- get_pred_df(model_obj = pls_model_2, X = X_test)
+pred_df <- get_pred_df(model_obj = pls_model_2, X_test = X_test, y_test = y_test)
 # Confusion Matrix. 
 conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, reference =  y_test)
 conf_matrix_test
@@ -904,7 +918,9 @@ Let us plot the predicted probability distributions on the test set.
 
 ```{r, fig.align="center"}
 pred_df %>% 
-  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = pred_df$y_test_num, 
+                       y = pred_df$y_pred_num, 
+                       fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -957,7 +973,7 @@ We see a positive trends which stabilizes.
 Let us see the metrics on the test set. 
 
 ```{r}
-pred_df <- get_pred_df(model_obj = gbm_model_2, X = X_test)
+pred_df <- get_pred_df(model_obj = gbm_model_2, X_test = X_test, y_test = y_test)
 # Confusion Matrix. 
 conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, reference =  y_test)
 conf_matrix_test
@@ -967,7 +983,9 @@ We do not see a significant increase in sensitivity.
 
 ```{r, fig.align="center"}
 pred_df %>% 
-  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = pred_df$y_test_num, 
+                       y = pred_df$y_pred_num, 
+                       fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -1079,10 +1097,15 @@ all_roc_cords_df %>%
 Let us now evaluate the model predictions with this new cutoff point on the test set:
 
 ```{r, fig.align="center"}
-pred_df <- get_pred_df(model_obj = pls_model_3, X = X_test, threshold = best_point_eval["threshold"])
+pred_df <- get_pred_df(model_obj = pls_model_3, 
+                       X = X_test, 
+                       y_test = y_test, 
+                       threshold = best_point_eval["threshold"])
 
 pred_df %>% 
-  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = pred_df$y_test_num, 
+                       y = pred_df$y_pred_num, 
+                       fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5,
@@ -1105,7 +1128,7 @@ conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, reference =  y_test)
 conf_matrix_test
 ```
 
-We indeed see that the sensitivity increases to around 0.8 on the test set. The tradeoff is a decrease in specificity.
+We indeed see that the sensitivity increases to around 0.8 on the test set. The trade-off is a decrease in specificity.
 
 - GBM Model
 
@@ -1197,10 +1220,15 @@ all_roc_cords_df %>%
 Let us now evaluate the model predictions with this new cutoff point on the test set:
 
 ```{r, fig.align="center"}
-pred_df <- get_pred_df(model_obj = gbm_model_3, X = X_test, threshold = best_point_eval["threshold"])
+pred_df <- get_pred_df(model_obj = gbm_model_3, 
+                       X = X_test, 
+                       y_test = y_test, 
+                       threshold = best_point_eval["threshold"])
 
 pred_df %>% 
-  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = pred_df$y_test_num, 
+                       y = pred_df$y_pred_num, 
+                       fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5,
@@ -1284,7 +1312,7 @@ model_list$models$pls_model_4 = pls_model_4
 ```
 
 ```{r}
-pred_df <- get_pred_df(model_obj = pls_model_4, X = X_test)
+pred_df <- get_pred_df(model_obj = pls_model_4, X = X_test, y_test = y_test)
 # Confusion Matrix. 
 conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, reference =  y_test)
 conf_matrix_test
@@ -1294,7 +1322,9 @@ For this model, the sensitivity is higher than the one obtained after optimizing
 
 ```{r, fig.align="center"}
 pred_df %>% 
-  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = pred_df$y_test_num, 
+                       y = pred_df$y_pred_num, 
+                       fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -1345,7 +1375,7 @@ model_list$models$gbm_model_4 = gbm_model_4
 ```
 
 ```{r}
-pred_df <- get_pred_df(model_obj = gbm_model_4 , X = X_test)
+pred_df <- get_pred_df(model_obj = gbm_model_4 , X = X_test, y_test = y_test)
 # Confusion Matrix. 
 conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, reference =  y_test)
 conf_matrix_test
@@ -1353,7 +1383,9 @@ conf_matrix_test
 
 ```{r, fig.align="center"}
 pred_df %>% 
-  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = pred_df$y_test_num, 
+                       y = pred_df$y_pred_num, 
+                       fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -1380,6 +1412,8 @@ plot(roc_curve_test)
 title(main = str_c("GBM Model 4 - ROC AUC (Test) = ", auc_gbm), line = 2.5)
 ```
 
+**Warning:** "When using modified versions of the training set, resampled estimates of model performance can become biased. For example, if the data are up-sampled, resampling procedures are likely to have the same sample in the cases that are used to build the model as well as the holdout set, leading to optimistic results. Despite this, resampling methods can still be effective at tuning the models". 
+
 ## SMOTE
 
 "The synthetic minority over-sampling technique (SMOTE) is a data sampling procedure that uses both up-sampling and down-sampling, depending on the class, and has three operational paameters: the amount of up-sampling, the amount of down-sampling, and the number of neighbors that are used to impute new cases. To up-sample for the minority class, SMOTE synthesizes new cases. To do this, a data point is randomly selected from the minority class and its K-nearest neighbors are determined". [Applied Predictive Modeling, Section 16.7](http://appliedpredictivemodeling.com/)
@@ -1387,7 +1421,7 @@ title(main = str_c("GBM Model 4 - ROC AUC (Test) = ", auc_gbm), line = 2.5)
 ```{r}
 # Get new training set.
 df_smote_train <-  DMwR::SMOTE(
-  form = income ~ ., 
+  form = income ~ .,
   data = as.data.frame(bind_cols(income = y_train, X_train))
 )
 
@@ -1428,7 +1462,7 @@ model_list$models$pls_model_5 = pls_model_5
 ```
 
 ```{r}
-pred_df <- get_pred_df(model_obj = pls_model_5 , X = X_test)
+pred_df <- get_pred_df(model_obj = pls_model_5 , X = X_test, y_test = y_test)
 # Confusion Matrix. 
 conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, reference =  y_test)
 conf_matrix_test
@@ -1436,7 +1470,9 @@ conf_matrix_test
 
 ```{r, fig.align="center"}
 pred_df %>% 
-  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = pred_df$y_test_num, 
+                       y = pred_df$y_pred_num, 
+                       fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -1487,7 +1523,7 @@ model_list$models$gbm_model_5 = gbm_model_5
 ```
 
 ```{r}
-pred_df <- get_pred_df(model_obj = gbm_model_5 , X = X_test)
+pred_df <- get_pred_df(model_obj = gbm_model_5 , X = X_test, y_test = y_test)
 # Confusion Matrix. 
 conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, reference =  y_test)
 conf_matrix_test
@@ -1495,7 +1531,9 @@ conf_matrix_test
 
 ```{r, fig.align="center"}
 pred_df %>% 
-  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = pred_df$y_test_num, 
+                       y = pred_df$y_pred_num, 
+                       fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -1542,10 +1580,10 @@ models_summary <- names(model_list$models) %>%
     }
     
     y_pred <- predict(object = m , newdata = X_test, type = "prob") %>% 
-    pull(large) %>% 
-    # If the probability is larger than 0.5 we predict large. 
-    map_chr(.f = ~ ifelse(test = .x > m_threshold, yes = "large", no = "small")) %>% 
-    as_factor()
+      pull(large) %>% 
+      # If the probability is larger than 0.5 we predict large. 
+      map_chr(.f = ~ ifelse(test = .x > m_threshold, yes = "large", no = "small")) %>% 
+      as_factor()
   
     # Confusion Matrix. 
     conf_matrix_test <- confusionMatrix(data = y_pred, reference =  y_test)
@@ -1571,10 +1609,15 @@ models_summary %<>%
     )
   ) 
 
-models_summary %>% arrange(Method)
+models_summary %<>% mutate_if(.predicate = is.numeric, .funs = ~ round(x = .x, digits = 3))
 ```
 
 ```{r}
+models_summary %>% knitr::kable(align = rep("c", 7)) 
+```
+
+```{r}
+# Save Model List. 
 saveRDS(object = model_list, file = "model_list.rds")
 ```
 
