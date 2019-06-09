@@ -52,7 +52,7 @@ library(tidyverse)
 library(parallel)
 library(doParallel)
 
-model_list <- readRDS(file = "../../Data/model_list.rds")
+model_list <- readRDS(file = "../../Data/model_list.rds") 
 ```
 
 ```{r}
@@ -327,9 +327,9 @@ PLS Model - Max Accuracy
 ========================================================
 
 ```{r, fig.align="center", echo=FALSE}
-get_pred_df <- function(model_obj, X, threshold = 0.5) {
+get_pred_df <- function(model_obj, X_test, y_test, threshold = 0.5) {
   
-  y_pred_num <- predict(object = model_obj, newdata = X, type = "prob") %>% pull(large)
+  y_pred_num <- predict(object = model_obj, newdata = X_test, type = "prob") %>% pull(large)
   
   y_pred <- y_pred_num %>% 
     map_chr(.f = ~ ifelse(test = .x > threshold, yes = "large", no = "small")) %>% 
@@ -351,7 +351,7 @@ get_pred_df <- function(model_obj, X, threshold = 0.5) {
 # Load Model
 model_obj <-model_list$models$pls_model_1
 # Prediction
-pred_df <- get_pred_df(model_obj = model_obj, X = X_test)
+pred_df <- get_pred_df(model_obj = model_obj, X_test = X_test, y_test = y_test)
 # Confusion Matrix. 
 conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
                                     reference =  y_test)
@@ -387,7 +387,7 @@ GBM Model - Max Accuracy
 # Load Model
 model_obj <-model_list$models$gbm_model_1
 # Prediction
-pred_df <- get_pred_df(model_obj = model_obj, X = X_test)
+pred_df <- get_pred_df(model_obj = model_obj, X_test = X_test, y_test = y_test)
 # Confusion Matrix. 
 conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
                                     reference =  y_test)
@@ -423,7 +423,7 @@ PLS Model - Max Sensitivity
 # Load Model
 model_obj <-model_list$models$pls_model_2
 # Prediction
-pred_df <- get_pred_df(model_obj = model_obj, X = X_test)
+pred_df <- get_pred_df(model_obj = model_obj, X_test = X_test, y_test = y_test)
 # Confusion Matrix. 
 conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
                                     reference =  y_test)
@@ -460,7 +460,7 @@ GBM Model - Max Sensitivity
 # Load Model
 model_obj <-model_list$models$gbm_model_2
 # Prediction
-pred_df <- get_pred_df(model_obj = model_obj, X = X_test)
+pred_df <- get_pred_df(model_obj = model_obj, X_test = X_test, y_test = y_test)
 # Confusion Matrix. 
 conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
                                     reference =  y_test)
@@ -553,7 +553,10 @@ PLS Model - Alternative Cut-Off
 ========================================================
 
 ```{r, fig.align="center", echo=FALSE, fig.width=12}
-pred_df <- get_pred_df(model_obj = model_obj, X = X_test, threshold = best_point_eval["threshold"])
+pred_df <- get_pred_df(model_obj = model_obj, 
+                       X_test = X_test, 
+                       y_test = y_test,
+                       threshold = best_point_eval["threshold"])
 
 pred_df %>% 
   ggplot(mapping = aes(x = pred_df$y_test_num, y = y_pred_num, fill = y_test)) +
@@ -628,7 +631,10 @@ GBM Model - Alternative Cut-Off
 ========================================================
 
 ```{r, fig.align="center", echo=FALSE, fig.width=12}
-pred_df <- get_pred_df(model_obj = model_obj, X = X_test, threshold = best_point_eval["threshold"])
+pred_df <- get_pred_df(model_obj = model_obj, 
+                       X_test = X_test, 
+                       y_test = y_test,
+                       threshold = best_point_eval["threshold"])
 
 pred_df %>% 
   ggplot(mapping = aes(x = pred_df$y_test_num, y = y_pred_num, fill = y_test)) +
@@ -673,7 +679,7 @@ PLS Model - Up Sampling
 # Load Model
 model_obj <-model_list$models$pls_model_4
 # Prediction
-pred_df <- get_pred_df(model_obj = model_obj, X = X_test)
+pred_df <- get_pred_df(model_obj = model_obj, X_test = X_test, y_test = y_test)
 # Confusion Matrix. 
 conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
                                     reference =  y_test)
@@ -709,7 +715,7 @@ GBM Model - Up Sampling
 # Load Model
 model_obj <-model_list$models$gbm_model_4
 # Prediction
-pred_df <- get_pred_df(model_obj = model_obj, X = X_test)
+pred_df <- get_pred_df(model_obj = model_obj, X_test = X_test, y_test = y_test)
 # Confusion Matrix. 
 conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
                                     reference =  y_test)
@@ -762,7 +768,7 @@ PLS Model - SMOTE
 # Load Model
 model_obj <-model_list$models$pls_model_5
 # Prediction
-pred_df <- get_pred_df(model_obj = model_obj, X = X_test)
+pred_df <- get_pred_df(model_obj = model_obj, X_test = X_test, y_test = y_test)
 # Confusion Matrix. 
 conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
                                     reference =  y_test)
@@ -798,7 +804,7 @@ GBM Model - SMOTE
 # Load Model
 model_obj <-model_list$models$gbm_model_5
 # Prediction
-pred_df <- get_pred_df(model_obj = model_obj, X = X_test)
+pred_df <- get_pred_df(model_obj = model_obj, X_test = X_test, y_test = y_test)
 # Confusion Matrix. 
 conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
                                     reference =  y_test)

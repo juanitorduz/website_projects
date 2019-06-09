@@ -352,10 +352,10 @@ PLS Model - Max Accuracy
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.84 </td>
-   <td style="text-align:center;"> 0.535 </td>
+   <td style="text-align:center;"> 0.838 </td>
+   <td style="text-align:center;"> 0.531 </td>
    <td style="text-align:center;"> 0.557 </td>
-   <td style="text-align:center;"> 0.935 </td>
+   <td style="text-align:center;"> 0.932 </td>
   </tr>
 </tbody>
 </table>
@@ -376,10 +376,10 @@ GBM Model - Max Accuracy
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.878 </td>
-   <td style="text-align:center;"> 0.654 </td>
-   <td style="text-align:center;"> 0.669 </td>
-   <td style="text-align:center;"> 0.948 </td>
+   <td style="text-align:center;"> 0.868 </td>
+   <td style="text-align:center;"> 0.625 </td>
+   <td style="text-align:center;"> 0.644 </td>
+   <td style="text-align:center;"> 0.943 </td>
   </tr>
 </tbody>
 </table>
@@ -400,10 +400,10 @@ PLS Model - Max Sensitivity
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.842 </td>
-   <td style="text-align:center;"> 0.542 </td>
-   <td style="text-align:center;"> 0.565 </td>
-   <td style="text-align:center;"> 0.934 </td>
+   <td style="text-align:center;"> 0.836 </td>
+   <td style="text-align:center;"> 0.525 </td>
+   <td style="text-align:center;"> 0.556 </td>
+   <td style="text-align:center;"> 0.928 </td>
   </tr>
 </tbody>
 </table>
@@ -425,10 +425,10 @@ GBM Model - Max Sensitivity
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.885 </td>
-   <td style="text-align:center;"> 0.676 </td>
-   <td style="text-align:center;"> 0.692 </td>
-   <td style="text-align:center;"> 0.949 </td>
+   <td style="text-align:center;"> 0.876 </td>
+   <td style="text-align:center;"> 0.651 </td>
+   <td style="text-align:center;"> 0.673 </td>
+   <td style="text-align:center;"> 0.944 </td>
   </tr>
 </tbody>
 </table>
@@ -491,10 +491,10 @@ PLS Model - Up Sampling
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.792 </td>
-   <td style="text-align:center;"> 0.531 </td>
+   <td style="text-align:center;"> 0.791 </td>
+   <td style="text-align:center;"> 0.529 </td>
    <td style="text-align:center;"> 0.859 </td>
-   <td style="text-align:center;"> 0.77 </td>
+   <td style="text-align:center;"> 0.768 </td>
   </tr>
 </tbody>
 </table>
@@ -515,10 +515,10 @@ GBM Model - Up Sampling
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.848 </td>
-   <td style="text-align:center;"> 0.638 </td>
-   <td style="text-align:center;"> 0.875 </td>
-   <td style="text-align:center;"> 0.84 </td>
+   <td style="text-align:center;"> 0.846 </td>
+   <td style="text-align:center;"> 0.634 </td>
+   <td style="text-align:center;"> 0.881 </td>
+   <td style="text-align:center;"> 0.834 </td>
   </tr>
 </tbody>
 </table>
@@ -556,10 +556,10 @@ PLS Model - SMOTE
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.824 </td>
-   <td style="text-align:center;"> 0.554 </td>
-   <td style="text-align:center;"> 0.732 </td>
-   <td style="text-align:center;"> 0.854 </td>
+   <td style="text-align:center;"> 0.815 </td>
+   <td style="text-align:center;"> 0.531 </td>
+   <td style="text-align:center;"> 0.708 </td>
+   <td style="text-align:center;"> 0.851 </td>
   </tr>
 </tbody>
 </table>
@@ -580,10 +580,10 @@ GBM Model - SMOTE
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.878 </td>
-   <td style="text-align:center;"> 0.651 </td>
-   <td style="text-align:center;"> 0.655 </td>
-   <td style="text-align:center;"> 0.952 </td>
+   <td style="text-align:center;"> 0.87 </td>
+   <td style="text-align:center;"> 0.626 </td>
+   <td style="text-align:center;"> 0.635 </td>
+   <td style="text-align:center;"> 0.948 </td>
   </tr>
 </tbody>
 </table>
@@ -612,46 +612,46 @@ Model Summary - PLS
    <td style="text-align:center;"> pls </td>
    <td style="text-align:center;"> Accuracy </td>
    <td style="text-align:center;"> 0.557 </td>
-   <td style="text-align:center;"> 0.935 </td>
-   <td style="text-align:center;"> 0.738 </td>
+   <td style="text-align:center;"> 0.932 </td>
+   <td style="text-align:center;"> 0.730 </td>
    <td style="text-align:center;"> 0.557 </td>
-   <td style="text-align:center;"> 0.635 </td>
+   <td style="text-align:center;"> 0.632 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> pls </td>
    <td style="text-align:center;"> Sens </td>
-   <td style="text-align:center;"> 0.565 </td>
-   <td style="text-align:center;"> 0.934 </td>
-   <td style="text-align:center;"> 0.740 </td>
-   <td style="text-align:center;"> 0.565 </td>
-   <td style="text-align:center;"> 0.641 </td>
+   <td style="text-align:center;"> 0.556 </td>
+   <td style="text-align:center;"> 0.928 </td>
+   <td style="text-align:center;"> 0.721 </td>
+   <td style="text-align:center;"> 0.556 </td>
+   <td style="text-align:center;"> 0.628 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> pls </td>
    <td style="text-align:center;"> Alt Cutoff </td>
-   <td style="text-align:center;"> 0.838 </td>
-   <td style="text-align:center;"> 0.795 </td>
-   <td style="text-align:center;"> 0.575 </td>
-   <td style="text-align:center;"> 0.838 </td>
-   <td style="text-align:center;"> 0.682 </td>
+   <td style="text-align:center;"> 0.824 </td>
+   <td style="text-align:center;"> 0.797 </td>
+   <td style="text-align:center;"> 0.574 </td>
+   <td style="text-align:center;"> 0.824 </td>
+   <td style="text-align:center;"> 0.677 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> pls </td>
    <td style="text-align:center;"> Up Sampling </td>
    <td style="text-align:center;"> 0.859 </td>
-   <td style="text-align:center;"> 0.770 </td>
-   <td style="text-align:center;"> 0.553 </td>
+   <td style="text-align:center;"> 0.768 </td>
+   <td style="text-align:center;"> 0.552 </td>
    <td style="text-align:center;"> 0.859 </td>
-   <td style="text-align:center;"> 0.673 </td>
+   <td style="text-align:center;"> 0.672 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> pls </td>
    <td style="text-align:center;"> SMOTE </td>
-   <td style="text-align:center;"> 0.732 </td>
-   <td style="text-align:center;"> 0.854 </td>
-   <td style="text-align:center;"> 0.625 </td>
-   <td style="text-align:center;"> 0.732 </td>
-   <td style="text-align:center;"> 0.674 </td>
+   <td style="text-align:center;"> 0.708 </td>
+   <td style="text-align:center;"> 0.851 </td>
+   <td style="text-align:center;"> 0.612 </td>
+   <td style="text-align:center;"> 0.708 </td>
+   <td style="text-align:center;"> 0.656 </td>
   </tr>
 </tbody>
 </table>
@@ -675,47 +675,47 @@ Model Summary - GMB
   <tr>
    <td style="text-align:center;"> gbm </td>
    <td style="text-align:center;"> Accuracy </td>
-   <td style="text-align:center;"> 0.669 </td>
-   <td style="text-align:center;"> 0.948 </td>
-   <td style="text-align:center;"> 0.809 </td>
-   <td style="text-align:center;"> 0.669 </td>
-   <td style="text-align:center;"> 0.732 </td>
+   <td style="text-align:center;"> 0.644 </td>
+   <td style="text-align:center;"> 0.943 </td>
+   <td style="text-align:center;"> 0.788 </td>
+   <td style="text-align:center;"> 0.644 </td>
+   <td style="text-align:center;"> 0.709 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> gbm </td>
    <td style="text-align:center;"> Sens </td>
-   <td style="text-align:center;"> 0.692 </td>
-   <td style="text-align:center;"> 0.949 </td>
-   <td style="text-align:center;"> 0.818 </td>
-   <td style="text-align:center;"> 0.692 </td>
-   <td style="text-align:center;"> 0.750 </td>
-  </tr>
-  <tr>
-   <td style="text-align:center;"> gbm </td>
-   <td style="text-align:center;"> Alt Cutoff </td>
-   <td style="text-align:center;"> 0.876 </td>
-   <td style="text-align:center;"> 0.827 </td>
-   <td style="text-align:center;"> 0.627 </td>
-   <td style="text-align:center;"> 0.876 </td>
+   <td style="text-align:center;"> 0.673 </td>
+   <td style="text-align:center;"> 0.944 </td>
+   <td style="text-align:center;"> 0.799 </td>
+   <td style="text-align:center;"> 0.673 </td>
    <td style="text-align:center;"> 0.731 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> gbm </td>
+   <td style="text-align:center;"> Alt Cutoff </td>
+   <td style="text-align:center;"> 0.887 </td>
+   <td style="text-align:center;"> 0.825 </td>
+   <td style="text-align:center;"> 0.627 </td>
+   <td style="text-align:center;"> 0.887 </td>
+   <td style="text-align:center;"> 0.735 </td>
+  </tr>
+  <tr>
+   <td style="text-align:center;"> gbm </td>
    <td style="text-align:center;"> Up Sampling </td>
-   <td style="text-align:center;"> 0.875 </td>
-   <td style="text-align:center;"> 0.840 </td>
-   <td style="text-align:center;"> 0.644 </td>
-   <td style="text-align:center;"> 0.875 </td>
-   <td style="text-align:center;"> 0.742 </td>
+   <td style="text-align:center;"> 0.881 </td>
+   <td style="text-align:center;"> 0.834 </td>
+   <td style="text-align:center;"> 0.637 </td>
+   <td style="text-align:center;"> 0.881 </td>
+   <td style="text-align:center;"> 0.740 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> gbm </td>
    <td style="text-align:center;"> SMOTE </td>
-   <td style="text-align:center;"> 0.655 </td>
-   <td style="text-align:center;"> 0.952 </td>
-   <td style="text-align:center;"> 0.819 </td>
-   <td style="text-align:center;"> 0.655 </td>
-   <td style="text-align:center;"> 0.728 </td>
+   <td style="text-align:center;"> 0.635 </td>
+   <td style="text-align:center;"> 0.948 </td>
+   <td style="text-align:center;"> 0.802 </td>
+   <td style="text-align:center;"> 0.635 </td>
+   <td style="text-align:center;"> 0.709 </td>
   </tr>
 </tbody>
 </table>
