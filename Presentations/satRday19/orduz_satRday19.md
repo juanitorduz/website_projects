@@ -19,20 +19,22 @@ autosize: true
 Content 
 ========================================================
 
-### Data Set Description
+### 1. Data Set Description
 
-### Data Preparation  
+### 2. Data Preparation  
 
-### Some Model Performance Metrics
+### 3. Some Model Performance Metrics
 
-### Machine Learning Models
+### 4. Machine Learning Models
 
 - PLS 
 - GBM
 
-### Experiments & Results 
+### 5. Experiments & Results 
 
-### References & Contact 
+### 6. Other Techniques 
+
+### 7. References & Contact 
 
 
 Data Set
@@ -325,7 +327,7 @@ train_control <- trainControl(method = "cv",
 ```
 
 ```
-model_obk <- train(x = X_train,
+model_obj <- train(x = X_train,
                   y = y_train,
                   method = method,
                   tuneLength = 10,
@@ -352,10 +354,10 @@ PLS Model - Max Accuracy
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.838 </td>
-   <td style="text-align:center;"> 0.531 </td>
-   <td style="text-align:center;"> 0.557 </td>
-   <td style="text-align:center;"> 0.932 </td>
+   <td style="text-align:center;"> 0.84 </td>
+   <td style="text-align:center;"> 0.533 </td>
+   <td style="text-align:center;"> 0.556 </td>
+   <td style="text-align:center;"> 0.934 </td>
   </tr>
 </tbody>
 </table>
@@ -376,10 +378,10 @@ GBM Model - Max Accuracy
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.868 </td>
-   <td style="text-align:center;"> 0.625 </td>
-   <td style="text-align:center;"> 0.644 </td>
-   <td style="text-align:center;"> 0.943 </td>
+   <td style="text-align:center;"> 0.873 </td>
+   <td style="text-align:center;"> 0.64 </td>
+   <td style="text-align:center;"> 0.659 </td>
+   <td style="text-align:center;"> 0.944 </td>
   </tr>
 </tbody>
 </table>
@@ -400,10 +402,10 @@ PLS Model - Max Sensitivity
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.836 </td>
-   <td style="text-align:center;"> 0.525 </td>
-   <td style="text-align:center;"> 0.556 </td>
-   <td style="text-align:center;"> 0.928 </td>
+   <td style="text-align:center;"> 0.84 </td>
+   <td style="text-align:center;"> 0.536 </td>
+   <td style="text-align:center;"> 0.559 </td>
+   <td style="text-align:center;"> 0.934 </td>
   </tr>
 </tbody>
 </table>
@@ -425,10 +427,10 @@ GBM Model - Max Sensitivity
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.876 </td>
-   <td style="text-align:center;"> 0.651 </td>
-   <td style="text-align:center;"> 0.673 </td>
-   <td style="text-align:center;"> 0.944 </td>
+   <td style="text-align:center;"> 0.878 </td>
+   <td style="text-align:center;"> 0.659 </td>
+   <td style="text-align:center;"> 0.686 </td>
+   <td style="text-align:center;"> 0.942 </td>
   </tr>
 </tbody>
 </table>
@@ -477,6 +479,28 @@ X_upSample_train <- df_upSample_train %>% select(- income)
 y_upSample_train <- df_upSample_train %>% pull(income)
 ```
 
+<table class="table" style="margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:center;"> class </th>
+   <th style="text-align:center;"> value </th>
+   <th style="text-align:center;"> share </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:center;"> large </td>
+   <td style="text-align:center;"> 16148 </td>
+   <td style="text-align:center;"> 0.5 </td>
+  </tr>
+  <tr>
+   <td style="text-align:center;"> small </td>
+   <td style="text-align:center;"> 16148 </td>
+   <td style="text-align:center;"> 0.5 </td>
+  </tr>
+</tbody>
+</table>
+
 PLS Model - Up Sampling
 ========================================================
 
@@ -491,15 +515,15 @@ PLS Model - Up Sampling
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.791 </td>
-   <td style="text-align:center;"> 0.529 </td>
-   <td style="text-align:center;"> 0.859 </td>
+   <td style="text-align:center;"> 0.79 </td>
+   <td style="text-align:center;"> 0.526 </td>
+   <td style="text-align:center;"> 0.857 </td>
    <td style="text-align:center;"> 0.768 </td>
   </tr>
 </tbody>
 </table>
 
-<img src="orduz_satRday19-figure/unnamed-chunk-29-1.png" title="plot of chunk unnamed-chunk-29" alt="plot of chunk unnamed-chunk-29" style="display: block; margin: auto;" />
+<img src="orduz_satRday19-figure/unnamed-chunk-30-1.png" title="plot of chunk unnamed-chunk-30" alt="plot of chunk unnamed-chunk-30" style="display: block; margin: auto;" />
 
 GBM Model - Up Sampling
 ========================================================
@@ -516,14 +540,14 @@ GBM Model - Up Sampling
 <tbody>
   <tr>
    <td style="text-align:center;"> 0.846 </td>
-   <td style="text-align:center;"> 0.634 </td>
-   <td style="text-align:center;"> 0.881 </td>
-   <td style="text-align:center;"> 0.834 </td>
+   <td style="text-align:center;"> 0.635 </td>
+   <td style="text-align:center;"> 0.884 </td>
+   <td style="text-align:center;"> 0.833 </td>
   </tr>
 </tbody>
 </table>
 
-<img src="orduz_satRday19-figure/unnamed-chunk-31-1.png" title="plot of chunk unnamed-chunk-31" alt="plot of chunk unnamed-chunk-31" style="display: block; margin: auto;" />
+<img src="orduz_satRday19-figure/unnamed-chunk-32-1.png" title="plot of chunk unnamed-chunk-32" alt="plot of chunk unnamed-chunk-32" style="display: block; margin: auto;" />
 
 Sampling Methods - SMOTE
 ========================================================
@@ -542,6 +566,29 @@ X_smote_train <- df_smote_train  %>% select(- income)
 y_smote_train <- df_smote_train  %>% pull(income) 
 ```
 
+<table class="table" style="margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:center;"> class </th>
+   <th style="text-align:center;"> value </th>
+   <th style="text-align:center;"> share </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:center;"> large </td>
+   <td style="text-align:center;"> 16065 </td>
+   <td style="text-align:center;"> 0.429 </td>
+  </tr>
+  <tr>
+   <td style="text-align:center;"> small </td>
+   <td style="text-align:center;"> 21420 </td>
+   <td style="text-align:center;"> 0.571 </td>
+  </tr>
+</tbody>
+</table>
+
+
 PLS Model - SMOTE
 ========================================================
 
@@ -556,15 +603,15 @@ PLS Model - SMOTE
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.815 </td>
-   <td style="text-align:center;"> 0.531 </td>
-   <td style="text-align:center;"> 0.708 </td>
-   <td style="text-align:center;"> 0.851 </td>
+   <td style="text-align:center;"> 0.817 </td>
+   <td style="text-align:center;"> 0.537 </td>
+   <td style="text-align:center;"> 0.719 </td>
+   <td style="text-align:center;"> 0.849 </td>
   </tr>
 </tbody>
 </table>
 
-<img src="orduz_satRday19-figure/unnamed-chunk-33-1.png" title="plot of chunk unnamed-chunk-33" alt="plot of chunk unnamed-chunk-33" style="display: block; margin: auto;" />
+<img src="orduz_satRday19-figure/unnamed-chunk-35-1.png" title="plot of chunk unnamed-chunk-35" alt="plot of chunk unnamed-chunk-35" style="display: block; margin: auto;" />
 
 GBM Model - SMOTE
 ========================================================
@@ -580,15 +627,15 @@ GBM Model - SMOTE
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.87 </td>
-   <td style="text-align:center;"> 0.626 </td>
-   <td style="text-align:center;"> 0.635 </td>
-   <td style="text-align:center;"> 0.948 </td>
+   <td style="text-align:center;"> 0.876 </td>
+   <td style="text-align:center;"> 0.645 </td>
+   <td style="text-align:center;"> 0.646 </td>
+   <td style="text-align:center;"> 0.953 </td>
   </tr>
 </tbody>
 </table>
 
-<img src="orduz_satRday19-figure/unnamed-chunk-35-1.png" title="plot of chunk unnamed-chunk-35" alt="plot of chunk unnamed-chunk-35" style="display: block; margin: auto;" />
+<img src="orduz_satRday19-figure/unnamed-chunk-37-1.png" title="plot of chunk unnamed-chunk-37" alt="plot of chunk unnamed-chunk-37" style="display: block; margin: auto;" />
 
 Model Summary - PLS
 ========================================================
@@ -611,47 +658,47 @@ Model Summary - PLS
   <tr>
    <td style="text-align:center;"> pls </td>
    <td style="text-align:center;"> Accuracy </td>
-   <td style="text-align:center;"> 0.557 </td>
-   <td style="text-align:center;"> 0.932 </td>
-   <td style="text-align:center;"> 0.730 </td>
-   <td style="text-align:center;"> 0.557 </td>
-   <td style="text-align:center;"> 0.632 </td>
+   <td style="text-align:center;"> 0.556 </td>
+   <td style="text-align:center;"> 0.934 </td>
+   <td style="text-align:center;"> 0.737 </td>
+   <td style="text-align:center;"> 0.556 </td>
+   <td style="text-align:center;"> 0.633 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> pls </td>
    <td style="text-align:center;"> Sens </td>
-   <td style="text-align:center;"> 0.556 </td>
-   <td style="text-align:center;"> 0.928 </td>
-   <td style="text-align:center;"> 0.721 </td>
-   <td style="text-align:center;"> 0.556 </td>
-   <td style="text-align:center;"> 0.628 </td>
+   <td style="text-align:center;"> 0.559 </td>
+   <td style="text-align:center;"> 0.934 </td>
+   <td style="text-align:center;"> 0.737 </td>
+   <td style="text-align:center;"> 0.559 </td>
+   <td style="text-align:center;"> 0.636 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> pls </td>
    <td style="text-align:center;"> Alt Cutoff </td>
-   <td style="text-align:center;"> 0.824 </td>
-   <td style="text-align:center;"> 0.797 </td>
-   <td style="text-align:center;"> 0.574 </td>
-   <td style="text-align:center;"> 0.824 </td>
-   <td style="text-align:center;"> 0.677 </td>
+   <td style="text-align:center;"> 0.828 </td>
+   <td style="text-align:center;"> 0.794 </td>
+   <td style="text-align:center;"> 0.571 </td>
+   <td style="text-align:center;"> 0.828 </td>
+   <td style="text-align:center;"> 0.676 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> pls </td>
    <td style="text-align:center;"> Up Sampling </td>
-   <td style="text-align:center;"> 0.859 </td>
+   <td style="text-align:center;"> 0.857 </td>
    <td style="text-align:center;"> 0.768 </td>
-   <td style="text-align:center;"> 0.552 </td>
-   <td style="text-align:center;"> 0.859 </td>
-   <td style="text-align:center;"> 0.672 </td>
+   <td style="text-align:center;"> 0.550 </td>
+   <td style="text-align:center;"> 0.857 </td>
+   <td style="text-align:center;"> 0.670 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> pls </td>
    <td style="text-align:center;"> SMOTE </td>
-   <td style="text-align:center;"> 0.708 </td>
-   <td style="text-align:center;"> 0.851 </td>
-   <td style="text-align:center;"> 0.612 </td>
-   <td style="text-align:center;"> 0.708 </td>
-   <td style="text-align:center;"> 0.656 </td>
+   <td style="text-align:center;"> 0.719 </td>
+   <td style="text-align:center;"> 0.849 </td>
+   <td style="text-align:center;"> 0.613 </td>
+   <td style="text-align:center;"> 0.719 </td>
+   <td style="text-align:center;"> 0.662 </td>
   </tr>
 </tbody>
 </table>
@@ -675,47 +722,47 @@ Model Summary - GMB
   <tr>
    <td style="text-align:center;"> gbm </td>
    <td style="text-align:center;"> Accuracy </td>
-   <td style="text-align:center;"> 0.644 </td>
-   <td style="text-align:center;"> 0.943 </td>
-   <td style="text-align:center;"> 0.788 </td>
-   <td style="text-align:center;"> 0.644 </td>
-   <td style="text-align:center;"> 0.709 </td>
+   <td style="text-align:center;"> 0.659 </td>
+   <td style="text-align:center;"> 0.944 </td>
+   <td style="text-align:center;"> 0.795 </td>
+   <td style="text-align:center;"> 0.659 </td>
+   <td style="text-align:center;"> 0.721 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> gbm </td>
    <td style="text-align:center;"> Sens </td>
-   <td style="text-align:center;"> 0.673 </td>
-   <td style="text-align:center;"> 0.944 </td>
-   <td style="text-align:center;"> 0.799 </td>
-   <td style="text-align:center;"> 0.673 </td>
-   <td style="text-align:center;"> 0.731 </td>
+   <td style="text-align:center;"> 0.686 </td>
+   <td style="text-align:center;"> 0.942 </td>
+   <td style="text-align:center;"> 0.797 </td>
+   <td style="text-align:center;"> 0.686 </td>
+   <td style="text-align:center;"> 0.737 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> gbm </td>
    <td style="text-align:center;"> Alt Cutoff </td>
-   <td style="text-align:center;"> 0.887 </td>
-   <td style="text-align:center;"> 0.825 </td>
-   <td style="text-align:center;"> 0.627 </td>
-   <td style="text-align:center;"> 0.887 </td>
-   <td style="text-align:center;"> 0.735 </td>
+   <td style="text-align:center;"> 0.889 </td>
+   <td style="text-align:center;"> 0.821 </td>
+   <td style="text-align:center;"> 0.622 </td>
+   <td style="text-align:center;"> 0.889 </td>
+   <td style="text-align:center;"> 0.732 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> gbm </td>
    <td style="text-align:center;"> Up Sampling </td>
-   <td style="text-align:center;"> 0.881 </td>
-   <td style="text-align:center;"> 0.834 </td>
+   <td style="text-align:center;"> 0.884 </td>
+   <td style="text-align:center;"> 0.833 </td>
    <td style="text-align:center;"> 0.637 </td>
-   <td style="text-align:center;"> 0.881 </td>
-   <td style="text-align:center;"> 0.740 </td>
+   <td style="text-align:center;"> 0.884 </td>
+   <td style="text-align:center;"> 0.741 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> gbm </td>
    <td style="text-align:center;"> SMOTE </td>
-   <td style="text-align:center;"> 0.635 </td>
-   <td style="text-align:center;"> 0.948 </td>
-   <td style="text-align:center;"> 0.802 </td>
-   <td style="text-align:center;"> 0.635 </td>
-   <td style="text-align:center;"> 0.709 </td>
+   <td style="text-align:center;"> 0.646 </td>
+   <td style="text-align:center;"> 0.953 </td>
+   <td style="text-align:center;"> 0.819 </td>
+   <td style="text-align:center;"> 0.646 </td>
+   <td style="text-align:center;"> 0.723 </td>
   </tr>
 </tbody>
 </table>

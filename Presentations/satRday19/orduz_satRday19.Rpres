@@ -19,20 +19,22 @@ autosize: true
 Content 
 ========================================================
 
-### Data Set Description
+### 1. Data Set Description
 
-### Data Preparation  
+### 2. Data Preparation  
 
-### Some Model Performance Metrics
+### 3. Some Model Performance Metrics
 
-### Machine Learning Models
+### 4. Machine Learning Models
 
 - PLS 
 - GBM
 
-### Experiments & Results 
+### 5. Experiments & Results 
 
-### References & Contact 
+### 6. Other Techniques 
+
+### 7. References & Contact 
 
 
 Data Set
@@ -75,7 +77,8 @@ data_df %>%
   mutate(n = n / sum(n)) %>% 
   ggplot(mapping = aes(x = income, y = n, fill = income)) +
   geom_bar(stat = "identity", color = "black") +
-  labs(title = "Income Distribution", y = "") +
+  labs(title = "Income Distribution", y = "") + 
+  ylim(c(0,1)) +
   scale_fill_brewer(palette = "Set1")
 ```
 
@@ -312,7 +315,7 @@ train_control <- trainControl(method = "cv",
 ```
 
 ```
-model_obk <- train(x = X_train,
+model_obj <- train(x = X_train,
                   y = y_train,
                   method = method,
                   tuneLength = 10,
@@ -366,7 +369,7 @@ broom::tidy(x = conf_matrix_test)[1:4, ]  %>%
 
 ```{r, fig.align="center", echo=FALSE, fig.width=12}
 pred_df %>% 
-  ggplot(mapping = aes(x = y_test_num, y = pred_df$y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -377,7 +380,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - PLS Model 1 (Max Accuracy)", 
        subtitle = "Prediction Cut = 0.5", 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") + 
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 GBM Model - Max Accuracy
@@ -402,7 +406,7 @@ broom::tidy(x = conf_matrix_test)[1:4, ]  %>%
 
 ```{r, fig.align="center", echo=FALSE, fig.width=12}
 pred_df %>% 
-  ggplot(mapping = aes(x = pred_df$y_test_num, y = pred_df$y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -413,7 +417,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - GBM Model 1 (Max Accuracy)", 
        subtitle = "Prediction Cut = 0.5", 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 PLS Model - Max Sensitivity
@@ -438,7 +443,7 @@ broom::tidy(x = conf_matrix_test)[1:4, ]  %>%
 
 ```{r, fig.align="center", echo=FALSE, fig.width=12}
 pred_df %>% 
-  ggplot(mapping = aes(x = y_test_num, y = pred_df$y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -449,7 +454,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - PLS Model 2 (Max Sensitivity)", 
        subtitle = "Prediction Cut = 0.5", 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 
@@ -475,7 +481,7 @@ broom::tidy(x = conf_matrix_test)[1:4, ]  %>%
 
 ```{r, fig.align="center", echo=FALSE, fig.width=12}
 pred_df %>% 
-  ggplot(mapping = aes(x = pred_df$y_test_num, y = pred_df$y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -486,7 +492,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - PLS Model 1 (Max Sensitivity)", 
        subtitle = "Prediction Cut = 0.5", 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 GBM Model - Max Sensitivity
@@ -535,7 +542,7 @@ all_roc_cords_df <- all_roc_coords %>%
 
 all_roc_cords_df %>% 
   ggplot() +
-  geom_line(mapping = aes(x = 1- specificity, y = sensitivity)) +
+  geom_line(mapping = aes(x = 1 - specificity, y = sensitivity)) +
   geom_abline(slope = 1, intercept = 0, linetype = 2) +
   geom_point(mapping = aes(x = (1- best_point_eval[["specificity"]]), 
                            y = best_point_eval[["sensitivity"]], 
@@ -559,7 +566,7 @@ pred_df <- get_pred_df(model_obj = model_obj,
                        threshold = best_point_eval["threshold"])
 
 pred_df %>% 
-  ggplot(mapping = aes(x = pred_df$y_test_num, y = y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5,
@@ -574,7 +581,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - PLS Model 3 (New Cutoff)", 
        subtitle = str_c("Prediction Cut = ", round(best_point_eval["threshold"], 3)), 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 GMB Model - Alternative Cut-Off
@@ -613,7 +621,7 @@ all_roc_cords_df <- all_roc_coords %>%
 
 all_roc_cords_df %>% 
   ggplot() +
-  geom_line(mapping = aes(x = 1- specificity, y = sensitivity)) +
+  geom_line(mapping = aes(x = 1 - specificity, y = sensitivity)) +
   geom_abline(slope = 1, intercept = 0, linetype = 2) +
   geom_point(mapping = aes(x = (1- best_point_eval[["specificity"]]), 
                            y = best_point_eval[["sensitivity"]], 
@@ -637,7 +645,7 @@ pred_df <- get_pred_df(model_obj = model_obj,
                        threshold = best_point_eval["threshold"])
 
 pred_df %>% 
-  ggplot(mapping = aes(x = pred_df$y_test_num, y = y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5,
@@ -652,7 +660,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - GBM Model 3 (New Cutoff)", 
        subtitle = str_c("Prediction Cut = ", round(best_point_eval["threshold"], 3)), 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 Sampling Methods - Up/Down Sampling
@@ -670,6 +679,17 @@ df_upSample_train <- upSample(x = X_train,
 
 X_upSample_train <- df_upSample_train %>% select(- income) 
 y_upSample_train <- df_upSample_train %>% pull(income)
+```
+
+```{r, echo=FALSE}
+up_sampling_table <- table(model_list$models$pls_model_4$trainingData[[".outcome"]])
+
+up_sampling_table %>% 
+  tibble(class = names(.), 
+         value = ., 
+         share = . / sum(.)) %>% 
+    kable(align = rep("c", 3)) %>% 
+    kable_styling(position = "center")
 ```
 
 PLS Model - Up Sampling
@@ -692,9 +712,9 @@ broom::tidy(x = conf_matrix_test)[1:4, ]  %>%
   kable_styling(position = "center")
 ```
 
-```{r, fig.align="center", echo=FALSE, fig.width=10}
+```{r, fig.align="center", echo=FALSE, fig.width=12}
 pred_df %>% 
-  ggplot(mapping = aes(x = pred_df$y_test_num, y = pred_df$y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -705,7 +725,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - PLS Model 4 (Up Sampling)", 
        subtitle = "Prediction Cut = 0.5", 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 GBM Model - Up Sampling
@@ -730,7 +751,7 @@ broom::tidy(x = conf_matrix_test)[1:4, ]  %>%
 
 ```{r, fig.align="center", echo=FALSE, fig.width=12}
 pred_df %>% 
-  ggplot(mapping = aes(x = pred_df$y_test_num, y = pred_df$y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -741,7 +762,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - GBM Model 4 (Up Sampling)", 
        subtitle = "Prediction Cut = 0.5", 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 Sampling Methods - SMOTE
@@ -760,6 +782,18 @@ df_smote_train <-  DMwR::SMOTE(
 X_smote_train <- df_smote_train  %>% select(- income) 
 y_smote_train <- df_smote_train  %>% pull(income) 
 ```
+
+```{r, echo=FALSE}
+smote_table <- table(model_list$models$pls_model_5$trainingData[[".outcome"]])
+
+smote_table %>% 
+  tibble(class = names(.), 
+         value = ., 
+         share = round(. / sum(.), 3)) %>% 
+    kable(align = rep("c", 3)) %>% 
+    kable_styling(position = "center")
+```
+
 
 PLS Model - SMOTE
 ========================================================
@@ -781,9 +815,9 @@ broom::tidy(x = conf_matrix_test)[1:4, ]  %>%
   kable_styling(position = "center")
 ```
 
-```{r, fig.align="center", echo=FALSE, fig.width=10}
+```{r, fig.align="center", echo=FALSE, fig.width=12}
 pred_df %>% 
-  ggplot(mapping = aes(x = pred_df$y_test_num, y = pred_df$y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -794,7 +828,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - PLS Model 5 (SMOTE)", 
        subtitle = "Prediction Cut = 0.5", 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 GBM Model - SMOTE
@@ -819,7 +854,7 @@ broom::tidy(x = conf_matrix_test)[1:4, ]  %>%
 
 ```{r, fig.align="center", echo=FALSE, fig.width=12}
 pred_df %>% 
-  ggplot(mapping = aes(x = pred_df$y_test_num, y = pred_df$y_pred_num, fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -830,7 +865,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - GBM Model 5 (SMOTE)", 
        subtitle = "Prediction Cut = 0.5", 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 Model Summary - PLS
