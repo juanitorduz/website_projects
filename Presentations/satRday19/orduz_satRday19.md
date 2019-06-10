@@ -32,6 +32,11 @@ Content
 
 ### 5. Experiments & Results 
 
+- Max Accuracy
+- Max Sensitivity
+- Altenative Cuttofs
+- Sampling Methods
+
 ### 6. Other Techniques 
 
 ### 7. References & Contact 
@@ -146,6 +151,8 @@ y_test <- y_other[- split_index_2]
 Confusion Matrix
 ========================================================
 
+We consider positive `income` = `large`.
+
 <table class="table" style="margin-left: auto; margin-right: auto;">
  <thead>
   <tr>
@@ -177,7 +184,7 @@ Confusion Matrix
 Performance Metrics
 ========================================================
 
-- Accuracy 
+- Accuracy
 
 $$
 \text{acc} = \frac{TP + TN}{N}
@@ -186,13 +193,10 @@ $$
 - [Kappa](https://en.wikipedia.org/wiki/Cohen%27s_kappa) 
 
 $$
-\kappa = \frac{p_o - p_e}{1 - p_e}
+\kappa = \frac{\text{acc} - p_e}{1 - p_e}
 $$
 
-where 
-
-  - $p_e$ = Expected Accuracy (random chance).
-  - $p_o$ = Observed Accuracy. 
+where $p_e$ = Expected Accuracy (random chance).
   
 The kappa metric can be thought as a modification of the accuracy metric based on the class proportions. 
 
@@ -245,7 +249,7 @@ Always predict the same class.
 
 ### 2. Partial Least Squares + Logistic Regression
 
-Supervided dimensionality reduction. 
+Supervised dimensionality reduction. 
 
 ### 3. Stochastic Gradient Boosting
 
@@ -328,13 +332,13 @@ train_control <- trainControl(method = "cv",
 
 ```
 model_obj <- train(x = X_train,
-                  y = y_train,
-                  method = method,
-                  tuneLength = 10,
-                  # For linear models we scale and center. 
-                  preProcess = c("scale", "center"), 
-                  trControl = train_control,
-                  metric = metric)
+                   y = y_train,
+                   method = method,
+                   tuneLength = 10,
+                   # For linear models we scale and center. 
+                   preProcess = c("scale", "center"), 
+                   trControl = train_control,
+                   metric = metric)
 ```
 
 
@@ -354,10 +358,10 @@ PLS Model - Max Accuracy
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.84 </td>
-   <td style="text-align:center;"> 0.533 </td>
-   <td style="text-align:center;"> 0.556 </td>
-   <td style="text-align:center;"> 0.934 </td>
+   <td style="text-align:center;"> 0.838 </td>
+   <td style="text-align:center;"> 0.527 </td>
+   <td style="text-align:center;"> 0.552 </td>
+   <td style="text-align:center;"> 0.932 </td>
   </tr>
 </tbody>
 </table>
@@ -378,10 +382,10 @@ GBM Model - Max Accuracy
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.873 </td>
-   <td style="text-align:center;"> 0.64 </td>
-   <td style="text-align:center;"> 0.659 </td>
-   <td style="text-align:center;"> 0.944 </td>
+   <td style="text-align:center;"> 0.869 </td>
+   <td style="text-align:center;"> 0.629 </td>
+   <td style="text-align:center;"> 0.655 </td>
+   <td style="text-align:center;"> 0.94 </td>
   </tr>
 </tbody>
 </table>
@@ -403,9 +407,9 @@ PLS Model - Max Sensitivity
 <tbody>
   <tr>
    <td style="text-align:center;"> 0.84 </td>
-   <td style="text-align:center;"> 0.536 </td>
-   <td style="text-align:center;"> 0.559 </td>
-   <td style="text-align:center;"> 0.934 </td>
+   <td style="text-align:center;"> 0.535 </td>
+   <td style="text-align:center;"> 0.561 </td>
+   <td style="text-align:center;"> 0.932 </td>
   </tr>
 </tbody>
 </table>
@@ -427,10 +431,10 @@ GBM Model - Max Sensitivity
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.878 </td>
-   <td style="text-align:center;"> 0.659 </td>
-   <td style="text-align:center;"> 0.686 </td>
-   <td style="text-align:center;"> 0.942 </td>
+   <td style="text-align:center;"> 0.87 </td>
+   <td style="text-align:center;"> 0.635 </td>
+   <td style="text-align:center;"> 0.669 </td>
+   <td style="text-align:center;"> 0.936 </td>
   </tr>
 </tbody>
 </table>
@@ -450,6 +454,25 @@ PLS Model - Alternative Cut-Off
 PLS Model - Alternative Cut-Off
 ========================================================
 
+<table class="table" style="margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:center;"> accuracy </th>
+   <th style="text-align:center;"> kappa </th>
+   <th style="text-align:center;"> sensitivity </th>
+   <th style="text-align:center;"> specificity </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:center;"> 0.8 </td>
+   <td style="text-align:center;"> 0.534 </td>
+   <td style="text-align:center;"> 0.82 </td>
+   <td style="text-align:center;"> 0.793 </td>
+  </tr>
+</tbody>
+</table>
+
 <img src="orduz_satRday19-figure/unnamed-chunk-25-1.png" title="plot of chunk unnamed-chunk-25" alt="plot of chunk unnamed-chunk-25" style="display: block; margin: auto;" />
 
 GMB Model - Alternative Cut-Off
@@ -459,6 +482,25 @@ GMB Model - Alternative Cut-Off
 
 GBM Model - Alternative Cut-Off
 ========================================================
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:center;"> accuracy </th>
+   <th style="text-align:center;"> kappa </th>
+   <th style="text-align:center;"> sensitivity </th>
+   <th style="text-align:center;"> specificity </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:center;"> 0.836 </td>
+   <td style="text-align:center;"> 0.611 </td>
+   <td style="text-align:center;"> 0.862 </td>
+   <td style="text-align:center;"> 0.827 </td>
+  </tr>
+</tbody>
+</table>
 
 <img src="orduz_satRday19-figure/unnamed-chunk-27-1.png" title="plot of chunk unnamed-chunk-27" alt="plot of chunk unnamed-chunk-27" style="display: block; margin: auto;" />
 
@@ -515,10 +557,10 @@ PLS Model - Up Sampling
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.79 </td>
-   <td style="text-align:center;"> 0.526 </td>
-   <td style="text-align:center;"> 0.857 </td>
-   <td style="text-align:center;"> 0.768 </td>
+   <td style="text-align:center;"> 0.791 </td>
+   <td style="text-align:center;"> 0.527 </td>
+   <td style="text-align:center;"> 0.854 </td>
+   <td style="text-align:center;"> 0.77 </td>
   </tr>
 </tbody>
 </table>
@@ -539,10 +581,10 @@ GBM Model - Up Sampling
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.846 </td>
-   <td style="text-align:center;"> 0.635 </td>
-   <td style="text-align:center;"> 0.884 </td>
-   <td style="text-align:center;"> 0.833 </td>
+   <td style="text-align:center;"> 0.841 </td>
+   <td style="text-align:center;"> 0.62 </td>
+   <td style="text-align:center;"> 0.854 </td>
+   <td style="text-align:center;"> 0.837 </td>
   </tr>
 </tbody>
 </table>
@@ -552,7 +594,7 @@ GBM Model - Up Sampling
 Sampling Methods - SMOTE
 ========================================================
 
-The synthetic minority over-sampling technique (**SMOTE**) is a data sampling procedure that uses both up-sampling and down-sampling. To up-sample for the minority class, SMOTE synthesizes new cases: data point is randomly selected from the minority class and its K-nearest neighbors are determined. 
+The synthetic minority over-sampling technique (**SMOTE**) is a data sampling procedure that uses both up-sampling and down-sampling. To up-sample for the minority class, SMOTE synthesizes new cases: a data point is randomly selected from the minority class and its K-nearest neighbors are determined. 
 
 We can use the [DMwR](https://cran.r-project.org/web/packages/DMwR/index.html) package:
 
@@ -604,9 +646,9 @@ PLS Model - SMOTE
 <tbody>
   <tr>
    <td style="text-align:center;"> 0.817 </td>
-   <td style="text-align:center;"> 0.537 </td>
-   <td style="text-align:center;"> 0.719 </td>
-   <td style="text-align:center;"> 0.849 </td>
+   <td style="text-align:center;"> 0.535 </td>
+   <td style="text-align:center;"> 0.712 </td>
+   <td style="text-align:center;"> 0.852 </td>
   </tr>
 </tbody>
 </table>
@@ -627,10 +669,10 @@ GBM Model - SMOTE
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.876 </td>
-   <td style="text-align:center;"> 0.645 </td>
-   <td style="text-align:center;"> 0.646 </td>
-   <td style="text-align:center;"> 0.953 </td>
+   <td style="text-align:center;"> 0.865 </td>
+   <td style="text-align:center;"> 0.614 </td>
+   <td style="text-align:center;"> 0.634 </td>
+   <td style="text-align:center;"> 0.941 </td>
   </tr>
 </tbody>
 </table>
@@ -658,47 +700,47 @@ Model Summary - PLS
   <tr>
    <td style="text-align:center;"> pls </td>
    <td style="text-align:center;"> Accuracy </td>
-   <td style="text-align:center;"> 0.556 </td>
-   <td style="text-align:center;"> 0.934 </td>
-   <td style="text-align:center;"> 0.737 </td>
-   <td style="text-align:center;"> 0.556 </td>
-   <td style="text-align:center;"> 0.633 </td>
+   <td style="text-align:center;"> 0.552 </td>
+   <td style="text-align:center;"> 0.932 </td>
+   <td style="text-align:center;"> 0.730 </td>
+   <td style="text-align:center;"> 0.552 </td>
+   <td style="text-align:center;"> 0.628 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> pls </td>
    <td style="text-align:center;"> Sens </td>
-   <td style="text-align:center;"> 0.559 </td>
-   <td style="text-align:center;"> 0.934 </td>
-   <td style="text-align:center;"> 0.737 </td>
-   <td style="text-align:center;"> 0.559 </td>
+   <td style="text-align:center;"> 0.561 </td>
+   <td style="text-align:center;"> 0.932 </td>
+   <td style="text-align:center;"> 0.733 </td>
+   <td style="text-align:center;"> 0.561 </td>
    <td style="text-align:center;"> 0.636 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> pls </td>
    <td style="text-align:center;"> Alt Cutoff </td>
-   <td style="text-align:center;"> 0.828 </td>
-   <td style="text-align:center;"> 0.794 </td>
-   <td style="text-align:center;"> 0.571 </td>
-   <td style="text-align:center;"> 0.828 </td>
-   <td style="text-align:center;"> 0.676 </td>
+   <td style="text-align:center;"> 0.820 </td>
+   <td style="text-align:center;"> 0.793 </td>
+   <td style="text-align:center;"> 0.568 </td>
+   <td style="text-align:center;"> 0.820 </td>
+   <td style="text-align:center;"> 0.671 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> pls </td>
    <td style="text-align:center;"> Up Sampling </td>
-   <td style="text-align:center;"> 0.857 </td>
-   <td style="text-align:center;"> 0.768 </td>
-   <td style="text-align:center;"> 0.550 </td>
-   <td style="text-align:center;"> 0.857 </td>
+   <td style="text-align:center;"> 0.854 </td>
+   <td style="text-align:center;"> 0.770 </td>
+   <td style="text-align:center;"> 0.552 </td>
+   <td style="text-align:center;"> 0.854 </td>
    <td style="text-align:center;"> 0.670 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> pls </td>
    <td style="text-align:center;"> SMOTE </td>
-   <td style="text-align:center;"> 0.719 </td>
-   <td style="text-align:center;"> 0.849 </td>
-   <td style="text-align:center;"> 0.613 </td>
-   <td style="text-align:center;"> 0.719 </td>
-   <td style="text-align:center;"> 0.662 </td>
+   <td style="text-align:center;"> 0.712 </td>
+   <td style="text-align:center;"> 0.852 </td>
+   <td style="text-align:center;"> 0.615 </td>
+   <td style="text-align:center;"> 0.712 </td>
+   <td style="text-align:center;"> 0.660 </td>
   </tr>
 </tbody>
 </table>
@@ -722,47 +764,47 @@ Model Summary - GMB
   <tr>
    <td style="text-align:center;"> gbm </td>
    <td style="text-align:center;"> Accuracy </td>
-   <td style="text-align:center;"> 0.659 </td>
-   <td style="text-align:center;"> 0.944 </td>
-   <td style="text-align:center;"> 0.795 </td>
-   <td style="text-align:center;"> 0.659 </td>
-   <td style="text-align:center;"> 0.721 </td>
+   <td style="text-align:center;"> 0.655 </td>
+   <td style="text-align:center;"> 0.940 </td>
+   <td style="text-align:center;"> 0.782 </td>
+   <td style="text-align:center;"> 0.655 </td>
+   <td style="text-align:center;"> 0.713 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> gbm </td>
    <td style="text-align:center;"> Sens </td>
-   <td style="text-align:center;"> 0.686 </td>
-   <td style="text-align:center;"> 0.942 </td>
-   <td style="text-align:center;"> 0.797 </td>
-   <td style="text-align:center;"> 0.686 </td>
-   <td style="text-align:center;"> 0.737 </td>
+   <td style="text-align:center;"> 0.669 </td>
+   <td style="text-align:center;"> 0.936 </td>
+   <td style="text-align:center;"> 0.777 </td>
+   <td style="text-align:center;"> 0.669 </td>
+   <td style="text-align:center;"> 0.719 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> gbm </td>
    <td style="text-align:center;"> Alt Cutoff </td>
-   <td style="text-align:center;"> 0.889 </td>
-   <td style="text-align:center;"> 0.821 </td>
-   <td style="text-align:center;"> 0.622 </td>
-   <td style="text-align:center;"> 0.889 </td>
-   <td style="text-align:center;"> 0.732 </td>
+   <td style="text-align:center;"> 0.862 </td>
+   <td style="text-align:center;"> 0.827 </td>
+   <td style="text-align:center;"> 0.624 </td>
+   <td style="text-align:center;"> 0.862 </td>
+   <td style="text-align:center;"> 0.724 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> gbm </td>
    <td style="text-align:center;"> Up Sampling </td>
-   <td style="text-align:center;"> 0.884 </td>
-   <td style="text-align:center;"> 0.833 </td>
-   <td style="text-align:center;"> 0.637 </td>
-   <td style="text-align:center;"> 0.884 </td>
-   <td style="text-align:center;"> 0.741 </td>
+   <td style="text-align:center;"> 0.854 </td>
+   <td style="text-align:center;"> 0.837 </td>
+   <td style="text-align:center;"> 0.635 </td>
+   <td style="text-align:center;"> 0.854 </td>
+   <td style="text-align:center;"> 0.728 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> gbm </td>
    <td style="text-align:center;"> SMOTE </td>
-   <td style="text-align:center;"> 0.646 </td>
-   <td style="text-align:center;"> 0.953 </td>
-   <td style="text-align:center;"> 0.819 </td>
-   <td style="text-align:center;"> 0.646 </td>
-   <td style="text-align:center;"> 0.723 </td>
+   <td style="text-align:center;"> 0.634 </td>
+   <td style="text-align:center;"> 0.941 </td>
+   <td style="text-align:center;"> 0.782 </td>
+   <td style="text-align:center;"> 0.634 </td>
+   <td style="text-align:center;"> 0.700 </td>
   </tr>
 </tbody>
 </table>

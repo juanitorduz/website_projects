@@ -32,6 +32,11 @@ Content
 
 ### 5. Experiments & Results 
 
+- Max Accuracy
+- Max Sensitivity
+- Altenative Cuttofs
+- Sampling Methods
+
 ### 6. Other Techniques 
 
 ### 7. References & Contact 
@@ -55,6 +60,8 @@ library(parallel)
 library(doParallel)
 
 model_list <- readRDS(file = "../../Data/model_list.rds") 
+
+set.seed(seed = 1)
 ```
 
 ```{r}
@@ -159,6 +166,8 @@ y_test <- y_other[- split_index_2]
 Confusion Matrix
 ========================================================
 
+We consider positive `income` = `large`.
+
 ```{r, fig.align="center", echo=FALSE}
 tibble(
   ` ` = c("Prediction Positive", "Prediction Negative"),
@@ -177,7 +186,7 @@ tibble(
 Performance Metrics
 ========================================================
 
-- Accuracy 
+- Accuracy
 
 $$
 \text{acc} = \frac{TP + TN}{N}
@@ -186,13 +195,10 @@ $$
 - [Kappa](https://en.wikipedia.org/wiki/Cohen%27s_kappa) 
 
 $$
-\kappa = \frac{p_o - p_e}{1 - p_e}
+\kappa = \frac{\text{acc} - p_e}{1 - p_e}
 $$
 
-where 
-
-  - $p_e$ = Expected Accuracy (random chance).
-  - $p_o$ = Observed Accuracy. 
+where $p_e$ = Expected Accuracy (random chance).
   
 The kappa metric can be thought as a modification of the accuracy metric based on the class proportions. 
 
@@ -245,7 +251,7 @@ Always predict the same class.
 
 ### 2. Partial Least Squares + Logistic Regression
 
-Supervided dimensionality reduction. 
+Supervised dimensionality reduction. 
 
 ### 3. Stochastic Gradient Boosting
 
@@ -316,13 +322,13 @@ train_control <- trainControl(method = "cv",
 
 ```
 model_obj <- train(x = X_train,
-                  y = y_train,
-                  method = method,
-                  tuneLength = 10,
-                  # For linear models we scale and center. 
-                  preProcess = c("scale", "center"), 
-                  trControl = train_control,
-                  metric = metric)
+                   y = y_train,
+                   method = method,
+                   tuneLength = 10,
+                   # For linear models we scale and center. 
+                   preProcess = c("scale", "center"), 
+                   trControl = train_control,
+                   metric = metric)
 ```
 
 
@@ -544,7 +550,7 @@ all_roc_cords_df %>%
   ggplot() +
   geom_line(mapping = aes(x = 1 - specificity, y = sensitivity)) +
   geom_abline(slope = 1, intercept = 0, linetype = 2) +
-  geom_point(mapping = aes(x = (1- best_point_eval[["specificity"]]), 
+  geom_point(mapping = aes(x = (1 - best_point_eval[["specificity"]]), 
                            y = best_point_eval[["sensitivity"]], 
                            color = "optimal point"), 
              
@@ -564,6 +570,16 @@ pred_df <- get_pred_df(model_obj = model_obj,
                        X_test = X_test, 
                        y_test = y_test,
                        threshold = best_point_eval["threshold"])
+
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
+                                    reference =  y_test)
+
+broom::tidy(x = conf_matrix_test)[1:4, ]  %>% 
+  select(term, estimate) %>% 
+  mutate(estimate = round(estimate, 3)) %>% 
+  spread(key = term, value = estimate) %>% 
+  kable(align = c("c", "c")) %>% 
+  kable_styling(position = "center") 
 
 pred_df %>% 
   ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
@@ -623,7 +639,7 @@ all_roc_cords_df %>%
   ggplot() +
   geom_line(mapping = aes(x = 1 - specificity, y = sensitivity)) +
   geom_abline(slope = 1, intercept = 0, linetype = 2) +
-  geom_point(mapping = aes(x = (1- best_point_eval[["specificity"]]), 
+  geom_point(mapping = aes(x = (1 - best_point_eval[["specificity"]]), 
                            y = best_point_eval[["sensitivity"]], 
                            color = "optimal point"), 
              
@@ -643,6 +659,16 @@ pred_df <- get_pred_df(model_obj = model_obj,
                        X_test = X_test, 
                        y_test = y_test,
                        threshold = best_point_eval["threshold"])
+
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
+                                    reference =  y_test)
+
+broom::tidy(x = conf_matrix_test)[1:4, ]  %>% 
+  select(term, estimate) %>% 
+  mutate(estimate = round(estimate, 3)) %>% 
+  spread(key = term, value = estimate) %>% 
+  kable(align = c("c", "c")) %>% 
+  kable_styling(position = "center")
 
 pred_df %>% 
   ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
@@ -769,7 +795,7 @@ pred_df %>%
 Sampling Methods - SMOTE
 ========================================================
 
-The synthetic minority over-sampling technique (**SMOTE**) is a data sampling procedure that uses both up-sampling and down-sampling. To up-sample for the minority class, SMOTE synthesizes new cases: data point is randomly selected from the minority class and its K-nearest neighbors are determined. 
+The synthetic minority over-sampling technique (**SMOTE**) is a data sampling procedure that uses both up-sampling and down-sampling. To up-sample for the minority class, SMOTE synthesizes new cases: a data point is randomly selected from the minority class and its K-nearest neighbors are determined. 
 
 We can use the [DMwR](https://cran.r-project.org/web/packages/DMwR/index.html) package:
 
