@@ -751,9 +751,7 @@ Note that the sensitivity is around 0.56. This shows that this model does is ver
 
 ```{r, fig.align="center"}
 pred_df %>% 
-  ggplot(mapping = aes(x = pred_df$y_test_num, 
-                       y = pred_df$y_pred_num, 
-                       fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -764,7 +762,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - PLS Model 1 (Max Accuracy)", 
        subtitle = "Prediction Cut = 0.5", 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 ```{r, fig.align="center"}
@@ -824,9 +823,7 @@ The accuracy, the sesitivity and specificity are higher that the pls model above
 
 ```{r, fig.align="center"}
 pred_df %>% 
-  ggplot(mapping = aes(x = pred_df$y_test_num, 
-                       y = pred_df$y_pred_num, 
-                       fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -837,7 +834,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - GBM Model 1 (Max Accuracy)", 
        subtitle = "Prediction Cut = 0.5", 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 ```{r, fig.align="center"}
@@ -918,9 +916,7 @@ Let us plot the predicted probability distributions on the test set.
 
 ```{r, fig.align="center"}
 pred_df %>% 
-  ggplot(mapping = aes(x = pred_df$y_test_num, 
-                       y = pred_df$y_pred_num, 
-                       fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -931,7 +927,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - PLS Model 2 (Max Sens)", 
        subtitle = "Prediction Cut = 0.5", 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 - GBM Model
@@ -983,9 +980,7 @@ We do not see a significant increase in sensitivity.
 
 ```{r, fig.align="center"}
 pred_df %>% 
-  ggplot(mapping = aes(x = pred_df$y_test_num, 
-                       y = pred_df$y_pred_num, 
-                       fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -996,7 +991,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - GBM Model 2 (Max Sens)", 
        subtitle = "Prediction Cut = 0.5", 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 ## Model Fit - Alternate Cutoffs
@@ -1080,10 +1076,10 @@ all_roc_cords_df <- all_roc_coords %>%
 
 all_roc_cords_df %>% 
   ggplot() +
-  geom_line(mapping = aes(x = 1- specificity, y = sensitivity)) +
+  geom_line(mapping = aes(x = 1 - specificity, y = sensitivity)) +
   geom_abline(slope = 1, intercept = 0, linetype = 2) +
   geom_point(mapping = aes(x = (1- best_point_eval[["specificity"]]), 
-                           y = best_point_eval[["sensitivity"]], 
+                           y =  best_point_eval[["sensitivity"]], 
                            color = "optimal point"), 
              
              size = 4) +
@@ -1103,9 +1099,7 @@ pred_df <- get_pred_df(model_obj = pls_model_3,
                        threshold = best_point_eval["threshold"])
 
 pred_df %>% 
-  ggplot(mapping = aes(x = pred_df$y_test_num, 
-                       y = pred_df$y_pred_num, 
-                       fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5,
@@ -1120,7 +1114,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - PLS Model 3 (New Cutoff)", 
        subtitle = str_c("Prediction Cut = ", round(best_point_eval["threshold"], 3)), 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 ```{r}
@@ -1226,9 +1221,7 @@ pred_df <- get_pred_df(model_obj = gbm_model_3,
                        threshold = best_point_eval["threshold"])
 
 pred_df %>% 
-  ggplot(mapping = aes(x = pred_df$y_test_num, 
-                       y = pred_df$y_pred_num, 
-                       fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5,
@@ -1243,7 +1236,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - GBM Model 3 (New Cutoff)", 
        subtitle = str_c("Prediction Cut = ", round(best_point_eval["threshold"], 3)), 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 ```{r}
@@ -1322,9 +1316,7 @@ For this model, the sensitivity is higher than the one obtained after optimizing
 
 ```{r, fig.align="center"}
 pred_df %>% 
-  ggplot(mapping = aes(x = pred_df$y_test_num, 
-                       y = pred_df$y_pred_num, 
-                       fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -1335,7 +1327,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - PLS Model 4 (Up Sampling)", 
        subtitle = "Prediction Cut = 0.5", 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 ```{r, fig.align="center"}
@@ -1383,9 +1376,7 @@ conf_matrix_test
 
 ```{r, fig.align="center"}
 pred_df %>% 
-  ggplot(mapping = aes(x = pred_df$y_test_num, 
-                       y = pred_df$y_pred_num, 
-                       fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -1396,7 +1387,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - GBM Model 4 (Up Sampling)", 
        subtitle = "Prediction Cut = 0.5", 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 ```{r, fig.align="center"}
@@ -1470,9 +1462,7 @@ conf_matrix_test
 
 ```{r, fig.align="center"}
 pred_df %>% 
-  ggplot(mapping = aes(x = pred_df$y_test_num, 
-                       y = pred_df$y_pred_num, 
-                       fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -1483,7 +1473,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - PLS Model 5 (SMOTE)", 
        subtitle = "Prediction Cut = 0.5", 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 ```{r, fig.align="center"}
@@ -1531,9 +1522,7 @@ conf_matrix_test
 
 ```{r, fig.align="center"}
 pred_df %>% 
-  ggplot(mapping = aes(x = pred_df$y_test_num, 
-                       y = pred_df$y_pred_num, 
-                       fill = y_test)) +
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
   geom_boxplot() + 
   geom_abline(slope = 0, 
               intercept = 0.5, 
@@ -1544,7 +1533,8 @@ pred_df %>%
   labs(title = "Preditcted Distributions - GBM Model 5 (SMOTE)", 
        subtitle = "Prediction Cut = 0.5", 
        x = "test label", 
-       y = "predicted probability")
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
 ```
 
 ```{r, fig.align="center"}
@@ -1565,54 +1555,61 @@ title(main = str_c("GBM Model 5 - ROC AUC (Test) = ", auc_gbm), line = 2.5)
 Let us parse the model results. 
 
 ```{r}
-models_summary <- names(model_list$models) %>% 
+generate_model_summary <- function (model_lis) {
   
-  map_df(.f = function(m_name) {
+  models_summary <- names(model_list$models) %>% 
     
-    m <- model_list$models[[m_name]]
-    
-    m_threshold <- 0.5
-    
-    if (m_name %in% names(model_list$best_point)) {
+    map_df(.f = function(m_name) {
       
-      m_threshold <- model_list$best_point[[m_name]][["threshold"]]
+      m <- model_list$models[[m_name]]
       
+      m_threshold <- 0.5
+      
+      if (m_name %in% names(model_list$best_point)) {
+        
+        m_threshold <- model_list$best_point[[m_name]][["threshold"]]
+        
+      }
+      
+      y_pred <- predict(object = m , newdata = X_test, type = "prob") %>% 
+        pull(large) %>% 
+        # If the probability is larger than 0.5 we predict large. 
+        map_chr(.f = ~ ifelse(test = .x > m_threshold, yes = "large", no = "small")) %>% 
+        as_factor()
+    
+      # Confusion Matrix. 
+      conf_matrix_test <- confusionMatrix(data = y_pred, reference =  y_test)
+      
+      conf_matrix_test$byClass %>% 
+        t() %>% 
+        as_tibble() %>% 
+        select(Sensitivity, Specificity, Precision, Recall, F1) 
     }
-    
-    y_pred <- predict(object = m , newdata = X_test, type = "prob") %>% 
-      pull(large) %>% 
-      # If the probability is larger than 0.5 we predict large. 
-      map_chr(.f = ~ ifelse(test = .x > m_threshold, yes = "large", no = "small")) %>% 
-      as_factor()
+  )
+
+  models_summary %<>% 
+    add_column(Model = names(model_list$models), .before = "Sensitivity") %>% 
+    separate(col = Model, into = c("Method", "Model", "Tag"), sep = "_") %>% 
+    select(- Model) %>% 
+    mutate(
+      Tag = case_when(
+        Tag == 1 ~ "Accuracy", 
+        Tag == 2 ~ "Sens", 
+        Tag == 3 ~ "Alt Cutoff", 
+        Tag == 4 ~ "Up Sampling", 
+        Tag == 5 ~ "SMOTE", 
+      )
+    ) 
+
+  models_summary %<>% mutate_if(.predicate = is.numeric, .funs = ~ round(x = .x, digits = 3))
   
-    # Confusion Matrix. 
-    conf_matrix_test <- confusionMatrix(data = y_pred, reference =  y_test)
-    
-    conf_matrix_test$byClass %>% 
-      t() %>% 
-      as_tibble() %>% 
-      select(Sensitivity, Specificity, Precision, Recall, F1) 
-  }
-)
-
-models_summary %<>% 
-  add_column(Model = names(model_list$models), .before = "Sensitivity") %>% 
-  separate(col = Model, into = c("Method", "Model", "Tag"), sep = "_") %>% 
-  select(- Model) %>% 
-  mutate(
-    Tag = case_when(
-      Tag == 1 ~ "Accuracy", 
-      Tag == 2 ~ "Sens", 
-      Tag == 3 ~ "Alt Cutoff", 
-      Tag == 4 ~ "Up Sampling", 
-      Tag == 5 ~ "SMOTE", 
-    )
-  ) 
-
-models_summary %<>% mutate_if(.predicate = is.numeric, .funs = ~ round(x = .x, digits = 3))
+  return(models_summary)
+}
 ```
 
 ```{r}
+models_summary <- generate_model_summary(model_lis = model_list)
+
 models_summary %>% knitr::kable(align = rep("c", 7)) 
 ```
 
@@ -1620,8 +1617,3 @@ models_summary %>% knitr::kable(align = rep("c", 7))
 # Save Model List. 
 saveRDS(object = model_list, file = "model_list.rds")
 ```
-
-
-
-
-
