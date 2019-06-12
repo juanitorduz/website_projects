@@ -9,7 +9,11 @@ slug: class_imbalance
 
 In this post I present a concrete case study illustrating some techniques to improve model performance in class-imbalanced classification problems. The methodologies described here are based on *Chapter 16: Remedies for Severe Class Imbalance* of the (great!) book [Applied Predictive Modeling](http://appliedpredictivemodeling.com/) by Max Kuhn and Kjell Johnson. I absolutely recommend this reference to anyone interested in predictive modeling. 
 
-This notebook should serve as an extension of my talk given at [satRday Berlin 2019: A conference for R users in Berlin](https://berlin2019.satrdays.org/). 
+This notebook should serve as an extension of my talk given at [satRday Berlin 2019: A conference for R users in Berlin](https://berlin2019.satrdays.org/). Here are the slides:
+
+```{r, echo=FALSE}
+knitr::include_url(url = "/html/orduz_satRday19.html") 
+```
 
 # The Data Set
 
@@ -450,8 +454,8 @@ Let us now split the data. We are interested in generating three partitions:
 
 ```{r}
 # Set seed to make results reproducible. 
-seed <-  set.seed(seed = 1)
-
+seed <- 1 
+set.seed(seed = seed)
 model_list$seed <- seed
 
 split_data <- function (X, y) {
@@ -1414,6 +1418,8 @@ title(main = str_c("GBM Model 4 - ROC AUC (Test) = ", auc_gbm), line = 2.5)
 # Get new training set.
 df_smote_train <-  DMwR::SMOTE(
   form = income ~ .,
+  perc.over = 200, 
+  perc.under = 150, 
   data = as.data.frame(bind_cols(income = y_train, X_train))
 )
 
