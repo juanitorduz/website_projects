@@ -61,7 +61,7 @@ library(doParallel)
 
 model_list <- readRDS(file = "../../Data/model_list.rds") 
 
-set.seed(seed = 1)
+set.seed(seed = model_list$seed)
 ```
 
 ```{r}
@@ -802,6 +802,8 @@ We can use the [DMwR](https://cran.r-project.org/web/packages/DMwR/index.html) p
 ```
 df_smote_train <-  DMwR::SMOTE(
   form = income ~ ., 
+  perc.over = 200, 
+  perc.under = 150, 
   data = as.data.frame(bind_cols(income = y_train, X_train))
 )
 

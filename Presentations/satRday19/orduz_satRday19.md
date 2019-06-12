@@ -601,6 +601,8 @@ We can use the [DMwR](https://cran.r-project.org/web/packages/DMwR/index.html) p
 ```
 df_smote_train <-  DMwR::SMOTE(
   form = income ~ ., 
+  perc.over = 200, 
+  perc.under = 150, 
   data = as.data.frame(bind_cols(income = y_train, X_train))
 )
 
@@ -620,12 +622,12 @@ y_smote_train <- df_smote_train  %>% pull(income)
   <tr>
    <td style="text-align:center;"> large </td>
    <td style="text-align:center;"> 16065 </td>
-   <td style="text-align:center;"> 0.429 </td>
+   <td style="text-align:center;"> 0.5 </td>
   </tr>
   <tr>
    <td style="text-align:center;"> small </td>
-   <td style="text-align:center;"> 21420 </td>
-   <td style="text-align:center;"> 0.571 </td>
+   <td style="text-align:center;"> 16065 </td>
+   <td style="text-align:center;"> 0.5 </td>
   </tr>
 </tbody>
 </table>
@@ -645,10 +647,10 @@ PLS Model - SMOTE
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.817 </td>
-   <td style="text-align:center;"> 0.535 </td>
-   <td style="text-align:center;"> 0.712 </td>
-   <td style="text-align:center;"> 0.852 </td>
+   <td style="text-align:center;"> 0.799 </td>
+   <td style="text-align:center;"> 0.52 </td>
+   <td style="text-align:center;"> 0.774 </td>
+   <td style="text-align:center;"> 0.807 </td>
   </tr>
 </tbody>
 </table>
@@ -669,10 +671,10 @@ GBM Model - SMOTE
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:center;"> 0.865 </td>
-   <td style="text-align:center;"> 0.614 </td>
-   <td style="text-align:center;"> 0.634 </td>
-   <td style="text-align:center;"> 0.941 </td>
+   <td style="text-align:center;"> 0.864 </td>
+   <td style="text-align:center;"> 0.624 </td>
+   <td style="text-align:center;"> 0.678 </td>
+   <td style="text-align:center;"> 0.925 </td>
   </tr>
 </tbody>
 </table>
@@ -736,11 +738,11 @@ Model Summary - PLS
   <tr>
    <td style="text-align:center;"> pls </td>
    <td style="text-align:center;"> SMOTE </td>
-   <td style="text-align:center;"> 0.712 </td>
-   <td style="text-align:center;"> 0.852 </td>
-   <td style="text-align:center;"> 0.615 </td>
-   <td style="text-align:center;"> 0.712 </td>
-   <td style="text-align:center;"> 0.660 </td>
+   <td style="text-align:center;"> 0.774 </td>
+   <td style="text-align:center;"> 0.807 </td>
+   <td style="text-align:center;"> 0.571 </td>
+   <td style="text-align:center;"> 0.774 </td>
+   <td style="text-align:center;"> 0.657 </td>
   </tr>
 </tbody>
 </table>
@@ -800,11 +802,11 @@ Model Summary - GMB
   <tr>
    <td style="text-align:center;"> gbm </td>
    <td style="text-align:center;"> SMOTE </td>
-   <td style="text-align:center;"> 0.634 </td>
-   <td style="text-align:center;"> 0.941 </td>
-   <td style="text-align:center;"> 0.782 </td>
-   <td style="text-align:center;"> 0.634 </td>
-   <td style="text-align:center;"> 0.700 </td>
+   <td style="text-align:center;"> 0.678 </td>
+   <td style="text-align:center;"> 0.925 </td>
+   <td style="text-align:center;"> 0.751 </td>
+   <td style="text-align:center;"> 0.678 </td>
+   <td style="text-align:center;"> 0.713 </td>
   </tr>
 </tbody>
 </table>
