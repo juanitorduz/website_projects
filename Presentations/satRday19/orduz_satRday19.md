@@ -594,7 +594,7 @@ GBM Model - Up Sampling
 Sampling Methods - SMOTE
 ========================================================
 
-The synthetic minority over-sampling technique (**SMOTE**) is a data sampling procedure that uses both up-sampling and down-sampling. To up-sample for the minority class, SMOTE synthesizes new cases: a data point is randomly selected from the minority class and its K-nearest neighbors are determined. 
+**SMOTE** is a data sampling procedure that uses both up-sampling and down-sampling. To up-sample for the minority class, it synthesizes new cases: a data point is randomly selected from the minority class and its K-nearest neighbors are determined. The new synthetic data point is a random combination of the predictors of the randomly selected data point and its neighbors.
 
 We can use the [DMwR](https://cran.r-project.org/web/packages/DMwR/index.html) package:
 

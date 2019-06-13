@@ -1459,7 +1459,7 @@ y_upSample_train &lt;- df_upSample_train %&gt;% pull(income)
 <section data-transition="linear" data-transition-speed="default">
 <h3>Sampling Methods - SMOTE</h3>
 <div class="slideContent" >
-<p>The synthetic minority over-sampling technique (<strong>SMOTE</strong>) is a data sampling procedure that uses both up-sampling and down-sampling. To up-sample for the minority class, SMOTE synthesizes new cases: a data point is randomly selected from the minority class and its K-nearest neighbors are determined. </p>
+<p><strong>SMOTE</strong> is a data sampling procedure that uses both up-sampling and down-sampling. To up-sample for the minority class, it synthesizes new cases: a data point is randomly selected from the minority class and its K-nearest neighbors are determined. The new synthetic data point is a random combination of the predictors of the randomly selected data point and its neighbors.</p>
 
 <p>We can use the <a href="https://cran.r-project.org/web/packages/DMwR/index.html">DMwR</a> package:</p>
 
