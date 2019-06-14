@@ -75,7 +75,6 @@ glimpse(raw_data, width = 60)
 data_df <- model_list$functions$format_raw_data(df = raw_data)
 ```
 
-
 Income Variable
 ========================================================
 ```{r, fig.align="center", fig.width=12, fig.height=8, echo=FALSE}
@@ -211,7 +210,7 @@ $$
 \text{sens} = \frac{TP}{TP + FN}
 $$
 
-- [Specitivity](https://en.wikipedia.org/wiki/Sensitivity_and_specificity)
+- [Specificity](https://en.wikipedia.org/wiki/Sensitivity_and_specificity)
 
 $$
 \text{spec} = \frac{TN}{TN + FP}

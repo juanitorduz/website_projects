@@ -79,7 +79,6 @@ $ income           <ord> small, small, small, small, smal…
 data_df <- model_list$functions$format_raw_data(df = raw_data)
 ```
 
-
 Income Variable
 ========================================================
 <img src="orduz_satRday19-figure/unnamed-chunk-4-1.png" title="plot of chunk unnamed-chunk-4" alt="plot of chunk unnamed-chunk-4" style="display: block; margin: auto;" />
@@ -209,7 +208,7 @@ $$
 \text{sens} = \frac{TP}{TP + FN}
 $$
 
-- [Specitivity](https://en.wikipedia.org/wiki/Sensitivity_and_specificity)
+- [Specificity](https://en.wikipedia.org/wiki/Sensitivity_and_specificity)
 
 $$
 \text{spec} = \frac{TN}{TN + FP}
