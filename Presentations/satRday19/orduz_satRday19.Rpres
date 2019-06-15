@@ -1,0 +1,990 @@
+<style>
+.reveal .slides section .slideContent{
+    font-size: 20pt;
+}
+
+/* slide titles */
+.reveal h1 { 
+  font-size: 100px;
+}
+
+</style>
+
+Some Remedies for Several Class Imbalance
+========================================================
+author: Dr. Juan Orduz 
+date: satRday Berlin  - 15.06.2019
+autosize: true
+
+Content 
+========================================================
+
+### 1. Data Set Description
+
+### 2. Data Preparation  
+
+### 3. Some Model Performance Metrics
+
+### 4. Machine Learning Models
+
+- PLS 
+- GBM
+
+### 5. Experiments & Results 
+
+- Max Accuracy
+- Max Sensitivity
+- Altenative Cuttofs
+- Sampling Methods
+
+### 6. Other Techniques 
+
+### 7. References & Contact 
+
+
+Data Set
+========================================================
+```{r, echo=FALSE}
+# Load Libraries
+library(knitr)
+library(kableExtra)
+
+library(caret)
+library(gbm)
+library(magrittr)
+library(pROC)
+library(tidyverse)
+
+# Allow parallel computation.
+library(parallel)
+library(doParallel)
+
+model_list <- readRDS(file = "../../Data/model_list.rds") 
+
+set.seed(seed = model_list$seed)
+```
+
+```{r}
+data(AdultUCI, package = "arules")
+raw_data <- AdultUCI
+
+glimpse(raw_data, width = 60)
+```
+
+```{r}
+data_df <- model_list$functions$format_raw_data(df = raw_data)
+```
+
+Income Variable
+========================================================
+```{r, fig.align="center", fig.width=12, fig.height=8, echo=FALSE}
+data_df %>% 
+  count(income) %>% 
+  mutate(n = n / sum(n)) %>% 
+  ggplot(mapping = aes(x = income, y = n, fill = income)) +
+  geom_bar(stat = "identity", color = "black") +
+  labs(title = "Income Distribution", y = "") + 
+  ylim(c(0,1)) +
+  scale_fill_brewer(palette = "Set1")
+```
+
+Exploratory Data Analysis - Visualization
+========================================================
+```{r, fig.align="center", fig.width=12, fig.height=8, echo=FALSE}
+data_df %>% 
+  ggplot(mapping = aes(x = age, y = ..density.., fill = income)) +
+  geom_density(alpha = 0.8) +
+  labs(title = "Age Distribution") + 
+  scale_fill_brewer(palette = "Set1")
+```
+
+Feature Engineering
+========================================================
+
+$$
+x \mapsto \log(x + 1)
+$$
+
+```{r, fig.align="center", fig.width=12, echo=FALSE}
+data_df %>% 
+  ggplot(mapping = aes(x = log(`capital-gain` + 1), y = age, fill = income)) +
+  geom_boxplot() +
+  labs(title = "Log Capital Gain") +
+  scale_fill_brewer(palette = "Set1")
+```
+
+
+Data Preparation
+========================================================
+```{r}
+df <- data_df %>% 
+  mutate(capital_gain_log = log(`capital-gain` + 1), 
+         capital_loss_log = log(`capital-loss` + 1)) %>% 
+  select(- `capital-gain`, - `capital-loss`) %>% 
+  drop_na()
+
+# Define observation matrix and target vector. 
+X <- df %>% select(- income)
+y <- df %>% pull(income) %>% fct_rev()
+
+# Add dummy variables. 
+dummy_obj <- dummyVars("~ .", data = X, sep = "_")
+
+X <- predict(object = dummy_obj, newdata = X) %>% as_tibble()
+
+# Remove predictors with near zero variance. 
+cols_to_rm <- colnames(X)[nearZeroVar(x = X, freqCut = 5000)]
+  
+X %<>% select(- cols_to_rm) 
+```
+
+Data Split
+========================================================
+```{r}
+# Split train - other
+split_index_1 <- createDataPartition(y = y, p = 0.7)$Resample1
+
+X_train <- X[split_index_1, ]
+y_train <- y[split_index_1]
+
+X_other <- X[- split_index_1, ]
+y_other <- y[- split_index_1]
+
+split_index_2 <- createDataPartition(y = y_other, 
+                                     p = 1/3)$Resample1
+
+# Split evaluation - test
+X_eval <- X_other[split_index_2, ]
+y_eval <- y_other[split_index_2]
+
+X_test <- X_other[- split_index_2, ]
+y_test <- y_other[- split_index_2]
+```
+
+
+Confusion Matrix
+========================================================
+
+We consider positive `income` = `large`.
+
+```{r, fig.align="center", echo=FALSE}
+tibble(
+  ` ` = c("Prediction Positive", "Prediction Negative"),
+  `Condition Positive` = c("TP", "FN"), 
+  `Condition Negative` = c("FP", "TN"), 
+) %>% knitr::kable(align = c("l", "c", "c")) %>% 
+  kableExtra::kable_styling(position = "center")
+```
+
+  - TP = True Positive
+  - TN = True Negative 
+  - FP = False Positive
+  - FN = False Negative
+  - N = TP + TN + FP + FN
+  
+Performance Metrics
+========================================================
+
+- Accuracy
+
+$$
+\text{acc} = \frac{TP + TN}{N}
+$$
+
+- [Kappa](https://en.wikipedia.org/wiki/Cohen%27s_kappa) 
+
+$$
+\kappa = \frac{\text{acc} - p_e}{1 - p_e}
+$$
+
+where $p_e$ = Expected Accuracy (random chance).
+  
+The kappa metric can be thought as a modification of the accuracy metric based on the class proportions. 
+
+Performance Metrics
+========================================================
+
+- [Sensitivity](https://en.wikipedia.org/wiki/Sensitivity_and_specificity) (= [Recall](https://en.wikipedia.org/wiki/Precision_and_recall))
+
+$$
+\text{sens} = \frac{TP}{TP + FN}
+$$
+
+- [Specificity](https://en.wikipedia.org/wiki/Sensitivity_and_specificity)
+
+$$
+\text{spec} = \frac{TN}{TN + FP}
+$$
+
+- [Precision](https://en.wikipedia.org/wiki/Precision_and_recall)
+
+$$
+\text{prec} = \frac{TP}{TP + FP}
+$$
+
+- [$F_\beta$](https://en.wikipedia.org/wiki/F1_score)
+
+$$
+F_\beta = (1 + \beta^2)\frac{\text{prec}\times \text{recall}}{\beta^2\text{prec} + \text{recall}}
+$$
+
+
+ROC Curve
+========================================================
+
+The [ROC](https://en.wikipedia.org/wiki/Receiver_operating_characteristic) is created by plotting the true positive rate (= sensitivity) against the false positive rate (1 − specificity) at various propability threshold. 
+
+<div align="center">
+<img src="roc_example.png" width=450 height=450>
+</div>
+
+- AUC : Area under the [ROC](https://en.wikipedia.org/wiki/Receiver_operating_characteristic) curve. 
+
+
+Machine Learning Models
+========================================================
+
+### 1. Trivial Model
+
+Always predict the same class.
+
+### 2. Partial Least Squares + Logistic Regression
+
+Supervised dimensionality reduction. 
+
+### 3. Stochastic Gradient Boosting
+
+Tree ensemble model. 
+
+Trivial Model
+========================================================
+
+We predict the same class `income` = `small`
+
+```{r}
+y_pred_trivial <- map_chr(.x = y_test, .f = ~ "small") %>% 
+  as_factor(ordered = TRUE, levels = c("small", "large"))
+```
+
+We compute the confusion matrix to get the metrics.
+
+```{r}
+# Confusion Matrix. 
+conf_matrix_trivial <-  confusionMatrix(data = y_pred_trivial, 
+                                        reference =  y_test)
+```
+
+```{r, echo=FALSE}
+broom::tidy(x = conf_matrix_trivial)[1:4, ]  %>% 
+  select(term, estimate) %>% 
+  mutate(estimate = round(estimate, 3)) %>% 
+  kable(align = c("c", "c")) %>% 
+  kable_styling(position = "center")
+```
+
+Trivial Model - ROC
+========================================================
+
+```{r, fig.align="center", echo=FALSE}
+roc_curve_trivial <- roc(response = y_test, predictor = rep(0, length(y_pred_trivial)))
+
+auc_trivial <- roc_curve_trivial %>% 
+  auc() %>% 
+  round(digits = 3)
+
+plot(roc_curve_trivial)
+title(main = str_c("Trivial Model - ROC AUC (Test Set) = ", auc_trivial),  line = 2.5)
+```
+
+We can use the [pROC](https://cran.r-project.org/web/packages/pROC/pROC.pdf) package. 
+
+Train Control + Train in Caret
+========================================================
+
+```
+ five_stats <- function (...) {
+  
+  c(twoClassSummary(...), defaultSummary(...))
+  
+}
+
+# Define cross validation.
+cv_num <- 7
+
+train_control <- trainControl(method = "cv",
+                              number = cv_num,
+                              classProbs = TRUE, 
+                              summaryFunction = five_stats,
+                              allowParallel = TRUE, 
+                              verboseIter = FALSE)
+```
+
+```
+model_obj <- train(x = X_train,
+                   y = y_train,
+                   method = method,
+                   tuneLength = 10,
+                   # For linear models we scale and center. 
+                   preProcess = c("scale", "center"), 
+                   trControl = train_control,
+                   metric = metric)
+```
+
+
+PLS Model - Max Accuracy
+========================================================
+
+```{r, fig.align="center", echo=FALSE}
+get_pred_df <- function(model_obj, X_test, y_test, threshold = 0.5) {
+  
+  y_pred_num <- predict(object = model_obj, newdata = X_test, type = "prob") %>% pull(large)
+  
+  y_pred <- y_pred_num %>% 
+    map_chr(.f = ~ ifelse(test = .x > threshold, yes = "large", no = "small")) %>% 
+    as_factor()
+
+  pred_df <- tibble(
+    y_test = y_test,  
+    y_test_num = map_dbl(.x = y_test, 
+                         .f =  ~ ifelse(test = (.x == "small"), yes = 0, no = 1)), 
+    y_pred = y_pred, 
+    y_pred_num
+  )
+  
+  return(pred_df)
+}
+```
+
+```{r, echo=FALSE}
+# Load Model
+model_obj <-model_list$models$pls_model_1
+# Prediction
+pred_df <- get_pred_df(model_obj = model_obj, X_test = X_test, y_test = y_test)
+# Confusion Matrix. 
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
+                                    reference =  y_test)
+
+broom::tidy(x = conf_matrix_test)[1:4, ]  %>% 
+  select(term, estimate) %>% 
+  mutate(estimate = round(estimate, 3)) %>% 
+  spread(key = term, value = estimate) %>% 
+  kable(align = c("c", "c")) %>% 
+  kable_styling(position = "center")
+```
+
+```{r, fig.align="center", echo=FALSE, fig.width=12}
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5, 
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4") +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - PLS Model 1 (Max Accuracy)", 
+       subtitle = "Prediction Cut = 0.5", 
+       x = "test label", 
+       y = "predicted probability") + 
+  scale_x_discrete(limits = rev(levels(y_test)))
+```
+
+GBM Model - Max Accuracy
+========================================================
+
+```{r, echo=FALSE}
+# Load Model
+model_obj <-model_list$models$gbm_model_1
+# Prediction
+pred_df <- get_pred_df(model_obj = model_obj, X_test = X_test, y_test = y_test)
+# Confusion Matrix. 
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
+                                    reference =  y_test)
+
+broom::tidy(x = conf_matrix_test)[1:4, ]  %>% 
+  select(term, estimate) %>% 
+  mutate(estimate = round(estimate, 3)) %>% 
+  spread(key = term, value = estimate) %>% 
+  kable(align = c("c", "c")) %>% 
+  kable_styling(position = "center")
+```
+
+```{r, fig.align="center", echo=FALSE, fig.width=12}
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test_num, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5, 
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4") +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - GBM Model 1 (Max Accuracy)", 
+       subtitle = "Prediction Cut = 0.5", 
+       x = "test label", 
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
+```
+
+PLS Model - Max Sensitivity
+========================================================
+
+```{r, echo=FALSE}
+# Load Model
+model_obj <-model_list$models$pls_model_2
+# Prediction
+pred_df <- get_pred_df(model_obj = model_obj, X_test = X_test, y_test = y_test)
+# Confusion Matrix. 
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
+                                    reference =  y_test)
+
+broom::tidy(x = conf_matrix_test)[1:4, ]  %>% 
+  select(term, estimate) %>% 
+  mutate(estimate = round(estimate, 3)) %>% 
+  spread(key = term, value = estimate) %>% 
+  kable(align = c("c", "c")) %>% 
+  kable_styling(position = "center")
+```
+
+```{r, fig.align="center", echo=FALSE, fig.width=12}
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5, 
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4") +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - PLS Model 2 (Max Sensitivity)", 
+       subtitle = "Prediction Cut = 0.5", 
+       x = "test label", 
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
+```
+
+
+GBM Model - Max Sensitivity
+========================================================
+
+```{r, echo=FALSE}
+# Load Model
+model_obj <-model_list$models$gbm_model_2
+# Prediction
+pred_df <- get_pred_df(model_obj = model_obj, X_test = X_test, y_test = y_test)
+# Confusion Matrix. 
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
+                                    reference =  y_test)
+
+broom::tidy(x = conf_matrix_test)[1:4, ]  %>% 
+  select(term, estimate) %>% 
+  mutate(estimate = round(estimate, 3)) %>% 
+  spread(key = term, value = estimate) %>% 
+  kable(align = c("c", "c")) %>% 
+  kable_styling(position = "center")
+```
+
+```{r, fig.align="center", echo=FALSE, fig.width=12}
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5, 
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4") +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - PLS Model 1 (Max Sensitivity)", 
+       subtitle = "Prediction Cut = 0.5", 
+       x = "test label", 
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
+```
+
+GBM Model - Max Sensitivity
+========================================================
+
+```{r, fig.align="center", echo=FALSE, fig.width=12}
+model_obj$results %>% 
+  ggplot(mapping = aes(x = n.trees, y = Sens, color  = interaction.depth)) +
+  geom_point() +
+  labs(title = "GBM Model 2 - Model Sensitivity") 
+```
+
+PLS Model - Alternative Cut-Off
+========================================================
+
+```{r, fig.align="center", echo=FALSE, fig.width=12, fig.height=8}
+# Load Model
+model_obj <-model_list$models$pls_model_3
+
+y_pred_eval <- predict(object = model_obj, newdata = X_eval, type = "prob") %>% 
+  pull(large) %>% 
+  # If the probability is larger than 0.5 we predict large. 
+  map_chr(.f = ~ ifelse(test = .x > 0.5, yes = "large", no = "small")) %>% 
+  as_factor()
+
+# Confusion Matrix. 
+conf_matrix_eval <- confusionMatrix(data = y_pred_eval, reference =  y_eval)
+
+y_pred_eval_num <- predict(object = model_obj , newdata = X_eval, type = "prob") %>% pull(large)
+  
+roc_curve_eval <- roc(response = y_eval, 
+                      predictor = y_pred_eval_num,
+                      levels = c("small", "large"))
+
+best_point_eval <- coords(
+  roc = roc_curve_eval, x = "best", 
+   best.method = "closest.topleft"
+)
+
+# Get points to plot the ROC curve. 
+all_roc_coords <- coords(roc = roc_curve_eval, x = "all", as.list = FALSE)
+
+all_roc_cords_df <- all_roc_coords %>% 
+  t() %>%  
+  as_tibble()
+
+all_roc_cords_df %>% 
+  ggplot() +
+  geom_line(mapping = aes(x = 1 - specificity, y = sensitivity)) +
+  geom_abline(slope = 1, intercept = 0, linetype = 2) +
+  geom_point(mapping = aes(x = (1 - best_point_eval[["specificity"]]), 
+                           y = best_point_eval[["sensitivity"]], 
+                           color = "optimal point"), 
+             
+             size = 4) +
+  geom_point(mapping = aes(x = (1 - conf_matrix_eval$byClass[["Specificity"]]), 
+                           y = conf_matrix_eval$byClass[["Sensitivity"]], 
+                           color = "initial cutoff"),
+             size = 4) +
+  labs(title = "PLS Model 3 - ROC Curve (Eval)") 
+```
+
+PLS Model - Alternative Cut-Off
+========================================================
+
+```{r, fig.align="center", echo=FALSE, fig.width=12}
+pred_df <- get_pred_df(model_obj = model_obj, 
+                       X_test = X_test, 
+                       y_test = y_test,
+                       threshold = best_point_eval["threshold"])
+
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
+                                    reference =  y_test)
+
+broom::tidy(x = conf_matrix_test)[1:4, ]  %>% 
+  select(term, estimate) %>% 
+  mutate(estimate = round(estimate, 3)) %>% 
+  spread(key = term, value = estimate) %>% 
+  kable(align = c("c", "c")) %>% 
+  kable_styling(position = "center") 
+
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5,
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4") +
+  geom_abline(slope = 0, 
+              intercept = best_point_eval["threshold"], 
+              linetype = 2, 
+              color = "dark green") +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - PLS Model 3 (New Cutoff)", 
+       subtitle = str_c("Prediction Cut = ", round(best_point_eval["threshold"], 3)), 
+       x = "test label", 
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
+```
+
+GMB Model - Alternative Cut-Off
+========================================================
+
+```{r, fig.align="center", echo=FALSE, fig.width=12, fig.height=8}
+# Load Model
+model_obj <-model_list$models$gbm_model_3
+
+y_pred_eval <- predict(object = model_obj, newdata = X_eval, type = "prob") %>% 
+  pull(large) %>% 
+  # If the probability is larger than 0.5 we predict large. 
+  map_chr(.f = ~ ifelse(test = .x > 0.5, yes = "large", no = "small")) %>% 
+  as_factor()
+
+# Confusion Matrix. 
+conf_matrix_eval <- confusionMatrix(data = y_pred_eval, reference =  y_eval)
+
+y_pred_eval_num <- predict(object = model_obj , newdata = X_eval, type = "prob") %>% pull(large)
+  
+roc_curve_eval <- roc(response = y_eval, 
+                      predictor = y_pred_eval_num,
+                      levels = c("small", "large"))
+
+best_point_eval <- coords(
+  roc = roc_curve_eval, x = "best", 
+   best.method = "closest.topleft"
+)
+
+# Get points to plot the ROC curve. 
+all_roc_coords <- coords(roc = roc_curve_eval, x = "all", as.list = FALSE)
+
+all_roc_cords_df <- all_roc_coords %>% 
+  t() %>%  
+  as_tibble()
+
+all_roc_cords_df %>% 
+  ggplot() +
+  geom_line(mapping = aes(x = 1 - specificity, y = sensitivity)) +
+  geom_abline(slope = 1, intercept = 0, linetype = 2) +
+  geom_point(mapping = aes(x = (1 - best_point_eval[["specificity"]]), 
+                           y = best_point_eval[["sensitivity"]], 
+                           color = "optimal point"), 
+             
+             size = 4) +
+  geom_point(mapping = aes(x = (1 - conf_matrix_eval$byClass[["Specificity"]]), 
+                           y = conf_matrix_eval$byClass[["Sensitivity"]], 
+                           color = "initial cutoff"),
+             size = 4) +
+  labs(title = "GBM Model 3 - ROC Curve (Eval)") 
+```
+
+GBM Model - Alternative Cut-Off
+========================================================
+
+```{r, fig.align="center", echo=FALSE, fig.width=12}
+pred_df <- get_pred_df(model_obj = model_obj, 
+                       X_test = X_test, 
+                       y_test = y_test,
+                       threshold = best_point_eval["threshold"])
+
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
+                                    reference =  y_test)
+
+broom::tidy(x = conf_matrix_test)[1:4, ]  %>% 
+  select(term, estimate) %>% 
+  mutate(estimate = round(estimate, 3)) %>% 
+  spread(key = term, value = estimate) %>% 
+  kable(align = c("c", "c")) %>% 
+  kable_styling(position = "center")
+
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5,
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4") +
+  geom_abline(slope = 0, 
+              intercept = best_point_eval["threshold"], 
+              linetype = 2, 
+              color = "dark green") +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - GBM Model 3 (New Cutoff)", 
+       subtitle = str_c("Prediction Cut = ", round(best_point_eval["threshold"], 3)), 
+       x = "test label", 
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
+```
+
+Sampling Methods - Up/Down Sampling
+========================================================
+
+- **Up-sampling** is any technique that simulates or imputes additional data points to improve balance across classes.
+
+- **Down-sampling** is any technique that reduces the number of samples to improve the balance across classes. 
+
+In [caret](http://topepo.github.io/caret/index.html): 
+```
+df_upSample_train <- upSample(x = X_train, 
+                              y = y_train, 
+                              yname = "income")
+
+X_upSample_train <- df_upSample_train %>% select(- income) 
+y_upSample_train <- df_upSample_train %>% pull(income)
+```
+
+```{r, echo=FALSE}
+up_sampling_table <- table(model_list$models$pls_model_4$trainingData[[".outcome"]])
+
+up_sampling_table %>% 
+  tibble(class = names(.), 
+         value = ., 
+         share = . / sum(.)) %>% 
+    kable(align = rep("c", 3)) %>% 
+    kable_styling(position = "center")
+```
+
+PLS Model - Up Sampling
+========================================================
+
+```{r, echo=FALSE}
+# Load Model
+model_obj <-model_list$models$pls_model_4
+# Prediction
+pred_df <- get_pred_df(model_obj = model_obj, X_test = X_test, y_test = y_test)
+# Confusion Matrix. 
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
+                                    reference =  y_test)
+
+broom::tidy(x = conf_matrix_test)[1:4, ]  %>% 
+  select(term, estimate) %>% 
+  mutate(estimate = round(estimate, 3)) %>% 
+  spread(key = term, value = estimate) %>% 
+  kable(align = c("c", "c")) %>% 
+  kable_styling(position = "center")
+```
+
+```{r, fig.align="center", echo=FALSE, fig.width=12}
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5, 
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4") +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - PLS Model 4 (Up Sampling)", 
+       subtitle = "Prediction Cut = 0.5", 
+       x = "test label", 
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
+```
+
+GBM Model - Up Sampling
+========================================================
+
+```{r, echo=FALSE}
+# Load Model
+model_obj <-model_list$models$gbm_model_4
+# Prediction
+pred_df <- get_pred_df(model_obj = model_obj, X_test = X_test, y_test = y_test)
+# Confusion Matrix. 
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
+                                    reference =  y_test)
+
+broom::tidy(x = conf_matrix_test)[1:4, ]  %>% 
+  select(term, estimate) %>% 
+  mutate(estimate = round(estimate, 3)) %>% 
+  spread(key = term, value = estimate) %>% 
+  kable(align = c("c", "c")) %>% 
+  kable_styling(position = "center")
+```
+
+```{r, fig.align="center", echo=FALSE, fig.width=12}
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5, 
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4") +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - GBM Model 4 (Up Sampling)", 
+       subtitle = "Prediction Cut = 0.5", 
+       x = "test label", 
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
+```
+
+Sampling Methods - SMOTE
+========================================================
+
+**SMOTE** is a data sampling procedure that uses both up-sampling and down-sampling. To up-sample for the minority class, it synthesizes new cases: a data point is randomly selected from the minority class and its K-nearest neighbors are determined. The new synthetic data point is a random combination of the predictors of the randomly selected data point and its neighbors.
+
+We can use the [DMwR](https://cran.r-project.org/web/packages/DMwR/index.html) package:
+
+```
+df_smote_train <-  DMwR::SMOTE(
+  form = income ~ ., 
+  perc.over = 200, 
+  perc.under = 150, 
+  data = as.data.frame(bind_cols(income = y_train, X_train))
+)
+
+X_smote_train <- df_smote_train  %>% select(- income) 
+y_smote_train <- df_smote_train  %>% pull(income) 
+```
+
+```{r, echo=FALSE}
+smote_table <- table(model_list$models$pls_model_5$trainingData[[".outcome"]])
+
+smote_table %>% 
+  tibble(class = names(.), 
+         value = ., 
+         share = round(. / sum(.), 3)) %>% 
+    kable(align = rep("c", 3)) %>% 
+    kable_styling(position = "center")
+```
+
+
+PLS Model - SMOTE
+========================================================
+
+```{r, echo=FALSE}
+# Load Model
+model_obj <-model_list$models$pls_model_5
+# Prediction
+pred_df <- get_pred_df(model_obj = model_obj, X_test = X_test, y_test = y_test)
+# Confusion Matrix. 
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
+                                    reference =  y_test)
+
+broom::tidy(x = conf_matrix_test)[1:4, ]  %>% 
+  select(term, estimate) %>% 
+  mutate(estimate = round(estimate, 3)) %>% 
+  spread(key = term, value = estimate) %>% 
+  kable(align = c("c", "c")) %>% 
+  kable_styling(position = "center")
+```
+
+```{r, fig.align="center", echo=FALSE, fig.width=12}
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5, 
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4") +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - PLS Model 5 (SMOTE)", 
+       subtitle = "Prediction Cut = 0.5", 
+       x = "test label", 
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
+```
+
+GBM Model - SMOTE
+========================================================
+
+```{r, echo=FALSE}
+# Load Model
+model_obj <-model_list$models$gbm_model_5
+# Prediction
+pred_df <- get_pred_df(model_obj = model_obj, X_test = X_test, y_test = y_test)
+# Confusion Matrix. 
+conf_matrix_test <- confusionMatrix(data = pred_df$y_pred, 
+                                    reference =  y_test)
+
+broom::tidy(x = conf_matrix_test)[1:4, ]  %>% 
+  select(term, estimate) %>% 
+  mutate(estimate = round(estimate, 3)) %>% 
+  spread(key = term, value = estimate) %>% 
+  kable(align = c("c", "c")) %>% 
+  kable_styling(position = "center")
+```
+
+```{r, fig.align="center", echo=FALSE, fig.width=12}
+pred_df %>% 
+  ggplot(mapping = aes(x = y_test, y = y_pred_num, fill = y_test)) +
+  geom_boxplot() + 
+  geom_abline(slope = 0, 
+              intercept = 0.5, 
+              alpha = 0.8, 
+              linetype = 2, 
+              color = "purple4") +
+  scale_fill_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Preditcted Distributions - GBM Model 5 (SMOTE)", 
+       subtitle = "Prediction Cut = 0.5", 
+       x = "test label", 
+       y = "predicted probability") +
+  scale_x_discrete(limits = rev(levels(y_test)))
+```
+
+Model Summary - PLS
+========================================================
+
+```{r, echo=FALSE}
+models_summary <- names(model_list$models) %>% 
+  
+  map_df(.f = function(m_name) {
+    
+    m <- model_list$models[[m_name]]
+    
+    m_threshold <- 0.5
+    
+    if (m_name %in% names(model_list$best_point)) {
+      
+      m_threshold <- model_list$best_point[[m_name]][["threshold"]]
+      
+    }
+    
+    y_pred <- predict(object = m , newdata = X_test, type = "prob") %>% 
+      pull(large) %>% 
+      # If the probability is larger than 0.5 we predict large. 
+      map_chr(.f = ~ ifelse(test = .x > m_threshold, yes = "large", no = "small")) %>% 
+      as_factor()
+  
+    # Confusion Matrix. 
+    conf_matrix_test <- confusionMatrix(data = y_pred, reference =  y_test)
+    
+    conf_matrix_test$byClass %>% 
+      t() %>% 
+      as_tibble() %>% 
+      select(Sensitivity, Specificity, Precision, Recall, F1) 
+  }
+)
+
+models_summary %<>% 
+  add_column(Model = names(model_list$models), .before = "Sensitivity") %>% 
+  separate(col = Model, into = c("Method", "Model", "Tag"), sep = "_") %>% 
+  select(- Model) %>% 
+  mutate(
+    Tag = case_when(
+      Tag == 1 ~ "Accuracy", 
+      Tag == 2 ~ "Sens", 
+      Tag == 3 ~ "Alt Cutoff", 
+      Tag == 4 ~ "Up Sampling", 
+      Tag == 5 ~ "SMOTE", 
+    )
+  ) 
+
+models_summary %<>% mutate_if(.predicate = is.numeric, .funs = ~ round(x = .x, digits = 3))
+```
+
+```{r, echo=FALSE}
+models_summary %>% 
+  filter(Method == "pls") %>% 
+  kable(align = rep("c", 7)) %>% 
+  kable_styling(position = "center")
+```
+
+Model Summary - GMB
+========================================================
+
+```{r, echo=FALSE}
+models_summary %>% 
+  filter(Method == "gbm") %>% 
+  kable(align = rep("c", 7)) %>% 
+  kable_styling(position = "center")
+```
+
+Other Techniques
+========================================================
+
+- Adjusting Prior Probabilities
+
+- Cost-Sensitive Training
+
+- ...
+
+
+References & Contact 
+========================================================
+
+### Book: 
+
+[Applied Predictive Modeling](http://appliedpredictivemodeling.com/), by Max Kuhn and Kjell Johnson.
+
+### Blog Post:
+
+[https://juanitorduz.github.io/class_imbalance](https://juanitorduz.github.io/class_imbalance)
+
+### Contact:
+
+<juanitorduz@gmail.com>
