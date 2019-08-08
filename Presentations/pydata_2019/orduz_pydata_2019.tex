@@ -105,7 +105,7 @@
 $X = (X_1, \cdots, X_d)$ has a{ \bf multivariate normal distribution} if every linear combination is normally distributed. In this case it has density of the form
 
 $$
-p(x|m,K_0) =\frac{1}{\sqrt{(2\pi)^{d}|K_0|}}\exp\left(-\frac{1}{2}(x - m)^\dagger K_0^{-1}(x - m)\right)
+p(x|m,K_0) =\frac{1}{\sqrt{(2\pi)^{d}|K_0|}}\exp\left(-\frac{1}{2}(x - m)^T K_0^{-1}(x - m)\right)
 $$
 %(2\pi)^{−d/2}|K_0|^{−1/2}\exp\left(-\frac{1}{2}(x−m)^T {K_0}^{-1}(x−m)\right)
 
@@ -120,12 +120,98 @@ where $m \in \mathbb{R}^d$ is the {\bf mean vector} and  $K_0 \in M_d(\mathbb{R}
 \end{center}
 \end{frame}
 
+\section{Regularized Bayesian Linear Regression}
 
+\begin{frame}{Regularized Bayesian Linear Regression}
+Let $x_1, \cdots, x_n \in \mathbb{R}^d$ and $y_1, \cdots, y_n$ be a set of observations (data). We want to fit the linear model 
+$$
+f(x) = x^T b \quad \text{and} \quad y = f(x) + \varepsilon, \quad \text{with} \quad \varepsilon \sim N(0, \sigma_n^2)
+$$
+where $b \in \mathbb{R}^d$ denotes the parameter vector. Let $X \in M_{d \times n}$ be denote the observation matrix. 
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.15]{images/lin_raw_data.png} 
+\end{figure}
+\end{center}
+We want to compute $p(b|X, y)$ using the Bayes theorem 
+$$
+p(b|X, y) = \frac{p(y|X, b) p(b)}{p(y|X) } \propto \text{likelihood} \times \text{prior}
+$$
+\end{frame}
+
+
+\begin{frame}{Prior Distribution}
+\begin{itemize}
+\item Likelihood
+\begin{align*}
+p(y|X, b) 
+= \prod_{i=1}^{n}p(y_i|x_i, b) 
+%=& \frac{1}{(2\pi \sigma_n^2)^{n/2}} \exp\left(-\frac{1}{2\sigma_n^2}||y - X^T b||^2\right) \\
+= N(X^T b, \sigma_n^2 I)
+\end{align*}
+
+\item Prior 
+$$
+b \sim N(0, \Sigma_p), \quad  \Sigma_p \in M_{d}(\mathbb{R})
+$$
+
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.2]{images/lin_join_prior.png} 
+\caption{Prior Distribution}
+\end{figure}
+\end{center}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Posterior Distribution}
+\begin{itemize}
+\item Posterior 
+$$
+p(b|y, X) = N\left(\bar{b}=\frac{1}{\sigma_n^2}A^{-1}Xy, A^{-1}\right)
+$$
+where $A=\sigma_{n}^{-2}XX^T + \Sigma_p^{-1}$
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.14]{images/lin_posterior_pymc3.png} 
+\includegraphics[scale=0.14]{images/lin_join_posterior.png} 
+\caption{Posterior Distribution}
+\end{figure}
+\end{center}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Predictive Distribution}
+\begin{align*}
+p(f_*|x_*, X, y) 
+=& \int p(f_*|x_*, b)p(b|X, y)db \\
+=& N\left(\frac{1}{\sigma_n^2}x_*^T A^{-1}Xy, x_*^T A^{-1}x_*\right)
+\end{align*}
+
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.18]{images/lin_prediction.png} 
+\caption{Left: Join Posterior Distribution, Right: Prediction + Confidence Interval}
+\end{figure}
+\end{center}
+\end{frame}
 
 \begin{frame}{References}{Slides and notebook available at juanitorduz.github.io}
 \bibliographystyle{alpha}
 \bibliography{references} 
 \end{frame}
+
+\section{The Kernel Trick}
+
+\section{Gaussian Process Regression}
+
+\section{Parameter Estimation}
+
+\section{The Kernel Space}
+
+\section{Time Series}
 
 \end{document}
 
