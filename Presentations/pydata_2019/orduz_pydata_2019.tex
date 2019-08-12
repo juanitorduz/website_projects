@@ -187,7 +187,9 @@ where $A=\sigma_{n}^{-2}XX^T + \Sigma_p^{-1}$
 \begin{align*}
 p(f_*|x_*, X, y) 
 =& \int p(f_*|x_*, b)p(b|X, y)db \\
-=& N\left(\frac{1}{\sigma_n^2}x_*^T A^{-1}Xy, x_*^T A^{-1}x_*\right)
+=& N\left(
+\frac{1}{\sigma_n^2}x_*^T A^{-1}Xy, x_*^T A^{-1}x_*
+\right)
 \end{align*}
 
 \begin{center}
@@ -198,20 +200,70 @@ p(f_*|x_*, X, y)
 \end{center}
 \end{frame}
 
-\begin{frame}{References}{Slides and notebook available at juanitorduz.github.io}
-\bibliographystyle{alpha}
-\bibliography{references} 
-\end{frame}
-
 \section{The Kernel Trick}
 
+\begin{frame}{The Kernel Trick}
+Let us consider a map $\phi: \mathbb{R}^d \longrightarrow \mathbb{R}^N$ and consider the model
+$$
+f(x) = \phi(x)^T b \quad \text{and} \quad y = f(x) + \varepsilon, \quad \text{with} \quad \varepsilon \sim N(0, \sigma_n^2). 
+$$
+It is easy to verify that the analysis for this model as analogous to the standard linear model replacing $X$ with $\Phi\coloneqq \phi(X)$. Set $\phi_*= \phi(x_*)$, 
+\begin{align*}
+p(f_*|x_*, X, y) =& N\left(
+\overbrace{\frac{1}{\sigma_n^2}\phi_*^T A^{-1}\Phi y}^{(1)},
+\underbrace{ \phi_*^T A^{-1}\phi_*}_{(2)}
+\right)
+\end{align*}
+\begin{align*}
+(1) =& \phi_{*}^T \Sigma_{p}\Phi(\Phi^T \Sigma_p \Phi + \sigma_n^2I)^{-1}y \\
+(2)= &\phi_{*}\Sigma_p\phi_{*} - \phi_{*}^T \Sigma_{p}\Phi(\Phi^T \Sigma_p \Phi + \sigma_n^2I)^{-1}\Phi^T\Sigma_p\phi_*
+\end{align*}
+This motivates the definition of the {\bf covariance function} or {\bf kernel}
+$$
+k(x, x')\coloneqq \phi(x)^T\Sigma_p\phi(x')
+$$
+\end{frame}
+
+
 \section{Gaussian Process Regression}
+
+\begin{frame}{Gaussian Process}
+\begin{itemize}
+\item A {\bf Gaussian Process} is a collection of random variables, any finite number of which have a joint Gaussian distribution. \\
+\item A Gaussian process $f \sim \mathcal{GP}(m, k)$ is completely specified by its mean function $m(x)$ and covariance function $k(x, x')$. Here $x \in \mathcal{X}$ denotes a point on the index set $\mathcal{X}$.
+$$
+m(x) = E[f(x)]
+\quad
+\text{and}
+\quad
+k(x, x') = E[(f(x) - m(x))(f(x') - m(x'))]
+$$
+\end{itemize}
+{\bf Example:} The map $f(x) = \phi(x)^T b $ (with prior $b\sim N(0, \Sigma_p)$) defines a Gaussian process with $m(x)=0$ and $k(x, x') = \phi(x)^T\Sigma_p\phi(x)$. 
+\end{frame}
+
+\begin{frame}
+The specification of a covariance function implies a distribution over functions. 
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.16]{images/prior_func_lin_reg.png} 
+\includegraphics[scale=0.15]{images/posterior_func_lin_reg.png} 
+\caption{Prior (left) and posterior (right) distribution for linear model.}
+\end{figure}
+\end{center}
+\end{frame}
 
 \section{Parameter Estimation}
 
 \section{The Kernel Space}
 
 \section{Time Series}
+
+
+\begin{frame}{References}{Slides and notebook available at juanitorduz.github.io}
+\bibliographystyle{alpha}
+\bibliography{references} 
+\end{frame}
 
 \end{document}
 
