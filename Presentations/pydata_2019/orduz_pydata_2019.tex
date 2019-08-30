@@ -309,11 +309,42 @@ K(X_*,X) & K(X_*,X_*)
 \section{The Kernel Space}
 
 \begin{frame}{Kernel Examples}
-
+Impose $k:\mathcal{X}\times\mathcal{X}\longrightarrow \mathbb{R}$ to be symmetric and positive semidefinite. 
+\begin{itemize}
+\item Squared Exponential 
+\begin{align*}
+k_{SE}(x, x') = \exp\left(- \frac{(x - x')^2}{2\ell ^2}\right)
+\end{align*}
+\item Rational Quadratic 
+\begin{align*}
+k_{RQ}(x, x') = \left(1 + \frac{(x - x')^2}{2\alpha\ell^2}\right)^{-\alpha}
+\end{align*}
+\item Exp-Sine-Squared 
+\begin{align*}
+k_{ESS} (x, x')= \exp\left(-2 \left(\frac{\sin(\pi (x - x')/T )}{\ell}\right)^2\right)
+\end{align*}
+\end{itemize}
 \end{frame}
 
 \begin{frame}{The Kernel Space}
+Let $k_1, k_2: \mathcal{X}\times\mathcal{X}\longrightarrow \mathbb{R}$ be two kernels, then the following are also kernels 
+\begin{itemize}
+\item $k_1 + k_2$ 
+\item $k_1 \times k_2$
+\item $k_1*k_2$ (convolution)
 
+\end{itemize}
+If $k: \mathcal{X}_1\times\mathcal{X}_1\longrightarrow \mathbb{R}$ and $h: \mathcal{X}_2\times\mathcal{X}_2\longrightarrow \mathbb{R}$ are two kernels, then the following are also kernels (on $\mathcal{X}_1 \times \mathcal{X}_2$)
+\begin{itemize}
+\item $k_1 \oplus k_2$ 
+\item $k_1 \otimes k_2$
+\end{itemize}
+\begin{block}{Remark}
+There is a reach theory of spectral theory for kernels by considering the integral operator $T_k : L^2(\mathcal{X}, \mu) \longrightarrow L^2(\mathcal{X}, \mu)$ (where $(\mathcal{X}, \mu)$ is a finite measure space and $k\in L^{\infty}(\mathcal{X}\times \mathcal{X} , \mu\times\mu)$). 
+\begin{align*}
+(T_k\phi)(x) = \int_{\mathcal{X}} k(x, x')\phi(x') d\mu(x')
+\end{align*}
+\end{block}
 \end{frame}
 
 \section{Parameter Estimation}
