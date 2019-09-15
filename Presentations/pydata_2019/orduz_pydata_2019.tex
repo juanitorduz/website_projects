@@ -251,7 +251,6 @@ $$
 \begin{block}{Example}
 The map $f(x) = \phi(x)^T b $ (with prior $b\sim N(0, \Sigma_p)$) defines a Gaussian process with $m(x)=0$ and $k(x, x') = \phi(x)^T\Sigma_p\phi(x')$. 
 \end{block}
-
 \end{frame}
 
 \begin{frame}{Linear Regression - Function Space View}
@@ -326,13 +325,105 @@ k_{ESS} (x, x')= \exp\left(-2 \left(\frac{\sin(\pi (x - x')/T )}{\ell}\right)^2\
 \end{itemize}
 \end{frame}
 
+\begin{frame}{Example: Non-Linear}{$n=500$}
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.25]{images/f_example2.png} 
+\end{figure}
+\end{center}
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.25]{images/raw_data_example2.png} 
+\end{figure}
+\end{center}
+\end{frame}
+
+\begin{frame}{Prior Distribution}{$n_*=100$}
+$$
+f \sim N(0, K(X_*,X_*))
+$$
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.3]{images/code_sample_prior_example2.png} 
+\end{figure}
+\end{center}
+\end{frame}
+
+
+\begin{frame}{Join Distribution}
+\begin{align*}
+\left(
+\begin{array}{c}
+y \\
+f_*
+\end{array}
+\right)
+\sim
+N\left(0, 
+\left(
+\begin{array}{cc}
+K(X,X)+\sigma_n^2 & K(X,X_*) \\
+K(X_*,X) & K(X_*,X_*)
+\end{array}
+\right)
+\right)
+\end{align*}
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.25]{images/cov_prior_example2.png} 
+\end{figure}
+\end{center}
+\end{frame}
+
+
+\begin{frame}{Conditional Distribution}
+ $$f_* | X, y, X_*\sim N(\bar{f}_*, \text{cov}(f_*))$$
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.27]{images/cov_posterior_example2.png} 
+\end{figure}
+\end{center}
+ \begin{align*}
+\bar{f}_* =& K(X_*,X)(K(X,X) + \sigma_n^2 I)y \\
+\text{cov}(f_*) =& K(X_*,X_*) - K(X_*,X)(K(X,X) + \sigma_n^2I)^{-1}K(X,X_*)
+\end{align*}
+\end{frame}
+
+
+\begin{frame}{Posterior Distribution}
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.35]{images/code_sample_posterior_example2.png} 
+\end{figure}
+\end{center}
+\end{frame}
+
+
+\begin{frame}{Hyperparameter Estimation}
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.21]{images/hyp_posterior_1_example2}
+\includegraphics[scale=0.21]{images/hyp_posterior_2_example2}
+\end{figure}
+\end{center}
+\begin{block}{Methods}
+\begin{itemize}
+\item Marginal Likelihood
+\begin{align*}
+\log(p(y|X, \theta)) = -\frac{1}{2}y^T (K+\sigma_n^2I)^{-1}y - \frac{1}{2}\log|K+\sigma_n^2I| - \frac{n}{2}\log (2\pi)
+\end{align*}
+\item Cross Validation
+\end{itemize}
+\end{block}
+\end{frame}
+
+
 \begin{frame}{The Kernel Space}
 Let $k_1, k_2: \mathcal{X}\times\mathcal{X}\longrightarrow \mathbb{R}$ be two kernels, then the following are also kernels 
 \begin{itemize}
 \item $k_1 + k_2$ 
 \item $k_1 \times k_2$
 \item $k_1*k_2$ (convolution)
-
 \end{itemize}
 If $k: \mathcal{X}_1\times\mathcal{X}_1\longrightarrow \mathbb{R}$ and $h: \mathcal{X}_2\times\mathcal{X}_2\longrightarrow \mathbb{R}$ are two kernels, then the following are also kernels (on $\mathcal{X}_1 \times \mathcal{X}_2$)
 \begin{itemize}
@@ -340,18 +431,55 @@ If $k: \mathcal{X}_1\times\mathcal{X}_1\longrightarrow \mathbb{R}$ and $h: \math
 \item $k_1 \otimes k_2$
 \end{itemize}
 \begin{block}{Remark}
-There is a reach theory of spectral theory for kernels by considering the integral operator $T_k : L^2(\mathcal{X}, \mu) \longrightarrow L^2(\mathcal{X}, \mu)$ (where $(\mathcal{X}, \mu)$ is a finite measure space and $k\in L^{\infty}(\mathcal{X}\times \mathcal{X} , \mu\times\mu)$). 
+There is a rich theory of spectral theory for kernels by considering the integral operator $T_k : L^2(\mathcal{X}, \mu) \longrightarrow L^2(\mathcal{X}, \mu)$ (where $(\mathcal{X}, \mu)$ is a finite measure space and $k\in L^{\infty}(\mathcal{X}\times \mathcal{X} , \mu\times\mu)$). 
 \begin{align*}
 (T_k\phi)(x) = \int_{\mathcal{X}} k(x, x')\phi(x') d\mu(x')
 \end{align*}
 \end{block}
 \end{frame}
 
-\section{Parameter Estimation}
+\begin{frame}{Example: Periodic Component I}
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.3]{images/code_kernel_1_example3.png}
+\includegraphics[scale=0.3]{images/gp1_example3.png}
+\end{figure}
+\end{center}
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.20]{images/sample_1_example3.png}
+\includegraphics[scale=0.20]{images/pred_1_example3.png}
+\end{figure}
+\end{center}
+\end{frame}
 
+\begin{frame}{Example: Add Linear Trend }
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.3]{images/code_kernel_2_example3.png}
+\end{figure}
+\end{center}
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.20]{images/sample_2_example3.png}
+\includegraphics[scale=0.20]{images/pred_2_example3.png}
+\end{figure}
+\end{center}
+\end{frame}
 
-\section{Time Series}
-
+\begin{frame}{Example: Add Periodic Component II }
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.3]{images/code_kernel_3_example3.png}
+\end{figure}
+\end{center}
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.20]{images/sample_3_example3.png}
+\includegraphics[scale=0.20]{images/pred_3_example3.png}
+\end{figure}
+\end{center}
+\end{frame}
 
 \begin{frame}{References}{Slides and notebook available at juanitorduz.github.io}
 \bibliographystyle{alpha}
