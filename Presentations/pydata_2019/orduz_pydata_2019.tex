@@ -101,7 +101,7 @@
 
 \section{Introduction}
 
-\begin{frame}{Multivariate Normal Distribution}
+\begin{frame}{Multivariate Normal Distribution}{\cite{multivariate_normal_orduz_2019}}
 $X = (X_1, \cdots, X_d)$ has a{ \bf multivariate normal distribution} if every linear combination is normally distributed. In this case it has density of the form
 
 $$
@@ -120,7 +120,9 @@ where $m \in \mathbb{R}^d$ is the {\bf mean vector} and  $K_0 \in M_d(\mathbb{R}
 \end{center}
 \end{frame}
 
-\section{ Bayesian Linear Regression}
+
+\section{Bayesian Linear Regression}
+
 
 \begin{frame}{Bayesian Linear Regression}
 Let $x_1, \cdots, x_n \in \mathbb{R}^d$ and $y_1, \cdots, y_n$ be a set of observations (data). We want to fit the linear model 
@@ -165,10 +167,11 @@ $$
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Posterior Distribution Sampling }
+\begin{frame}{Posterior Distribution Sampling }{\cite{pymc3}}
 \begin{center}
 \begin{figure}
 \includegraphics[scale=0.25]{images/lin_posterior_pymc3.png} 
+\caption{Posterior distribution beta coefficients MCMC sampling.}
 \end{figure}
 \end{center}
 \end{frame}
@@ -191,7 +194,7 @@ $$
 \end{frame}
 
 
-\begin{frame}{Predictive Distribution}
+\begin{frame}{Predictive Distribution}{\cite[Chapter 2]{RW05}}
 \begin{align*}
 p(f_*|x_*, X, y) 
 = \int p(f_*|x_*, b)p(b|X, y)db 
@@ -208,7 +211,9 @@ p(f_*|x_*, X, y)
 \end{center}
 \end{frame}
 
+
 \section{The Kernel Trick}
+
 
 \begin{frame}{The Kernel Trick}
 Let us consider a map $\phi: \mathbb{R}^d \longrightarrow \mathbb{R}^N$ and consider the model
@@ -234,6 +239,7 @@ $$
 
 
 \section{Gaussian Process Regression}
+
 
 \begin{frame}{Gaussian Process}
 \begin{itemize}
@@ -305,7 +311,8 @@ K(X_*,X) & K(X_*,X_*)
 \end{frame}
 
 
-\section{The Kernel Space}
+\section{Kernel Examples}
+
 
 \begin{frame}{Kernel Examples}
 Impose $k:\mathcal{X}\times\mathcal{X}\longrightarrow \mathbb{R}$ to be symmetric and positive semidefinite. 
@@ -325,7 +332,9 @@ k_{ESS} (x, x')= \exp\left(-2 \left(\frac{\sin(\pi (x - x')/T )}{\ell}\right)^2\
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Example: Non-Linear}{$n=500$}
+\section{Non-Linear Example (RBF)}
+
+\begin{frame}{Example: Non-Linear Function (\cite{gaussian_process_reg_2019})}{$n=500$}
 \begin{center}
 \begin{figure}
 \includegraphics[scale=0.25]{images/f_example2.png} 
@@ -399,7 +408,7 @@ K(X_*,X) & K(X_*,X_*)
 \end{frame}
 
 
-\begin{frame}{Hyperparameter Estimation}
+\begin{frame}{Hyperparameter Estimation}{\cite[Chapter 5]{RW05}}
 \begin{center}
 \begin{figure}
 \includegraphics[scale=0.21]{images/hyp_posterior_1_example2}
@@ -417,8 +426,9 @@ K(X_*,X) & K(X_*,X_*)
 \end{block}
 \end{frame}
 
+\section{The Kernel Space}
 
-\begin{frame}{The Kernel Space}
+\begin{frame}{The Kernel Space}{\cite{ROERGA}, \cite[Chapter 4]{RW05}}
 Let $k_1, k_2: \mathcal{X}\times\mathcal{X}\longrightarrow \mathbb{R}$ be two kernels, then the following are also kernels 
 \begin{itemize}
 \item $k_1 + k_2$ 
@@ -438,7 +448,9 @@ There is a rich theory of spectral theory for kernels by considering the integra
 \end{block}
 \end{frame}
 
-\begin{frame}{Example: Periodic Component I}
+\section{Example: Application Time Series}
+
+\begin{frame}{Example: Periodic Component I}{\cite[Section 1.7. Gaussian Processes]{scikitlearn}}
 \begin{center}
 \begin{figure}
 \includegraphics[scale=0.3]{images/code_kernel_1_example3.png}
@@ -481,9 +493,13 @@ There is a rich theory of spectral theory for kernels by considering the integra
 \end{center}
 \end{frame}
 
-\begin{frame}{References}{Slides and notebook available at juanitorduz.github.io}
+
+\begin{frame}[t, allowframebreaks]
+\frametitle{References}
+\footnotesize{
 \bibliographystyle{alpha}
 \bibliography{references} 
+}
 \end{frame}
 
 \end{document}
