@@ -171,13 +171,13 @@ $$
 \begin{center}
 \begin{figure}
 \includegraphics[scale=0.25]{images/lin_posterior_pymc3.png} 
-\caption{Posterior distribution beta coefficients MCMC sampling.}
+\caption{Posterior distribution beta coefficients MCMC sampling (\href{https://docs.pymc.io/}{PyMC3}).}
 \end{figure}
 \end{center}
 \end{frame}
 
 
-\begin{frame}{Posterior Distribution}
+\begin{frame}{Posterior Distribution}{\cite[Chapter 2.1.1]{RW05}}
 \begin{itemize}
 \item Posterior 
 $$
@@ -194,7 +194,7 @@ $$
 \end{frame}
 
 
-\begin{frame}{Predictive Distribution}{\cite[Chapter 2]{RW05}}
+\begin{frame}{Predictive Distribution}{\cite[Chapter 2.1.1]{RW05}}
 \begin{align*}
 p(f_*|x_*, X, y) 
 = \int p(f_*|x_*, b)p(b|X, y)db 
@@ -215,8 +215,8 @@ p(f_*|x_*, X, y)
 \section{The Kernel Trick}
 
 
-\begin{frame}{The Kernel Trick}
-Let us consider a map $\phi: \mathbb{R}^d \longrightarrow \mathbb{R}^N$ and consider the model
+\begin{frame}{The Kernel Trick}{\cite[Chapter 2.1.2]{RW05}}
+Let us consider a map $\phi: \mathbb{R}^d \longrightarrow \mathbb{R}^N$ and the model
 $$
 f(x) = \phi(x)^T b \quad \text{and} \quad y = f(x) + \varepsilon, \quad \text{with} \quad \varepsilon \sim N(0, \sigma_n^2). 
 $$
@@ -241,7 +241,11 @@ $$
 \section{Gaussian Process Regression}
 
 
-\begin{frame}{Gaussian Process}
+\begin{frame}{Gaussian Process}{\cite[Chapter 21]{BDA13}, \cite[Chapter 2.2]{RW05}}
+\begin{block}{Main Idea}
+The specification of a covariance function implies a distribution over functions.
+\end{block}
+\begin{block}{Gaussian Process}
 \begin{itemize}
 \item A {\bf Gaussian Process} is a collection of random variables, any finite number of which have a joint Gaussian distribution. \\
 \item A Gaussian process $f \sim \mathcal{GP}(m, k)$ is completely specified by its mean function $m(x)$ and covariance function $k(x, x')$. Here $x \in \mathcal{X}$ denotes a point on the index set $\mathcal{X}$.
@@ -253,14 +257,17 @@ m(x) = E[f(x)]
 k(x, x') = E[(f(x) - m(x))(f(x') - m(x'))]
 $$
 \end{itemize}
-
+\end{block}
+\pause 
 \begin{block}{Example}
-The map $f(x) = \phi(x)^T b $ (with prior $b\sim N(0, \Sigma_p)$) defines a Gaussian process with $m(x)=0$ and $k(x, x') = \phi(x)^T\Sigma_p\phi(x')$. 
+The map $f(x) = \phi(x)^T b $ (with prior $b\sim N(0, \Sigma_p)$) defines a Gaussian process with $m(x)=0$ and $k(x, x') = \phi(x)^T\Sigma_p\phi(x')$.
+\end{block}
+\begin{block}{Notation}
+Let $K(X, X)$ denote the matrix the of point-wise kernel images. 
 \end{block}
 \end{frame}
 
-\begin{frame}{Linear Regression - Function Space View}
-{The specification of a covariance function implies a distribution over functions}
+\begin{frame}{Linear Regression - Function Space View}{\cite[Chapter 2.2]{RW05}}
 \begin{itemize}
 \item Let us consider input points $X_*$ (test set).
 \item Prior
@@ -276,8 +283,7 @@ f_* \sim N(0, K(X_*,X_* ))
 \end{frame}
 
 
-\begin{frame}{Linear Regression - Function Space View}
-{The specification of a covariance function implies a distribution over functions}
+\begin{frame}{Linear Regression - Function Space View}{\cite[Chapter 2.2]{RW05}}
 \begin{itemize}
 \item Join Distribution
 \begin{align*}
@@ -314,7 +320,7 @@ K(X_*,X) & K(X_*,X_*)
 \section{Kernel Examples}
 
 
-\begin{frame}{Kernel Examples}
+\begin{frame}{Kernel Examples}{\cite{ROERGA}, \cite[Chapter 4.2]{RW05}}
 Impose $k:\mathcal{X}\times\mathcal{X}\longrightarrow \mathbb{R}$ to be symmetric and positive semidefinite. 
 \begin{itemize}
 \item Squared Exponential 
@@ -408,7 +414,7 @@ K(X_*,X) & K(X_*,X_*)
 \end{frame}
 
 
-\begin{frame}{Hyperparameter Estimation}{\cite[Chapter 5]{RW05}}
+\begin{frame}{Hyperparameter Estimation}{\cite[Chapter 2.3, 5]{RW05}}
 \begin{center}
 \begin{figure}
 \includegraphics[scale=0.21]{images/hyp_posterior_1_example2}
@@ -450,7 +456,7 @@ There is a rich theory of spectral theory for kernels by considering the integra
 
 \section{Example: Application Time Series}
 
-\begin{frame}{Example: Periodic Component I}{\cite[Section 1.7. Gaussian Processes]{scikitlearn}}
+\begin{frame}{Example: Periodic Component I (\cite{gaussian_process_timeseries_2019})}{\cite[Section 1.7. Gaussian Processes]{scikitlearn}}
 \begin{center}
 \begin{figure}
 \includegraphics[scale=0.3]{images/code_kernel_1_example3.png}
@@ -479,6 +485,7 @@ There is a rich theory of spectral theory for kernels by considering the integra
 \end{center}
 \end{frame}
 
+
 \begin{frame}{Example: Add Periodic Component II }
 \begin{center}
 \begin{figure}
@@ -492,6 +499,14 @@ There is a rich theory of spectral theory for kernels by considering the integra
 \end{figure}
 \end{center}
 \end{frame}
+
+\begin{frame}{Computational Challenges}
+\begin{itemize}
+\item A practical implementation of Gaussian Process Regression is described in \cite[Algorithm 2.1]{RW05}, where the Cholesky decomposition is used instead of inverting the matrices directly. 
+\item Calculating the posterior mean and covariance matrix requires $\mathcal{O}(n^3)$ computations. 
+\end{itemize}
+\end{frame}
+
 
 
 \begin{frame}[t, allowframebreaks]
