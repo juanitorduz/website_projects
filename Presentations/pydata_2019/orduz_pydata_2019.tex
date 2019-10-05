@@ -103,7 +103,7 @@
 \section{Introduction}
 
 \begin{frame}{Multivariate Normal Distribution}{\cite{multivariate_normal_orduz_2019}}
-$X = (X_1, \cdots, X_d)$ has a{ \bf multivariate normal distribution} if every linear combination is normally distributed. In this case it has density of the form
+$X = (X_1, \cdots, X_d)$ has a{ \bf multinormal distribution} if every linear combination is normally distributed. The joint density has the form
 
 $$
 p(x|m,K_0) =\frac{1}{\sqrt{(2\pi)^{d}|K_0|}}\exp\left(-\frac{1}{2}(x - m)^T K_0^{-1}(x - m)\right)
@@ -258,7 +258,7 @@ The specification of a covariance function implies a distribution over functions
 \end{block}
 \begin{block}{Gaussian Process}
 \begin{itemize}
-\item A {\bf Gaussian Process} is a collection of random variables, any finite number of which have a joint Gaussian distribution. \\
+\item A {\bf Gaussian Process} is a collection of random variables, any finite number of which have a joint multinormal distribution. \\
 \item A Gaussian process $f \sim \mathcal{GP}(m, k)$ is completely specified by its mean function $m(x)$ and covariance function $k(x, x')$. Here $x \in \mathcal{X}$ denotes a point on the index set $\mathcal{X}$.
 $$
 m(x) = E[f(x)]
