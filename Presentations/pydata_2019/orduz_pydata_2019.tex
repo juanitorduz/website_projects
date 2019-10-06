@@ -274,7 +274,7 @@ $$
 The map $f(x) = \phi(x)^T b $ (with prior $b\sim N(0, \Sigma_p)$) defines a Gaussian process with $m(x)=0$ and $k(x, x') = \phi(x)^T\Sigma_p\phi(x')$.
 \end{block}
 \begin{block}{Notation}
-Let $K(X, X)$ denote the matrix the of point-wise kernel images. 
+Let $K(X, X)$ denote the matrix of the point-wise kernel images. 
 \end{block}
 \end{frame}
 
@@ -297,7 +297,7 @@ f_* \sim N(0, K(X_*,X_* ))
 
 \begin{frame}{Linear Regression - Function Space View}{\cite[Chapter 2.2]{RW05}}
 \begin{itemize}
-\item Join Distribution
+\item Joint Distribution
 \begin{align*}
 \left(
 \begin{array}{c}
@@ -383,7 +383,7 @@ $$
 \end{frame}
 
 
-\begin{frame}{Join Distribution}
+\begin{frame}{Joint Distribution}
 \begin{align*}
 \left(
 \begin{array}{c}
@@ -524,8 +524,8 @@ There is a rich theory of spectral theory for kernels by considering the integra
 \begin{frame}{Computational Challenges}
 \begin{itemize}
 \item Calculating the posterior mean and covariance matrix requires $\mathcal{O}(n^3)$ computations. 
-\item A practical implementation of Gaussian Process Regression is described in \cite[Algorithm 2.1]{RW05}, where the Cholesky decomposition is used instead of inverting the matrices directly. 
-\item There are remarkable approximation methods for gaussian processes to speed up the computation (\cite[Chapter 20.1]{BDA13})
+\item A practical implementation of Gaussian process regression is described in \cite[Algorithm 2.1]{RW05}, where the Cholesky decomposition is used instead of inverting the matrices directly. 
+\item There are remarkable approximation methods for Gaussian processes to speed up the computation (\cite[Chapter 20.1]{BDA13})
 \end{itemize}
 \end{frame}
 
