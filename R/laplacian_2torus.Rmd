@@ -7,6 +7,34 @@ $$
 
 where $0<u,v<2\pi$. 
 
+```{r}
+a <- 4
+r <- 1
+
+u_seq <- seq(from = 0, to = 2*pi, by = 0.1)
+v_seq <- seq(from = 0, to = 2*pi, by = 0.1)
+
+local_parametrization <- function(a, r, u, v) {
+  
+  x <- (a + r*cos(u))*cos(v)
+  y <- (a + r*cos(u))*sin(v)
+  z <- r*sin(u)
+  
+  local_chart <- list(x = x, y = y, z = z)
+  local_chart_df <- data.frame(local_chart)
+  
+  return(local_chart_df)
+}
+```
+
+
+```{r}
+library(plotly)
+
+#plot_ly(data = local_chart_df, x = ~ x, y = ~ y, z = ~ z)
+```
+
+
 ## Euclidean Metric 
 
 The metric on $T^2$ induced by the Euclidean metric of $\mathbb{R}^3$ is given by
