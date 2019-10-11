@@ -1,0 +1,40 @@
+In this blog post I want to describe the explicit computation of the Laplacian on differential forms on the $2$-Torus $T^2\subset \mathbb{R}^3$. This surface can be obtained by rotating, for $0<r<a$, the circle $(x-a)^2+y^2=r^2$ around the $z$-axis. This surface can be parametrized (locally) by the equations
+$$
+x = (a+r\cos u)\cos v,\\
+y = (a+r\cos u)\sin v,\\
+z = r\sin u,
+$$ 
+
+where $0<u,v<2\pi$. 
+
+## Euclidean Metric 
+
+The metric on $T^2$ induced by the Euclidean metric of $\mathbb{R}^3$ is given by
+$$
+ds^2=r^2du^2+(a+r\cos u)^2dv^2
+$$
+
+## Volume Form
+
+and the associated volume element is $\text{vol}_{T^2}=r(a+r\cos u)du\wedge dv$.
+
+## Hodge Operator 
+
+First we compute the action of the Hodge star operator. As we did before we just use the definition, for example to compute $*du$ we compute
+$$
+du\wedge * du =\langle du, du \rangle \text{vol}_{T^2}=r^{-2}r(a+r\cos u)du\wedge dv,
+$$
+so we see that $*du=r^{-1}(a+r\cos u)dv$. Similarly we obtain $*dv=-r(a+r\cos u)^{-1}dv$.\\
+
+Now we want to compute the Hodge-Dirac operator for an $S^1$-invariant form on $\BB{T} $ which can always be written as
+$$
+\omega =f_0(u)+f_1(u)du+f_2(u)dv+f_3(u)du\wedge dv.
+$$
+Its exterior derivative is 
+$$
+d\omega  = f'_0(u)du+f'_2(u)du\wedge dv.
+$$
+
+## Dirac Operator
+
+## Laplacian 
