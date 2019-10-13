@@ -1,0 +1,191 @@
+
+In this notebook post I want to describe the explicit computation of the Laplacian on differential forms on the $2$-Torus $T^2\subset \mathbb{R}^3$. This surface can be obtained by rotating the circle $(x-a)^2+y^2=r^2$ around the $z$-axis ($0<r<a$). Locally, this surface can be parametrized by the equations
+$$
+x = (a+r\cos u)\cos v,\\
+y = (a+r\cos u)\sin v,\\
+z = r\sin u,
+$$ 
+
+where $0<u,v<2\pi$. 
+
+**Remark:** Note that, topologically, $T^2$ can be identified with the product of two circles. In particular, it is a [Lie group](https://en.wikipedia.org/wiki/Lie_group).
+
+## Visualization
+
+Let us use this local parametrization to visualize the 2-torus for $a=4$ and $r=1$. 
+
+```{r}
+a <- 4
+r <- 1
+
+# Parameter defining how many points to take. 
+frac_density <- 0.03
+# Get parameter grid. 
+u_seq <- seq(from = 0, to = 2*pi, by = frac_density)
+v_seq <- seq(from = 0, to = 2*pi, by = frac_density)
+
+# Generate surface from local coordinates. 
+local_parametrization <- function(a, r, u, v) {
+  
+  x <- (a + r*cos(u))*cos(v)
+  y <- (a + r*cos(u))*sin(v)
+  z <- r*sin(u)
+  
+  local_chart <- list(x = x, y = y, z = z)
+  local_chart_df <- data.frame(local_chart)
+  
+  return(local_chart_df)
+}
+
+coordinates_df <- expand.grid(... = u_seq, v_seq)
+colnames(coordinates_df) <- c("u", "v")
+
+local_parametrization_list <- apply(
+  X = coordinates_df, 
+  MARGIN = 1, 
+  FUN = function(x) {local_parametrization(a = a, r = r, u = x[1] , v = x[2])}
+)
+
+local_parametrization_df <- do.call(what = rbind, args = local_parametrization_list)
+rownames(local_parametrization_df) <- c(1:nrow(local_parametrization_df))
+```
+
+Now we use a 3d-scatter plot:
+
+```{r, fig.align="center", warning=FALSE, message=FALSE}
+library(plotly)
+
+p <- plot_ly(
+  data = local_parametrization_df,
+  x = ~ x, 
+  y = ~ y, 
+  z = ~ z, 
+  color = ~ z
+)
+
+layout(p = p, scene = list(zaxis = list(range = c(-4,4))))
+```
+
+
+## Euclidean Metric 
+
+The metric on $T^2$ induced by the Euclidean metric of $\mathbb{R}^3$ is given by
+$$
+g^{T^2}=r^2du^2+(a+r\cos u)^2dv^2
+$$
+Let us prove this. Given the local parametrization $\phi(u, v) = (x(u, v), y(u, v), z(u, v))$ defined above, we need to compute $\partial_u\phi$ and $\partial_v\phi$. The components of the induced metric are then 
+$$
+g^{T^2} = E_{u}du^2 + E_{uv}du\otimes dv + E_{v}dv^2,
+$$
+where 
+$$
+E_{u} = \langle\partial_{u}\phi, \partial_{u}\phi\rangle_{\mathbb{R}^3}, \\
+E_{uv} = \langle\partial_{u}\phi, \partial_{v}\phi\rangle_{\mathbb{R}^3}, \\
+E_{v} = \langle\partial_{v}\phi, \partial_{v}\phi\rangle_{\mathbb{R}^3}
+$$
+We now calculate:
+$$
+\frac{\partial x(u, v)}{\partial u} = -r\sin u\cos v, \quad \frac{\partial y(u, v)}{\partial u} = -r\sin u\sin v  \quad \text{and} \quad \frac{\partial z(u, v)}{\partial u} = r \cos u, 
+$$
+which implies:
+$$
+E_u = ( -r\sin u\cos v)^2 + (-r\sin u\sin v )^2 + (r \cos u)^2 = r^2
+$$
+Similarly, 
+$$
+\frac{\partial x(u, v)}{\partial v} = - (a+r\cos u)\sin v , \quad \frac{\partial y(u, v)}{\partial v} = (a+r\cos u)\cos v   \quad \text{and} \quad \frac{\partial z(u, v)}{\partial v} = 0, 
+$$
+and 
+$$
+E_v = (- (a+r\cos u)\sin v)^2 + (- (a+r\cos u)\cos v)^2 + 0^2 = (a+r\cos u)^2
+$$
+Finally, we see that the crossed term vanishes: 
+$$
+E_{uv} = ( -r\sin u\cos v)(- (a+r\cos u)\sin v ) + (-r\sin u\sin v )(a+r\cos u)\cos v = 0
+$$
+
+**Remark:** In matrix form, with respect to the basis $du, dv$, we can write the metric as 
+$$
+g^{T^2}
+=
+\left(
+\begin{array}{cc}
+r^2 & 0 \\
+0 & (a+r\cos u)^2
+\end{array}
+\right)
+$$
+
+## Volume Form
+
+The volume form $\text{vol}_{T^2}$ on the 2-torus is defined by the relation $\text{vol}_{T^2} = \sqrt{\det(g^{T^2})} du\wedge dv$ (the sign $du\wedge dv$ is a choise orientation). Hence,  $\text{vol}_{T^2}=r(a+r\cos u)du\wedge dv$.
+
+## Hodge Star Operator 
+
+Recall that the [Hodge star operator](https://en.wikipedia.org/wiki/Hodge_star_operator) is definied by the relation
+$$
+\alpha \wedge *\beta = \langle \alpha, \beta \rangle \text{vol}_{T^2}, 
+$$
+for $\alpha, \beta \in \bigwedge^*T^*(T^2)$ (or differential forms). The inner product is defined on the space of $n$-forms. In particular, 
+$$
+\langle du, du \rangle = \frac{1}{r^2} \quad\text{and}\quad \langle dv, dv \rangle = \frac{1}{(a+r\cos u)^2}.
+$$
+Note that $*1 = \text{vol}_{T^2}$. 
+
+Let us now compute the Hodge star operator on the $1$-forms $du$ and $dv$:
+
+$$
+\langle du, du \rangle \text{vol}_{T^2}=r^{-2}r(a+r\cos u)du\wedge dv,
+$$
+so we see that $*du=r^{-1}(a+r\cos u)dv$. Similarly we obtain $*dv=-r(a+r\cos u)^{-1}du$.
+
+## Dirac Operator
+
+The Dirac operator of the Clifford bundle of differential forms is given by $D = d + d^{\dagger}$, where $d^\dagger = -*d*$ (as the dimension is even). For example, for a smooth function $f\in C^{\infty}(T^2)$, we have
+$$
+D f = df = \frac{\partial f}{\partial u}du + \frac{\partial f}{\partial v}dv
+$$
+and for a $1$-form $f du$ we obtain
+$$
+D(fdu) = d(fdu) -f*d*du = - \frac{\partial f}{\partial dv} du\wedge dv-f*d\left(r^{-1}(a+r\cos u)dv\right)
+$$
+Hence, 
+$$
+D(fdu) = - \frac{\partial f}{\partial dv} du\wedge dv + f \sin u * (du\wedge dv) = - \frac{\partial f}{\partial dv} du\wedge dv + \frac{f \sin u}{r(a + r \cos u)} 
+$$
+
+## Laplacian 
+
+The Laplacian is defined by $\Delta = D^2$. Let us compute it explicitly for a smooth function $f\in C^{\infty}(T^2)$. As we have seen $Df = df$, hence
+$$
+\Delta = D(df) = (d + d^\dagger) df = d^\dagger df
+$$
+On the one hand side, 
+$$
+df = \frac{\partial f}{\partial u}du + \frac{\partial f}{\partial v}dv  
+$$
+
+Let us study the first term:
+$$
+d^{\dagger} \left(\frac{\partial f}{\partial u}du\right) = -*d*\left(\frac{\partial f}{\partial u}du\right) \\
+= - * d\left(r^{-1}(a+r\cos u)\frac{\partial f}{\partial u} dv\right) \\
+-*\left(-\sin u\frac{\partial f}{\partial u} + r^{-1}(a+r\cos u)\frac{\partial^2 f}{\partial u^2}\right)du\wedge dv\\
+= \frac{1}{r(a + r\cos u)}\left(\sin u\frac{\partial f}{\partial u} - r^{-1}(a+r\cos u)\frac{\partial^2 f}{\partial u^2}\right)
+$$
+The second term can be computed similarly
+$$
+d^{\dagger} \left(\frac{\partial f}{\partial v}dv\right) = -*d*\left(\frac{\partial f}{\partial v}dv\right) \\
+=  * d\left(r(a+r\cos u)^{-1}\frac{\partial f}{\partial v} du\right) \\
+= - * \left(r(a+r\cos u)^{-1}\frac{\partial^2 f}{\partial v^2} du\wedge dv\right) \\
+= - \frac{1}{r(a + r\cos u)}\left(r(a+r\cos u)^{-1}\frac{\partial^2 f}{\partial v^2}\right) 
+$$
+Hence, 
+$$
+\Delta f =\frac{1}{r(a + r\cos u)}\left(\sin u\frac{\partial f}{\partial u} - r^{-1}(a+r\cos u)\frac{\partial^2 f}{\partial u^2}\right) - \frac{1}{r(a + r\cos u)}\left(r(a+r\cos u)^{-1}\frac{\partial^2 f}{\partial v^2}\right) 
+$$
+which simplifies to 
+$$
+\Delta f = -\frac{1}{r^2}\frac{\partial^2 f}{\partial u^2} - \frac{1}{(a + r\cos u)^2}\frac{\partial^2 f}{\partial v^2} + \frac{\sin u}{r(a + r\cos u)}\frac{\partial f}{\partial u}.
+$$ 
+
+For one and two forms the computation is very similar.  
