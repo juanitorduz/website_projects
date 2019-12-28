@@ -58,11 +58,13 @@ MAIN.DIR <- here::here()
 
 ```{r, cache=FALSE}
 # Set file path.
-file.name <- glue('{MAIN.DIR}/static/Data/plebiscito.json')
+file.name <- glue('{MAIN.DIR}/data/plebiscito.json')
 
 # Read each line. 
-tweets.raw.list <- map(.x = read_lines(file = file.name), 
-                       .f = rjson::fromJSON)
+tweets.raw.list <- map(
+  .x = read_lines(file = file.name), 
+  .f = rjson::fromJSON
+)
 
 # Parse subset of the data into a tibble. 
 tweets.raw.df <- tweets.raw.list %>% 
@@ -86,7 +88,7 @@ tweets.raw.df %>%
 Let us see the structure of this tibble.  
 
 ```{r}
-tweets.raw.df %>% glimpse
+tweets.raw.df %>% glimpse()
 ```
 
 We parse the `Created_At` column into a date format. Note that in the raw file it has type `character`.
@@ -105,7 +107,7 @@ tweets.raw.df %<>%
 
 tweets.raw.df %>% 
   filter(!str_detect(string = Text, pattern = '@')) %>% 
-  head
+  head()
 ```
 
 # 4. Timeline Analysis
@@ -120,10 +122,10 @@ tweets.raw.df %<>% mutate(Created_At = Created_At - 5*60*60)
 Let us compute the time range:
 
 ```{r}
-tweets.raw.df %>% pull(Created_At) %>% min
+tweets.raw.df %>% pull(Created_At) %>% min()
 ```
 ```{r}
-tweets.raw.df %>% pull(Created_At) %>% max
+tweets.raw.df %>% pull(Created_At) %>% max()
 ```
 
 We see that the time frame covered by this data set is essentially the day and the day after the referendum. 
@@ -132,7 +134,7 @@ We create a new variable which "forgets" the seconds of `Create_At` column.
 
 ```{r}
 tweets.raw.df %<>% 
-  mutate(Created_At_Round = Created_At %>% round(units = 'mins') %>% as.POSIXct)
+  mutate(Created_At_Round = Created_At %>% round(units = 'mins') %>% as.POSIXct())
 ```
 
 We now plot the time series of tweets count per minute. 
@@ -147,7 +149,7 @@ plt <- tweets.raw.df %>%
         ylab(label = NULL) +
         ggtitle(label = 'Number of Tweets per Minute')
 
-plt %>% ggplotly
+plt %>% ggplotly()
 ```
 
 There is an interesting peak at around `2016-10-02 19:28:00`, which is essentially when the referendum results where known. Let us have a look at some tweets after durinng this peak:
@@ -241,10 +243,11 @@ GetHashtags <- function(tweet) {
 And apply it to our data:
 
 ```{r}
-hashtags.df <- tibble(Hashtags = tweets.raw.df$Text %>% 
-                                  map_chr(.f = ~ GetHashtags(tweet = .x)))
+hashtags.df <- tibble(
+  Hashtags = tweets.raw.df$Text %>% map_chr(.f = ~ GetHashtags(tweet = .x))
+)
 
-hashtags.df %>% head
+hashtags.df %>% head()
 ```
 
 We merge these data frames together. 
@@ -361,18 +364,22 @@ plot_grid(... = plt.m, plt.p)
 
 ```{r,fig.align='center'}
 # Before the results. 
-wc.m <- wordcloud(words = word.count.m$word, 
-          freq = word.count.m$n, 
-          min.freq = 200, 
-          colors=brewer.pal(8, 'Dark2'))
+wc.m <- wordcloud(
+  words = word.count.m$word, 
+  freq = word.count.m$n, 
+  min.freq = 200, 
+  colors=brewer.pal(8, 'Dark2')
+)
 ```
 
 ```{r, fig.align='center'}
 # After the results.
-wordcloud(words = word.count.p$word, 
-          freq = word.count.p$n, 
-          min.freq = 100, 
-          colors=brewer.pal(8, 'Dark2'))
+wordcloud(
+  words = word.count.p$word, 
+  freq = word.count.p$n, 
+  min.freq = 100, 
+  colors=brewer.pal(8, 'Dark2')
+)
 ```
 
 We can indeed see how the wording changes in these two time frames. 
@@ -383,37 +390,39 @@ We can run an analogous analysis for hastags.
 
 ```{r}
 hashtags.unnested.df <- tweets.df %>% 
-                          select(Created_At_Round, Hashtags) %>% 
-                          unnest_tokens(input = Hashtags, output = hashtag)
+  select(Created_At_Round, Hashtags) %>% 
+  unnest_tokens(input = Hashtags, output = hashtag)
   
 hashtags.unnested.count <- hashtags.unnested.df %>% 
-                            count(hashtag) %>% 
-                            drop_na 
+  count(hashtag) %>% 
+  drop_na()
 ```
 
 We plot the correspondinng word cloud. 
 
 ```{r, fig.align='center'}
-wordcloud(words = str_c('#',hashtags.unnested.count$hashtag), 
-          freq = hashtags.unnested.count$n, 
-          min.freq = 40, 
-          colors=brewer.pal(8, 'Dark2'))
+wordcloud(
+  words = str_c('#',hashtags.unnested.count$hashtag), 
+  freq = hashtags.unnested.count$n, 
+  min.freq = 40, 
+  colors=brewer.pal(8, 'Dark2')
+)
 ```
 
 The most popular hashtag for the 'YES' and 'NO' are  \#hoyvotosi \#notono respectively. Let us see the volume development of these hastags. 
 
 ```{r, fig.width=9, fig.align='center'}
 plt <- hashtags.unnested.df %>% 
-        filter(hashtag %in% c('hoyvotosi', 'votono')) %>% 
-        count(Created_At_Round, hashtag) %>% 
-        ggplot(mapping = aes(x  = Created_At_Round, y = n, color = hashtag)) +
-        theme_light() + 
-        xlab(label = 'Date') +
-        ggtitle(label = 'Top Hastags Counts') +
-        geom_line() + 
-        scale_color_manual(values = c('hoyvotosi' = 'green3', 'votono' = 'red'))
+  filter(hashtag %in% c('hoyvotosi', 'votono')) %>% 
+  count(Created_At_Round, hashtag) %>% 
+  ggplot(mapping = aes(x  = Created_At_Round, y = n, color = hashtag)) +
+    theme_light() + 
+    xlab(label = 'Date') +
+    ggtitle(label = 'Top Hastags Counts') +
+    geom_line() + 
+    scale_color_manual(values = c('hoyvotosi' = 'green3', 'votono' = 'red'))
 
-plt %>% ggplotly
+plt %>% ggplotly()
 ```
 
 Overall, the tweets supporting the 'YES' had much more volume. But this was not reflected on the results. 
@@ -422,7 +431,7 @@ Overall, the tweets supporting the 'YES' had much more volume. But this was not 
 
 # 7. Network Analysis 
 
-In this section we are going to describe how to encode and visualize tex data as a weighted netwok (graph). The main ideas is to count pairwise relative occurence of words.  
+In this section we are going to describe how to encode and visualize tex data as a weighted netwok (graph). The main idea is to count pairwise relative occurence of words.  
 
 ## 7.1 Bigram Analysis
 
@@ -432,13 +441,17 @@ We want to count pairwise occurences of words which apperar together in the text
 
 ```{r}
 bi.gram.words <- tweets.df %>% 
-                  unnest_tokens(input = Text, 
-                                output = bigram, 
-                                token = 'ngrams', 
-                                n = 2) %>% 
-                  filter(! is.na(bigram))
+  unnest_tokens(
+    input = Text, 
+    output = bigram, 
+    token = 'ngrams', 
+    n = 2
+  ) %>% 
+  filter(! is.na(bigram))
 
-bi.gram.words %>% select(bigram) %>% head(10)
+bi.gram.words %>% 
+  select(bigram) %>% 
+  head(10)
 ```
 
 Next, we filter for stop words and remove white spaces. 
@@ -455,9 +468,36 @@ bi.gram.words %<>%
 Finally, we group and count by bigram.
 
 ```{r}
-bi.gram.count <- bi.gram.words %>% count(word1, word2, sort = TRUE)
+bi.gram.count <- bi.gram.words %>% 
+  count(word1, word2, sort = TRUE) %>% 
+  # We rename the weight column so that the 
+  # associated network gets the weights (see below).
+  rename(weight = n)
 
-bi.gram.count %>% head
+bi.gram.count %>% head()
+```
+
+- Weight Distribution 
+
+Let us plot the distribution of the `weight` values:
+
+```{r, fig.align='center'}
+bi.gram.count %>% 
+  ggplot(mapping = aes(x = weight)) +
+    theme_light() +
+    geom_histogram() +
+    labs(title = "Bigram Weight Distribution")
+```
+
+Note that is very skewed, for visualization purposes it might be a good idea to perform a transformation, e.g. log transform:
+
+```{r, fig.align='center'}
+bi.gram.count %>% 
+  mutate(weight = log(weight + 1)) %>% 
+  ggplot(mapping = aes(x = weight)) +
+    theme_light() +
+    geom_histogram() +
+    labs(title = "Bigram log-Weight Distribution")
 ```
 
 How to define a weighted network from a bigram count? 
@@ -467,24 +507,35 @@ How to define a weighted network from a bigram count?
   - The weight of an edge is the numer of times the bigram appears in the corpus. 
   - (Optional) We are free to decide if we want the graph to be directed or not. 
   
-We are going to use the [igraph](https://igraph.org/redirect.html) library to work with networks. 
+We are going to use the [igraph](https://igraph.org/redirect.html) library to work with networks. The reference [A User’s Guide to Network Analysis in R](https://www.springer.com/de/book/9783319238821) is highly recomended if you want to go deeper into network analysis in R. 
 
-**Remark:** The reference [A User’s Guide to Network Analysis in R](https://www.springer.com/de/book/9783319238821) is highly recomended if you want to go deeper into network analysis in R. 
+For visualization purposes, we can set a `threshold ` which defines the minimal weight allowed in the graph.
 
-For visualization purposes, we can set a `threshold ` which defines the minimal weight allowed in the graph:
+**Remark:** It is necessary to set the weight column name as `weight` (see [igraph docs](https://igraph.org/r/#docs))
 
 ```{r}
 threshold <- 280
 
+# For visualization purposes we scale by a global factor. 
+ScaleWeight <- function(x, lambda) {
+  x / lambda
+}
+
 network <-  bi.gram.count %>%
-              filter(n > threshold) %>%
-              graph_from_data_frame(directed = FALSE)
+  filter(weight > threshold) %>%
+  mutate(weight = ScaleWeight(x = weight, lambda = 2E3)) %>% 
+  graph_from_data_frame(directed = FALSE)
 ```
 
 Let us see how the `network` object looks like:
 
 ```{r}
 network
+```
+
+Let us verify we have a weighted network:
+```{r}
+is.weighted(network)
 ```
 
 ### 7.1.2 Visualization
@@ -503,34 +554,36 @@ To visualize the network ([here](http://kateto.net/network-visualization) is a g
       alpha = 50)
 ```
 
-We can add some additional information to the visualization: Set the sizes of the nodes and the edges by the dregree and weight respectively.
+We can add some additional information to the visualization: Set the sizes of the nodes and the edges by the degree and weight respectively.
+
+**Remark:** For a weighted network we can consider the weighted degree, which can be computed with the [strength](https://igraph.org/r/doc/strength.html) function.
 
 ```{r, fig.align='center', out.width='1000px'}
 # Store the degree.
-V(network)$degree <- degree(graph = network)
+V(network)$degree <- strength(graph = network)
 
 # Compute the weight shares.
-E(network)$width <- E(network)$n/max(E(network)$n)
+E(network)$width <- E(network)$weight/max(E(network)$weight)
 
- plot(network, 
-      vertex.color = 'lightblue',
-      # Scale node size by degree.
-      vertex.size = 2*V(network)$degree,
-      vertex.label.color = 'black', 
-      vertex.label.cex = 0.6, 
-      vertex.label.dist = 1.6,
-      edge.color = 'gray', 
-      # Set edge width proportional to the weight relative value.
-      edge.width = 3*E(network)$width ,
-      main = 'Bigram Count Network', 
-      sub = glue('Weight Threshold: {threshold}'), 
-      alpha = 50)
+plot(network, 
+     vertex.color = 'lightblue',
+     # Scale node size by degree.
+     vertex.size = 2*V(network)$degree,
+     vertex.label.color = 'black', 
+     vertex.label.cex = 0.6, 
+     vertex.label.dist = 1.6,
+     edge.color = 'gray', 
+     # Set edge width proportional to the weight relative value.
+     edge.width = 3*E(network)$width ,
+     main = 'Bigram Count Network', 
+     sub = glue('Weight Threshold: {threshold}'), 
+     alpha = 50)
 ```
 
 We can extract the biggest connected component of the network as follows:
 
 ```{r}
-# Get all connected components
+# Get all connected components.
 clusters(graph = network)
 ```
 
@@ -538,23 +591,25 @@ clusters(graph = network)
 # Select biggest connected component.  
 V(network)$cluster <- clusters(graph = network)$membership
 
-cc.network <- induced_subgraph(graph = network,
-                               vids = which(V(network)$cluster == which.max(clusters(graph = network)$csize)))
+cc.network <- induced_subgraph(
+  graph = network,
+  vids = which(V(network)$cluster == which.max(clusters(graph = network)$csize))
+)
 
 cc.network 
 ```
 
 ```{r, fig.align='center', out.width='1000px'}
 # Store the degree.
-V(cc.network)$degree <- degree(graph = cc.network)
+V(cc.network)$degree <- strength(graph = cc.network)
 
 # Compute the weight shares.
-E(cc.network)$width <- E(cc.network)$n/max(E(cc.network)$n)
+E(cc.network)$width <- E(cc.network)$weight/max(E(cc.network)$weight)
 
  plot(cc.network, 
       vertex.color = 'lightblue',
       # Scale node size by degree.
-      vertex.size = 2*V(cc.network)$degree,
+      vertex.size = 10*V(cc.network)$degree,
       vertex.label.color = 'black', 
       vertex.label.cex = 0.6, 
       vertex.label.dist = 1.6,
@@ -573,18 +628,18 @@ We can go a steph further and make our visualization more dynamic using the [net
 threshold <- 250
 
 network <-  bi.gram.count %>%
-              filter(n > threshold) %>%
-              graph_from_data_frame(directed = FALSE)
+  filter(weight > threshold) %>%
+  graph_from_data_frame(directed = FALSE)
 
 # Store the degree.
-V(network)$degree <- degree(graph = network)
+V(network)$degree <- strength(graph = network)
 # Compute the weight shares.
-E(network)$width <- E(network)$n/max(E(network)$n)
+E(network)$width <- E(network)$weight/max(E(network)$weight)
 
 # Create networkD3 object.
 network.D3 <- igraph_to_networkD3(g = network)
 # Define node size.
-network.D3$nodes %<>% mutate(Degree = 10*V(network)$degree)
+network.D3$nodes %<>% mutate(Degree = (1E-2)*V(network)$degree)
 # Degine color group (I will explore this feature later).
 network.D3$nodes %<>% mutate(Group = 1)
 # Define edges width. 
@@ -613,18 +668,18 @@ Let us now decrease the threshold to get a more complex network (zoom out to see
 threshold <- 80
 
 network <-  bi.gram.count %>%
-              filter(n > threshold) %>%
-              graph_from_data_frame(directed = FALSE)
+  filter(weight > threshold) %>%
+  graph_from_data_frame(directed = FALSE)
 
 # Store the degree.
-V(network)$degree <- degree(graph = network)
+V(network)$degree <- strength(graph = network)
 # Compute the weight shares.
-E(network)$width <- E(network)$n/max(E(network)$n)
+E(network)$width <- E(network)$weight/max(E(network)$weight)
 
 # Create networkD3 object.
 network.D3 <- igraph_to_networkD3(g = network)
 # Define node size.
-network.D3$nodes %<>% mutate(Degree = 3*V(network)$degree)
+network.D3$nodes %<>% mutate(Degree = (1E-2)*V(network)$degree)
 # Degine color group (I will explore this feature later).
 network.D3$nodes %<>% mutate(Group = 1)
 # Define edges width. 
@@ -656,30 +711,36 @@ Now we are going to consider *skipgrams*, which allow a "jump" in thw word count
 skip.window <- 2
 
 skip.gram.words <- tweets.df %>% 
-                    unnest_tokens(input = Text, 
-                                  output = skipgram, 
-                                  token = 'skip_ngrams', 
-                                  n = skip.window) %>% 
-                    filter(! is.na(skipgram))
+  unnest_tokens(
+    input = Text, 
+    output = skipgram, 
+    token = 'skip_ngrams', 
+    n = skip.window
+  ) %>% 
+  filter(! is.na(skipgram))
 ```
 
 For example, consider the tweet:
 
 ```{r}
-tweets.df %>% slice(4) %>% pull(Text)
+tweets.df %>% 
+  slice(4) %>% 
+  pull(Text)
 ```
 
 The skipgrams are:
 
 ```{r}
-skip.gram.words %>% select(skipgram) %>% slice(10:20)
+skip.gram.words %>% 
+  select(skipgram) %>% 
+  slice(10:20)
 ```
 
 We now count the skipgrams containing two words. 
 
 ```{r}
 skip.gram.words$num_words <- skip.gram.words$skipgram %>% 
-                              map_int(.f = ~ ngram::wordcount(.x))
+  map_int(.f = ~ ngram::wordcount(.x))
 
 skip.gram.words %<>% filter(num_words == 2) %>% select(- num_words)
 
@@ -690,9 +751,11 @@ skip.gram.words %<>%
   filter(! is.na(word1)) %>% 
   filter(! is.na(word2)) 
 
-skip.gram.count <- skip.gram.words  %>% count(word1, word2, sort = TRUE)
+skip.gram.count <- skip.gram.words  %>% 
+  count(word1, word2, sort = TRUE) %>% 
+  rename(weight = n)
 
-skip.gram.count %>% head
+skip.gram.count %>% head()
 ```
 
 ### 7.2.2 Visualization
@@ -704,24 +767,26 @@ Similarly as above, we construct and visualize the corresponding network (we sel
 threshold <- 80
 
 network <-  skip.gram.count %>%
-              filter(n > threshold) %>%
-              graph_from_data_frame(directed = FALSE)
+  filter(weight > threshold) %>%
+  graph_from_data_frame(directed = FALSE)
 
 # Select biggest connected component.  
 V(network)$cluster <- clusters(graph = network)$membership
 
-cc.network <- induced_subgraph(graph = network,
-                               vids = which(V(network)$cluster == which.max(clusters(graph = network)$csize)))
+cc.network <- induced_subgraph(
+  graph = network,
+  vids = which(V(network)$cluster == which.max(clusters(graph = network)$csize))
+)
 
 # Store the degree.
-V(cc.network)$degree <- degree(graph = cc.network)
+V(cc.network)$degree <- strength(graph = cc.network)
 # Compute the weight shares.
-E(cc.network)$width <- E(cc.network)$n/max(E(cc.network)$n)
+E(cc.network)$width <- E(cc.network)$weight/max(E(cc.network)$weight)
 
 # Create networkD3 object.
 network.D3 <- igraph_to_networkD3(g = cc.network)
 # Define node size.
-network.D3$nodes %<>% mutate(Degree = 2*V(cc.network)$degree)
+network.D3$nodes %<>% mutate(Degree = (1E-2)*V(cc.network)$degree)
 # Degine color group (I will explore this feature later).
 network.D3$nodes %<>% mutate(Group = 1)
 # Define edges width. 
@@ -754,10 +819,12 @@ There are [many](https://en.wikipedia.org/wiki/Centrality) notions of node impor
 
 ```{r}
 # Compute the centrality measures for the biggest connected component from above.
-node.impo.df <- tibble(word = V(cc.network)$name,  
-                       degree = degree(graph = cc.network),
-                       closeness = closeness(graph = cc.network), 
-                       betweenness = betweenness(graph = cc.network))
+node.impo.df <- tibble(
+  word = V(cc.network)$name,  
+  degree = strength(graph = cc.network),
+  closeness = closeness(graph = cc.network), 
+  betweenness = betweenness(graph = cc.network)
+)
 ```
 
 Now we rank the nodes with respect to these centrality measures:
@@ -765,40 +832,52 @@ Now we rank the nodes with respect to these centrality measures:
 - Degree centrality
 
 ```{r}
-node.impo.df %>% arrange(- degree) %>% head(10)
+node.impo.df %>% 
+  arrange(- degree) %>%
+  head(10)
 ```
 
 - Closeness centrality
 
 ```{r}
-node.impo.df %>% arrange(- closeness) %>% head(10)
+node.impo.df %>% 
+  arrange(- closeness) %>%
+  head(10)
 ```
 
 - Betweenness centrality
 
 ```{r}
-node.impo.df %>% arrange(- betweenness) %>% head(10)
+node.impo.df %>% 
+  arrange(- betweenness) %>% 
+  head(10)
 ```
 
 Let us see the distribution of these centrality measures.
 
 ```{r, fig.align='center', fig.width = 6, fig.height=8}
 plt.deg <- node.impo.df %>% 
-            ggplot(mapping = aes(x = degree)) +
-            theme_light() +
-            geom_histogram(fill = 'blue', alpha = 0.8, bins = 30)
+  ggplot(mapping = aes(x = degree)) +
+    theme_light() +
+    geom_histogram(fill = 'blue', alpha = 0.8, bins = 30)
 
 plt.clo <- node.impo.df %>% 
-            ggplot(mapping = aes(x = closeness)) +
-            theme_light() +
-            geom_histogram(fill = 'red', alpha = 0.8, bins = 30)
+  ggplot(mapping = aes(x = closeness)) +
+    theme_light() +
+    geom_histogram(fill = 'red', alpha = 0.8, bins = 30)
 
 plt.bet <- node.impo.df %>% 
-            ggplot(mapping = aes(x = betweenness)) +
-            theme_light() +
-            geom_histogram(fill = 'green4', alpha = 0.8, bins = 30)
+  ggplot(mapping = aes(x = betweenness)) +
+    theme_light() +
+    geom_histogram(fill = 'green4', alpha = 0.8, bins = 30)
 
-plot_grid(... = plt.deg, plt.clo, plt.bet, ncol = 1, align = 'v')
+plot_grid(
+  ... = plt.deg, 
+  plt.clo, 
+  plt.bet, 
+  ncol = 1, 
+  align = 'v'
+)
 ```
 
 ### 7.2.4 Community Detection
@@ -806,7 +885,10 @@ plot_grid(... = plt.deg, plt.clo, plt.bet, ncol = 1, align = 'v')
 We can try to find clusters within the network. We use the [Louvain Method](https://en.wikipedia.org/wiki/Louvain_Modularity) for community detection:
 
 ```{r}
-comm.det.obj <- cluster_louvain(graph = cc.network, weights = E(cc.network)$n)
+comm.det.obj <- cluster_louvain(
+  graph = cc.network, 
+  weights = E(cc.network)$weight
+)
 
 comm.det.obj
 ```
@@ -844,8 +926,10 @@ forceNetwork(Links = network.D3$links,
 Let us collect the words per cluster:
 
 ```{r}
-membership.df <- tibble(word = V(cc.network) %>% names,
-                        cluster = V(cc.network)$membership)
+membership.df <- tibble(
+  word = V(cc.network) %>% names(),
+  cluster = V(cc.network)$membership
+)
 
 V(cc.network)$membership %>%
   unique %>% 
@@ -871,9 +955,9 @@ V(cc.network)$membership %>%
 
 ```{r, warning=FALSE}
 cor.words <- words.df %>% 
-              group_by(word) %>% 
-              filter(n() > 10) %>% 
-              pairwise_cor(item = word, feature = ID) 
+  group_by(word) %>% 
+  filter(n() > 10) %>% 
+  pairwise_cor(item = word, feature = ID) 
 ```
 
 ### 7.3.1 Visualization
@@ -889,30 +973,33 @@ topic.words <- c('uribe', 'santos', 'farc')
 # Set correlation threshold. 
 threshold = 0.1
 
-network <-  cor.words %>%
-              # filter for relevant nodes.
-              filter((item1 %in% topic.words | item2 %in% topic.words)) %>% 
-              rename(n = correlation) %>% 
-              filter(n > threshold) %>%
-              graph_from_data_frame()
+network <- cor.words %>%
+  rename(weight = correlation) %>% 
+  # filter for relevant nodes.
+  filter((item1 %in% topic.words | item2 %in% topic.words)) %>% 
+  filter(weight > threshold) %>%
+  graph_from_data_frame()
   
-V(network)$degree <- degree(graph = network)
+V(network)$degree <- strength(graph = network)
 
-E(network)$width <- E(network)$n/max(E(network)$n)
+E(network)$width <- E(network)$weight/max(E(network)$weight)
 
 network.D3 <- igraph_to_networkD3(g = network)
 
-network.D3$nodes %<>% mutate(Degree = 4*V(network)$degree)
+network.D3$nodes %<>% mutate(Degree = 5*V(network)$degree)
 
 # Define color groups. 
 network.D3$nodes$Group <- network.D3$nodes$name %>% 
-                            as.character %>% 
-                            map_dbl(.f = function(name) {
-                                        index <- which(name == topic.words) 
-                                        ifelse(test = length(index) > 0,
-                                               yes = index, 
-                                               no = 0)
-                            })
+  as.character() %>% 
+  map_dbl(.f = function(name) {
+    index <- which(name == topic.words) 
+    ifelse(
+      test = length(index) > 0,
+      yes = index, 
+      no = 0
+    )
+  }
+)
 
 network.D3$links %<>% mutate(Width = 10*E(network)$width)
 
