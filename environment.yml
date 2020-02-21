@@ -1,0 +1,28 @@
+name: website_projects
+channels:
+  - conda-forge
+dependencies:
+  - python=3.7
+  - pip
+  - fbprophet
+  - geopandas
+  - jupyter
+  - jupyterlab
+  - keras
+  - matplotlib
+  - mplleaflet
+  - nb_conda_kernels
+  - networkx
+  - nltk
+  - numpy
+  - pandas
+  - plotly
+  - pymc3
+  - scikit-learn
+  - scipy
+  - seaborn
+  - spacy
+  - statsmodels
+  - pip:
+    - tensorflow
+    - tensorflow-probability
