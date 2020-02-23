@@ -1,0 +1,122 @@
+```{r}
+library(tidyverse)
+```
+
+In this notebook we run Monte Carlo simulations to estimate the volume of the $d$-ball $B^{d}:=\{x \in \mathbb{R}^d : ||x|| \leq 1\}$. There are may proof to get the anaytical solution, see for example this [Wikipedia article](https://en.wikipedia.org/wiki/N-sphere). 
+
+## Main Idea
+
+```{r}
+get_samples_df <- function (d, n) {
+   map(.x = 1:d, 
+      .f = function(i) { 
+        samples <- runif(n = n, min = -1, max = 1)
+        tibble(!!str_c("d_", as.character(i)) := samples)
+  }
+  ) %>% reduce(.f = ~ bind_cols(.x, .y))
+}
+```
+
+
+```{r, fig.align="center"}
+samples_df <- get_samples_df(d = 2, n = 1E4)
+norm_2 <- samples_df %>% mutate_all(.funs = ~ .x^2) %>% rowSums() 
+is_in_ball <- (norm_2 < 1)
+samples_df <- samples_df %>% mutate(is_in_ball = is_in_ball) 
+
+samples_df %>% 
+  ggplot(mapping = aes(x = d_1, y = d_2, color = is_in_ball)) +
+  geom_point(alpha = 0.4) +
+  scale_color_brewer(palette = "Set1") +
+  theme(aspect.ratio = 1)
+```
+
+## Volume Computation 
+
+```{r}
+compute_vol_ball <- function (d, n) {
+  
+  samples_df <- get_samples_df(d = d, n = n)
+
+  norm_d <- samples_df %>% mutate_all(.funs = ~ .x^2) %>% rowSums()
+
+  is_in_ball <- norm_d < 1
+
+  vol <- 2^(d)*(sum(is_in_ball) / n)
+  
+  return(vol)
+}
+```
+
+
+## Simulation 
+
+Next, we write a function to run the simulation: 
+
+```{r}
+run_simulation <- function (d_max, n, N) {
+  
+  simulation_list <- map(.x = 1:d_max, .f = function (d) {
+    map_dbl(.x = 1:N, .f = ~ compute_vol_ball(d = d, n = n))
+  })
+  
+  simulation_df <- tibble(volume = simulation_list) %>% 
+    rowid_to_column(var = "d") %>% 
+    unnest(cols = volume) 
+  
+  
+  return(simulation_df)
+}
+```
+
+
+```{r}
+d_max <- 25
+
+simulation_df <- run_simulation(d_max = d_max, n = 1E5, N = 100)
+
+mean_simulation_df <- simulation_df %>% group_by(d) %>% summarise(volume = mean(volume))
+
+vol_d_sphere <- function (d) {
+  pi^{(d)/2} / gamma(d/2 + 1)
+}
+
+vol_df <- tibble(
+  d = 1:d_max , 
+  volume_true = map_dbl(.x = 1:d_max, .f = vol_d_sphere)
+)
+```
+
+## Results
+
+```{r, fig.align="center"}
+set1_pal <- RColorBrewer::brewer.pal(n = 9, name = "Set1")
+
+ggplot() +
+  geom_point(data= simulation_df, mapping = aes(x = d, y = volume), color = set1_pal[2], alpha = 0.3) +
+  geom_point(data = mean_simulation_df, mapping = aes(x = d, y = volume, color="sample")) +
+  geom_line(data = mean_simulation_df, mapping = aes(x = d, y = volume, color="sample"), alpha = 0.5) +
+  geom_point(data = vol_df, mapping = aes(x = d, y = volume_true, color = "true")) +
+  geom_line(data = vol_df, mapping = aes(x = d, y = volume_true, color = "true"), alpha = 0.5) +
+  labs(title = "Volume d-Balls",subtitle = "Monte Carlo Simulation", xlabel = "dimension") +
+  scale_color_manual(values=c(set1_pal[2], set1_pal[1])) +
+  scale_y_continuous(breaks = scales::pretty_breaks())
+```
+```{r, fig.align="center"}
+ggplot() +
+  geom_point(data = mean_simulation_df, mapping = aes(x = d, y = volume, color="sample")) +
+  geom_line(data = mean_simulation_df, mapping = aes(x = d, y = volume, color="sample"), alpha = 0.5) +
+  geom_point(data = vol_df, mapping = aes(x = d, y = volume_true, color = "true")) +
+  geom_line(data = vol_df, mapping = aes(x = d, y = volume_true, color = "true"), alpha = 0.5) +
+  labs(title = "Volume d-Balls",subtitle = "Monte Carlo Simulation vs Theoretical", xlabel = "dimension") +
+  scale_color_manual(values=c(set1_pal[2], set1_pal[1])) +
+  scale_y_continuous(breaks = scales::pretty_breaks())
+```
+```{r, fig.align="center"}
+vol_df %>% 
+  mutate(vol_prop = volume_true / 2^(d + 1)) %>% 
+  ggplot(mapping = aes(x = d, y = vol_prop)) +
+  geom_point() +
+  geom_line(alpha = 0.5)
+```
+
