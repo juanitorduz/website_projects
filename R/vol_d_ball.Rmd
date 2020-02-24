@@ -176,7 +176,7 @@ We can compare the ratio of the volumes of each ball and the corresponding squar
 
 ```{r, fig.align="center"}
 vol_df %>% 
-  mutate(vol_prop = volume_true / 2^(d + 1)) %>% 
+  mutate(vol_prop = volume_true / 2^(d)) %>% 
   ggplot(mapping = aes(x = d, y = vol_prop)) +
   geom_point() +
   geom_line(alpha = 0.5) +
