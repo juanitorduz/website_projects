@@ -110,11 +110,17 @@ run_simulation <- function (d_max, n, N) {
 
 
 ```{r}
+# Simulation parameters. 
 d_max <- 25
+n <- 1E5
+N <- 100
 
-simulation_df <- run_simulation(d_max = d_max, n = 1E5, N = 100)
-
-mean_simulation_df <- simulation_df %>% group_by(d) %>% summarise(volume = mean(volume))
+# Run simulation. 
+simulation_df <- run_simulation(d_max = d_max, n = n, N = N)
+# Get simulation mean.
+mean_simulation_df <- simulation_df %>% 
+  group_by(d) %>% 
+  summarise(volume = mean(volume))
 ```
 
 The analytic expression for the volume is^[[Wikipedia: N-Sphere](https://en.wikipedia.org/wiki/N-sphere)]
@@ -153,7 +159,6 @@ ggplot() +
   scale_y_continuous(breaks = scales::pretty_breaks())
 ```
 
-
 ```{r, fig.align="center"}
 ggplot() +
   geom_point(data = mean_simulation_df, mapping = aes(x = d, y = volume, color="sample")) +
@@ -179,3 +184,9 @@ vol_df %>%
 ```
 
 Note that this ratio is always decreasing and converges to zero. This is related to the [Curse of dimensionality](https://en.wikipedia.org/wiki/Curse_of_dimensionality). See [Exploring the Curse of Dimensionality - Part I.](https://juanitorduz.github.io/exploring-the-curse-of-dimensionality-part-i./) and [Exploring the Curse of Dimensionality - Part II.](https://juanitorduz.github.io/exploring-the-curse-of-dimensionality-part-ii./)
+
+**Remark** If we define the *diameter* of a set $S\subset \mathbb{R}^{d}$as 
+$$
+\text{diam}(S):= \sup_{x, y\in S}||x - y||
+$$
+Then $\text{diam}(B^{d})=2$, where the $\sup$ is attained when considering two antipodal points, and $\text{diam}(A^{d})=2\sqrt{d}$, where again the $\sup$ by considering the points $(-1, -1, \cdots, -1)$ and $(1, 1, \cdots, 1)$. 
