@@ -1,9 +1,9 @@
 ---
-title: The volume of the $d$-ball via Monte Carlo Simulation
-date: 2020-02-25
+title: The Volume of the d-Ball via Monte Carlo Simulation
+date: 2020-02-24
 author: Dr. Juan Camilo Orduz
 categories: geometry
-tags: r,  geometry
+tags: r, geometry
 slug: vol_d_ball
 ---
 
@@ -12,20 +12,23 @@ library(knitr)
 knitr::opts_knit$set(warning=FALSE, message=FALSE)
 ```
 
-In this notebook we run Monte Carlo simulations to estimate the volume of the $d$-ball $B^{d}:=\{x \in \mathbb{R}^d : ||x|| \leq 1\}$. There are many proofs to get the analytic solution, see for example this [Wikipedia article](https://en.wikipedia.org/wiki/N-sphere). 
-
-```{r}
-library(tidyverse)
-```
+In this notebook we run Monte Carlo simulations to estimate the volume of the $d$-ball 
+$$
+B^{d}:=\{x \in \mathbb{R}^d : ||x|| \leq 1\}.
+$$ 
+There are many ways to obtain a closed formula for this volume , see for example this [Wikipedia article](https://en.wikipedia.org/wiki/N-sphere). Here we do it via sampling just for fun!
 
 ## Main Idea
 
 Consider a square $A_{d}\subset \mathbb{R}$ centered at the origin with side length $2$. We estimate the volume of the $d$-ball $B^{d}:=\{x \in \mathbb{R}^d : ||x|| \leq 1\}\subset A^{d}$ by sampling uniformly from $A$ and computing the proportions of vectors having length less or equal than one. Note that $\text{vol}(A^{d}) = 2^{d}$. 
 
+```{r, warning=FALSE, message=FALSE}
+library(tidyverse)
+```
+
 ```{r}
 area_square <- function (d) { 2^d }
 ```
-
 
 Let us write a function to generate such samples:
 
@@ -53,7 +56,7 @@ norm_2 <- samples_df %>% mutate_all(.funs = ~ .x^2) %>% rowSums()
 is_in_ball <- (norm_2 <= 1)
 samples_df <- samples_df %>% mutate(is_in_ball = is_in_ball) 
 
-# plot.
+# Plot.
 samples_df %>% 
   ggplot(mapping = aes(x = d_1, y = d_2, color = is_in_ball)) +
   geom_point(alpha = 0.4) +
@@ -78,7 +81,9 @@ compute_vol_ball <- function (d, n) {
   
   samples_df <- get_samples_df(d = d, n = n)
 
-  norm_d <- samples_df %>% mutate_all(.funs = ~ .x^2) %>% rowSums()
+  norm_d <- samples_df %>% 
+    mutate_all(.funs = ~ .x^2) %>% 
+    rowSums()
 
   is_in_ball <- norm_d < 1
 
@@ -91,9 +96,10 @@ compute_vol_ball <- function (d, n) {
 
 ## Simulation 
 
-Next, we write a function to run the simulation. We do this as a function of the dimension $1\leq d \leq d_{max}$. 
+Next, we write a function to run the simulation. We do this as a function of the dimension $1\leq d \leq d_{max}.$ 
 
 ```{r}
+# N: Number of iteration per dimension. 
 run_simulation <- function (d_max, n, N) {
   
   simulation_list <- map(.x = 1:d_max, .f = function (d) {
@@ -108,6 +114,7 @@ run_simulation <- function (d_max, n, N) {
 }
 ```
 
+We run the simulation: 
 
 ```{r}
 # Simulation parameters. 
@@ -131,10 +138,11 @@ $$
 where $\Gamma$ denotes the special [gamma function](https://en.wikipedia.org/wiki/Gamma_function). 
 
 ```{r}
+# Analytic expresion for the volume of B^d.
 vol_d_ball <- function (d) {
   pi^{(d)/2} / gamma(d/2 + 1)
 }
-
+# Compute it for a sequence of dimensions. 
 vol_df <- tibble(
   d = 1:d_max , 
   volume_true = map_dbl(.x = 1:d_max, .f = vol_d_ball)
@@ -170,7 +178,7 @@ ggplot() +
   scale_y_continuous(breaks = scales::pretty_breaks())
 ```
 
-It is very interesting to see that the ball in dimension $d=5$ has the biggest volume and then the volume tends to zero. But why? Does this make sense? Well, this plot is actually misleading as we are comparing apples with oranges as we are comparing different units. That is, we are comparing meters ($m$) with square meters ($m^2$) and so on.
+It is very interesting to see that the ball in dimension $d=5$ has the biggest volume and then the volume tends to zero. But why? Does this make sense? Well, this plot is actually misleading as we are comparing apples with oranges since we are comparing different units. That is, we are comparing meters ($m$) with square meters ($m^2$) and so on.
 
 We can compare the ratio of the volumes of each ball and the corresponding squares, i.e. $\text{vol}(B^2)/\text{vol}(A^d)$ which does not have any units. 
 
