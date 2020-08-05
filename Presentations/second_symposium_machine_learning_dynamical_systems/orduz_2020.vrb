@@ -1,0 +1,17 @@
+\frametitle{Prior Distribution}
+\begin{lstlisting}
+for i in range(0, 100):
+    # Sample from prior distribution.
+    z_star = np.random.multivariate_normal(mean=np.zeros(n_star), cov=K_star2)
+    # Plot function.
+    sns.lineplot(x=x_star, y=z_star, color='blue', alpha=0.2, ax=ax)
+\end{lstlisting}
+$$
+f \sim N(0, K(X_*,X_*))
+$$
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.27]{images/code_sample_prior_example2.png}
+\caption{We sample from the prior space of functions by plotting their realization on $n_*=100$ points. }
+\end{figure}
+\end{center}
