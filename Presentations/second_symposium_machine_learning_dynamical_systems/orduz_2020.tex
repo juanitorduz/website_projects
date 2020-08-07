@@ -523,6 +523,15 @@ There is a rich theory of spectral theory for kernels by considering the integra
 
 \section{Example: Time Series}
 
+\begin{frame}{Example: Periodic Component I (\cite{gaussian_process_time_series_2019})}{\cite[Section 1.7. Gaussian Processes]{scikitlearn}}
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.4]{images/gaussian_process_time_series_files/gaussian_process_time_series_13_0.png} 
+\caption{ ...  }
+\end{figure}
+\end{center}
+\end{frame}
+
 \begin{frame}[fragile]{Example: Periodic Component I (\cite{gaussian_process_time_series_2019})}{\cite[Section 1.7. Gaussian Processes]{scikitlearn}}
 \begin{lstlisting}
 from sklearn.gaussian_process.kernels import WhiteKernel, ExpSineSquared, ConstantKernel
@@ -535,7 +544,6 @@ k1 = ConstantKernel(constant_value=2) * \
         length_scale=1.0, periodicity=40, 
         periodicity_bounds=(35, 45)
     )
-
 kernel_1  = k0 + k1 
 
 gp1 = GaussianProcessRegressor(
@@ -547,11 +555,21 @@ gp1 = GaussianProcessRegressor(
 \end{lstlisting}
 \end{frame}
 
-\begin{frame}[fragile]{Example: Periodic Component I (\cite{gaussian_process_time_series_2019})}{\cite[Section 1.7. Gaussian Processes]{scikitlearn}}
+
+\begin{frame}{Example: Periodic Component I (\cite{gaussian_process_time_series_2019})}{\cite[Section 1.7. Gaussian Processes]{scikitlearn}}
 \begin{center}
 \begin{figure}
-\includegraphics[scale=0.20]{images/sample_1_example3.png}
-\includegraphics[scale=0.20]{images/pred_1_example3.png}
+\includegraphics[scale=0.30]{images/gaussian_process_time_series_files/gaussian_process_time_series_22_0.png}
+\includegraphics[scale=0.30]{images/gaussian_process_time_series_files/gaussian_process_time_series_28_0.png}
+\end{figure}
+\end{center}
+\end{frame}
+
+\begin{frame}{Example: Add Linear Trend }
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.4]{images/gaussian_process_time_series_files/gaussian_process_time_series_37_0.png} 
+\caption{ ...  }
 \end{figure}
 \end{center}
 \end{frame}
@@ -577,8 +595,17 @@ kernel_2  = k0 + k1 + k2
 \begin{frame}{Example: Add Linear Trend }
 \begin{center}
 \begin{figure}
-\includegraphics[scale=0.20]{images/sample_2_example3.png}
-\includegraphics[scale=0.20]{images/pred_2_example3.png}
+\includegraphics[scale=0.30]{images/gaussian_process_time_series_files/gaussian_process_time_series_44_0.png}
+\includegraphics[scale=0.30]{images/gaussian_process_time_series_files/gaussian_process_time_series_49_0.png}
+\end{figure}
+\end{center}
+\end{frame}
+
+\begin{frame}{Example: Add Periodic Component II }
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.4]{images/gaussian_process_time_series_files/gaussian_process_time_series_56_0.png} 
+\caption{ ...  }
 \end{figure}
 \end{center}
 \end{frame}
@@ -611,16 +638,55 @@ kernel_2  = k0 + k1 + k2 + k3
 \begin{frame}{Example: Add Periodic Component II }
 \begin{center}
 \begin{figure}
-\includegraphics[scale=0.20]{images/sample_3_example3.png}
-\includegraphics[scale=0.20]{images/pred_3_example3.png}
+\includegraphics[scale=0.30]{images/gaussian_process_time_series_files/gaussian_process_time_series_63_0.png}
+\includegraphics[scale=0.30]{images/gaussian_process_time_series_files/gaussian_process_time_series_68_0.png}
+\end{figure}
+\end{center}
+\end{frame}
+
+\begin{frame}{Example: Add Non Linear Trend}
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.4]{images/gaussian_process_time_series_files/gaussian_process_time_series_76_0.png} 
+\caption{ ...  }
 \end{figure}
 \end{center}
 \end{frame}
 
 \begin{frame}[fragile]{Example: Add Non Linear Trend}
-...
+\begin{lstlisting}
+from sklearn.gaussian_process.kernels import WhiteKernel, ExpSineSquared, ConstantKernel, RationalQuadratic
+
+k0 = WhiteKernel(noise_level=0.3**2, noise_level_bounds=(0.1**2, 0.5**2))
+
+k1 = ConstantKernel(constant_value=2) * \ 
+    ExpSineSquared(
+        length_scale=1.0, periodicity=40, 
+        periodicity_bounds=(35, 45)
+    )
+
+k2 = ConstantKernel(constant_value=100, constant_value_bounds=(1, 500)) * RationalQuadratic(length_scale=500, length_scale_bounds=(1, 1e4), alpha= 50.0, alpha_bounds=(1, 1e3))
+
+k3 = ConstantKernel(constant_value=1) * \ 
+    ExpSineSquared(
+        length_scale=1.0, periodicity=12, 
+        periodicity_bounds=(10, 15)
+    )
+
+kernel_2  = k0 + k1 + k2 + k3
+\end{lstlisting}
 \end{frame}
 
+\begin{frame}{Example: Add Non Linear Trend}
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.30]{images/gaussian_process_time_series_files/gaussian_process_time_series_83_0.png}
+\includegraphics[scale=0.30]{images/gaussian_process_time_series_files/gaussian_process_time_series_88_0.png}
+\end{figure}
+\end{center}
+\end{frame}
+
+\section{Computational Challenges}
 
 \begin{frame}{Computational Challenges}
 \begin{itemize}
