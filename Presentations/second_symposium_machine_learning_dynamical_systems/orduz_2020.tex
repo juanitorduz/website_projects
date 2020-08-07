@@ -40,10 +40,11 @@
 \usepackage{tikz}
 \usepackage{fontawesome}
 \usepackage{color}
+\usepackage{color}
 \usepackage{listings}
 \lstset{ %
 backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}
-basicstyle=\footnotesize\ttfamily,        % the size of the fonts that are used for the code
+basicstyle=\scriptsize\ttfamily,        % the size of the fonts that are used for the code
 breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
 breaklines=true,                 % sets automatic line breaking
 commentstyle=\color[rgb]{0.4,0.4,0.4},    % comment style
@@ -54,16 +55,19 @@ keywordstyle=\color[rgb]{0.18,0.28,0.75},       % keyword style
 language=Python,                 % the language of the code
 numberstyle=\color[rgb]{0.7,0.1,0.4}, % the style that is used for the line-numbers
 rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
-stringstyle=\color[rgb]{1,0.6,0.2},     % string literal style
+stringstyle=\color[rgb]{1,0.0,0.0},     % string literal style
 showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
 showstringspaces=false,          % underline spaces within strings only
 showtabs=false,                  % show tabs within strings adding particular underscores
 stepnumber=2,                    % the step between two line-numbers. If it's 1, each line will be numbered
 tabsize=2,                     % sets default tabsize to 2 spaces
+keywordstyle=\color[rgb]{0.0, 0.5, 0.0},   
 }
 
 \title[Gaussian Processes for Time Series Forecasting] % (optional, use only with long paper titles)
 {Gaussian Processes for Time Series Forecasting}
+
+\subtitle[with Scikit-Learn]{with Scikit-Learn}
 
 %\subtitle
 
@@ -120,7 +124,7 @@ tabsize=2,                     % sets default tabsize to 2 spaces
 %\end{frame}
 
 \begin{frame}{Overview}
-{{\bf Aim:} Give a better intuition on the notion of Gaussian Process Regression}
+{{\bf Aim:} Give an introduction to the notion of Gaussian Process Regression and how to use it for time series forecasting with Scikit-Learn}
 \tableofcontents
 \end{frame}
 
@@ -394,22 +398,18 @@ k_{ESS} (x, x')= \exp\left(-2 \left(\frac{\sin(\pi (x - x')/T )}{\ell}\right)^2\
 \end{frame}
 
 \begin{frame}[fragile]{Prior Distribution}
-\begin{lstlisting}
-for i in range(0, 100):
-    # Sample from prior distribution. 
-    z_star = np.random.multivariate_normal(mean=np.zeros(n_star), cov=K_star2)
-    # Plot function.
-    sns.lineplot(x=x_star, y=z_star, color='blue', alpha=0.2, ax=ax)
-\end{lstlisting}
 $$
 f \sim N(0, K(X_*,X_*))
 $$
-\begin{center}
-\begin{figure}
-\includegraphics[scale=0.27]{images/code_sample_prior_example2.png} 
-\caption{We sample from the prior space of functions by plotting their realization on $n_*=100$ points. }
-\end{figure}
-\end{center}
+\begin{lstlisting}
+from numpy.random import multivariate_normal
+
+prior_mean = np.zeros(n_star)
+prior_cov = K_star2
+
+for i in range(0, 100):
+    z_star = multivariate_normal(mean=prior_mean, cov=prior_cov)
+\end{lstlisting}
 \end{frame}
 
 
@@ -454,7 +454,23 @@ K(X_*,X) & K(X_*,X_*)
 \end{frame}
 
 
-\begin{frame}{Posterior Distribution}
+\begin{frame}[fragile]{Posterior Distribution}
+\begin{lstlisting}
+from numpy.random import multivariate_normal
+
+def compute_gpr_parameters(K, K_star2, K_star, sigma_n):
+    """Compute gaussian regression parameters."""
+    ...
+    return f_bar_star, cov_f_star
+
+params = compute_gpr_parameters(K, K_star2, K_star, sigma_n)
+
+posterior_mean = params[0]
+posterior_cov = params[1]
+
+for i in range(0, 100):
+    z_star = multivariate_normal(mean=posterior_mean, cov=posterior_cov)
+\end{lstlisting}
 \begin{center}
 \begin{figure}
 \includegraphics[scale=0.32]{images/code_sample_posterior_example2.png} 
@@ -507,13 +523,31 @@ There is a rich theory of spectral theory for kernels by considering the integra
 
 \section{Example: Time Series}
 
-\begin{frame}{Example: Periodic Component I (\cite{gaussian_process_time_series_2019})}{\cite[Section 1.7. Gaussian Processes]{scikitlearn}}
-\begin{center}
-\begin{figure}
-\includegraphics[scale=0.3]{images/code_kernel_1_example3.png}
-\includegraphics[scale=0.3]{images/gp1_example3.png}
-\end{figure}
-\end{center}
+\begin{frame}[fragile]{Example: Periodic Component I (\cite{gaussian_process_time_series_2019})}{\cite[Section 1.7. Gaussian Processes]{scikitlearn}}
+\begin{lstlisting}
+from sklearn.gaussian_process.kernels import WhiteKernel, ExpSineSquared, ConstantKernel
+from sklearn.gaussian_process import GaussianProcessRegressor
+
+k0 = WhiteKernel(noise_level=0.3**2, noise_level_bounds=(0.1**2, 0.5**2))
+
+k1 = ConstantKernel(constant_value=2) * \ 
+    ExpSineSquared(
+        length_scale=1.0, periodicity=40, 
+        periodicity_bounds=(35, 45)
+    )
+
+kernel_1  = k0 + k1 
+
+gp1 = GaussianProcessRegressor(
+    kernel=kernel_1, 
+    n_restarts_optimizer=10, 
+    normalize_y=True,
+    alpha=0.0
+)
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Example: Periodic Component I (\cite{gaussian_process_time_series_2019})}{\cite[Section 1.7. Gaussian Processes]{scikitlearn}}
 \begin{center}
 \begin{figure}
 \includegraphics[scale=0.20]{images/sample_1_example3.png}
@@ -522,12 +556,25 @@ There is a rich theory of spectral theory for kernels by considering the integra
 \end{center}
 \end{frame}
 
+\begin{frame}[fragile]{Example: Add Linear Trend }
+\begin{lstlisting}
+from sklearn.gaussian_process.kernels import WhiteKernel, ExpSineSquared, ConstantKernel, RBF
+
+k0 = WhiteKernel(noise_level=0.3**2, noise_level_bounds=(0.1**2, 0.5**2))
+
+k1 = ConstantKernel(constant_value=2) * \ 
+    ExpSineSquared(
+        length_scale=1.0, periodicity=40, 
+        periodicity_bounds=(35, 45)
+    )
+
+k2 = ConstantKernel(constant_value=10, constant_value_bounds=(1e-2, 1e3)) * RBF(length_scale=100.0, length_scale_bounds=(1, 1e4)) 
+
+kernel_2  = k0 + k1 + k2
+\end{lstlisting}
+\end{frame}
+
 \begin{frame}{Example: Add Linear Trend }
-\begin{center}
-\begin{figure}
-\includegraphics[scale=0.3]{images/code_kernel_2_example3.png}
-\end{figure}
-\end{center}
 \begin{center}
 \begin{figure}
 \includegraphics[scale=0.20]{images/sample_2_example3.png}
@@ -537,12 +584,31 @@ There is a rich theory of spectral theory for kernels by considering the integra
 \end{frame}
 
 
+\begin{frame}[fragile]{Example: Add Periodic Component II }
+\begin{lstlisting}
+from sklearn.gaussian_process.kernels import WhiteKernel, ExpSineSquared, ConstantKernel, RBF
+
+k0 = WhiteKernel(noise_level=0.3**2, noise_level_bounds=(0.1**2, 0.5**2))
+
+k1 = ConstantKernel(constant_value=2) * \ 
+    ExpSineSquared(
+        length_scale=1.0, periodicity=40, 
+        periodicity_bounds=(35, 45)
+    )
+
+k2 = ConstantKernel(constant_value=10, constant_value_bounds=(1e-2, 1e3)) * RBF(length_scale=100.0, length_scale_bounds=(1, 1e4)) 
+
+k3 = ConstantKernel(constant_value=1) * \ 
+    ExpSineSquared(
+        length_scale=1.0, periodicity=12, 
+        periodicity_bounds=(10, 15)
+    )
+
+kernel_2  = k0 + k1 + k2 + k3
+\end{lstlisting}
+\end{frame}
+
 \begin{frame}{Example: Add Periodic Component II }
-\begin{center}
-\begin{figure}
-\includegraphics[scale=0.3]{images/code_kernel_3_example3.png}
-\end{figure}
-\end{center}
 \begin{center}
 \begin{figure}
 \includegraphics[scale=0.20]{images/sample_3_example3.png}
@@ -551,6 +617,11 @@ There is a rich theory of spectral theory for kernels by considering the integra
 \end{center}
 \end{frame}
 
+\begin{frame}[fragile]{Example: Add Non Linear Trend}
+...
+\end{frame}
+
+
 \begin{frame}{Computational Challenges}
 \begin{itemize}
 \item Calculating the posterior mean and covariance matrix requires $\mathcal{O}(n^3)$ computations. 
@@ -558,8 +629,6 @@ There is a rich theory of spectral theory for kernels by considering the integra
 \item There are remarkable approximation methods for Gaussian processes to speed up the computation (\cite[Chapter 20.1]{BDA13})
 \end{itemize}
 \end{frame}
-
-
 
 \begin{frame}[t, allowframebreaks]
 \frametitle{References}
