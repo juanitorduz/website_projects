@@ -67,7 +67,7 @@ keywordstyle=\color[rgb]{0.0, 0.5, 0.0},
 \title[Gaussian Processes for Time Series Forecasting] % (optional, use only with long paper titles)
 {Gaussian Processes for Time Series Forecasting}
 
-\subtitle[with Scikit-Learn]{with Scikit-Learn}
+\subtitle[with Applications in Scikit-Learn]{with Applications in Scikit-Learn}
 
 %\subtitle
 
@@ -79,7 +79,7 @@ keywordstyle=\color[rgb]{0.0, 0.5, 0.0},
 % - Use the \inst{?} command only if the authors have different
 %   affiliation.
 
-\institute[Second Symposium on Machine Learning and Dynamical Systems] % (optional, but mostly needed)
+\institute[The Fields Institute] % (optional, but mostly needed)
 {
 \href{http://www.fields.utoronto.ca/}{The Fields Institute}
 }
@@ -151,13 +151,12 @@ where $m \in \mathbb{R}^d$ is the {\bf mean vector} and  $K_0 \in M_d(\mathbb{R}
 
 \section{Bayesian Linear Regression}
 
-
 \begin{frame}{Bayesian Linear Regression}{\cite{reg_bayesian_regression_2019}, \cite[Chapter 2.1]{RW05}}
 Let $x_1, \cdots, x_n \in \mathbb{R}^d$ and $y_1, \cdots, y_n$ be a set of observations (data). We want to fit the linear model 
 $$
 f(x) = x^T b \quad \text{and} \quad y = f(x) + \varepsilon, \quad \text{with} \quad \varepsilon \sim N(0, \sigma_n^2)
 $$
-where $b \in \mathbb{R}^d$ denotes the parameter vector. Let $X \in M_{d \times n}$ be denote the observation matrix. 
+where $b \in \mathbb{R}^d$ denotes the parameter vector. Let $X \in M_{d \times n}$ denote the observation matrix. 
 \begin{center}
 \begin{figure}
 \includegraphics[scale=0.14]{images/lin_raw_data.png} 
@@ -386,12 +385,12 @@ k_{ESS} (x, x')= \exp\left(-2 \left(\frac{\sin(\pi (x - x')/T )}{\ell}\right)^2\
 \begin{frame}{Example: Non-Linear Function}{\cite{gaussian_process_reg_2019}}
 \begin{center}
 \begin{figure}
-\includegraphics[scale=0.23]{images/f_example2.png} 
+\includegraphics[scale=0.25]{images/gaussian_process_regression_files/gaussian_process_regression_6_0.png} 
 \end{figure}
 \end{center}
 \begin{center}
 \begin{figure}
-\includegraphics[scale=0.23]{images/raw_data_example2.png} 
+\includegraphics[scale=0.25]{images/gaussian_process_regression_files/gaussian_process_regression_12_0.png} 
 \caption{Non-Linear Example with $n=500$ training points.}
 \end{figure}
 \end{center}
@@ -410,6 +409,12 @@ prior_cov = K_star2
 for i in range(0, 100):
     z_star = multivariate_normal(mean=prior_mean, cov=prior_cov)
 \end{lstlisting}
+\begin{center}
+\begin{figure}
+\includegraphics[scale=0.3]{images/gaussian_process_regression_files/gaussian_process_regression_48_0.png} 
+\caption{We sample from the prior space of functions by plotting their realization on $n_*=100$ points. }
+\end{figure}
+\end{center}
 \end{frame}
 
 
@@ -473,7 +478,7 @@ for i in range(0, 100):
 \end{lstlisting}
 \begin{center}
 \begin{figure}
-\includegraphics[scale=0.32]{images/code_sample_posterior_example2.png} 
+\includegraphics[scale=0.23]{images/gaussian_process_regression_files/gaussian_process_regression_57_0.png} 
 \caption{We sample from the posterior space of functions by plotting their realization on $n_*=100$ points. }
 \end{figure}
 \end{center}
@@ -483,8 +488,8 @@ for i in range(0, 100):
 \begin{frame}{Hyperparameter Estimation}{\cite[Chapter 2.3, 5]{RW05}}
 \begin{center}
 \begin{figure}
-\includegraphics[scale=0.21]{images/hyp_posterior_1_example2}
-\includegraphics[scale=0.21]{images/hyp_posterior_2_example2}
+\includegraphics[scale=0.21]{images/gaussian_process_regression_files/gaussian_process_regression_68_0.png}
+\includegraphics[scale=0.21]{images/gaussian_process_regression_files/gaussian_process_regression_72_0.png}
 \caption{Samples from two gaussian processes with different scale parameters (left: $\ell=1$ and right: $\ell = 0.001$).}
 \end{figure}
 \end{center}
