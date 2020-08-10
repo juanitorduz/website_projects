@@ -162,6 +162,7 @@ where $b \in \mathbb{R}^d$ denotes the parameter vector. Let $X \in M_{d \times 
 \includegraphics[scale=0.14]{images/lin_raw_data.png} 
 \caption{The true parameters in this example are $b=(1, 3)$ and $\sigma_n=0.5$}
 \end{figure}
+\pause
 \end{center}
 We want to compute $p(b|X, y)$ using the Bayes theorem 
 $$
@@ -170,13 +171,12 @@ $$
 \end{frame}
 
 
-\begin{frame}{Prior Distribution}
+\begin{frame}{Prior Distribution \& Likelihood}
 \begin{itemize}
 \item Prior 
 $$
 b \sim N(0, \Sigma_p), \quad  \Sigma_p \in M_{d}(\mathbb{R})
 $$
-
 \begin{center}
 \begin{figure}
 \includegraphics[scale=0.17]{images/lin_join_prior.png} 
@@ -194,6 +194,7 @@ $
 }
 \end{figure}
 \end{center}
+\pause
 \item Likelihood
 \begin{align*}
 p(y|X, b) 
@@ -484,6 +485,7 @@ for i in range(0, 100):
 \end{center}
 \end{frame}
 
+\section{Hyperparameter Estimation}
 
 \begin{frame}{Hyperparameter Estimation}{\cite[Chapter 2.3, 5]{RW05}}
 \begin{center}
@@ -503,6 +505,15 @@ for i in range(0, 100):
 \end{itemize}
 \end{block}
 \end{frame}
+
+\begin{frame}{Marginal Likelihood}
+....
+\end{frame}
+
+\begin{frame}{Cross Validation}
+...
+\end{frame}
+
 
 \section{The Space of Kernels}
 
