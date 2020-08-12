@@ -497,17 +497,27 @@ for i in range(0, 100):
 \end{center}
 \begin{block}{Methods}
 \begin{itemize}
-\item Marginal Likelihood ($\theta$ = parameter vector)
-\begin{align*}
-\log(p(y|X, \theta)) = -\frac{1}{2}y^T (K+\sigma_n^2I)^{-1}y - \frac{1}{2}\log|K+\sigma_n^2I| - \frac{n}{2}\log (2\pi)
-\end{align*}
+\item Maximize (Log) Marginal Likelihood
 \item Cross Validation
 \end{itemize}
 \end{block}
 \end{frame}
 
-\begin{frame}{Marginal Likelihood}
-....
+\begin{frame}{Marginal Likelihood}{\cite[Chapter 5.4.1]{RW05}}
+\begin{itemize}
+\item In a Gaussian process regression {\em one may regard the noise-free latent function values at the training inputs $f$ as the parameters}. These might depend on hyperparameters $\theta$ (e.g. $\ell, \sigma_f$).
+\item We would like to compute their posterior, but there are some integrals which we can not compute directly. As an approximation, we can maximize the normalization constant ({\em marginal-likelihood} ) 
+\begin{align*}
+p(y|X, \theta) = \int p(y|f, X, \theta)p(f|X) df 
+\end{align*}
+with respect to $\theta$.
+\pause
+\item We can explicitly compute:
+\begin{align*}
+\log(p(y|X, \theta))-\frac{1}{2}y^T (K+\sigma_n^2I)^{-1}y - \frac{1}{2}\log|K+\sigma_n^2I| - \frac{n}{2}\log (2\pi)
+\end{align*}
+\item The marginal likelihood automatically incorporates a trade-off between model fit and model complexity.
+\end{itemize}
 \end{frame}
 
 \begin{frame}{Cross Validation}
