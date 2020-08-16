@@ -1,0 +1,22 @@
+\frametitle{Example: Add Non Linear Trend}
+\begin{lstlisting}
+from sklearn.gaussian_process.kernels import WhiteKernel, ExpSineSquared, ConstantKernel, RationalQuadratic
+
+k0 = WhiteKernel(noise_level=0.3**2, noise_level_bounds=(0.1**2, 0.5**2))
+
+k1 = ConstantKernel(constant_value=2) * \
+    ExpSineSquared(
+        length_scale=1.0, periodicity=40,
+        periodicity_bounds=(35, 45)
+    )
+
+k2 = ConstantKernel(constant_value=100, constant_value_bounds=(1, 500)) * RationalQuadratic(length_scale=500, length_scale_bounds=(1, 1e4), alpha= 50.0, alpha_bounds=(1, 1e3))
+
+k3 = ConstantKernel(constant_value=1) * \
+    ExpSineSquared(
+        length_scale=1.0, periodicity=12,
+        periodicity_bounds=(10, 15)
+    )
+
+kernel_2  = k0 + k1 + k2 + k3
+\end{lstlisting}
