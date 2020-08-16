@@ -151,7 +151,7 @@ where $m \in \mathbb{R}^d$ is the {\bf mean vector} and  $K_0 \in M_d(\mathbb{R}
 
 \section{Bayesian Linear Regression}
 
-\begin{frame}{Bayesian Linear Regression}{\cite{reg_bayesian_regression_2019}, \cite[Chapter 2.1]{RW05}}
+\begin{frame}{Bayesian Linear Regression}{\cite{reg_bayesian_regression_2019}, \cite[Chapter 2.1]{RW05}, \cite{mcelreath2020statistical}}
 Let $x_1, \cdots, x_n \in \mathbb{R}^d$ and $y_1, \cdots, y_n$ be a set of observations (data). We want to fit the linear model 
 $$
 f(x) = x^T b \quad \text{and} \quad y = f(x) + \varepsilon, \quad \text{with} \quad \varepsilon \sim N(0, \sigma_n^2)
@@ -269,6 +269,7 @@ p(f_*|x_*, X, y) =& N\left(
 (1) =& \phi_{*}^T \Sigma_{p}\Phi(\Phi^T \Sigma_p \Phi + \sigma_n^2I)^{-1}y \\
 (2)= &\phi_{*}^T\Sigma_p\phi_{*} - \phi_{*}^T \Sigma_{p}\Phi(\Phi^T \Sigma_p \Phi + \sigma_n^2I)^{-1}\Phi^T\Sigma_p\phi_*
 \end{align*}
+\pause
 This motivates the definition of the {\bf covariance function} or {\bf kernel}
 $$
 k(x, x')\coloneqq \phi(x)^T\Sigma_p\phi(x')
@@ -342,6 +343,7 @@ K(X_*,X) & K(X_*,X_*)
 \right)
 \right)
 \end{align*}
+\pause
 \item Conditional Distribution $f_* | X, y, X_*\sim N(\bar{f}_*, \text{cov}(f_*))$
 \begin{center}
 \begin{figure}
@@ -520,10 +522,6 @@ with respect to $\theta$.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Cross Validation}
-...
-\end{frame}
-
 
 \section{The Space of Kernels}
 
@@ -553,7 +551,7 @@ There is a rich theory of spectral theory for kernels by considering the integra
 \begin{center}
 \begin{figure}
 \includegraphics[scale=0.4]{images/gaussian_process_time_series_files/gaussian_process_time_series_13_0.png} 
-\caption{ ...  }
+\caption{Periodic signal with Gaussian noise.}
 \end{figure}
 \end{center}
 \end{frame}
@@ -570,6 +568,7 @@ k1 = ConstantKernel(constant_value=2) * \
         length_scale=1.0, periodicity=40, 
         periodicity_bounds=(35, 45)
     )
+
 kernel_1  = k0 + k1 
 
 gp1 = GaussianProcessRegressor(
@@ -579,6 +578,7 @@ gp1 = GaussianProcessRegressor(
     alpha=0.0
 )
 \end{lstlisting}
+{\em The hyperparameters of the kernel are optimized during fitting of \texttt{GaussianProcessRegressor} by maximizing the log-marginal-likelihood.}
 \end{frame}
 
 
@@ -595,7 +595,7 @@ gp1 = GaussianProcessRegressor(
 \begin{center}
 \begin{figure}
 \includegraphics[scale=0.4]{images/gaussian_process_time_series_files/gaussian_process_time_series_37_0.png} 
-\caption{ ...  }
+\caption{Add linear trend to periodic signal with Gaussian noise.}
 \end{figure}
 \end{center}
 \end{frame}
@@ -631,7 +631,7 @@ kernel_2  = k0 + k1 + k2
 \begin{center}
 \begin{figure}
 \includegraphics[scale=0.4]{images/gaussian_process_time_series_files/gaussian_process_time_series_56_0.png} 
-\caption{ ...  }
+\caption{Add second periodic component.}
 \end{figure}
 \end{center}
 \end{frame}
@@ -674,7 +674,7 @@ kernel_2  = k0 + k1 + k2 + k3
 \begin{center}
 \begin{figure}
 \includegraphics[scale=0.4]{images/gaussian_process_time_series_files/gaussian_process_time_series_76_0.png} 
-\caption{ ...  }
+\caption{Add non-linear trend component of the form $t\longmapsto \lambda\sqrt{t}$.}
 \end{figure}
 \end{center}
 \end{frame}
