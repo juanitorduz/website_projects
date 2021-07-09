@@ -1,5 +1,8 @@
 [![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/juanitorduz/website_projects)
 
+[![GitHub stars](https://img.shields.io/github/stars/juanitorduz/btsa.svg)](https://github.com/juanitorduz/website_projects/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/juanitorduz/btsa.svg?color=blue)](https://github.com/juanitorduz/website_projects/network)
+
 # Website Projects
 
 This repository contains the code of the projects presented in my personal website [https://juanitorduz.github.io](https://juanitorduz.github.io).
