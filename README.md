@@ -1,5 +1,6 @@
 [![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/juanitorduz/website_projects)
 
+[![Updated Badge](https://badges.pufler.dev/updated/juanitorduz/website_projects)](https://github.com/juanitorduz/website_projects)
 [![GitHub stars](https://img.shields.io/github/stars/juanitorduz/website_projects.svg)](https://github.com/juanitorduz/website_projects/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/juanitorduz/website_projects.svg?color=blue)](https://github.com/juanitorduz/website_projects/network)
 
