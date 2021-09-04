@@ -1,0 +1,235 @@
+\documentclass[10pt]{beamer}
+
+\mode<beamer>
+{
+  \usetheme{default}
+  \usecolortheme[rgb={0,0,0.8}]{structure}
+  %\setbeamercolor{normal text}{bg=blue!50}
+  %\setbeamercolor{normal text}{fg=blue!50}
+  % or ...
+
+  %\setbeamercovered{transparent}
+  % or whatever (possibly just delete it)
+}
+
+
+\usepackage[english]{babel}
+% or whatever
+
+%\usepackage[latin1]{inputenc}
+% or whatever
+
+\usepackage{times}
+\usepackage[T1]{fontenc}
+% Or whatever. Note that the encoding and the font should match. If T1
+% does not look nice, try deleting the line with the fontenc.
+
+%\usepackage{newcent}
+%\usefonttheme{structuresmallcapsserif}
+
+\usepackage{amssymb,latexsym,amsmath}
+\usepackage{amsthm}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+\usepackage{mathtools}
+\input xy 
+\xyoption{all}
+\usepackage[latin1]{inputenc}
+\usepackage{color}
+\usepackage{tikz}
+\usepackage{fontawesome}
+
+
+\title[Exploring Tools for Interpretable Machine Learning] % (optional, use only with long paper titles)
+{Exploring Tools for Interpretable Machine Learning}
+
+%\subtitle
+
+\author[Dr. Juan Orduz] % (optional, use only with lots of authors)
+{Dr. Juan Orduz}
+% - Give the names in the same order as the appear in the paper.
+% - Use the \inst{?} command only if the authors have different
+%   affiliation.
+
+\institute[PyData Global 2021] % (optional, but mostly needed)
+{
+
+}
+% - Use the \inst command only if there are several affiliations.
+% - Keep it simple, no one is interested in your street address.
+
+\date[PyData Global 2021] % (optional, should be abbreviation of conference name)
+{PyData Global 2021}
+% - Either use conference name or its abbreviation.
+% - Not really informative to the audience, more for people (including
+%   yourself) who are reading the slides online
+
+\subject{data science}
+% This is only inserted into the PDF information catalog. Can be left
+% out.
+
+
+
+% If you have a file called "university-logo-filename.xxx", where xxx
+% is a graphic format that can be processed by latex or pdflatex,
+% resp., then you can add a logo as follows:
+
+% \pgfdeclareimage[height=0.7cm]{university-logo}{images/logo.png}
+% \logo{\pgfuseimage{university-logo}}
+
+% If you wish to uncover everything in a step-wise fashion, uncomment
+% the following command:
+
+%\beamerdefaultoverlayspecification{<+->}
+
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+\tableofcontents
+\end{frame}
+
+\section{Introduction}
+
+\begin{frame}
+  \cite{interpretable_ml_orduz_2021}
+\end{frame}
+
+\section{Data Set}
+
+\begin{frame}{Target Variable -  cnt: Daily Bike Rents}
+\begin{center}
+  \begin{figure}
+    \includegraphics[scale=0.35]{images/head.png} 
+    \includegraphics[scale=0.4]{images/interpretable_ml_10_0.png}
+  \end{figure}
+\end{center}
+\end{frame}
+
+\begin{frame}{Continuous Regressors}
+\begin{center}
+  \begin{figure}
+    \includegraphics[scale=0.25]{images/interpretable_ml_13_0.png} 
+  \end{figure}
+\end{center}
+\end{frame}
+
+\begin{frame}{Categorical Regressors}
+\begin{center}
+  \begin{figure}
+    \includegraphics[scale=0.3]{images/interpretable_ml_21_0.png} 
+  \end{figure}
+\end{center}
+\end{frame}
+
+\begin{frame}{Train-Test Split}
+\begin{center}
+  \begin{figure}
+    \includegraphics[scale=0.5]{images/interpretable_ml_25_0.png} 
+  \end{figure}
+\end{center}
+\end{frame}
+
+\section{Models Fit}
+
+\begin{frame}{Models}
+\end{frame}
+
+\begin{frame}{Out of sample performance - Erros Distribution}
+\begin{center}
+  \begin{figure}
+    \includegraphics[scale=0.35]{images/interpretable_ml_44_0.png} 
+  \end{figure}
+\end{center}
+\end{frame}
+
+\begin{frame}{Out of sample performance - Predictions}
+\begin{center}
+  \begin{figure}
+    \includegraphics[scale=0.45]{images/interpretable_ml_47_0.png} 
+  \end{figure}
+\end{center}
+\end{frame}
+
+\section{Model Explainability}
+
+\subsection{Model Specific} 
+
+\subsubsection{Beta Coefficients and Weight Effects}
+
+\subsubsection{Tree ensembles}
+
+\subsection{Model Agnostic}
+
+\subsubsection{PDP and ICE Plots}
+
+\subsubsection{Permutation Importance}
+
+\subsubsection{SHAP}
+
+\section{References}
+
+\begin{frame}[t, allowframebreaks]
+\frametitle{References}
+\footnotesize{
+\setbeamertemplate{bibliography item}[text]
+\bibliographystyle{plain}
+\bibliography{references} 
+}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+\huge{Thank You!}%\footnote{Especially to all the organizers and speakers!}
+\end{center}
+
+\begin{block}{Contact}
+\begin{itemize}
+\item \faRocket $\:$ \href{https://juanitorduz.github.io}{https://juanitorduz.github.io}
+\item \faGithub $\:$ \href{https://github.com/juanitorduz}{github.com/juanitorduz}
+\item \faTwitter $\:$ \href{https://twitter.com/juanitorduz}{juanitorduz}
+\item \faEnvelope $\:$ \href{mailto:juanitorduz@gmail.com}{juanitorduz@gmail.com}
+\end{itemize}
+\end{block}
+
+\begin{center}
+\includegraphics[scale=0.08]{images/qr-code-juanitorduz.png} 
+\end{center}
+
+\end{frame}
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
