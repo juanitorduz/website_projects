@@ -29,9 +29,6 @@
 
 \usepackage{amssymb,latexsym,amsmath}
 \usepackage{amsthm}
-\DeclareMathOperator*{\argmin}{arg\,min}
-\DeclareMathOperator*{\argmax}{arg\,max}
-
 \usepackage{mathtools}
 \input xy 
 \xyoption{all}
@@ -53,9 +50,7 @@
 %   affiliation.
 
 \institute[PyData Global 2021] % (optional, but mostly needed)
-{
-
-}
+{}
 % - Use the \inst command only if there are several affiliations.
 % - Keep it simple, no one is interested in your street address.
 
@@ -75,8 +70,8 @@
 % is a graphic format that can be processed by latex or pdflatex,
 % resp., then you can add a logo as follows:
 
-% \pgfdeclareimage[height=0.7cm]{university-logo}{images/logo.png}
-% \logo{\pgfuseimage{university-logo}}
+\pgfdeclareimage[height=0.8cm]{university-logo}{images/pydata_global_logo.png}
+\logo{\pgfuseimage{university-logo}}
 
 % If you wish to uncover everything in a step-wise fashion, uncomment
 % the following command:
@@ -161,6 +156,61 @@
 \subsection{Model Specific} 
 
 \subsubsection{Beta Coefficients and Weight Effects}
+
+\begin{frame}{$\beta$ coeffiecients}
+\begin{align*}
+y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \text{where} \quad \varepsilon \sim N(0, \sigma^2)
+\end{align*}
+\begin{center}
+  \begin{figure}
+    \includegraphics[scale=0.3]{images/lm_beta_table.png} 
+  \end{figure}
+\end{center}
+\end{frame}
+
+\begin{frame}{Weight Effects $\beta_{i}x_{i}$}
+\begin{center}
+  \begin{figure}
+    \includegraphics[scale=0.3]{images/interpretable_ml_61_0.png}
+  \end{figure}
+\end{center}
+\end{frame}
+
+\begin{frame}{Weight Effects Importance $w_{i} = \frac{1}{n}\sum_{i=1}^{n}|\beta_{i}x_{i}|$}
+\begin{center}
+  \begin{figure}
+    \includegraphics[scale=0.45]{images/interpretable_ml_62_0.png}
+  \end{figure}
+\end{center}
+\end{frame}
+
+\begin{frame}{Weight Effects: Temperature (z-transform)}
+\begin{center}
+  \begin{figure}
+    \includegraphics[scale=0.48]{images/interpretable_ml_65_0.png}
+    \caption{This plot just shows the effect of the linear term {\em temp} and not the interactions.}
+  \end{figure}
+\end{center}
+\end{frame}
+
+\begin{frame}{Weight Effects: Interatctions}
+\begin{center}
+  \begin{figure}
+    \includegraphics[scale=0.48]{images/interpretable_ml_68_0.png}
+    \caption{
+      We can visualize the interaction between {\em temp} and {\em hum} by computing the total weight effect as $\beta_{temp}x_{temp} + \beta_{hum}x_{hum} + \beta_{temp \times hum}x_{temp}x_{hum}$.
+    }
+  \end{figure}
+\end{center}
+\end{frame}
+
+\begin{frame}{Explaining Individual Predictions}
+\begin{center}
+  \begin{figure}
+    \includegraphics[scale=0.3]{images/interpretable_ml_72_0.png}
+  \end{figure}
+\end{center}
+\end{frame}
 
 \subsubsection{Tree ensembles}
 
