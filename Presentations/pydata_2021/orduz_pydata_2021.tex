@@ -91,10 +91,6 @@
 
 \section{Introduction}
 
-\begin{frame}
-  \cite{interpretable_ml_orduz_2021}
-\end{frame}
-
 \section{Data Set}
 
 \begin{frame}{Target Variable -  cnt: Daily Bike Rents}
@@ -214,11 +210,64 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
 
 \subsubsection{Tree ensembles}
 
+\begin{frame}{Feature Importance Metrics: XGBoost}
+\begin{center}
+  \begin{figure}
+    \includegraphics[scale=0.27]{images/interpretable_ml_81_0.png}
+  \end{figure}
+\end{center}
+\end{frame}
+
 \subsection{Model Agnostic}
 
 \subsubsection{PDP and ICE Plots}
 
+\begin{frame}{Partial Dependence Plot (PDP) \& Individual Conditional Expectation (ICE) (\cite[Section 5.1]{molnar2019})}
+\begin{itemize}
+\item Let $x_S$ be the features for which the partial dependence function should be plotted and $x_C$ be other features used in the machine learning model. One can estimate the {\em dependence function as}
+
+$$
+\hat{f}_{x_{S}}(x_{s}) = 
+\frac{1}{n}
+\sum_{i=1}^{n}
+\hat{f}(x_{S}, x_{C}^{i})
+$$
+
+where $\hat{f}$ is the model prediction function, $x_{C}^{i}$ are actual feature values (not in $S$) and $n$ is the number points.
+
+\item Similar to a PDP, an individual conditional expectation (ICE) plot shows one line per instance. That is, for each instance in $\{(x_{S}^{i}, x_{C}^{i})\}_{i=1}^{n}$, we plot $\hat{f}_{S}$ as a function of $x_{S}^{i}$ while leaving $x_{C}^{i}$ fixed.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{PDP \& ICE Examples (1D)}
+\begin{center}
+  \begin{figure}
+    \includegraphics[scale=0.35]{images/interpretable_ml_99_0.png}
+  \end{figure}
+\end{center}
+\end{frame}
+
+\begin{frame}{PDP \& ICE Examples (2D)}
+\begin{center}
+  \begin{figure}
+    \includegraphics[scale=0.35]{images/interpretable_ml_87_0.png}
+    \includegraphics[scale=0.3]{images/interaction_coef.png}
+  \end{figure}
+\end{center}
+\end{frame}
+
+
 \subsubsection{Permutation Importance}
+
+\begin{frame}{Permutation Importance}
+Measures the increase in the prediction error of the model after we permuted the feature's values, which breaks the relationship between the feature and the true outcome (\cite[Section 5.5]{molnar2019}).
+\begin{center}
+  \begin{figure}
+    \includegraphics[scale=0.35]{images/interpretable_ml_104_0.png}
+    \caption{The permutation importance for these two models have {\em days\_since\_2011} and {\em temp} on their top 3 ranking, which partially explain the trend and seasonality components respectively (see \cite[Figure 5.30]{molnar2019}).}
+  \end{figure}
+\end{center}
+\end{frame}
 
 \subsubsection{SHAP}
 
@@ -235,7 +284,7 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
 
 \begin{frame}
 \begin{center}
-\huge{Thank You!}%\footnote{Especially to all the organizers and speakers!}
+\huge{Thank You!}
 \end{center}
 
 \begin{block}{Contact}
