@@ -18,7 +18,7 @@
 
 %\usepackage[latin1]{inputenc}
 % or whatever
-
+\usepackage{hyperref}
 \usepackage{times}
 \usepackage[T1]{fontenc}
 % Or whatever. Note that the encoding and the font should match. If T1
@@ -90,6 +90,35 @@
 \end{frame}
 
 \section{Introduction}
+
+\begin{frame}{Introduction}{Aim and Scope of the Talk}
+{\bf What?} In this talk we want to test various ways of getting a better understanding on how machine learning (ML) models generate predictions and how features interact with each other. This is in general not straight forward and key components are
+\begin{itemize}
+\item Domain knowledge on the problem. 
+\item Understanding on the input data.
+\item Understanding the logic behind the ML algorithms.
+\end{itemize}
+{\bf How?} We are going to wor out a concrete example.
+\pause
+\begin{block}{References}
+This talk is based on \href{https://juanitorduz.github.io/interpretable_ml/}{this} block post (\cite{interpretable_ml_orduz_2021}), which itself is based on these two amazing references:
+\begin{itemize}
+\item \href{https://christophm.github.io/interpretable-ml-book/}{Interpretable Machine Learning, A Guide for Making Black Box Models Explainable by Christoph Molnar}
+\item \href{https://github.com/PacktPublishing/Interpretable-Machine-Learning-with-Python}{Interpretable Machine Learning with Python by Serg Mas\'is}
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{Interpretable ML $\neq$ Causality}
+Note that the methods discussed in this notebook are not related with causality.
+\begin{block}{References}
+\begin{itemize}
+\item \href{https://towardsdatascience.com/be-careful-when-interpreting-predictive-models-in-search-of-causal-insights-e68626e664b6}{Be Careful When Interpreting Predictive Models in Search of Causal Insights by Scott Lundberg}(one of the core developers of \href{https://shap.readthedocs.io/en/latest/index.html}{SHAP})
+\item \href{https://xcelab.net/rm/statistical-rethinking/}{Statistical Rethinking, A Bayesian Course with Examples in R and Stan by Richard McElreath}
+\item \href{https://mixtape.scunning.com/index.html}{Causal Inference: The Mixtape by Scott Cunningham}
+\end{itemize}
+\end{block}
+\end{frame}
 
 \section{Data Set}
 
@@ -260,7 +289,7 @@ where $\hat{f}$ is the model prediction function, $x_{C}^{i}$ are actual feature
 \subsubsection{Permutation Importance}
 
 \begin{frame}{Permutation Importance}
-Measures the increase in the prediction error of the model after we permuted the feature's values, which breaks the relationship between the feature and the true outcome (\cite[Section 5.5]{molnar2019}).
+Measures the increase in the prediction error of the model after we permuted the feature's values, which breaks the relationship between the feature and the true outcome (\cite[Section 5.6]{molnar2019}).
 \begin{center}
   \begin{figure}
     \includegraphics[scale=0.35]{images/interpretable_ml_104_0.png}
@@ -271,34 +300,20 @@ Measures the increase in the prediction error of the model after we permuted the
 
 \subsubsection{SHAP}
 
-\begin{frame}{SHAP Values: Linear Model}
+\begin{frame}{SHAP Values}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.35]{images/interpretable_ml_114_0.png}
+    \includegraphics[scale=0.22]{images/interpretable_ml_114_0.png}
+    \includegraphics[scale=0.22]{images/interpretable_ml_127_0.png}
   \end{figure}
 \end{center}
 \end{frame}
 
-\begin{frame}{Mean Abs SHAP Values: Linear Model}
+\begin{frame}{Mean Abs SHAP Values}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.3]{images/interpretable_ml_116_0.png}
-  \end{figure}
-\end{center}
-\end{frame}
-
-\begin{frame}{SHAP Values: XGBoost}
-\begin{center}
-  \begin{figure}
-    \includegraphics[scale=0.35]{images/interpretable_ml_127_0.png}
-  \end{figure}
-\end{center}
-\end{frame}
-
-\begin{frame}{Mean Abs SHAP Values: XGBoost}
-\begin{center}
-  \begin{figure}
-    \includegraphics[scale=0.3]{images/interpretable_ml_128_0.png}
+    \includegraphics[scale=0.21]{images/interpretable_ml_116_0.png}
+    \includegraphics[scale=0.21]{images/interpretable_ml_128_0.png}
   \end{figure}
 \end{center}
 \end{frame}
