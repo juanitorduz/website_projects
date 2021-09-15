@@ -101,7 +101,7 @@
 {\bf How?} We are going to wor out a concrete example.
 \pause
 \begin{block}{References}
-This talk is based on \href{https://juanitorduz.github.io/interpretable_ml/}{this} block post (\cite{interpretable_ml_orduz_2021}), which itself is based on these two amazing references:
+This talk is based on \href{https://juanitorduz.github.io/interpretable_ml/}{this} blog post (\cite{interpretable_ml_orduz_2021}), which itself is based on these two amazing references:
 \begin{itemize}
 \item \href{https://christophm.github.io/interpretable-ml-book/}{Interpretable Machine Learning, A Guide for Making Black Box Models Explainable by Christoph Molnar}
 \item \href{https://github.com/PacktPublishing/Interpretable-Machine-Learning-with-Python}{Interpretable Machine Learning with Python by Serg Mas\'is}
@@ -120,7 +120,7 @@ Note that the methods discussed in this notebook are not related with causality.
 \end{block}
 \end{frame}
 
-\section{Data Set}
+\section{Data Set (\cite{molnar2019})}
 
 \begin{frame}{Target Variable -  cnt: Daily Bike Rents}
 \begin{center}
@@ -155,9 +155,21 @@ Note that the methods discussed in this notebook are not related with causality.
 \end{center}
 \end{frame}
 
-\section{Models Fit}
+\section{Models Fit (\cite{interpretable_ml_orduz_2021})}
 
-\begin{frame}{Models}
+\begin{frame}{Models}{Two model flavours}
+\begin{center}
+  \begin{figure}
+    \includegraphics[scale=0.3]{images/linear_grid_search.png}
+    \caption{Lasso model with second order polynomial interactions.}
+  \end{figure}
+\end{center}
+\begin{center}
+  \begin{figure}
+    \includegraphics[scale=0.3]{images/tree_grid_search.png}
+    \caption{XGBoost regression model.}
+  \end{figure}
+\end{center}
 \end{frame}
 
 \begin{frame}{Out of sample performance - Erros Distribution}
@@ -176,7 +188,7 @@ Note that the methods discussed in this notebook are not related with causality.
 \end{center}
 \end{frame}
 
-\section{Model Explainability}
+\section{Model Explainability (\cite{molnar2019}, \cite{masis2021})}
 
 \subsection{Model Specific} 
 
