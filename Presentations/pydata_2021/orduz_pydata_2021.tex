@@ -312,6 +312,18 @@ Measures the increase in the prediction error of the model after we permuted the
 
 \subsubsection{SHAP}
 
+\begin{frame}{SAHP Values}{Definition}
+For each data instance $x$
+\begin{itemize}
+\item Sample coalitions $z_{k}'\in\{0, 1\}^{M}$, where $M$, is the maximum coalition size.
+\item Get prediction for each $z_{k}'$. For features not in the coalition we replace their values with random samples from the dataset (background data).
+\item Compute the weight for each $z_{k}'$, with the SHAP kernel, 
+$$\pi_{x}(z') = \frac{(M-1)}{\binom{M}{|z'|}|z'|(M-|z'|)}$$
+\item Fit weighted linear model.
+\item Return Shapley values, i.e. the coefficients from the linear model.
+\end{itemize}
+\end{frame}
+
 \begin{frame}{SHAP Values}
 \begin{center}
   \begin{figure}
@@ -383,32 +395,3 @@ Measures the increase in the prediction error of the model after we permuted the
 \end{frame}
 
 \end{document}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
