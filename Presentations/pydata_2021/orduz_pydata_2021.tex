@@ -12,6 +12,7 @@
   % or whatever (possibly just delete it)
 }
 
+\setbeamertemplate{caption}[numbered]
 
 \usepackage[english]{babel}
 % or whatever
@@ -161,18 +162,18 @@ Note that the methods discussed in this notebook are not related with causality.
 \begin{center}
   \begin{figure}
     \includegraphics[scale=0.3]{images/linear_grid_search.png}
-    \caption{Lasso model with second order polynomial interactions.}
+    \caption{Lasso model with second order polynomial interactions (\cite{scikit-learn}).}
   \end{figure}
 \end{center}
 \begin{center}
   \begin{figure}
     \includegraphics[scale=0.3]{images/tree_grid_search.png}
-    \caption{XGBoost regression model.}
+    \caption{XGBoost regression model (\cite{Chen:2016:XST:2939672.2939785}).}
   \end{figure}
 \end{center}
 \end{frame}
 
-\begin{frame}{Out of sample performance - Erros Distribution}
+\begin{frame}{Out of sample performance - Errors Distribution}
 \begin{center}
   \begin{figure}
     \includegraphics[scale=0.35]{images/interpretable_ml_44_0.png} 
@@ -245,6 +246,7 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
 \begin{center}
   \begin{figure}
     \includegraphics[scale=0.3]{images/interpretable_ml_72_0.png}
+    \caption{Weight effects of the linear model for observation 284. Left: All weight effects. Right: Weight effects of the linear terms.}\label{fig:linear-284-obs}
   \end{figure}
 \end{center}
 \end{frame}
@@ -284,6 +286,7 @@ where $\hat{f}$ is the model prediction function, $x_{C}^{i}$ are actual feature
 \begin{center}
   \begin{figure}
     \includegraphics[scale=0.35]{images/interpretable_ml_99_0.png}
+    \caption{PDP \& ICE plots for some numerical variables for the linear and XGBoost models.}\label{fig:pdp-ice}
   \end{figure}
 \end{center}
 \end{frame}
@@ -329,6 +332,7 @@ $$\pi_{x}(z') = \frac{(M-1)}{\binom{M}{|z'|}|z'|(M-|z'|)}$$
   \begin{figure}
     \includegraphics[scale=0.22]{images/interpretable_ml_114_0.png}
     \includegraphics[scale=0.22]{images/interpretable_ml_127_0.png}
+    \caption{SHAP values per data instance. The $x$ position of the dot is determined by the SHAP value of that feature, and dots "pile up" along each feature row to show density. Color is used to display the original value of a feature (\cite{NIPS2017_7062}).}
   \end{figure}
 \end{center}
 \end{frame}
@@ -347,7 +351,7 @@ $$\pi_{x}(z') = \frac{(M-1)}{\binom{M}{|z'|}|z'|(M-|z'|)}$$
   \begin{figure}
     \includegraphics[scale=0.33]{images/interpretable_ml_119_0.png}
     \includegraphics[scale=0.33]{images/interpretable_ml_131_0.png}
-    \caption{ ... }
+    \caption{This figure shows the SHAP values a a function of temperature. Compare with Figure \ref{fig:pdp-ice}}
   \end{figure}
 \end{center}
 \end{frame}
@@ -357,7 +361,7 @@ $$\pi_{x}(z') = \frac{(M-1)}{\binom{M}{|z'|}|z'|(M-|z'|)}$$
   \begin{figure}
     \includegraphics[scale=0.19]{images/interpretable_ml_122_0.png}
     \includegraphics[scale=0.19]{images/interpretable_ml_134_0.png}
-    \caption{ ... }
+    \caption{This {\em waterfall plot} shows how the SHAP values of each feature move the model output from our prior expectation under the background data distribution, to the final model prediction given the evidence of all the features (\cite{NIPS2017_7062}). Compare with Figure \ref{fig:linear-284-obs}.}
   \end{figure}
 \end{center}
 \end{frame}
