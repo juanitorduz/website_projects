@@ -197,7 +197,7 @@ Note that the methods discussed in this notebook are not related with causality.
 
 \subsubsection{Beta Coefficients and Weight Effects}
 
-\begin{frame}{$\beta$ coeffiecients}
+\begin{frame}{$\beta$ coeffiecients}{See \cite[Section 5.1]{molnar2019}}
 \begin{align*}
 y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \text{where} \quad \varepsilon \sim N(0, \sigma^2)
 \end{align*}
@@ -267,7 +267,7 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
 
 \subsubsection{PDP and ICE Plots}
 
-\begin{frame}{Partial Dependence Plot (PDP) \& Individual Conditional Expectation (ICE) (\cite[Section 5.1]{molnar2019})}
+\begin{frame}{Partial Dependence Plot (PDP) \& Individual Conditional Expectation (ICE) (\cite[Section 8.1 \& 9.1]{molnar2019})}
 \begin{itemize}
 \item Let $x_S$ be the features for which the partial dependence function should be plotted and $x_C$ be other features used in the machine learning model. One can estimate the {\em dependence function as}
 
@@ -305,19 +305,19 @@ where $\hat{f}$ is the model prediction function, $x_{C}^{i}$ are actual feature
 
 \subsubsection{Permutation Importance}
 
-\begin{frame}{Permutation Importance}
-Measures the increase in the prediction error of the model after we permuted the feature's values, which breaks the relationship between the feature and the true outcome (\cite[Section 5.6]{molnar2019}).
+\begin{frame}{Permutation Importance}{See \cite[Section 5.1]{molnar2019}}
+Measures the increase in the prediction error of the model after we permuted the feature's values, which breaks the relationship between the feature and the true outcome (\cite[Section 8.5]{molnar2019}).
 \begin{center}
   \begin{figure}
     \includegraphics[scale=0.35]{images/interpretable_ml_104_0.png}
-    \caption{The permutation importance for these two models have {\em days\_since\_2011} and {\em temp} on their top 3 ranking, which partially explain the trend and seasonality components respectively (see \cite[Figure 5.32]{molnar2019}).}
+    \caption{The permutation importance for these two models have {\em days\_since\_2011} and {\em temp} on their top 3 ranking, which partially explain the trend and seasonality components respectively (see \cite[Figure 8.27]{molnar2019}).}
   \end{figure}
 \end{center}
 \end{frame}
 
 \subsubsection{SHAP}
 
-\begin{frame}{SAHP Values}{Definition}
+\begin{frame}{SAHP Values}{Definition, see \cite{NIPS2017_7062}, and \cite[Chapters 5 \& 6]{masis2021} and \cite[Section 9.6]{molnar2019}}
 For each data instance $x$
 \begin{itemize}
 \item Sample coalitions $z_{k}'\in\{0, 1\}^{M}$, where $M$, is the maximum coalition size.
