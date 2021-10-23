@@ -93,34 +93,24 @@
 \section{Introduction}
 
 \begin{frame}{Introduction}{Aim and Scope of the Talk}
-{\bf What?} In this talk we want to test various ways of getting a better understanding on how machine learning (ML) models generate predictions and how features interact with each other. This is in general not straight forward and key components are
+{\bf What?} In this talk we want to test various ways of getting a better understanding on how machine learning (ML) models generate predictions and how features interact with each other. \\
+
+Key components are:
 \begin{itemize}
 \item Domain knowledge on the problem. 
 \item Understanding on the input data.
 \item Understanding the logic behind the ML algorithms.
 \end{itemize}
-{\bf How?} We are going to wor out a concrete example.
 \pause
+{\bf How?} We are going to work out a concrete example.
 \begin{block}{References}
-This talk is based on \href{https://juanitorduz.github.io/interpretable_ml/}{this} blog post (\cite{interpretable_ml_orduz_2021}), which itself is based on these two amazing references:
+This talk is based on \href{https://juanitorduz.github.io/interpretable_ml/}{my blog post} (\cite{interpretable_ml_orduz_2021}), which itself is based on these two amazing references:
 \begin{itemize}
 \item \href{https://christophm.github.io/interpretable-ml-book/}{Interpretable Machine Learning, A Guide for Making Black Box Models Explainable by Christoph Molnar} (\cite{molnar2019})
 \item \href{https://github.com/PacktPublishing/Interpretable-Machine-Learning-with-Python}{Interpretable Machine Learning with Python by Serg Mas\'is} (\cite{masis2021})
 \end{itemize}
 \end{block}
-\end{frame}
-
-\begin{frame}{Interpretable ML $\neq$ Causality}{See \cite{molnar2020interpretable} for a Brief History of Interpretable ML and comments on Causality}
-Note that the methods discussed in this notebook are not related with causality.
-\begin{block}{References}
-\begin{itemize}
-\item \href{https://towardsdatascience.com/be-careful-when-interpreting-predictive-models-in-search-of-causal-insights-e68626e664b6}{Be Careful When Interpreting Predictive Models in Search of Causal Insights by Scott Lundberg}(one of the core developers of \href{https://shap.readthedocs.io/en/latest/index.html}{SHAP})
-\item \href{https://xcelab.net/rm/statistical-rethinking/}{Statistical Rethinking, A Bayesian Course with Examples in R and Stan by Richard McElreath} (\cite{statrethinkingbook})
-\item \href{https://mixtape.scunning.com/index.html}{Causal Inference: The Mixtape by Scott Cunningham} (\cite{10.2307/j.ctv1c29t27})
-\end{itemize}
-\pause
-\end{block}
-{\bf Remark:} The article \href{https://arxiv.org/abs/2007.04131}{General Pitfalls of Model-Agnostic Interpretation Methods for Machine Learning Models} (\cite{molnar2021general}) is highly recommended to understand the challenges, limitations and recommendations for some of the model-agnostic methods discussed in this talk.
+{\bf Remark}: Interpretable ML $\neq$ Causality (see \cite{10.2307/j.ctv1c29t27}, \cite{tdd_sl}, \cite{statrethinkingbook} and \cite{molnar2020interpretable})
 \end{frame}
 
 \section{Data Set (\cite{molnar2019})}
@@ -164,13 +154,13 @@ Note that the methods discussed in this notebook are not related with causality.
 \begin{center}
   \begin{figure}
     \includegraphics[scale=0.3]{images/linear_grid_search.png}
-    \caption{Lasso model with second order polynomial interactions (\cite{scikit-learn}).}
+    \caption{{\bf Linear model} Lasso + second order polynomial interactions (\cite{scikit-learn}).}
   \end{figure}
 \end{center}
 \begin{center}
   \begin{figure}
     \includegraphics[scale=0.3]{images/tree_grid_search.png}
-    \caption{XGBoost regression model (\cite{Chen:2016:XST:2939672.2939785}).}
+    \caption{{\bf Tree based model} XGBoost regression model (\cite{xgboost}).}
   \end{figure}
 \end{center}
 \end{frame}
@@ -197,7 +187,7 @@ Note that the methods discussed in this notebook are not related with causality.
 
 \subsubsection{Beta Coefficients and Weight Effects}
 
-\begin{frame}{$\beta$ coeffiecients}{See \cite[Section 5.1]{molnar2019}}
+\begin{frame}{$\beta$ coefficients}{See \cite[Section 5.1]{molnar2019}}
 \begin{align*}
 y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \text{where} \quad \varepsilon \sim N(0, \sigma^2)
 \end{align*}
@@ -212,6 +202,7 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
 \begin{center}
   \begin{figure}
     \includegraphics[scale=0.3]{images/interpretable_ml_61_0.png}
+    \caption{For each data instance $i$ and each feature $x_{k}$ we compute the product $\beta_{k}x^{(i)}_{k}$ to get the weight effect.}
   \end{figure}
 \end{center}
 \end{frame}
@@ -233,7 +224,7 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
 \end{center}
 \end{frame}
 
-\begin{frame}{Weight Effects: Interatctions}
+\begin{frame}{Weight Effects: Interactions}
 \begin{center}
   \begin{figure}
     \includegraphics[scale=0.48]{images/interpretable_ml_68_0.png}
@@ -255,12 +246,24 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
 
 \subsubsection{Tree ensembles}
 
-\begin{frame}{Feature Importance Metrics: XGBoost}
+\begin{frame}{Feature Importance Metrics: XGBoost (\cite{xgboost})}
+
+\begin{columns}
+\begin{column}{0.4\textwidth}
+  \begin{itemize}
+  \item {\bf Gain:} improvement in accuracy brought by a feature to the branches it is on.
+  \item {\bf Cover:} measures the relative quantity of observations concerned by a feature.
+  \item {\bf Frequency / Weight:} just counts the number of times a feature is used in all generated trees.
+  \end{itemize}
+\end{column}
+\begin{column}{0.6\textwidth}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.27]{images/interpretable_ml_81_0.png}
+    \includegraphics[scale=0.25]{images/interpretable_ml_81_0.png}
   \end{figure}
 \end{center}
+\end{column}
+\end{columns}
 \end{frame}
 
 \subsection{Model Agnostic}
@@ -279,6 +282,8 @@ $$
 $$
 
 where $\hat{f}$ is the model prediction function, $x_{C}^{i}$ are actual feature values (not in $S$) and $n$ is the number points.
+
+\pause
 
 \item Similar to a PDP, an individual conditional expectation (ICE) plot shows one line per instance. That is, for each instance in $\{(x_{S}^{i}, x_{C}^{i})\}_{i=1}^{n}$, we plot $\hat{f}_{S}$ as a function of $x_{S}^{i}$ while leaving $x_{C}^{i}$ fixed.
 \end{itemize}
@@ -317,14 +322,18 @@ Measures the increase in the prediction error of the model after we permuted the
 
 \subsubsection{SHAP}
 
-\begin{frame}{SAHP Values}{Definition, see \cite{NIPS2017_7062}, and \cite[Chapters 5 \& 6]{masis2021} and \cite[Section 9.6]{molnar2019}}
+\begin{frame}{SHAP Values: Features as teams playing a game}{Definition, see \cite{NIPS2017_7062}, and \cite[Chapters 5 \& 6]{masis2021} and \cite[Section 9.6]{molnar2019}}
 For each data instance $x$
 \begin{itemize}
 \item Sample coalitions $z_{k}'\in\{0, 1\}^{M}$, where $M$, is the maximum coalition size.
+\pause
 \item Get prediction for each $z_{k}'$. For features not in the coalition we replace their values with random samples from the dataset (background data).
+\pause
 \item Compute the weight for each $z_{k}'$, with the SHAP kernel, 
 $$\pi_{x}(z') = \frac{(M-1)}{\binom{M}{|z'|}|z'|(M-|z'|)}$$
+\pause
 \item Fit weighted linear model.
+\pause
 \item Return Shapley values, i.e. the coefficients from the linear model.
 \end{itemize}
 \end{frame}
@@ -353,7 +362,7 @@ $$\pi_{x}(z') = \frac{(M-1)}{\binom{M}{|z'|}|z'|(M-|z'|)}$$
   \begin{figure}
     \includegraphics[scale=0.33]{images/interpretable_ml_119_0.png}
     \includegraphics[scale=0.33]{images/interpretable_ml_131_0.png}
-    \caption{This figure shows the SHAP values a a function of temperature. Compare with Figure \ref{fig:pdp-ice}}
+    \caption{This figure shows the SHAP values as a function of temperature. Compare with Figure \ref{fig:pdp-ice}}
   \end{figure}
 \end{center}
 \end{frame}
