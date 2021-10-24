@@ -35,6 +35,7 @@
 \xyoption{all}
 \usepackage[latin1]{inputenc}
 \usepackage{color}
+\usepackage{xcolor}
 \usepackage{tikz}
 \usepackage{fontawesome}
 
@@ -229,17 +230,17 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
   \begin{figure}
     \includegraphics[scale=0.48]{images/interpretable_ml_68_0.png}
     \caption{
-      We can visualize the interaction between {\em temp} and {\em hum} by computing the total weight effect as $\beta_{temp}x_{temp} + \beta_{hum}x_{hum} + \beta_{temp \times hum}x_{temp}x_{hum}$.
+      We can visualize the interaction between {\em temp} and {\em hum} by computing the total weight effect $\beta_{temp}x_{temp} + \beta_{hum}x_{hum} + \beta_{temp \times hum}x_{temp}x_{hum}$.
     }
   \end{figure}
 \end{center}
 \end{frame}
 
-\begin{frame}{Explaining Individual Predictions}
+\begin{frame}{Explaining Individual Predictions}{Let us see weight effects of the linear model for data observation 284}
 \begin{center}
   \begin{figure}
     \includegraphics[scale=0.3]{images/interpretable_ml_72_0.png}
-    \caption{Weight effects of the linear model for observation 284. Left: All weight effects. Right: Weight effects of the linear terms.}\label{fig:linear-284-obs}
+    \caption{Left: All weight effects. Right: Weight effects of the linear terms.}\label{fig:linear-284-obs}
   \end{figure}
 \end{center}
 \end{frame}
@@ -272,20 +273,17 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
 
 \begin{frame}{Partial Dependence Plot (PDP) \& Individual Conditional Expectation (ICE) (\cite[Section 8.1 \& 9.1]{molnar2019})}
 \begin{itemize}
-\item Let $x_S$ be the features for which the partial dependence function should be plotted and $x_C$ be other features used in the machine learning model. One can estimate the {\em dependence function as}
-
-$$
-\hat{f}_{x_{S}}(x_{s}) = 
-\frac{1}{n}
-\sum_{i=1}^{n}
-\hat{f}(x_{S}, x_{C}^{i})
-$$
-
-where $\hat{f}$ is the model prediction function, $x_{C}^{i}$ are actual feature values (not in $S$) and $n$ is the number points.
-
+\item The partial dependence plot shows the marginal effect one or two features have on the predicted outcome of a machine learning model. 
+\item For example, given a trained model $\hat{f}$, we compute for $\textcolor{red}{temp=8}$
+\begin{align*}
+\hat{f}_{temp}(\textcolor{red}{temp=8}) = 
+\frac{1}{146}
+& \left(\hat{f}(\textcolor{red}{temp=8}, hum=80, \cdots) \right.\\
+& \left. + \hat{f}(\textcolor{red}{temp=8}, hum=70, \cdots)  + \cdots \right)
+\end{align*}
 \pause
-
-\item Similar to a PDP, an individual conditional expectation (ICE) plot shows one line per instance. That is, for each instance in $\{(x_{S}^{i}, x_{C}^{i})\}_{i=1}^{n}$, we plot $\hat{f}_{S}$ as a function of $x_{S}^{i}$ while leaving $x_{C}^{i}$ fixed.
+\item Individual conditional expectation (ICE) plot shows one line per instance. 
+\item A PDP is the average of the lines of an ICE plot
 \end{itemize}
 \end{frame}
 
