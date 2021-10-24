@@ -324,15 +324,22 @@ Measures the increase in the prediction error of the model after we permuted the
 For each data instance $x$
 \begin{itemize}
 \item Sample coalitions $z_{k}'\in\{0, 1\}^{M}$, where $M$, is the maximum coalition size.
+\begin{itemize}
+\item \color{blue} Assume we select $temp$ and $hum$ from $\{temp, hum, windspeed\}$.
+\end{itemize}
 \pause
 \item Get prediction for each $z_{k}'$. For features not in the coalition we replace their values with random samples from the dataset (background data).
+\begin{itemize}
+\item \color{blue} E.g. for a data instance $temp = 15$ and $hum = 60$ we compute the prediction $\hat{f}(temp=15, hum=60, \textcolor{red}{windspeed=11})$.
+\end{itemize}
 \pause
 \item Compute the weight for each $z_{k}'$, with the SHAP kernel, 
-$$\pi_{x}(z') = \frac{(M-1)}{\binom{M}{|z'|}|z'|(M-|z'|)}$$
+$$\pi_{x}(z') = \frac{(M-1)}{\binom{M}{|z'|}|z'|(M-|z'|)} $$
+\begin{itemize}
+\item \color{blue} $M=3, |z`|=2 \Rightarrow \pi = (3 - 1)/(3 \times 2\times(3 - 2)) = 1/3.$
+\end{itemize}
 \pause
-\item Fit weighted linear model.
-\pause
-\item Return Shapley values, i.e. the coefficients from the linear model.
+\item Fit weighted linear model and  return Shapley values, i.e. the coefficients from the linear model.
 \end{itemize}
 \end{frame}
 
