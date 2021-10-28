@@ -94,14 +94,15 @@
 \section{Introduction}
 
 \begin{frame}{Introduction}{Aim and Scope of the Talk}
-{\bf What?} In this talk we want to test various ways of getting a better understanding on how machine learning (ML) models generate predictions and how features interact with each other. \\
+We want to test explore various techniques to get a better understanding on how machine learning (ML) models generate predictions and how features interact with each other.
 
-Key components are:
+\begin{block}{Important!}
 \begin{itemize}
 \item Domain knowledge on the problem. 
 \item Understanding on the input data.
 \item Understanding the logic behind the ML algorithms.
 \end{itemize}
+\end{block}
 \pause
 {\bf How?} We are going to work out a concrete example.
 \begin{block}{References}
@@ -328,7 +329,7 @@ For each data instance $x$ (e.g. \textcolor{blue}{temp=15, hum=60, windspeed=14}
 \item \color{blue} Assume we select $temp$ and $hum$ from $\{temp, hum, windspeed\}$.
 \end{itemize}
 \pause
-\item Get prediction for each $z'$. For features not in the coalition we replace their values with random samples from the dataset (background data).
+\item Get prediction for each $z'$. For features not in the coalition we replace their values with random samples from the dataset.
 \begin{itemize}
 \item \color{blue} E.g. for a data instance $temp = 15$ and $hum = 60$ we compute the prediction $\hat{f}(temp=15, hum=60, \textcolor{red}{windspeed=11})$.
 \end{itemize}
