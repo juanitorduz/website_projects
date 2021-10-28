@@ -321,14 +321,14 @@ Measures the increase in the prediction error of the model after we permuted the
 \subsubsection{SHAP}
 
 \begin{frame}{SHAP Values: Features as teams playing a game}{Definition, see \cite{NIPS2017_7062}, and \cite[Chapters 5 \& 6]{masis2021} and \cite[Section 9.6]{molnar2019}}
-For each data instance $x$
+For each data instance $x$ (e.g. \textcolor{blue}{temp=15, hum=60, windspeed=14})
 \begin{itemize}
-\item Sample coalitions $z_{k}'\in\{0, 1\}^{M}$, where $M$, is the maximum coalition size.
+\item Sample coalitions $z'\in\{0, 1\}^{M}$, where $M$ is the maximum coalition size.
 \begin{itemize}
 \item \color{blue} Assume we select $temp$ and $hum$ from $\{temp, hum, windspeed\}$.
 \end{itemize}
 \pause
-\item Get prediction for each $z_{k}'$. For features not in the coalition we replace their values with random samples from the dataset (background data).
+\item Get prediction for each $z'$. For features not in the coalition we replace their values with random samples from the dataset (background data).
 \begin{itemize}
 \item \color{blue} E.g. for a data instance $temp = 15$ and $hum = 60$ we compute the prediction $\hat{f}(temp=15, hum=60, \textcolor{red}{windspeed=11})$.
 \end{itemize}
