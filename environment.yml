@@ -1,27 +1,30 @@
 name: website_projects
 channels:
+  - defaults
   - conda-forge
 dependencies:
-  - python=3.7
+  - python=3.8
   - pip
-  - fbprophet
-  - geopandas
+  - pystan==2.19.1.1
+  - prophet==1.0.1
   - jupyter
   - jupyterlab
+  - ipywidgets
   - matplotlib
-  - mplleaflet
   - nb_conda_kernels
-  - networkx
-  - nltk
   - numpy
   - pandas
   - plotly
   - pymc3
+  - bambi
   - scikit-learn
   - scipy
   - seaborn
-  - spacy
+  - shap
   - statsmodels
+  - tensorflow
+  - tensorflow-probability
+  - sktime
+  - ipykernel
   - pip:
-    - tensorflow
-    - tensorflow-probability
+    - pycausalimpact
