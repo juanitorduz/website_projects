@@ -120,7 +120,7 @@ This talk is based on \href{https://juanitorduz.github.io/interpretable_ml/}{my 
 \begin{frame}{Target Variable -  cnt: Daily Bike Rents}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.35]{images/head.png} 
+    \includegraphics[scale=0.28]{images/head.png} 
     \includegraphics[scale=0.4]{images/interpretable_ml_10_0.png}
   \end{figure}
 \end{center}
@@ -161,7 +161,7 @@ This talk is based on \href{https://juanitorduz.github.io/interpretable_ml/}{my 
 \end{center}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.3]{images/tree_grid_search.png}
+    \includegraphics[scale=0.4]{images/tree_grid_search.png}
     \caption{{\bf Tree based model} XGBoost regression model (\cite{xgboost}).}
   \end{figure}
 \end{center}
@@ -170,7 +170,7 @@ This talk is based on \href{https://juanitorduz.github.io/interpretable_ml/}{my 
 \begin{frame}{Out of sample performance - Errors Distribution}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.35]{images/interpretable_ml_44_0.png} 
+    \includegraphics[scale=0.35]{images/interpretable_ml_45_0.png} 
   \end{figure}
 \end{center}
 \end{frame}
@@ -178,7 +178,7 @@ This talk is based on \href{https://juanitorduz.github.io/interpretable_ml/}{my 
 \begin{frame}{Out of sample performance - Predictions}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.45]{images/interpretable_ml_47_0.png} 
+    \includegraphics[scale=0.45]{images/interpretable_ml_48_0.png} 
   \end{figure}
 \end{center}
 \end{frame}
@@ -195,7 +195,7 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
 \end{align*}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.3]{images/lm_beta_table.png} 
+    \includegraphics[scale=0.25]{images/lm_beta_table.png} 
   \end{figure}
 \end{center}
 \end{frame}
@@ -203,7 +203,7 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
 \begin{frame}{Weight Effects $\beta_{i}x_{i}$}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.3]{images/interpretable_ml_61_0.png}
+    \includegraphics[scale=0.3]{images/interpretable_ml_63_0.png}
     \caption{For each data instance $i$ and each feature $x_{k}$ we compute the product $\beta_{k}x^{(i)}_{k}$ to get the weight effect.}
   \end{figure}
 \end{center}
@@ -212,7 +212,7 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
 \begin{frame}{Weight Effects Importance $w_{k} = \frac{1}{n}\sum_{i=1}^{n}|\beta_{k}x_{k}^{(i)}|$}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.45]{images/interpretable_ml_62_0.png}
+    \includegraphics[scale=0.45]{images/interpretable_ml_64_0.png}
   \end{figure}
 \end{center}
 \end{frame}
@@ -220,7 +220,7 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
 \begin{frame}{Weight Effects: Temperature (z-transform)}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.48]{images/interpretable_ml_65_0.png}
+    \includegraphics[scale=0.48]{images/interpretable_ml_67_0.png}
     \caption{This plot just shows the effect of the linear term {\em temp} and not the interactions.}
   \end{figure}
 \end{center}
@@ -229,7 +229,7 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
 \begin{frame}{Weight Effects: Interactions}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.48]{images/interpretable_ml_68_0.png}
+    \includegraphics[scale=0.48]{images/interpretable_ml_70_0.png}
     \caption{
       We can visualize the interaction between {\em temp} and {\em hum} by computing the total weight effect $\beta_{temp}x_{temp} + \beta_{hum}x_{hum} + \beta_{temp \times hum}x_{temp}x_{hum}$.
     }
@@ -240,7 +240,7 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
 \begin{frame}{Explaining Individual Predictions}{Let us see weight effects of the linear model for data observation 284}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.3]{images/interpretable_ml_72_0.png}
+    \includegraphics[scale=0.3]{images/interpretable_ml_76_0.png}
     \caption{Left: All weight effects. Right: Weight effects of the linear terms.}\label{fig:linear-284-obs}
   \end{figure}
 \end{center}
@@ -261,7 +261,7 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
 \begin{column}{0.6\textwidth}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.25]{images/interpretable_ml_81_0.png}
+    \includegraphics[scale=0.25]{images/interpretable_ml_84_0.png}
   \end{figure}
 \end{center}
 \end{column}
@@ -291,7 +291,7 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
 \begin{frame}{PDP \& ICE Examples (1D)}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.35]{images/interpretable_ml_99_0.png}
+    \includegraphics[scale=0.35]{images/interpretable_ml_104_0.png}
     \caption{PDP \& ICE plots for some numerical variables for the linear and XGBoost models.}\label{fig:pdp-ice}
   \end{figure}
 \end{center}
@@ -300,8 +300,8 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
 \begin{frame}{PDP \& ICE Examples (2D)}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.35]{images/interpretable_ml_87_0.png}
-    \includegraphics[scale=0.3]{images/interaction_coef.png}
+    \includegraphics[scale=0.35]{images/interpretable_ml_92_0.png}
+    \includegraphics[scale=0.2]{images/interaction_coef.png}
   \end{figure}
 \end{center}
 \end{frame}
@@ -313,7 +313,7 @@ y = \beta_{0} + \beta_{1}x_{1} + \cdots + \beta_{p}x_{p} + \varepsilon, \quad \t
 Measures the increase in the prediction error of the model after we permuted the feature's values, which breaks the relationship between the feature and the true outcome (\cite[Section 8.5]{molnar2019}).
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.35]{images/interpretable_ml_104_0.png}
+    \includegraphics[scale=0.35]{images/interpretable_ml_112_0.png}
     \caption{The permutation importance for these two models have {\em days\_since\_2011} and {\em temp} on their top 3 ranking, which partially explain the trend and seasonality components respectively (see \cite[Figure 8.27]{molnar2019}).}
   \end{figure}
 \end{center}
@@ -348,8 +348,8 @@ $$\pi_{x}(z') = \frac{(M-1)}{\binom{M}{|z'|}|z'|(M-|z'|)} $$
 \begin{frame}{SHAP Values}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.22]{images/interpretable_ml_114_0.png}
-    \includegraphics[scale=0.22]{images/interpretable_ml_127_0.png}
+    \includegraphics[scale=0.22]{images/interpretable_ml_122_0.png}
+    \includegraphics[scale=0.22]{images/interpretable_ml_137_0.png}
     \caption{SHAP values per data instance. The $x$ position of the dot is determined by the SHAP value of that feature, and dots "pile up" along each feature row to show density. Color is used to display the original value of a feature (\cite{NIPS2017_7062}).}
   \end{figure}
 \end{center}
@@ -358,8 +358,8 @@ $$\pi_{x}(z') = \frac{(M-1)}{\binom{M}{|z'|}|z'|(M-|z'|)} $$
 \begin{frame}{Mean Abs SHAP Values}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.21]{images/interpretable_ml_116_0.png}
-    \includegraphics[scale=0.21]{images/interpretable_ml_128_0.png}
+    \includegraphics[scale=0.21]{images/interpretable_ml_124_0.png}
+    \includegraphics[scale=0.21]{images/interpretable_ml_138_0.png}
   \end{figure}
 \end{center}
 \end{frame}
@@ -367,8 +367,8 @@ $$\pi_{x}(z') = \frac{(M-1)}{\binom{M}{|z'|}|z'|(M-|z'|)} $$
 \begin{frame}{SHAP Values: Temperature}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.33]{images/interpretable_ml_119_0.png}
-    \includegraphics[scale=0.33]{images/interpretable_ml_131_0.png}
+    \includegraphics[scale=0.3]{images/interpretable_ml_127_0.png}
+    \includegraphics[scale=0.3]{images/interpretable_ml_141_0.png}
     \caption{This figure shows the SHAP values as a function of temperature. Compare with Figure \ref{fig:pdp-ice}}
   \end{figure}
 \end{center}
@@ -377,8 +377,8 @@ $$\pi_{x}(z') = \frac{(M-1)}{\binom{M}{|z'|}|z'|(M-|z'|)} $$
 \begin{frame}{SHAP Values: Observation 284}
 \begin{center}
   \begin{figure}
-    \includegraphics[scale=0.19]{images/interpretable_ml_122_0.png}
-    \includegraphics[scale=0.19]{images/interpretable_ml_134_0.png}
+    \includegraphics[scale=0.19]{images/interpretable_ml_132_0.png}
+    \includegraphics[scale=0.19]{images/interpretable_ml_146_0.png}
     \caption{This {\em waterfall plot} shows how the SHAP values of each feature move the model output from our prior expectation under the background data distribution, to the final model prediction given the evidence of all the features (\cite{NIPS2017_7062}). Compare with Figure \ref{fig:linear-284-obs}.}
   \end{figure}
 \end{center}
