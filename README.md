@@ -8,36 +8,53 @@
 
 This repository contains the code of the projects presented in my personal website [https://juanitorduz.github.io](https://juanitorduz.github.io).
 
-  - Feel free to share and use the code.
+- Feel free to share and use the code.
 
-  - If you find a mistake or typo please let me know (ideally report as an issue or open a [pull request](https://help.github.com/en/articles/about-pull-requests)).
+- If you find a mistake or typo please let me know (ideally report as an issue or open a [pull request](https://help.github.com/en/articles/about-pull-requests)).
 
-  - Comments and suggestions are always welcome.
+- Comments and suggestions are always welcome.
 
-  ---
+---
 
-  contact: juanitorduz@gmail.com
+contact: [juanitorduz@gmail.com](mailto:juanitorduz@gmail.com)
 
-  ---
+---
 
-  ## Conda Environment
+### Local Development 
+### PyEnv
 
-  *For Winidows uses please see the [documentation](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html)*.
+- Create environment variables in your shell:
 
-  - [Create conda environment](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html):
+```
+pipenv install --dev
+```
 
-    `conda env create -f environment.yml`
+- Activate:
 
-  - Activate conda environment:
+```
+pipenv shell
+```
 
-    `conda activate website_projects`
+## Conda Environment
 
-  - Run [Jupyter Notebook](https://jupyter-notebook-beginner-guide.readthedocs.io/en/latest/what_is_jupyter.html):
+*Warning:* Support for [pyenv](https://github.com/pyenv/pyenv) is going to be the default in the future. I will keep the [environment.yml](environment.yml) file for reference.
 
-    `jupyter notebook`
+*For Winidows uses please see the [documentation](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html)*.
 
-    OR
+- [Create conda environment](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html):
 
-  - Run [Jupyter Lab](https://jupyterlab.readthedocs.io/en/stable/index.html#):
+  `conda env create -f environment.yml`
 
-    `jupyter lab`
+- Activate conda environment:
+
+  `conda activate website_projects`
+
+- Run [Jupyter Notebook](https://jupyter-notebook-beginner-guide.readthedocs.io/en/latest/what_is_jupyter.html):
+
+  `jupyter notebook`
+
+  OR
+
+- Run [Jupyter Lab](https://jupyterlab.readthedocs.io/en/stable/index.html#):
+
+  `jupyter lab`
