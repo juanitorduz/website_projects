@@ -14,7 +14,7 @@ style: |
 
 [PyConDE & PyData Berlin 2022](https://2022.pycon.de/)
 
-![w:200 center](/Presentations/pydata_2022/images/logo.png)
+![w:200 center](images/logo.png)
 
 ---
 <!--
@@ -34,7 +34,7 @@ style: |
 
 # We can not **send** and **not send** incentives to the same customers at the same time
 
-![w:600 center](/Presentations/pydata_2022/images/two-spiderman.jpeg)
+![w:600 center](images/two-spiderman.jpeg)
 
 
 
