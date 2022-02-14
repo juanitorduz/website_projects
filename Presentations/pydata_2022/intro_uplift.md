@@ -74,6 +74,14 @@ $$\text{\bf{uplift}} = \widehat{CATE} = E[Y_{i} | X_{i}, W_{i}=1] - E[Y_{i} | X_
 
 ---
 
+# Estimating UpLift
+
+- Meta algorithms
+
+- Direct measurements (trees)
+
+---
+
 # S-Learner
 <!--
 _footer: Taken from https://www.uplift-modeling.com/en/latest/user_guide/models/index.html
@@ -90,7 +98,7 @@ x_{11} & \cdots & x_{1k} & w_{1} \\
 x_{11} & \cdots & x_{nk} & w_{n} \\
 \end{array}
 \right)}_{X\bigoplus W}
-\xrightarrow{f}
+\xrightarrow{\mu}
 \left(
 \begin{array}{c}
 y_{1} \\
@@ -103,7 +111,8 @@ $$
 ### Step 2: Uplift Prediction
 
 $$
-\hat{f}\left(
+\widehat{\text{\bf{uplift}}} = 
+\hat{\mu}\left(
 \begin{array}{cccc}
 x_{11} & \cdots & x_{1k} & 1 \\
 \vdots & \ddots & \vdots & \vdots \\
@@ -111,7 +120,7 @@ x_{11} & \cdots & x_{mk} & 1 \\
 \end{array}
 \right)
 -
-\hat{f}
+\hat{\mu}
 \left(
 \begin{array}{cccc}
 x_{11} & \cdots & x_{1k} & 0 \\
@@ -139,7 +148,7 @@ x_{11} & \cdots & x_{1k} \\
 x_{11} & \cdots & x_{n_{C}k} \\
 \end{array}
 \right)}_{X|_{\text{control}}}
-\xrightarrow{f_{C}}
+\xrightarrow{\mu_{C}}
 \left(
 \begin{array}{c}
 y_{1} \\
@@ -158,7 +167,7 @@ x_{11} & \cdots & x_{1k}  \\
 x_{11} & \cdots & x_{n_{T}k} \\
 \end{array}
 \right)}_{X |_{\text{treatment}}}
-\xrightarrow{f_{T}}
+\xrightarrow{\mu_{T}}
 \left(
 \begin{array}{c}
 y_{1} \\
@@ -178,7 +187,8 @@ _footer: Taken from https://causalml.readthedocs.io/en/latest/methodology.html#m
 ### Step 2: Uplift Prediction
 
 $$
-\hat{f}_{T}\left(
+\widehat{\text{\bf{uplift}}} = 
+\hat{\mu}_{T}\left(
 \begin{array}{cccc}
 x_{11} & \cdots & x_{1k} \\
 \vdots & \ddots & \vdots \\
@@ -186,7 +196,7 @@ x_{11} & \cdots & x_{mk} \\
 \end{array}
 \right)
 -
-\hat{f}_{C}
+\hat{\mu}_{C}
 \left(
 \begin{array}{cccc}
 x_{11} & \cdots & x_{1k} \\
@@ -208,33 +218,33 @@ _footer: Taken from https://causalml.readthedocs.io/en/latest/methodology.html#m
 ### Step 2: Compute imputed treatment effects
 
 $$
-\hat{D}^{T} \coloneqq
+\tilde{D}^{T} \coloneqq
 \left(
 \begin{array}{c}
 y_{1} \\
 \vdots \\
-y_{n_{C}}
+y_{n_{T}}
 \end{array}
 \right)
 - 
-\hat{f}_{C}
-\left(
-\begin{array}{cccc}
-x_{11} & \cdots & x_{1k} \\
-\vdots & \ddots & \vdots \\
-x_{11} & \cdots & x_{n_{C}k} \\
-\end{array}
-\right)
-$$
-
-$$
-\hat{D}^{C} \coloneqq
-\hat{f}_{Y}
+\hat{\mu}_{C}
 \left(
 \begin{array}{cccc}
 x_{11} & \cdots & x_{1k} \\
 \vdots & \ddots & \vdots \\
 x_{11} & \cdots & x_{n_{T}k} \\
+\end{array}
+\right)
+$$
+
+$$
+\tilde{D}^{C} \coloneqq
+\hat{\mu}_{T}
+\left(
+\begin{array}{cccc}
+x_{11} & \cdots & x_{1k} \\
+\vdots & \ddots & \vdots \\
+x_{11} & \cdots & x_{n_{C}k} \\
 \end{array}
 \right)
 -
@@ -246,6 +256,78 @@ y_{n_{C}}
 \end{array}
 \right)
 $$
+
+---
+<!--
+_footer: Taken from https://causalml.readthedocs.io/en/latest/methodology.html#meta-learner-algorithms
+-->
+
+# X-Learner
+
+### Step 3: Train with different targets
+
+$$
+\underbrace{
+\left(
+\begin{array}{ccc}
+x_{11} & \cdots & x_{1k} \\
+\vdots & \ddots & \vdots \\
+x_{11} & \cdots & x_{n_{C}k} \\
+\end{array}
+\right)}_{X|_{\text{control}}}
+\xrightarrow{\tau_{C}}
+\left(
+\begin{array}{c}
+\tilde{D}^{C}_{1} \\
+\vdots \\
+\tilde{D}^{C}_{n_{T}}
+\end{array}
+\right)
+$$
+
+$$
+\underbrace{
+\left(
+\begin{array}{ccc}
+x_{11} & \cdots & x_{1k} \\
+\vdots & \ddots & \vdots \\
+x_{11} & \cdots & x_{n_{C}k} \\
+\end{array}
+\right)}_{X|_{\text{treatment}}}
+\xrightarrow{\tau_{T}}
+\left(
+\begin{array}{c}
+\tilde{D}^{T}_{1} \\
+\vdots \\
+\tilde{D}^{T}_{n_{T}}
+\end{array}
+\right)
+$$
+
+---
+<!--
+_footer: Taken from https://causalml.readthedocs.io/en/latest/methodology.html#meta-learner-algorithms
+-->
+
+# X-Learner
+
+### Step 4: Uplift Prediction
+
+$$
+\widehat{\text{\bf{uplift}}} = g(x)\hat{\tau}_{C}(x) + (1 - g(x))\hat{\tau}_{T}(x)
+$$
+
+where $g(x) \in [0, 1]$ is a weight function.
+
+---
+<!--
+_footer: Taken from [Sören, R, et.al. (2019) "Meta-learners for Estimating Heterogeneous Treatment Effects using Machine Learning"](https://arxiv.org/abs/1706.03461)
+-->
+
+# Intuition behind the X-Learner
+
+![w:500 center](images/x_learner_intuition.png)
+
 ---
 
 # Some python implementations
@@ -260,11 +342,19 @@ $$
 
 ---
 
+# Demo
+
+Notebook Link
+
+---
+
 ## References:
 
 - [Gutierrez, P., & Gérardy, J. Y. (2017). "Causal Inference and Uplift Modelling: A Review of the Literature"](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
 
 - [Karlsson, H. (2019) "Uplift Modeling: Identifying Optimal Treatment Group Allocation and Whom to Contact to Maximize Return on Investment"](http://www.diva-portal.org/smash/get/diva2:1328437/FULLTEXT01.pdf)
+
+- [Sören, R, et.al. (2019) "Meta-learners for Estimating Heterogeneous Treatment Effects using Machine Learning"](https://arxiv.org/abs/1706.03461)
 
 ---
 
