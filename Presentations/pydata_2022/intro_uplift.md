@@ -74,12 +74,12 @@ $$\text{\bf{uplift}} = \widehat{CATE} = E[Y_{i} | X_{i}, W_{i}=1] - E[Y_{i} | X_
 
 ---
 
-# Solo Model
+# S-Learner
 <!--
 _footer: Taken from https://www.uplift-modeling.com/en/latest/user_guide/models/index.html
 -->
 
-### Training
+### Step 1: Training
 
 $$
 \underbrace{
@@ -100,7 +100,7 @@ y_{n}
 \right)
 $$
 
-### Uplift Prediction
+### Step 2: Uplift Prediction
 
 $$
 \hat{f}\left(
@@ -121,6 +121,131 @@ x_{11} & \cdots & x_{mk} & 0 \\
 \right)
 $$
 
+---
+<!--
+_footer: Taken from https://causalml.readthedocs.io/en/latest/methodology.html#meta-learner-algorithms
+-->
+
+# T-Learner
+
+### Step 1: Training
+
+$$
+\underbrace{
+\left(
+\begin{array}{ccc}
+x_{11} & \cdots & x_{1k} \\
+\vdots & \ddots & \vdots \\
+x_{11} & \cdots & x_{n_{C}k} \\
+\end{array}
+\right)}_{X|_{\text{control}}}
+\xrightarrow{f_{C}}
+\left(
+\begin{array}{c}
+y_{1} \\
+\vdots \\
+y_{n_{C}}
+\end{array}
+\right)
+$$
+
+$$
+\underbrace{
+\left(
+\begin{array}{ccc}
+x_{11} & \cdots & x_{1k}  \\
+\vdots & \ddots & \vdots \\
+x_{11} & \cdots & x_{n_{T}k} \\
+\end{array}
+\right)}_{X |_{\text{treatment}}}
+\xrightarrow{f_{T}}
+\left(
+\begin{array}{c}
+y_{1} \\
+\vdots \\
+y_{n_{T}}
+\end{array}
+\right) 
+$$
+
+---
+<!--
+_footer: Taken from https://causalml.readthedocs.io/en/latest/methodology.html#meta-learner-algorithms
+-->
+
+# T-Learner
+
+### Step 2: Uplift Prediction
+
+$$
+\hat{f}_{T}\left(
+\begin{array}{cccc}
+x_{11} & \cdots & x_{1k} \\
+\vdots & \ddots & \vdots \\
+x_{11} & \cdots & x_{mk} \\
+\end{array}
+\right)
+-
+\hat{f}_{C}
+\left(
+\begin{array}{cccc}
+x_{11} & \cdots & x_{1k} \\
+\vdots & \ddots & \vdots \\
+x_{11} & \cdots & x_{mk} \\
+\end{array}
+\right)
+$$
+
+---
+<!--
+_footer: Taken from https://causalml.readthedocs.io/en/latest/methodology.html#meta-learner-algorithms
+-->
+
+# X-Learner
+
+### Step 1: Training: Same as T-Learner
+
+### Step 2: Compute imputed treatment effects
+
+$$
+\hat{D}^{T} \coloneqq
+\left(
+\begin{array}{c}
+y_{1} \\
+\vdots \\
+y_{n_{C}}
+\end{array}
+\right)
+- 
+\hat{f}_{C}
+\left(
+\begin{array}{cccc}
+x_{11} & \cdots & x_{1k} \\
+\vdots & \ddots & \vdots \\
+x_{11} & \cdots & x_{n_{C}k} \\
+\end{array}
+\right)
+$$
+
+$$
+\hat{D}^{C} \coloneqq
+\hat{f}_{Y}
+\left(
+\begin{array}{cccc}
+x_{11} & \cdots & x_{1k} \\
+\vdots & \ddots & \vdots \\
+x_{11} & \cdots & x_{n_{T}k} \\
+\end{array}
+\right)
+-
+\left(
+\begin{array}{c}
+y_{1} \\
+\vdots \\
+y_{n_{C}}
+\end{array}
+\right)
+$$
 ---
 
 # Some python implementations
