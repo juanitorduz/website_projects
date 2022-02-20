@@ -34,8 +34,6 @@ _footer: Image taken from https://www.uplift-modeling.com/en/latest/user_guide/i
 
 ![w:600 center](images/two-spiderman.jpeg)
 
-
-
 ---
 
 # What is Uplift Modeling?
@@ -79,6 +77,23 @@ $$\text{\bf{uplift}} = \widehat{CATE} = E[Y_{i} | X_{i}, W_{i}=1] - E[Y_{i} | X_
 - Meta algorithms
 
 - Direct measurements (trees)
+
+---
+
+# Some python implementations
+
+- [`causalml`](https://github.com/uber/causalml)
+
+![w:350 center](https://raw.githubusercontent.com/uber/causalml/master/docs/_static/img/logo/causalml_logo.png)
+
+- [`EconML`](https://github.com/microsoft/EconML)
+
+
+![w:300 center](https://github.com/microsoft/EconML/blob/main/doc/econml-logo-XL.png?raw=true)
+
+- [`scikit-uplift`](https://github.com/maks-sh/scikit-uplift)
+
+![w:500 center](https://raw.githubusercontent.com/maks-sh/scikit-uplift/dev/docs/_static/sklift-github-logo.png)
 
 ---
 
@@ -330,15 +345,80 @@ _footer: Taken from [Sören, R, et.al. (2019) "Meta-learners for Estimating Hete
 
 ---
 
-# Some python implementations
+# Python code
 
-- [`causalml`](https://github.com/uber/causalml)
+```python
+from causalml.inference.meta import BaseTClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier
 
-![w:400 center](https://raw.githubusercontent.com/uber/causalml/master/docs/_static/img/logo/causalml_logo.png)
+t_learner = BaseTClassifier(learner=HistGradientBoostingClassifier())
 
-- [`scikit-uplift`](https://github.com/maks-sh/scikit-uplift)
+t_ate_lwr, t_ate, t_ate_upr = t_learner.estimate_ate(
+    X=data_train.x_transformed,
+    treatment=data_train.treatment,
+    y=data_train.y)
 
-![w:700 center](https://raw.githubusercontent.com/maks-sh/scikit-uplift/dev/docs/_static/sklift-github-logo.png)
+```
+
+---
+<!--
+_footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). "Causal Inference and Uplift Modelling: A Review of the Literature"](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
+-->
+
+# Uplift Metrics: Cumulative gain chart
+
+*Predict uplift for both treated and control observations and compute the average prediction per decile (bins) in both groups. Then, the difference between those averages is taken for each decile.*
+
+$$
+\left(
+\frac{Y^{T}}{N^{T}}
+-
+\frac{Y^{C}}{N^{C}}
+\right)
+(N^{T} + N^{C})
+$$
+
+- $Y^{T} / Y^{C}$: sum of the treated / control individual outcomes  in the bin.
+- $N^{T} / N^{C}$: number of treated / control observations  in the bin.
+
+---
+<!--
+_footer: Plot function from [`scikit-uplift`](https://github.com/maks-sh/scikit-uplift)
+-->
+
+# Uplift Metrics: Cumulative gain chart
+
+![w:700 center](images/cum_decile_chart.png)
+
+---
+<!--
+_footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). "Causal Inference and Uplift Modelling: A Review of the Literature"](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
+-->
+
+# Uplift Metrics: Uplift Plot
+
+*We can generalize the cumulative gain chart for each observation of the test set:*
+
+$$
+f(t)
+=
+\left(
+\frac{Y^{T}_{t}}{N^{T}_{t}}
+-
+\frac{Y^{C}_{t}}{N^{C}_{t}}
+\right)
+(N^{T}_{t} + N^{C}_{t})
+$$
+
+*where the $t$ subscript indicates that the quantity is calculated for the first $t$ observations, sorted by inferred uplift value.*
+
+---
+<!--
+_footer: Plot function from [`scikit-uplift`](https://github.com/maks-sh/scikit-uplift)
+-->
+# Uplift Metrics: Uplift Curve
+
+![w:700 center](images/uplift_curve.png)
 
 ---
 
