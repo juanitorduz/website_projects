@@ -72,7 +72,7 @@ $$\text{\bf{uplift}} = \widehat{CATE} = E[Y_{i} | X_{i}, W_{i}=1] - E[Y_{i} | X_
 
 ---
 
-# Estimating UpLift
+# Estimating Uplift
 
 - Meta algorithms
 
@@ -84,7 +84,7 @@ $$\text{\bf{uplift}} = \widehat{CATE} = E[Y_{i} | X_{i}, W_{i}=1] - E[Y_{i} | X_
 
 - [`causalml`](https://github.com/uber/causalml)
 
-![w:350 center](https://raw.githubusercontent.com/uber/causalml/master/docs/_static/img/logo/causalml_logo.png)
+![w:300 center](https://raw.githubusercontent.com/uber/causalml/master/docs/_static/img/logo/causalml_logo.png)
 
 - [`EconML`](https://github.com/microsoft/EconML)
 
@@ -345,19 +345,27 @@ _footer: Taken from [Sören, R, et.al. (2019) "Meta-learners for Estimating Hete
 
 ---
 
-# Python code
+# Python code: Example
 
 ```python
 from causalml.inference.meta import BaseTClassifier
 from sklearn.ensemble import HistGradientBoostingClassifier
 
-t_learner = BaseTClassifier(learner=HistGradientBoostingClassifier())
+# define ml model
+learner = HistGradientBoostingClassifier()
 
-t_ate_lwr, t_ate, t_ate_upr = t_learner.estimate_ate(
-    X=data_train.x_transformed,
-    treatment=data_train.treatment,
-    y=data_train.y)
+# set meta-model
+t_learner = BaseTClassifier(learner=learner)
 
+# compute ate
+t_ate_lwr, t_ate, t_ate_upr = t_learner.estimate_ate(X=x, treatment=w, y=y)
+
+# predict treatment effects
+t_learnet.predict(X=x)
+
+# access ml models
+t_learner.models_c[1]
+t_learner.models_t[1]
 ```
 
 ---
@@ -395,7 +403,7 @@ _footer: Plot function from [`scikit-uplift`](https://github.com/maks-sh/scikit-
 _footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). "Causal Inference and Uplift Modelling: A Review of the Literature"](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
 -->
 
-# Uplift Metrics: Uplift Plot
+# Uplift Metrics: Uplift Curve
 
 *We can generalize the cumulative gain chart for each observation of the test set:*
 
@@ -421,10 +429,19 @@ _footer: Plot function from [`scikit-uplift`](https://github.com/maks-sh/scikit-
 ![w:700 center](images/uplift_curve.png)
 
 ---
+<!--
+_footer: Taken from https://www.uplift-modeling.com/en/latest/user_guide/introduction/data_collection.html
+-->
+# Data Collection
 
-# Demo
+![w:600 center](https://www.uplift-modeling.com/en/latest/_images/ug_data_collection.gif)
 
-Notebook Link
+---
+<!--
+_footer: See https://juanitorduz.github.io/uplift/
+-->
+# Demo 
+## [Notebook Link](https://juanitorduz.github.io/uplift/)
 
 ---
 
