@@ -45,7 +45,7 @@ From [Gutierrez, P., & Gérardy, J. Y. (2017). "Causal Inference and Uplift Mode
  
 ---
 <!--
-_footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). "Causal Inference and Uplift Modelling: A Review of the Literature"](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
+_footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). *"Causal Inference and Uplift Modelling: A Review of the Literature"*](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
 -->
 
 # Conditional Average Treatment Effect
@@ -56,7 +56,7 @@ _footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). "Causal Inference 
 
 ---
 <!--
-_footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). "Causal Inference and Uplift Modelling: A Review of the Literature"](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
+_footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). *"Causal Inference and Uplift Modelling: A Review of the Literature"*](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
 -->
 # Uplift
 
@@ -336,7 +336,7 @@ where $g(x) \in [0, 1]$ is a weight function.
 
 ---
 <!--
-_footer: Taken from [Sören, R, et.al. (2019) "Meta-learners for Estimating Heterogeneous Treatment Effects using Machine Learning"](https://arxiv.org/abs/1706.03461)
+_footer: Taken from [Sören, R, et.al. (2019) *"Meta-learners for Estimating Heterogeneous Treatment Effects using Machine Learning"*](https://arxiv.org/abs/1706.03461)
 -->
 
 # Intuition behind the X-Learner
@@ -370,7 +370,7 @@ t_learner.models_t[1]
 
 ---
 <!--
-_footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). "Causal Inference and Uplift Modelling: A Review of the Literature"](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
+_footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). *"Causal Inference and Uplift Modelling: A Review of the Literature"*](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
 -->
 
 # Uplift Metrics: Cumulative gain chart
@@ -400,7 +400,7 @@ _footer: Plot function from [`scikit-uplift`](https://github.com/maks-sh/scikit-
 
 ---
 <!--
-_footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). "Causal Inference and Uplift Modelling: A Review of the Literature"](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
+_footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). *"Causal Inference and Uplift Modelling: A Review of the Literature"*](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
 -->
 
 # Uplift Metrics: Uplift Curve
@@ -430,6 +430,26 @@ _footer: Plot function from [`scikit-uplift`](https://github.com/maks-sh/scikit-
 
 ---
 <!--
+_footer: Taken from [Diemert, Eustache, et.al. (2020) *"A Large Scale Benchmark for Uplift Modeling"*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf)
+-->
+
+# Perfect Uplift Curve
+
+> A perfect model assigns higher scores to all treated individuals
+with positive outcomes than any individuals with negative outcomes.
+
+```python
+cr_num = np.sum((y_true == 1) & (treatment == 0))  # Control Responders
+tn_num = np.sum((y_true == 0) & (treatment == 1))  # Treated Non-Responders
+
+summand = y_true if cr_num > tn_num else treatment
+perfect_uplift = 2 * (y_true == treatment) + summand
+```
+
+![w:310 center](images/perfect_uplift_curve.png)
+
+---
+<!--
 _footer: Taken from https://www.uplift-modeling.com/en/latest/user_guide/introduction/data_collection.html
 -->
 # Data Collection
@@ -447,11 +467,13 @@ _footer: See https://juanitorduz.github.io/uplift/
 
 ## References:
 
-- [Gutierrez, P., & Gérardy, J. Y. (2017). "Causal Inference and Uplift Modelling: A Review of the Literature"](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
+- [Diemert, Eustache, et.al. (2020) *"A Large Scale Benchmark for Uplift Modeling"*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf)
 
-- [Karlsson, H. (2019) "Uplift Modeling: Identifying Optimal Treatment Group Allocation and Whom to Contact to Maximize Return on Investment"](http://www.diva-portal.org/smash/get/diva2:1328437/FULLTEXT01.pdf)
+- [Gutierrez, P., & Gérardy, J. Y. (2017). *"Causal Inference and Uplift Modelling: A Review of the Literature"*](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
 
-- [Sören, R, et.al. (2019) "Meta-learners for Estimating Heterogeneous Treatment Effects using Machine Learning"](https://arxiv.org/abs/1706.03461)
+- [Karlsson, H. (2019) *"Uplift Modeling: Identifying Optimal Treatment Group Allocation and Whom to Contact to Maximize Return on Investment"*](http://www.diva-portal.org/smash/get/diva2:1328437/FULLTEXT01.pdf)
+
+- [Sören, R, et.al. (2019) *"Meta-learners for Estimating Heterogeneous Treatment Effects using Machine Learning"*](https://arxiv.org/abs/1706.03461)
 
 ---
 
