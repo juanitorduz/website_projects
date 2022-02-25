@@ -445,8 +445,17 @@ tn_num = np.sum((y_true == 0) & (treatment == 1))  # Treated Non-Responders
 summand = y_true if cr_num > tn_num else treatment
 perfect_uplift = 2 * (y_true == treatment) + summand
 ```
+---
 
-![w:310 center](images/perfect_uplift_curve.png)
+# Perfect Uplift Curve
+
+```python
+from sklift.metrics import uplift_curve
+
+a, b = uplift_curve(y_true=y_true uplift=perfect_uplift, treatment=treatment)
+```
+
+![w:550 center](images/perfect_uplift_curve.png)
 
 ---
 <!--
