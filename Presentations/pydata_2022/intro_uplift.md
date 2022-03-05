@@ -391,7 +391,7 @@ $$
 
 ---
 <!--
-_footer: Plot function from [`scikit-uplift`](https://github.com/maks-sh/scikit-uplift)
+_footer: Plot function from [`scikit-uplift`](https://github.com/maks-sh/scikit-uplift). The weighted average is computed as `response_rate_treatment` - `response_rate_control`.
 -->
 
 # Uplift Metrics: Cumulative gain chart
@@ -458,6 +458,13 @@ a, b = uplift_curve(y_true=y_true uplift=perfect_uplift, treatment=treatment)
 ![w:550 center](images/perfect_uplift_curve.png)
 
 ---
+
+# Random Uplift Curves
+
+![w:550 center](images/random_uplift_curves.png)
+
+---
+
 <!--
 _footer: Taken from https://www.uplift-modeling.com/en/latest/user_guide/introduction/data_collection.html
 -->
@@ -488,6 +495,6 @@ _footer: See https://juanitorduz.github.io/uplift/
 
 # Thank you!
 
-## More Info: [juanitorduz.github.io/](https://juanitorduz.github.io/)
+## More Info: [juanitorduz.github.io](https://juanitorduz.github.io)
 
 ![w:400 center](images/qr-code-juanitorduz.png)
