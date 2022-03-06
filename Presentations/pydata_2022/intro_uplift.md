@@ -11,11 +11,11 @@ style: |
 # Introduction to Uplift Modeling
 
 ## [Dr. Juan Orduz](https://juanitorduz.github.io/)
+**Mathematician & Data scientist**
 
+### [PyConDE & PyData Berlin 2022](https://2022.pycon.de/)
 
-[PyConDE & PyData Berlin 2022](https://2022.pycon.de/)
-
-![w:200 center](images/logo.png)
+![w:400 bg right:50%](images/logo.png)
 
 ---
 <!--
@@ -26,7 +26,7 @@ _footer: Image taken from https://www.uplift-modeling.com/en/latest/user_guide/i
 
 ## How can we optimally select customers to be treated by marketing incentives?
 
-![w:400 center](https://www.uplift-modeling.com/en/latest/_images/ug_clients_types.jpg)
+![w:500 bg right](https://www.uplift-modeling.com/en/latest/_images/ug_clients_types.jpg)
 
 ---
 
@@ -40,8 +40,9 @@ _footer: Image taken from https://www.uplift-modeling.com/en/latest/user_guide/i
 
 From [Gutierrez, P., & Gérardy, J. Y. (2017). "Causal Inference and Uplift Modelling: A Review of the Literature"](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
 
- > - Uplift modeling refers to the set of techniques used to model the incremental impact of an action or treatment on a customer outcome.
- > - Uplift modeling is therefore both a Causal Inference problem and a Machine Learning one. 
+ - ## Uplift modeling refers to the set of techniques used to model the incremental impact of an action or treatment on a customer outcome.
+ 
+- ## Uplift modeling is therefore both a Causal Inference problem and a Machine Learning one. 
  
 ---
 <!--
@@ -71,29 +72,17 @@ If we **assume** that the treatment assignment $W_{i}$ is independent of $Y^{1}_
 $$\text{\bf{uplift}} = \widehat{CATE} = E[Y_{i} | X_{i}, W_{i}=1] - E[Y_{i} | X_{i}, W_{i}=0]$$
 
 ---
+<!--
+_footer: See [Gutierrez, P., & Gérardy, J. Y. (2017). *"Causal Inference and Uplift Modelling: A Review of the Literature"*](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
+-->
 
 # Estimating Uplift
 
-- Meta algorithms
+- ## **Meta Algorithms** $\longleftarrow$ Today
 
-- Direct measurements (trees)
+- ## The Class Transformation Method
 
----
-
-# Some python implementations
-
-- [`causalml`](https://github.com/uber/causalml)
-
-![w:300 center](https://raw.githubusercontent.com/uber/causalml/master/docs/_static/img/logo/causalml_logo.png)
-
-- [`EconML`](https://github.com/microsoft/EconML)
-
-
-![w:300 center](https://github.com/microsoft/EconML/blob/main/doc/econml-logo-XL.png?raw=true)
-
-- [`scikit-uplift`](https://github.com/maks-sh/scikit-uplift)
-
-![w:500 center](https://raw.githubusercontent.com/maks-sh/scikit-uplift/dev/docs/_static/sklift-github-logo.png)
+- ## Direct measurements (e.g. trees)
 
 ---
 
@@ -341,7 +330,24 @@ _footer: Taken from [Sören, R, et.al. (2019) *"Meta-learners for Estimating Het
 
 # Intuition behind the X-Learner
 
-![w:500 center](images/x_learner_intuition.png)
+![w:600 bg right](images/x_learner_intuition.png)
+
+---
+
+# Some python implementations
+
+- [`causalml`](https://github.com/uber/causalml)
+
+![w:300 center](https://raw.githubusercontent.com/uber/causalml/master/docs/_static/img/logo/causalml_logo.png)
+
+- [`EconML`](https://github.com/microsoft/EconML)
+
+
+![w:300 center](https://github.com/microsoft/EconML/blob/main/doc/econml-logo-XL.png?raw=true)
+
+- [`scikit-uplift`](https://github.com/maks-sh/scikit-uplift)
+
+![w:500 center](https://raw.githubusercontent.com/maks-sh/scikit-uplift/dev/docs/_static/sklift-github-logo.png)
 
 ---
 
@@ -370,12 +376,58 @@ t_learner.models_t[1]
 
 ---
 <!--
+_footer: Taken from [Diemert, Eustache, et.al. (2020) *"A Large Scale Benchmark for Uplift Modeling"*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf)
+-->
+
+# Perfect Uplift Model
+
+> A perfect model assigns higher scores to all treated individuals
+with positive outcomes than any individuals with negative outcomes.
+
+```python
+# Control Responders
+cr_num = np.sum((y_true == 1) & (treatment == 0))
+# Treated Non-Responders
+tn_num = np.sum((y_true == 0) & (treatment == 1))
+
+summand = y_true if cr_num > tn_num else treatment
+
+perfect_uplift = 2 * (y_true == treatment) + summand
+```
+
+![w:600 bg right](images/perfect_uplift_sort.png)
+
+
+---
+
+# Uplift Evaluation: Uplift by percentile
+
+1. Sort uplift predictions by decreasing order.
+2. Predict uplift for both treated and control observations
+3. Compute the average prediction per percentile in both groups.
+4. The difference between those averages is taken for each percentile.
+
+![w:750 center](images/uplift_by_percentile_table.png)
+
+---
+<!--
+_footer: Plot function `plot_uplift_by_percentile` from [`scikit-uplift`](https://github.com/maks-sh/scikit-uplift).
+-->
+
+# Uplift Evaluation: Uplift by percentile
+
+![w:620 bg right:50%](images/cum_percentile_plot.png)
+
+A well performing model would have large values in the first percentiles and decreasing values for larger ones
+
+---
+<!--
 _footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). *"Causal Inference and Uplift Modelling: A Review of the Literature"*](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
 -->
 
-# Uplift Metrics: Cumulative gain chart
+# Uplift Evaluation: Cumulative gain chart
 
-*Predict uplift for both treated and control observations and compute the average prediction per decile (bins) in both groups. Then, the difference between those averages is taken for each decile.*
+> Predict uplift for both treated and control observations and compute the average prediction per decile (bins) in both groups. Then, the difference between those averages is taken for each decile.
 
 $$
 \left(
@@ -390,17 +442,24 @@ $$
 - $N^{T} / N^{C}$: number of treated / control observations  in the bin.
 
 ---
-<!--
-_footer: Plot function from [`scikit-uplift`](https://github.com/maks-sh/scikit-uplift). The weighted average is computed as `response_rate_treatment` - `response_rate_control`.
--->
 
-# Uplift Metrics: Cumulative gain chart
+# Uplift Evaluation: Cumulative gain chart
 
-![w:700 center](images/cum_decile_chart.png)
+```python
+(x["uplift"] * (x["n_treatment"] + x["n_control"])).cumsum()
+```
+
+![w:550 center](images/cum_gain_percentile.png)
+
+> - From this plot we see if the treatment has a global positive or negative effect and if they can expect a better gain by targeting part of the population. 
+> - We can thus choose the decile that maximizes the gain as the limit of the population to be targeted.
+
+
 
 ---
 <!--
 _footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). *"Causal Inference and Uplift Modelling: A Review of the Literature"*](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
+_style : font-size: 13px
 -->
 
 # Uplift Metrics: Uplift Curve
@@ -422,29 +481,12 @@ $$
 
 ---
 <!--
-_footer: Plot function from [`scikit-uplift`](https://github.com/maks-sh/scikit-uplift)
+_footer: Plot function `plot_uplift_curve` from [`scikit-uplift`](https://github.com/maks-sh/scikit-uplift)
 -->
-# Uplift Metrics: Uplift Curve
+# Uplift Metrics: Uplift Curve & AUC
 
 ![w:700 center](images/uplift_curve.png)
 
----
-<!--
-_footer: Taken from [Diemert, Eustache, et.al. (2020) *"A Large Scale Benchmark for Uplift Modeling"*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf)
--->
-
-# Perfect Uplift Curve
-
-> A perfect model assigns higher scores to all treated individuals
-with positive outcomes than any individuals with negative outcomes.
-
-```python
-cr_num = np.sum((y_true == 1) & (treatment == 0))  # Control Responders
-tn_num = np.sum((y_true == 0) & (treatment == 1))  # Treated Non-Responders
-
-summand = y_true if cr_num > tn_num else treatment
-perfect_uplift = 2 * (y_true == treatment) + summand
-```
 ---
 
 # Perfect Uplift Curve
@@ -452,16 +494,24 @@ perfect_uplift = 2 * (y_true == treatment) + summand
 ```python
 from sklift.metrics import uplift_curve
 
-a, b = uplift_curve(y_true=y_true uplift=perfect_uplift, treatment=treatment)
+a, b = uplift_curve(y_true=y_true, uplift=perfect_uplift, treatment=treatment)
 ```
 
-![w:550 center](images/perfect_uplift_curve.png)
+![w:600 center](images/perfect_uplift_curve.png)
 
 ---
 
 # Random Uplift Curves
 
-![w:550 center](images/random_uplift_curves.png)
+```python
+np.random.uniform(
+    low=-1,
+    high=1,
+    size=(n, n_samples),
+)
+```
+
+![w:600 bg right](images/random_uplift_curves.png)
 
 ---
 
