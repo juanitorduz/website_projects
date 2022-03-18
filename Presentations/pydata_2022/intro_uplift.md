@@ -115,7 +115,7 @@ $$
 ### Step 2: Uplift Prediction
 
 $$
-\widehat{\text{\bf{uplift}}} = 
+\widehat{\text{\bf{uplift}}} =
 \hat{\mu}\left(
 \begin{array}{cccc}
 x_{11} & \cdots & x_{1k} & 1 \\
@@ -151,7 +151,7 @@ x_{11} & \cdots & x_{1k} \\
 \vdots & \ddots & \vdots \\
 x_{11} & \cdots & x_{n_{C}k} \\
 \end{array}
-\right)}_{X|_{\text{control}}}
+\right)}_{X^{C}\coloneqq X|_{\text{control}}}
 \xrightarrow{\mu_{C}}
 \left(
 \begin{array}{c}
@@ -170,7 +170,7 @@ x_{11} & \cdots & x_{1k}  \\
 \vdots & \ddots & \vdots \\
 x_{11} & \cdots & x_{n_{T}k} \\
 \end{array}
-\right)}_{X |_{\text{treatment}}}
+\right)}_{X^{T}\coloneqq X |_{\text{treatment}}}
 \xrightarrow{\mu_{T}}
 \left(
 \begin{array}{c}
@@ -191,7 +191,7 @@ _footer: Taken from https://causalml.readthedocs.io/en/latest/methodology.html#m
 ### Step 2: Uplift Prediction
 
 $$
-\widehat{\text{\bf{uplift}}} = 
+\widehat{\text{\bf{uplift}}} =
 \hat{\mu}_{T}\left(
 \begin{array}{cccc}
 x_{11} & \cdots & x_{1k} \\
@@ -323,6 +323,8 @@ $$
 
 where $g(x) \in [0, 1]$ is a weight function.
 
+**Remark:** A common choice for $g(x)$ is an estimator of the **propensity score**, which is defined as the probability of treatment given the covariates $X$, i.e. $p(W_{i}=1|X_i)$.
+
 ---
 <!--
 _footer: Taken from [Sören, R, et.al. (2019) *"Meta-learners for Estimating Heterogeneous Treatment Effects using Machine Learning"*](https://arxiv.org/abs/1706.03461)
@@ -330,7 +332,60 @@ _footer: Taken from [Sören, R, et.al. (2019) *"Meta-learners for Estimating Het
 
 # Intuition behind the X-Learner
 
+We use an simulated example where we know the uplift is exactly $1$.
+
 ![w:600 bg right](images/x_learner_intuition.png)
+
+---
+<!--
+_footer: Taken from [Sören, R, et.al. (2019) *"Meta-learners for Estimating Heterogeneous Treatment Effects using Machine Learning"*](https://arxiv.org/abs/1706.03461)
+-->
+
+# X-Learner Step 1 (same as T-Learner):
+
+Model fit for <span style="color:red;">control</span> (red) and <span style="color:blue;">treatment</span> (blue) groups.
+
+![w:1000 center](images/x_learner_intuition_1.png)
+
+---
+<!--
+_footer: Taken from [Sören, R, et.al. (2019) *"Meta-learners for Estimating Heterogeneous Treatment Effects using Machine Learning"*](https://arxiv.org/abs/1706.03461)
+-->
+
+# T-Learner Estimation:
+
+- The solid line represents the difference between the model fit for the control group and the treatment groups.
+- The estimation is not good as the treatment group is very small.
+
+![w:900 center](images/x_learner_intuition_3.png)
+
+---
+<!--
+_footer: Taken from [Sören, R, et.al. (2019) *"Meta-learners for Estimating Heterogeneous Treatment Effects using Machine Learning"*](https://arxiv.org/abs/1706.03461)
+-->
+
+# Imputed Treatment Effects:
+
+$$
+\begin{align*}
+\tilde{D}^{T} &= Y^{T} - \hat{\mu}_{C}(X^T) \\
+\tilde{D}^{C} &= \hat{\mu}_{T}(X^{C}) - Y^{C} \\
+\end{align*}
+$$
+
+![w:900 center](images/x_learner_intuition_2.png)
+
+---
+<!--
+_footer: Taken from [Sören, R, et.al. (2019) *"Meta-learners for Estimating Heterogeneous Treatment Effects using Machine Learning"*](https://arxiv.org/abs/1706.03461)
+-->
+
+# X-Learner Estimation:
+
+- The dashed line represents the X-Learner estimation.
+- It  combines the fit from the imputed effects by using and estimator of the *propensity score*, i.e. $g(x)=\hat{e}(x)$. In this example $\hat{e}(x)$ will be small as we have much more observations in the control group. Hence the estimated uplift will be close to $\hat{\tau}^{T}$.
+
+![w:850 center](images/x_learner_intuition_3.png)
 
 ---
 
