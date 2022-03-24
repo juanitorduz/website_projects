@@ -32,7 +32,8 @@ _footer: Image taken from https://www.uplift-modeling.com/en/latest/user_guide/i
 
 # We can not **send** and **not send** incentives to the same customers at the same time
 
-![w:600 center](images/two-spiderman.jpeg)
+![w:550 center](https://media.giphy.com/media/zRwA2JgARLVYgWtfgY/giphy.gif)
+
 
 ---
 
@@ -42,8 +43,8 @@ From [Gutierrez, P., & Gérardy, J. Y. (2017). "Causal Inference and Uplift Mode
 
  - ## Uplift modeling refers to the set of techniques used to model the incremental impact of an action or treatment on a customer outcome.
  
-- ## Uplift modeling is therefore both a Causal Inference problem and a Machine Learning one. 
- 
+- ## Uplift modeling is therefore both a Causal Inference problem and a Machine Learning one.
+
 ---
 <!--
 _footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). *"Causal Inference and Uplift Modelling: A Review of the Literature"*](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
@@ -53,7 +54,7 @@ _footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). *"Causal Inference
 
 - Let $Y^{1}_{i}$ denote person $i$'s outcome when it receives the treatment and $Y^{0}_{i}$ when it does not receive the treatment.
 - We are interested in understanding the *causal effect* $Y^{1}_{i} - Y^{0}_{i}$ and the  *conditional average treatment effect* $CATE = E[Y^{1}_{i} | X_{i}] - E[Y^{0}_{i} | X_{i}]$, where $X_{i}$ is a feature vector of the $i$-th person.
-- **However, we can not observe them!** 🙁 
+- **However, we can not observe them!** 🙁
 
 ---
 <!--
@@ -70,6 +71,14 @@ $$Y_{i}^{obs} = Y^{1}_{i} W_{i} + (1 - W_{i}) Y^{0}_{i}$$
 If we **assume** that the treatment assignment $W_{i}$ is independent of $Y^{1}_{i}$  and $Y^{0}_{i}$ conditional on $X_i$, then we can estimate the $CATE$ from observational data by computing the empirical counterpart:
 
 $$\text{\bf{uplift}} = \widehat{CATE} = E[Y_{i} | X_{i}, W_{i}=1] - E[Y_{i} | X_{i}, W_{i}=0]$$
+
+---
+<!--
+_footer: Taken from https://www.uplift-modeling.com/en/latest/user_guide/introduction/data_collection.html
+-->
+# Data Collection
+
+![w:600 center](https://www.uplift-modeling.com/en/latest/_images/ug_data_collection.gif)
 
 ---
 <!--
@@ -178,7 +187,7 @@ y_{1} \\
 \vdots \\
 y_{n_{T}}
 \end{array}
-\right) 
+\right)
 $$
 
 ---
@@ -334,6 +343,8 @@ _footer: Taken from [Sören, R, et.al. (2019) *"Meta-learners for Estimating Het
 
 We use an simulated example where we know the uplift is exactly $1$.
 
+![w:400 center](https://media.giphy.com/media/icgArcntfH5C0/giphy.gif)
+
 ![w:600 bg right](images/x_learner_intuition.png)
 
 ---
@@ -434,9 +445,9 @@ t_learner.models_t[1]
 _footer: Taken from [Diemert, Eustache, et.al. (2020) *"A Large Scale Benchmark for Uplift Modeling"*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf)
 -->
 
-# Perfect Uplift Model
+# Uplift Model Evaluation
 
-> A perfect model assigns higher scores to all treated individuals
+> A **perfect model** assigns higher scores to all treated individuals
 with positive outcomes than any individuals with negative outcomes.
 
 ```python
@@ -567,15 +578,6 @@ np.random.uniform(
 ```
 
 ![w:600 bg right](images/random_uplift_curves.png)
-
----
-
-<!--
-_footer: Taken from https://www.uplift-modeling.com/en/latest/user_guide/introduction/data_collection.html
--->
-# Data Collection
-
-![w:600 center](https://www.uplift-modeling.com/en/latest/_images/ug_data_collection.gif)
 
 ---
 <!--
