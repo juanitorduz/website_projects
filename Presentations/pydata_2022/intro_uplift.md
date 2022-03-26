@@ -32,8 +32,7 @@ _footer: Image taken from https://www.uplift-modeling.com/en/latest/user_guide/i
 
 # We can not **send** and **not send** incentives to the same customers at the same time
 
-![w:550 center](https://media.giphy.com/media/zRwA2JgARLVYgWtfgY/giphy.gif)
-
+![w:550 center](images/spiderman.gif)
 
 ---
 
@@ -78,7 +77,7 @@ _footer: Taken from https://www.uplift-modeling.com/en/latest/user_guide/introdu
 -->
 # Data Collection
 
-![w:600 center](https://www.uplift-modeling.com/en/latest/_images/ug_data_collection.gif)
+![w:600 center](images/ug_data_collection.gif)
 
 ---
 <!--
@@ -343,7 +342,7 @@ _footer: Taken from [Sören, R, et.al. (2019) *"Meta-learners for Estimating Het
 
 We use an simulated example where we know the uplift is exactly $1$.
 
-![w:400 center](https://media.giphy.com/media/icgArcntfH5C0/giphy.gif)
+![w:400 center](images/x_learner_intuition.gif)
 
 ![w:600 bg right](images/x_learner_intuition.png)
 
@@ -400,7 +399,7 @@ _footer: Taken from [Sören, R, et.al. (2019) *"Meta-learners for Estimating Het
 
 ---
 
-# Some python implementations
+# Some Python Implementations
 
 - [`causalml`](https://github.com/uber/causalml)
 
@@ -466,7 +465,7 @@ perfect_uplift = 2 * (y_true == treatment) + summand
 
 ---
 
-# Uplift Evaluation: Uplift by percentile
+# Uplift Evaluation: Uplift by Percentile
 
 1. Sort uplift predictions by decreasing order.
 2. Predict uplift for both treated and control observations
@@ -480,7 +479,7 @@ perfect_uplift = 2 * (y_true == treatment) + summand
 _footer: Plot function `plot_uplift_by_percentile` from [`scikit-uplift`](https://github.com/maks-sh/scikit-uplift).
 -->
 
-# Uplift Evaluation: Uplift by percentile
+# Uplift Evaluation: Uplift by Percentile
 
 ![w:620 bg right:50%](images/cum_percentile_plot.png)
 
@@ -491,7 +490,7 @@ A well performing model would have large values in the first percentiles and dec
 _footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). *"Causal Inference and Uplift Modelling: A Review of the Literature"*](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
 -->
 
-# Uplift Evaluation: Cumulative gain chart
+# Uplift Evaluation: Cumulative Gain Chart
 
 > Predict uplift for both treated and control observations and compute the average prediction per decile (bins) in both groups. Then, the difference between those averages is taken for each decile.
 
@@ -509,7 +508,7 @@ $$
 
 ---
 
-# Uplift Evaluation: Cumulative gain chart
+# Uplift Evaluation: Cumulative Gain Chart
 
 ```python
 (x["uplift"] * (x["n_treatment"] + x["n_control"])).cumsum()
@@ -586,6 +585,8 @@ _footer: See https://juanitorduz.github.io/uplift/
 # Demo 
 ## [Notebook Link](https://juanitorduz.github.io/uplift/)
 
+![w:400 center](images/nb.png)
+
 ---
 
 ## References:
@@ -604,4 +605,4 @@ _footer: See https://juanitorduz.github.io/uplift/
 
 ## More Info: [juanitorduz.github.io](https://juanitorduz.github.io)
 
-![w:400 center](images/qr-code-juanitorduz.png)
+![w:400 center](images/juanitorduz.png)
