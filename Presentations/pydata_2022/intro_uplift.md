@@ -27,6 +27,8 @@ _footer: Image taken from https://www.uplift-modeling.com/en/latest/user_guide/i
 
 ## How can we optimally select customers to be treated by marketing incentives?
 
+![w:400 center](images/60_percent.gif)
+
 ![w:500 bg right](https://www.uplift-modeling.com/en/latest/_images/ug_clients_types.jpg)
 
 ---
@@ -421,7 +423,7 @@ _footer: Taken from [Sören, R, et.al. (2019) *"Meta-learners for Estimating Het
 
 ---
 
-# Python code: Example 🐍
+# Python Code: Example 🐍
 
 ```python
 from causalml.inference.meta import BaseTClassifier
@@ -445,28 +447,14 @@ t_learner.models_t[1]
 ```
 
 ---
-<!--
-_footer: Taken from [Diemert, Eustache, et.al. (2020) *"A Large Scale Benchmark for Uplift Modeling"*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf)
--->
 
-# Uplift Model Evaluation
+## Uplift Model Evaluation?
 
-> A **perfect model** assigns higher scores to all treated individuals
-with positive outcomes than any individuals with negative outcomes.
+![w:600 bg left:50%](images/roc.png)
 
-```python
-# Control Responders
-cr_num = np.sum((y_true == 1) & (treatment == 0))
-# Treated Non-Responders
-tn_num = np.sum((y_true == 0) & (treatment == 1))
+![w:650 right](images/uplift_curve.png)
 
-summand = y_true if cr_num > tn_num else treatment
-
-perfect_uplift = 2 * (y_true == treatment) + summand
-```
-
-![w:600 bg right](images/perfect_uplift_sort.png)
-
+![w:200 center](images/wtf_tom.gif)
 
 ---
 
@@ -513,13 +501,34 @@ $$
 
 ---
 
-# Uplift Evaluation: Cumulative Gain Chart
+# How to compute it ? 🫠
+
+![w:240 center](images/ron_thinking.gif)
 
 ```python
-(x["uplift"] * (x["n_treatment"] + x["n_control"])).cumsum()
+df = uplift_by_percentile_df
+
+# compute cumulative response rates
+df["responses_treatment"] = df["n_treatment"] * x["response_rate_treatment"]
+df["responses_control"] = df["n_control"] * x["response_rate_control"]
+df["n_treatment_cumsum"] = df["n_treatment"].cumsum()
+df["n_control_cumsum"] = df["n_control"].cumsum()
+df["responses_treatment_cumsum"] = df["responses_treatment"].cumsum()
+df["responses_control_cumsum"] = df["responses_control"].cumsum()
+df["response_rate_treatment_cumsum"] = df["responses_treatment_cumsum"] / x["n_treatment_cumsum"]
+df["response_rate_control_cumsum"] = df["responses_control_cumsum"] / x["n_control_cumsum"]
+
+# compute uplifts (at cumulative level)
+df["uplift_cumsum"] = df["response_rate_treatment_cumsum"] - df["response_rate_control_cumsum"]
+# compute cumulative gains
+df["cum_gain"] = df["uplift_cumsum"] * (df["n_treatment_cumsum"] + df["n_control_cumsum"])
 ```
 
-![w:550 center](images/cum_gain_percentile.png)
+---
+
+# Uplift Evaluation: Cumulative Gain Chart
+
+![w:650 center](images/cum_gain_percentile.png)
 
 - We can assess whether the treatment has a global positive or negative effect and if one can expect a better gain by targeting part of the population.
 - We can thus choose the decile that maximizes the gain as the limit of the population to be targeted.
@@ -556,6 +565,28 @@ _footer: Plot function `plot_uplift_curve` from [`scikit-uplift`](https://github
 # Uplift Metrics: Uplift Curve & AUC
 
 ![w:700 center](images/uplift_curve.png)
+
+---
+<!--
+_footer: Taken from [Diemert, Eustache, et.al. (2020) *"A Large Scale Benchmark for Uplift Modeling"*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf)
+-->
+
+# Best uplift model?
+
+> A **perfect model** assigns higher scores to all treated individuals with positive outcomes than any individuals with negative outcomes.
+
+```python
+# Control Responders
+cr_num = np.sum((y_true == 1) & (treatment == 0))
+# Treated Non-Responders
+tn_num = np.sum((y_true == 0) & (treatment == 1))
+
+summand = y_true if cr_num > tn_num else treatment
+
+perfect_uplift = 2 * (y_true == treatment) + summand
+```
+
+![w:600 bg right](images/perfect_uplift_sort.png)
 
 ---
 
@@ -595,7 +626,7 @@ Compute AUC on a test set.
 
 ---
 
-# Other metrics: Quini Curve
+# Other metrics: Qini Curve
 
 $$
 g(t)

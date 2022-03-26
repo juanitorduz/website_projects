@@ -50,6 +50,7 @@
 ;--marpit-advanced-background-split:50%;" data-marpit-advanced-background="content" data-marpit-advanced-background-split="right">
 <h1>Motivation</h1>
 <h2>How can we optimally select customers to be treated by marketing incentives?</h2>
+<p><img src="images/60_percent.gif" alt="center" style="width:400px;" /></p>
 <footer>Image taken from <a href="https://www.uplift-modeling.com/en/latest/user_guide/introduction/clients.html">https://www.uplift-modeling.com/en/latest/user_guide/introduction/clients.html</a></footer>
 </section>
 </foreignObject><foreignObject width="1280" height="720" data-marpit-advanced-background="pseudo"><section style="" data-marpit-advanced-background="pseudo"></section></foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="3" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
@@ -595,7 +596,7 @@ c-1 5-5 9-11 9h-2L532 67 19 159h-2c-5 0-9-4-11-9l-5-22c-1-6 2-12 8-13z'/></svg><
   margin: auto;
 }
 ;">
-<h1>Python code: Example <img class="emoji" draggable="false" alt="🐍" src="https://twemoji.maxcdn.com/2/svg/1f40d.svg" data-marp-twemoji=""/></h1>
+<h1>Python Code: Example <img class="emoji" draggable="false" alt="🐍" src="https://twemoji.maxcdn.com/2/svg/1f40d.svg" data-marp-twemoji=""/></h1>
 <pre><code class="language-python"><svg data-marp-fitting="svg" data-marp-fitting-code><foreignObject><span data-marp-fitting-svg-content><span data-marp-fitting-svg-content-wrap><span class="hljs-keyword">from</span> causalml.inference.meta <span class="hljs-keyword">import</span> BaseTClassifier
 <span class="hljs-keyword">from</span> sklearn.ensemble <span class="hljs-keyword">import</span> HistGradientBoostingClassifier
 
@@ -616,38 +617,27 @@ t_learner.models_c[<span class="hljs-number">1</span>]
 t_learner.models_t[<span class="hljs-number">1</span>]
 </span></span></foreignObject></svg></code></pre>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section data-footer="Taken from [Diemert, Eustache, et.al. (2020) *&quot;A Large Scale Benchmark for Uplift Modeling&quot;*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf)" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section data-theme="default" data-style="img[alt~=&quot;center&quot;] {
   display: block;
   margin: auto;
 }
-" style="--footer:Taken from [Diemert, Eustache, et.al. (2020) *&quot;A Large Scale Benchmark for Uplift Modeling&quot;*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf);--theme:default;--style:img[alt~=&quot;center&quot;] {
+" style="--theme:default;--style:img[alt~=&quot;center&quot;] {
   display: block;
   margin: auto;
 }
-;--marpit-advanced-background-split:50%;" data-marpit-advanced-background="background" data-marpit-advanced-background-split="right"><div data-marpit-advanced-background-container="true" data-marpit-advanced-background-direction="horizontal"><figure style="background-image:url(&quot;images/perfect_uplift_sort.png&quot;);background-size:600px auto;"></figure></div></section></foreignObject><foreignObject width="50%" height="720"><section id="22" data-footer="Taken from [Diemert, Eustache, et.al. (2020) *&quot;A Large Scale Benchmark for Uplift Modeling&quot;*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf)" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
+;--marpit-advanced-background-split:50%;" data-marpit-advanced-background="background" data-marpit-advanced-background-split="left"><div data-marpit-advanced-background-container="true" data-marpit-advanced-background-direction="horizontal"><figure style="background-image:url(&quot;images/roc.png&quot;);background-size:600px auto;"></figure></div></section></foreignObject><foreignObject width="50%" height="720" x="50%"><section id="22" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
   display: block;
   margin: auto;
 }
-" style="--footer:Taken from [Diemert, Eustache, et.al. (2020) *&quot;A Large Scale Benchmark for Uplift Modeling&quot;*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf);--theme:default;--style:img[alt~=&quot;center&quot;] {
+" style="--theme:default;--style:img[alt~=&quot;center&quot;] {
   display: block;
   margin: auto;
 }
-;--marpit-advanced-background-split:50%;" data-marpit-advanced-background="content" data-marpit-advanced-background-split="right">
-<h1>Uplift Model Evaluation</h1>
-<blockquote>
-<p>A <strong>perfect model</strong> assigns higher scores to all treated individuals<br />
-with positive outcomes than any individuals with negative outcomes.</p>
-</blockquote>
-<pre><code class="language-python"><svg data-marp-fitting="svg" data-marp-fitting-code><foreignObject><span data-marp-fitting-svg-content><span data-marp-fitting-svg-content-wrap><span class="hljs-comment"># Control Responders</span>
-cr_num = np.<span class="hljs-built_in">sum</span>((y_true == <span class="hljs-number">1</span>) &amp; (treatment == <span class="hljs-number">0</span>))
-<span class="hljs-comment"># Treated Non-Responders</span>
-tn_num = np.<span class="hljs-built_in">sum</span>((y_true == <span class="hljs-number">0</span>) &amp; (treatment == <span class="hljs-number">1</span>))
+;--marpit-advanced-background-split:50%;" data-marpit-advanced-background="content" data-marpit-advanced-background-split="left">
+<h2>Uplift Model Evaluation?</h2>
 
-summand = y_true <span class="hljs-keyword">if</span> cr_num &gt; tn_num <span class="hljs-keyword">else</span> treatment
-
-perfect_uplift = <span class="hljs-number">2</span> * (y_true == treatment) + summand
-</span></span></foreignObject></svg></code></pre>
-<footer>Taken from <a href="http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf">Diemert, Eustache, et.al. (2020) <em>&quot;A Large Scale Benchmark for Uplift Modeling&quot;</em></a></footer>
+<p><img src="images/uplift_curve.png" alt="right" style="width:650px;" /></p>
+<p><img src="images/wtf_tom.gif" alt="center" style="width:200px;" /></p>
 </section>
 </foreignObject><foreignObject width="1280" height="720" data-marpit-advanced-background="pseudo"><section style="" data-marpit-advanced-background="pseudo"></section></foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="23" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
   display: block;
@@ -723,16 +713,43 @@ perfect_uplift = <span class="hljs-number">2</span> * (y_true == treatment) + su
   margin: auto;
 }
 ;">
-<h1>Uplift Evaluation: Cumulative Gain Chart</h1>
-<pre><code class="language-python"><svg data-marp-fitting="svg" data-marp-fitting-code><foreignObject><span data-marp-fitting-svg-content><span data-marp-fitting-svg-content-wrap>(x[<span class="hljs-string">&quot;uplift&quot;</span>] * (x[<span class="hljs-string">&quot;n_treatment&quot;</span>] + x[<span class="hljs-string">&quot;n_control&quot;</span>])).cumsum()
+<h1>How to compute it ? 🫠</h1>
+<p><img src="images/ron_thinking.gif" alt="center" style="width:240px;" /></p>
+<pre><code class="language-python"><svg data-marp-fitting="svg" data-marp-fitting-code><foreignObject><span data-marp-fitting-svg-content><span data-marp-fitting-svg-content-wrap>df = uplift_by_percentile_df
+
+<span class="hljs-comment"># compute cumulative response rates</span>
+df[<span class="hljs-string">&quot;responses_treatment&quot;</span>] = df[<span class="hljs-string">&quot;n_treatment&quot;</span>] * x[<span class="hljs-string">&quot;response_rate_treatment&quot;</span>]
+df[<span class="hljs-string">&quot;responses_control&quot;</span>] = df[<span class="hljs-string">&quot;n_control&quot;</span>] * x[<span class="hljs-string">&quot;response_rate_control&quot;</span>]
+df[<span class="hljs-string">&quot;n_treatment_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;n_treatment&quot;</span>].cumsum()
+df[<span class="hljs-string">&quot;n_control_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;n_control&quot;</span>].cumsum()
+df[<span class="hljs-string">&quot;responses_treatment_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;responses_treatment&quot;</span>].cumsum()
+df[<span class="hljs-string">&quot;responses_control_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;responses_control&quot;</span>].cumsum()
+df[<span class="hljs-string">&quot;response_rate_treatment_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;responses_treatment_cumsum&quot;</span>] / x[<span class="hljs-string">&quot;n_treatment_cumsum&quot;</span>]
+df[<span class="hljs-string">&quot;response_rate_control_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;responses_control_cumsum&quot;</span>] / x[<span class="hljs-string">&quot;n_control_cumsum&quot;</span>]
+
+<span class="hljs-comment"># compute uplifts (at cumulative level)</span>
+df[<span class="hljs-string">&quot;uplift_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;response_rate_treatment_cumsum&quot;</span>] - df[<span class="hljs-string">&quot;response_rate_control_cumsum&quot;</span>]
+<span class="hljs-comment"># compute cumulative gains</span>
+df[<span class="hljs-string">&quot;cum_gain&quot;</span>] = df[<span class="hljs-string">&quot;uplift_cumsum&quot;</span>] * (df[<span class="hljs-string">&quot;n_treatment_cumsum&quot;</span>] + df[<span class="hljs-string">&quot;n_control_cumsum&quot;</span>])
 </span></span></foreignObject></svg></code></pre>
-<p><img src="images/cum_gain_percentile.png" alt="center" style="width:550px;" /></p>
+</section>
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="27" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
+  display: block;
+  margin: auto;
+}
+" style="--theme:default;--style:img[alt~=&quot;center&quot;] {
+  display: block;
+  margin: auto;
+}
+;">
+<h1>Uplift Evaluation: Cumulative Gain Chart</h1>
+<p><img src="images/cum_gain_percentile.png" alt="center" style="width:650px;" /></p>
 <ul>
 <li>We can assess whether the treatment has a global positive or negative effect and if one can expect a better gain by targeting part of the population.</li>
 <li>We can thus choose the decile that maximizes the gain as the limit of the population to be targeted.</li>
 </ul>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="27" data-footer="Taken from [Gutierrez, P., &amp; Gérardy, J. Y. (2017). *&quot;Causal Inference and Uplift Modelling: A Review of the Literature&quot;*](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="28" data-footer="Taken from [Gutierrez, P., &amp; Gérardy, J. Y. (2017). *&quot;Causal Inference and Uplift Modelling: A Review of the Literature&quot;*](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
   display: block;
   margin: auto;
 }
@@ -754,7 +771,7 @@ perfect_uplift = <span class="hljs-number">2</span> * (y_true == treatment) + su
 </annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal">t</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4772em;vertical-align:-0.9589em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.5183em;"><span style="top:-2.2869em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8231em;"><span style="top:-2.4542em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span style="top:-3.0448em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">T</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2458em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-2.453em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">T</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9589em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.5183em;"><span style="top:-2.2869em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8231em;"><span style="top:-2.4542em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span style="top:-3.0448em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">C</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2458em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-2.453em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">C</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9589em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-2.453em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">T</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.1413em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-2.453em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">C</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span></span></span></foreignObject></svg></p><p><em>where the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6151em;"></span><span class="mord mathnormal">t</span></span></span></span> subscript indicates that the quantity is calculated for the first <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6151em;"></span><span class="mord mathnormal">t</span></span></span></span> observations, sorted by inferred uplift value.</em></p>
 <footer>Taken from <a href="https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf">Gutierrez, P., &amp; Gérardy, J. Y. (2017). <em>&quot;Causal Inference and Uplift Modelling: A Review of the Literature&quot;</em></a></footer>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="28" data-footer="Plot function `plot_uplift_curve` from [`scikit-uplift`](https://github.com/maks-sh/scikit-uplift)" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="29" data-footer="Plot function `plot_uplift_curve` from [`scikit-uplift`](https://github.com/maks-sh/scikit-uplift)" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
   display: block;
   margin: auto;
 }
@@ -767,7 +784,39 @@ perfect_uplift = <span class="hljs-number">2</span> * (y_true == treatment) + su
 <p><img src="images/uplift_curve.png" alt="center" style="width:700px;" /></p>
 <footer>Plot function <code>plot_uplift_curve</code> from <a href="https://github.com/maks-sh/scikit-uplift"><code>scikit-uplift</code></a></footer>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="29" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section data-footer="Taken from [Diemert, Eustache, et.al. (2020) *&quot;A Large Scale Benchmark for Uplift Modeling&quot;*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf)" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
+  display: block;
+  margin: auto;
+}
+" style="--footer:Taken from [Diemert, Eustache, et.al. (2020) *&quot;A Large Scale Benchmark for Uplift Modeling&quot;*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf);--theme:default;--style:img[alt~=&quot;center&quot;] {
+  display: block;
+  margin: auto;
+}
+;--marpit-advanced-background-split:50%;" data-marpit-advanced-background="background" data-marpit-advanced-background-split="right"><div data-marpit-advanced-background-container="true" data-marpit-advanced-background-direction="horizontal"><figure style="background-image:url(&quot;images/perfect_uplift_sort.png&quot;);background-size:600px auto;"></figure></div></section></foreignObject><foreignObject width="50%" height="720"><section id="30" data-footer="Taken from [Diemert, Eustache, et.al. (2020) *&quot;A Large Scale Benchmark for Uplift Modeling&quot;*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf)" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
+  display: block;
+  margin: auto;
+}
+" style="--footer:Taken from [Diemert, Eustache, et.al. (2020) *&quot;A Large Scale Benchmark for Uplift Modeling&quot;*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf);--theme:default;--style:img[alt~=&quot;center&quot;] {
+  display: block;
+  margin: auto;
+}
+;--marpit-advanced-background-split:50%;" data-marpit-advanced-background="content" data-marpit-advanced-background-split="right">
+<h1>Best uplift model?</h1>
+<blockquote>
+<p>A <strong>perfect model</strong> assigns higher scores to all treated individuals with positive outcomes than any individuals with negative outcomes.</p>
+</blockquote>
+<pre><code class="language-python"><svg data-marp-fitting="svg" data-marp-fitting-code><foreignObject><span data-marp-fitting-svg-content><span data-marp-fitting-svg-content-wrap><span class="hljs-comment"># Control Responders</span>
+cr_num = np.<span class="hljs-built_in">sum</span>((y_true == <span class="hljs-number">1</span>) &amp; (treatment == <span class="hljs-number">0</span>))
+<span class="hljs-comment"># Treated Non-Responders</span>
+tn_num = np.<span class="hljs-built_in">sum</span>((y_true == <span class="hljs-number">0</span>) &amp; (treatment == <span class="hljs-number">1</span>))
+
+summand = y_true <span class="hljs-keyword">if</span> cr_num &gt; tn_num <span class="hljs-keyword">else</span> treatment
+
+perfect_uplift = <span class="hljs-number">2</span> * (y_true == treatment) + summand
+</span></span></foreignObject></svg></code></pre>
+<footer>Taken from <a href="http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf">Diemert, Eustache, et.al. (2020) <em>&quot;A Large Scale Benchmark for Uplift Modeling&quot;</em></a></footer>
+</section>
+</foreignObject><foreignObject width="1280" height="720" data-marpit-advanced-background="pseudo"><section style="" data-marpit-advanced-background="pseudo"></section></foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="31" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
   display: block;
   margin: auto;
 }
@@ -791,7 +840,7 @@ a, b = uplift_curve(y_true=y_true, uplift=perfect_uplift, treatment=treatment)
   display: block;
   margin: auto;
 }
-;--marpit-advanced-background-split:50%;" data-marpit-advanced-background="background" data-marpit-advanced-background-split="right"><div data-marpit-advanced-background-container="true" data-marpit-advanced-background-direction="horizontal"><figure style="background-image:url(&quot;images/random_uplift_curves.png&quot;);background-size:550px auto;"></figure></div></section></foreignObject><foreignObject width="50%" height="720"><section id="30" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
+;--marpit-advanced-background-split:50%;" data-marpit-advanced-background="background" data-marpit-advanced-background-split="right"><div data-marpit-advanced-background-container="true" data-marpit-advanced-background-direction="horizontal"><figure style="background-image:url(&quot;images/random_uplift_curves.png&quot;);background-size:550px auto;"></figure></div></section></foreignObject><foreignObject width="50%" height="720"><section id="32" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
   display: block;
   margin: auto;
 }
@@ -818,7 +867,7 @@ np.random.uniform(
   display: block;
   margin: auto;
 }
-;--marpit-advanced-background-split:60%;" data-marpit-advanced-background="background" data-marpit-advanced-background-split="right"><div data-marpit-advanced-background-container="true" data-marpit-advanced-background-direction="horizontal"><figure style="background-image:url(&quot;images/uplift_curves_comparison.png&quot;);background-size:700px auto;"></figure></div></section></foreignObject><foreignObject width="40%" height="720"><section id="31" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
+;--marpit-advanced-background-split:60%;" data-marpit-advanced-background="background" data-marpit-advanced-background-split="right"><div data-marpit-advanced-background-container="true" data-marpit-advanced-background-direction="horizontal"><figure style="background-image:url(&quot;images/uplift_curves_comparison.png&quot;);background-size:700px auto;"></figure></div></section></foreignObject><foreignObject width="40%" height="720"><section id="33" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
   display: block;
   margin: auto;
 }
@@ -838,7 +887,7 @@ np.random.uniform(
   display: block;
   margin: auto;
 }
-;--marpit-advanced-background-split:60%;" data-marpit-advanced-background="background" data-marpit-advanced-background-split="right"><div data-marpit-advanced-background-container="true" data-marpit-advanced-background-direction="horizontal"><figure style="background-image:url(&quot;images/qini_curves_comparison.png&quot;);background-size:700px auto;"></figure></div></section></foreignObject><foreignObject width="40%" height="720"><section id="32" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
+;--marpit-advanced-background-split:60%;" data-marpit-advanced-background="background" data-marpit-advanced-background-split="right"><div data-marpit-advanced-background-container="true" data-marpit-advanced-background-direction="horizontal"><figure style="background-image:url(&quot;images/qini_curves_comparison.png&quot;);background-size:700px auto;"></figure></div></section></foreignObject><foreignObject width="40%" height="720"><section id="34" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
   display: block;
   margin: auto;
 }
@@ -847,7 +896,7 @@ np.random.uniform(
   margin: auto;
 }
 ;--marpit-advanced-background-split:60%;" data-marpit-advanced-background="content" data-marpit-advanced-background-split="right">
-<h1>Other metrics: Quini Curve</h1>
+<h1>Other metrics: Qini Curve</h1>
 <p><svg data-marp-fitting="svg" data-marp-fitting-math><foreignObject><span data-marp-fitting-svg-content><span data-marp-fitting-svg-content-wrap><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>g</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo><msubsup><mi>Y</mi><mi>t</mi><mi>T</mi></msubsup><mo>−</mo><msubsup><mi>Y</mi><mi>t</mi><mi>C</mi></msubsup><mrow><mo fence="true">(</mo><mfrac><msubsup><mi>N</mi><mi>t</mi><mi>T</mi></msubsup><msubsup><mi>N</mi><mi>t</mi><mi>C</mi></msubsup></mfrac><mo fence="true">)</mo></mrow></mrow><annotation encoding="application/x-tex">g(t)
 =
 Y^{T}_{t}
@@ -860,7 +909,7 @@ Y^{C}_{t}
 <p>Corrects uplifts of selected individuals with respect to the number of individuals in treatment/control using the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>N</mi><mi>t</mi><mi>T</mi></msubsup><mi mathvariant="normal">/</mi><msubsup><mi>N</mi><mi>t</mi><mi>C</mi></msubsup></mrow><annotation encoding="application/x-tex">N^{T}_{t} / N^{C}_{t}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0913em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-2.453em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">T</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-2.453em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">C</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span></span></span></span> factor.</p>
 </blockquote>
 </section>
-</foreignObject><foreignObject width="1280" height="720" data-marpit-advanced-background="pseudo"><section style="" data-marpit-advanced-background="pseudo"></section></foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="33" data-footer="See https://juanitorduz.github.io/uplift/" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
+</foreignObject><foreignObject width="1280" height="720" data-marpit-advanced-background="pseudo"><section style="" data-marpit-advanced-background="pseudo"></section></foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="35" data-footer="See https://juanitorduz.github.io/uplift/" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
   display: block;
   margin: auto;
 }
@@ -874,7 +923,7 @@ Y^{C}_{t}
 <p><img src="images/nb.png" alt="center" style="width:400px;" /></p>
 <footer>See <a href="https://juanitorduz.github.io/uplift/">https://juanitorduz.github.io/uplift/</a></footer>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="34" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="36" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
   display: block;
   margin: auto;
 }
@@ -899,7 +948,7 @@ Y^{C}_{t}
 </li>
 </ul>
 </section>
-</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="35" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
+</foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="37" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
   display: block;
   margin: auto;
 }
