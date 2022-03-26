@@ -6,6 +6,7 @@ style: |
       display: block;
       margin: auto;
     }
+math: katex
 ---
 
 # Introduction to Uplift Modeling
@@ -32,7 +33,7 @@ _footer: Image taken from https://www.uplift-modeling.com/en/latest/user_guide/i
 
 # We can not **send** and **not send** incentives to the same customers at the same time
 
-![w:600 center](images/two-spiderman.jpeg)
+![w:550 center](images/spiderman.gif)
 
 ---
 
@@ -42,8 +43,8 @@ From [Gutierrez, P., & Gérardy, J. Y. (2017). "Causal Inference and Uplift Mode
 
  - ## Uplift modeling refers to the set of techniques used to model the incremental impact of an action or treatment on a customer outcome.
  
-- ## Uplift modeling is therefore both a Causal Inference problem and a Machine Learning one. 
- 
+- ## Uplift modeling is therefore both a Causal Inference problem and a Machine Learning one.
+
 ---
 <!--
 _footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). *"Causal Inference and Uplift Modelling: A Review of the Literature"*](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
@@ -52,24 +53,36 @@ _footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). *"Causal Inference
 # Conditional Average Treatment Effect
 
 - Let $Y^{1}_{i}$ denote person $i$'s outcome when it receives the treatment and $Y^{0}_{i}$ when it does not receive the treatment.
-- We are interested in understanding the *causal effect* $Y^{1}_{i} - Y^{0}_{i}$ and the  *conditional average treatment effect* $CATE = E[Y^{1}_{i} | X_{i}] - E[Y^{0}_{i} | X_{i}]$, where $X_{i}$ is a feature vector of the $i$-th person.
-- **However, we can not observe them!** 🙁 
+- We are interested in:
+  - The *causal effect* $\tau_{i} \coloneqq  Y^{1}_{i} - Y^{0}_{i}$
+  - Given a feature vector  $X_{i}$ of the $i$-th person, we would like to estimate the *conditional average treatment effect*
+    $$CATE \: : \tau(X_{i})  \coloneqq E[Y^{1}_{i} | X_{i}] - E[Y^{0}_{i} | X_{i}]$$
+
+- **However, we can not observe them!** 🙁
 
 ---
 <!--
 _footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). *"Causal Inference and Uplift Modelling: A Review of the Literature"*](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
 -->
-# Uplift
+# CATE Estimation
+
 
 Let $W_{i}$ is a binary variable indicating whether person $i$ received the treatment, so that
 
 $$Y_{i}^{obs} = Y^{1}_{i} W_{i} + (1 - W_{i}) Y^{0}_{i}$$
-
 ## Unconfoundedness Assumption
 
 If we **assume** that the treatment assignment $W_{i}$ is independent of $Y^{1}_{i}$  and $Y^{0}_{i}$ conditional on $X_i$, then we can estimate the $CATE$ from observational data by computing the empirical counterpart:
 
-$$\text{\bf{uplift}} = \widehat{CATE} = E[Y_{i} | X_{i}, W_{i}=1] - E[Y_{i} | X_{i}, W_{i}=0]$$
+$$\text{\bf{uplift}} = \widehat{\tau}(X_{i}) = E[Y^{obs}_{i} | X_{i}, W_{i}=1] - E[Y^{obs}_{i} | X_{i}, W_{i}=0]$$
+
+---
+<!--
+_footer: Taken from https://www.uplift-modeling.com/en/latest/user_guide/introduction/data_collection.html
+-->
+# 🤔 Data Collection
+
+![w:600 center](images/ug_data_collection.gif)
 
 ---
 <!--
@@ -115,7 +128,7 @@ $$
 ### Step 2: Uplift Prediction
 
 $$
-\widehat{\text{\bf{uplift}}} =
+\widehat{\tau}(X) =
 \hat{\mu}\left(
 \begin{array}{cccc}
 x_{11} & \cdots & x_{1k} & 1 \\
@@ -178,7 +191,7 @@ y_{1} \\
 \vdots \\
 y_{n_{T}}
 \end{array}
-\right) 
+\right)
 $$
 
 ---
@@ -191,7 +204,7 @@ _footer: Taken from https://causalml.readthedocs.io/en/latest/methodology.html#m
 ### Step 2: Uplift Prediction
 
 $$
-\widehat{\text{\bf{uplift}}} =
+\widehat{\tau}(X) =
 \hat{\mu}_{T}\left(
 \begin{array}{cccc}
 x_{11} & \cdots & x_{1k} \\
@@ -318,12 +331,12 @@ _footer: Taken from https://causalml.readthedocs.io/en/latest/methodology.html#m
 ### Step 4: Uplift Prediction
 
 $$
-\widehat{\text{\bf{uplift}}} = g(x)\hat{\tau}_{C}(x) + (1 - g(x))\hat{\tau}_{T}(x)
+\widehat{\tau}(X) = g(X)\hat{\tau}_{C}(X) + (1 - g(X))\hat{\tau}_{T}(X)
 $$
 
-where $g(x) \in [0, 1]$ is a weight function.
+where $g(X) \in [0, 1]$ is a weight function.
 
-**Remark:** A common choice for $g(x)$ is an estimator of the **propensity score**, which is defined as the probability of treatment given the covariates $X$, i.e. $p(W_{i}=1|X_i)$.
+**Remark:** A common choice for $g(X)$ is an estimator of the **propensity score**, which is defined as the probability of treatment given the covariates $X$, i.e. $p(W_{i}=1|X_i)$.
 
 ---
 <!--
@@ -332,7 +345,9 @@ _footer: Taken from [Sören, R, et.al. (2019) *"Meta-learners for Estimating Het
 
 # Intuition behind the X-Learner
 
-We use an simulated example where we know the uplift is exactly $1$.
+We study an simulated example where we know the uplift is exactly $\tau=1$.
+
+![w:400 center](images/x_learner_intuition.gif)
 
 ![w:600 bg right](images/x_learner_intuition.png)
 
@@ -389,7 +404,7 @@ _footer: Taken from [Sören, R, et.al. (2019) *"Meta-learners for Estimating Het
 
 ---
 
-# Some python implementations
+# Some Python Implementations
 
 - [`causalml`](https://github.com/uber/causalml)
 
@@ -406,7 +421,7 @@ _footer: Taken from [Sören, R, et.al. (2019) *"Meta-learners for Estimating Het
 
 ---
 
-# Python code: Example
+# Python code: Example 🐍
 
 ```python
 from causalml.inference.meta import BaseTClassifier
@@ -434,9 +449,9 @@ t_learner.models_t[1]
 _footer: Taken from [Diemert, Eustache, et.al. (2020) *"A Large Scale Benchmark for Uplift Modeling"*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf)
 -->
 
-# Perfect Uplift Model
+# Uplift Model Evaluation
 
-> A perfect model assigns higher scores to all treated individuals
+> A **perfect model** assigns higher scores to all treated individuals
 with positive outcomes than any individuals with negative outcomes.
 
 ```python
@@ -455,11 +470,11 @@ perfect_uplift = 2 * (y_true == treatment) + summand
 
 ---
 
-# Uplift Evaluation: Uplift by percentile
+# Uplift Evaluation: Uplift by Percentile
 
 1. Sort uplift predictions by decreasing order.
-2. Predict uplift for both treated and control observations
-3. Compute the average prediction per percentile in both groups.
+2. Compute percentiles.
+3. Predict uplift for both treated and control observations per percentile.
 4. The difference between those averages is taken for each percentile.
 
 ![w:750 center](images/uplift_by_percentile_table.png)
@@ -469,9 +484,9 @@ perfect_uplift = 2 * (y_true == treatment) + summand
 _footer: Plot function `plot_uplift_by_percentile` from [`scikit-uplift`](https://github.com/maks-sh/scikit-uplift).
 -->
 
-# Uplift Evaluation: Uplift by percentile
+# Uplift Evaluation: Uplift by Percentile
 
-![w:620 bg right:50%](images/cum_percentile_plot.png)
+![w:630 bg right:51%](images/cum_percentile_plot.png)
 
 A well performing model would have large values in the first percentiles and decreasing values for larger ones
 
@@ -480,7 +495,7 @@ A well performing model would have large values in the first percentiles and dec
 _footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). *"Causal Inference and Uplift Modelling: A Review of the Literature"*](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
 -->
 
-# Uplift Evaluation: Cumulative gain chart
+# Uplift Evaluation: Cumulative Gain Chart
 
 > Predict uplift for both treated and control observations and compute the average prediction per decile (bins) in both groups. Then, the difference between those averages is taken for each decile.
 
@@ -498,7 +513,7 @@ $$
 
 ---
 
-# Uplift Evaluation: Cumulative gain chart
+# Uplift Evaluation: Cumulative Gain Chart
 
 ```python
 (x["uplift"] * (x["n_treatment"] + x["n_control"])).cumsum()
@@ -506,8 +521,8 @@ $$
 
 ![w:550 center](images/cum_gain_percentile.png)
 
-> - From this plot we see if the treatment has a global positive or negative effect and if they can expect a better gain by targeting part of the population. 
-> - We can thus choose the decile that maximizes the gain as the limit of the population to be targeted.
+- We can assess whether the treatment has a global positive or negative effect and if one can expect a better gain by targeting part of the population.
+- We can thus choose the decile that maximizes the gain as the limit of the population to be targeted.
 
 
 
@@ -559,6 +574,8 @@ a, b = uplift_curve(y_true=y_true, uplift=perfect_uplift, treatment=treatment)
 # Random Uplift Curves
 
 ```python
+# For example:
+
 np.random.uniform(
     low=-1,
     high=1,
@@ -566,27 +583,47 @@ np.random.uniform(
 )
 ```
 
-![w:600 bg right](images/random_uplift_curves.png)
+![w:550 bg right](images/random_uplift_curves.png)
 
 ---
 
-<!--
-_footer: Taken from https://www.uplift-modeling.com/en/latest/user_guide/introduction/data_collection.html
--->
-# Data Collection
+# Model Comparison
 
-![w:600 center](https://www.uplift-modeling.com/en/latest/_images/ug_data_collection.gif)
+Compute AUC on a test set.
+
+![w:700 bg right:60%](images/uplift_curves_comparison.png)
+
+---
+
+# Other metrics: Quini Curve
+
+$$
+g(t)
+=
+Y^{T}_{t}
+-
+Y^{C}_{t}
+\left(
+\frac{N^{T}_{t}}{N^{C}_{t}}
+\right)
+$$
+
+> Corrects uplifts of selected individuals with respect to the number of individuals in treatment/control using the $N^{T}_{t} / N^{C}_{t}$ factor.
+
+![w:700 bg right:60%](images/qini_curves_comparison.png)
 
 ---
 <!--
 _footer: See https://juanitorduz.github.io/uplift/
 -->
-# Demo 
+# Demo 💻
 ## [Notebook Link](https://juanitorduz.github.io/uplift/)
+
+![w:400 center](images/nb.png)
 
 ---
 
-## References:
+## References 📚
 
 - [Diemert, Eustache, et.al. (2020) *"A Large Scale Benchmark for Uplift Modeling"*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf)
 
@@ -602,4 +639,4 @@ _footer: See https://juanitorduz.github.io/uplift/
 
 ## More Info: [juanitorduz.github.io](https://juanitorduz.github.io)
 
-![w:400 center](images/qr-code-juanitorduz.png)
+![w:400 center](images/juanitorduz.png)
