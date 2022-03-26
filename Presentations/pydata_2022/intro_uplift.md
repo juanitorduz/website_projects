@@ -6,6 +6,7 @@ style: |
       display: block;
       margin: auto;
     }
+math: katex
 ---
 
 # Introduction to Uplift Modeling
@@ -52,30 +53,34 @@ _footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). *"Causal Inference
 # Conditional Average Treatment Effect
 
 - Let $Y^{1}_{i}$ denote person $i$'s outcome when it receives the treatment and $Y^{0}_{i}$ when it does not receive the treatment.
-- We are interested in understanding the *causal effect* $Y^{1}_{i} - Y^{0}_{i}$ and the  *conditional average treatment effect* $CATE = E[Y^{1}_{i} | X_{i}] - E[Y^{0}_{i} | X_{i}]$, where $X_{i}$ is a feature vector of the $i$-th person.
+- We are interested in:
+  - The *causal effect* $\tau_{i} \coloneqq  Y^{1}_{i} - Y^{0}_{i}$
+  - Given a feature vector  $X_{i}$ of the $i$-th person, we would like to estimate the *conditional average treatment effect*
+    $$CATE \: : \tau(X_{i})  \coloneqq E[Y^{1}_{i} | X_{i}] - E[Y^{0}_{i} | X_{i}]$$
+
 - **However, we can not observe them!** 🙁
 
 ---
 <!--
 _footer: Taken from [Gutierrez, P., & Gérardy, J. Y. (2017). *"Causal Inference and Uplift Modelling: A Review of the Literature"*](https://proceedings.mlr.press/v67/gutierrez17a/gutierrez17a.pdf)
 -->
-# Uplift
+# CATE Estimation
+
 
 Let $W_{i}$ is a binary variable indicating whether person $i$ received the treatment, so that
 
 $$Y_{i}^{obs} = Y^{1}_{i} W_{i} + (1 - W_{i}) Y^{0}_{i}$$
-
 ## Unconfoundedness Assumption
 
 If we **assume** that the treatment assignment $W_{i}$ is independent of $Y^{1}_{i}$  and $Y^{0}_{i}$ conditional on $X_i$, then we can estimate the $CATE$ from observational data by computing the empirical counterpart:
 
-$$\text{\bf{uplift}} = \widehat{CATE} = E[Y_{i} | X_{i}, W_{i}=1] - E[Y_{i} | X_{i}, W_{i}=0]$$
+$$\text{\bf{uplift}} = \widehat{\tau}(X_{i}) = E[Y^{obs}_{i} | X_{i}, W_{i}=1] - E[Y^{obs}_{i} | X_{i}, W_{i}=0]$$
 
 ---
 <!--
 _footer: Taken from https://www.uplift-modeling.com/en/latest/user_guide/introduction/data_collection.html
 -->
-# Data Collection
+# 🤔 Data Collection
 
 ![w:600 center](images/ug_data_collection.gif)
 
@@ -123,7 +128,7 @@ $$
 ### Step 2: Uplift Prediction
 
 $$
-\widehat{\text{\bf{uplift}}} =
+\widehat{\tau}(X) =
 \hat{\mu}\left(
 \begin{array}{cccc}
 x_{11} & \cdots & x_{1k} & 1 \\
@@ -199,7 +204,7 @@ _footer: Taken from https://causalml.readthedocs.io/en/latest/methodology.html#m
 ### Step 2: Uplift Prediction
 
 $$
-\widehat{\text{\bf{uplift}}} =
+\widehat{\tau}(X) =
 \hat{\mu}_{T}\left(
 \begin{array}{cccc}
 x_{11} & \cdots & x_{1k} \\
@@ -326,12 +331,12 @@ _footer: Taken from https://causalml.readthedocs.io/en/latest/methodology.html#m
 ### Step 4: Uplift Prediction
 
 $$
-\widehat{\text{\bf{uplift}}} = g(x)\hat{\tau}_{C}(x) + (1 - g(x))\hat{\tau}_{T}(x)
+\widehat{\tau}(X) = g(X)\hat{\tau}_{C}(X) + (1 - g(X))\hat{\tau}_{T}(X)
 $$
 
-where $g(x) \in [0, 1]$ is a weight function.
+where $g(X) \in [0, 1]$ is a weight function.
 
-**Remark:** A common choice for $g(x)$ is an estimator of the **propensity score**, which is defined as the probability of treatment given the covariates $X$, i.e. $p(W_{i}=1|X_i)$.
+**Remark:** A common choice for $g(X)$ is an estimator of the **propensity score**, which is defined as the probability of treatment given the covariates $X$, i.e. $p(W_{i}=1|X_i)$.
 
 ---
 <!--
@@ -340,7 +345,7 @@ _footer: Taken from [Sören, R, et.al. (2019) *"Meta-learners for Estimating Het
 
 # Intuition behind the X-Learner
 
-We use an simulated example where we know the uplift is exactly $1$.
+We study an simulated example where we know the uplift is exactly $\tau=1$.
 
 ![w:400 center](images/x_learner_intuition.gif)
 
