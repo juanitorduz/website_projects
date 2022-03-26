@@ -421,7 +421,7 @@ _footer: Taken from [Sören, R, et.al. (2019) *"Meta-learners for Estimating Het
 
 ---
 
-# Python code: Example
+# Python code: Example 🐍
 
 ```python
 from causalml.inference.meta import BaseTClassifier
@@ -473,8 +473,8 @@ perfect_uplift = 2 * (y_true == treatment) + summand
 # Uplift Evaluation: Uplift by Percentile
 
 1. Sort uplift predictions by decreasing order.
-2. Predict uplift for both treated and control observations
-3. Compute the average prediction per percentile in both groups.
+2. Compute percentiles.
+3. Predict uplift for both treated and control observations per percentile.
 4. The difference between those averages is taken for each percentile.
 
 ![w:750 center](images/uplift_by_percentile_table.png)
@@ -486,7 +486,7 @@ _footer: Plot function `plot_uplift_by_percentile` from [`scikit-uplift`](https:
 
 # Uplift Evaluation: Uplift by Percentile
 
-![w:620 bg right:50%](images/cum_percentile_plot.png)
+![w:630 bg right:51%](images/cum_percentile_plot.png)
 
 A well performing model would have large values in the first percentiles and decreasing values for larger ones
 
@@ -521,8 +521,8 @@ $$
 
 ![w:550 center](images/cum_gain_percentile.png)
 
-> - From this plot we see if the treatment has a global positive or negative effect and if they can expect a better gain by targeting part of the population. 
-> - We can thus choose the decile that maximizes the gain as the limit of the population to be targeted.
+- We can assess whether the treatment has a global positive or negative effect and if one can expect a better gain by targeting part of the population.
+- We can thus choose the decile that maximizes the gain as the limit of the population to be targeted.
 
 
 
@@ -574,6 +574,8 @@ a, b = uplift_curve(y_true=y_true, uplift=perfect_uplift, treatment=treatment)
 # Random Uplift Curves
 
 ```python
+# For example:
+
 np.random.uniform(
     low=-1,
     high=1,
@@ -581,20 +583,47 @@ np.random.uniform(
 )
 ```
 
-![w:600 bg right](images/random_uplift_curves.png)
+![w:550 bg right](images/random_uplift_curves.png)
+
+---
+
+# Model Comparison
+
+Compute AUC on a test set.
+
+![w:700 bg right:60%](images/uplift_curves_comparison.png)
+
+---
+
+# Other metrics: Quini Curve
+
+$$
+g(t)
+=
+Y^{T}_{t}
+-
+Y^{C}_{t}
+\left(
+\frac{N^{T}_{t}}{N^{C}_{t}}
+\right)
+$$
+
+> Corrects uplifts of selected individuals with respect to the number of individuals in treatment/control using the $N^{T}_{t} / N^{C}_{t}$ factor.
+
+![w:700 bg right:60%](images/qini_curves_comparison.png)
 
 ---
 <!--
 _footer: See https://juanitorduz.github.io/uplift/
 -->
-# Demo 
+# Demo 💻
 ## [Notebook Link](https://juanitorduz.github.io/uplift/)
 
 ![w:400 center](images/nb.png)
 
 ---
 
-## References:
+## References 📚
 
 - [Diemert, Eustache, et.al. (2020) *"A Large Scale Benchmark for Uplift Modeling"*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf)
 
