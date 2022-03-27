@@ -454,7 +454,7 @@ t_learner.models_t[1]
 
 ![w:650 right](images/uplift_curve.png)
 
-![w:200 center](images/wtf_tom.gif)
+![w:300 center](images/homer.gif)
 
 ---
 
