@@ -28,7 +28,7 @@
 ;--marpit-advanced-background-split:50%;" data-marpit-advanced-background="content" data-marpit-advanced-background-split="right">
 <h1>Introduction to Uplift Modeling</h1>
 <h2><a href="https://juanitorduz.github.io/">Dr. Juan Orduz</a></h2>
-<p><strong>Mathematician &amp; Data scientist</strong></p>
+<p><strong>Mathematician &amp; Data Scientist</strong></p>
 <h3><a href="https://2022.pycon.de/">PyConDE &amp; PyData Berlin 2022</a></h3>
 </section>
 </foreignObject><foreignObject width="1280" height="720" data-marpit-advanced-background="pseudo"><section style="" data-marpit-advanced-background="pseudo"></section></foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section data-footer="Image taken from https://www.uplift-modeling.com/en/latest/user_guide/introduction/clients.html" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
@@ -606,7 +606,7 @@ learner = HistGradientBoostingClassifier()
 <span class="hljs-comment"># set meta-model</span>
 t_learner = BaseTClassifier(learner=learner)
 
-<span class="hljs-comment"># compute ate</span>
+<span class="hljs-comment"># estimate the average treatment effect (ATE)</span>
 t_ate_lwr, t_ate, t_ate_upr = t_learner.estimate_ate(X=x, treatment=w, y=y)
 
 <span class="hljs-comment"># predict treatment effects</span>
@@ -634,7 +634,7 @@ t_learner.models_t[<span class="hljs-number">1</span>]
   margin: auto;
 }
 ;--marpit-advanced-background-split:50%;" data-marpit-advanced-background="content" data-marpit-advanced-background-split="left">
-<h2>Uplift Model Evaluation?</h2>
+<h2>Uplift Model Evaluation? <img class="emoji" draggable="false" alt="🤨" src="https://twemoji.maxcdn.com/2/svg/1f928.svg" data-marp-twemoji=""/></h2>
 
 <p><img src="images/uplift_curve.png" alt="right" style="width:650px;" /></p>
 <p><img src="images/wtf_tom.gif" alt="center" style="width:200px;" /></p>
@@ -714,24 +714,26 @@ t_learner.models_t[<span class="hljs-number">1</span>]
 }
 ;">
 <h1>How to compute it ? 🫠</h1>
-<p><img src="images/ron_thinking.gif" alt="center" style="width:240px;" /></p>
-<pre><code class="language-python"><svg data-marp-fitting="svg" data-marp-fitting-code><foreignObject><span data-marp-fitting-svg-content><span data-marp-fitting-svg-content-wrap>df = uplift_by_percentile_df
+<pre><code class="language-python"><svg data-marp-fitting="svg" data-marp-fitting-code><foreignObject><span data-marp-fitting-svg-content><span data-marp-fitting-svg-content-wrap><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">compute_response_absolutes</span>(<span class="hljs-params">df: pd.DataFrame</span>) -&gt; pd.DataFrame:</span>
+  df[<span class="hljs-string">&quot;responses_treatment&quot;</span>] = df[<span class="hljs-string">&quot;n_treatment&quot;</span>] * df[<span class="hljs-string">&quot;response_rate_treatment&quot;</span>]
+  df[<span class="hljs-string">&quot;responses_control&quot;</span>] = df[<span class="hljs-string">&quot;n_control&quot;</span>] * df[<span class="hljs-string">&quot;response_rate_control&quot;</span>]
+  <span class="hljs-keyword">return</span> df
 
-<span class="hljs-comment"># compute cumulative response rates</span>
-df[<span class="hljs-string">&quot;responses_treatment&quot;</span>] = df[<span class="hljs-string">&quot;n_treatment&quot;</span>] * x[<span class="hljs-string">&quot;response_rate_treatment&quot;</span>]
-df[<span class="hljs-string">&quot;responses_control&quot;</span>] = df[<span class="hljs-string">&quot;n_control&quot;</span>] * x[<span class="hljs-string">&quot;response_rate_control&quot;</span>]
-df[<span class="hljs-string">&quot;n_treatment_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;n_treatment&quot;</span>].cumsum()
-df[<span class="hljs-string">&quot;n_control_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;n_control&quot;</span>].cumsum()
-df[<span class="hljs-string">&quot;responses_treatment_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;responses_treatment&quot;</span>].cumsum()
-df[<span class="hljs-string">&quot;responses_control_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;responses_control&quot;</span>].cumsum()
-df[<span class="hljs-string">&quot;response_rate_treatment_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;responses_treatment_cumsum&quot;</span>] / x[<span class="hljs-string">&quot;n_treatment_cumsum&quot;</span>]
-df[<span class="hljs-string">&quot;response_rate_control_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;responses_control_cumsum&quot;</span>] / x[<span class="hljs-string">&quot;n_control_cumsum&quot;</span>]
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">compute_cumulative_response_rates</span>(<span class="hljs-params">df: pd.DataFrame</span>) -&gt; pd.DataFrame:</span>
+  df[<span class="hljs-string">&quot;n_treatment_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;n_treatment&quot;</span>].cumsum()
+  df[<span class="hljs-string">&quot;n_control_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;n_control&quot;</span>].cumsum()
+  df[<span class="hljs-string">&quot;responses_treatment_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;responses_treatment&quot;</span>].cumsum()
+  df[<span class="hljs-string">&quot;responses_control_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;responses_control&quot;</span>].cumsum()
+  df[<span class="hljs-string">&quot;response_rate_treatment_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;responses_treatment_cumsum&quot;</span>] / df[<span class="hljs-string">&quot;n_treatment_cumsum&quot;</span>]
+  df[<span class="hljs-string">&quot;response_rate_control_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;responses_control_cumsum&quot;</span>] / df[<span class="hljs-string">&quot;n_control_cumsum&quot;</span>]
+  <span class="hljs-keyword">return</span> df
 
-<span class="hljs-comment"># compute uplifts (at cumulative level)</span>
-df[<span class="hljs-string">&quot;uplift_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;response_rate_treatment_cumsum&quot;</span>] - df[<span class="hljs-string">&quot;response_rate_control_cumsum&quot;</span>]
-<span class="hljs-comment"># compute cumulative gains</span>
-df[<span class="hljs-string">&quot;cum_gain&quot;</span>] = df[<span class="hljs-string">&quot;uplift_cumsum&quot;</span>] * (df[<span class="hljs-string">&quot;n_treatment_cumsum&quot;</span>] + df[<span class="hljs-string">&quot;n_control_cumsum&quot;</span>])
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">compute_cumulative_gain</span>(<span class="hljs-params">df: pd.DataFrame</span>) -&gt; pd.DataFrame:</span>
+  df[<span class="hljs-string">&quot;uplift_cumsum&quot;</span>] = df[<span class="hljs-string">&quot;response_rate_treatment_cumsum&quot;</span>] - df[<span class="hljs-string">&quot;response_rate_control_cumsum&quot;</span>]
+  df[<span class="hljs-string">&quot;cum_gain&quot;</span>] = df[<span class="hljs-string">&quot;uplift_cumsum&quot;</span>] * (df[<span class="hljs-string">&quot;n_treatment_cumsum&quot;</span>] + df[<span class="hljs-string">&quot;n_control_cumsum&quot;</span>])
+  <span class="hljs-keyword">return</span> df
 </span></span></foreignObject></svg></code></pre>
+<p><img src="images/ron_thinking.gif" alt="center" style="width:210px;" /></p>
 </section>
 </foreignObject></svg><svg data-marpit-svg="" viewBox="0 0 1280 720"><foreignObject width="1280" height="720"><section id="27" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
   display: block;
@@ -792,7 +794,7 @@ df[<span class="hljs-string">&quot;cum_gain&quot;</span>] = df[<span class="hljs
   display: block;
   margin: auto;
 }
-;--marpit-advanced-background-split:50%;" data-marpit-advanced-background="background" data-marpit-advanced-background-split="right"><div data-marpit-advanced-background-container="true" data-marpit-advanced-background-direction="horizontal"><figure style="background-image:url(&quot;images/perfect_uplift_sort.png&quot;);background-size:600px auto;"></figure></div></section></foreignObject><foreignObject width="50%" height="720"><section id="30" data-footer="Taken from [Diemert, Eustache, et.al. (2020) *&quot;A Large Scale Benchmark for Uplift Modeling&quot;*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf)" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
+;--marpit-advanced-background-split:45%;" data-marpit-advanced-background="background" data-marpit-advanced-background-split="right"><div data-marpit-advanced-background-container="true" data-marpit-advanced-background-direction="horizontal"><figure style="background-image:url(&quot;images/perfect_uplift_sort.png&quot;);background-size:530px auto;"></figure></div></section></foreignObject><foreignObject width="55%" height="720"><section id="30" data-footer="Taken from [Diemert, Eustache, et.al. (2020) *&quot;A Large Scale Benchmark for Uplift Modeling&quot;*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf)" data-theme="default" data-style="img[alt~=&quot;center&quot;] {
   display: block;
   margin: auto;
 }
@@ -800,8 +802,8 @@ df[<span class="hljs-string">&quot;cum_gain&quot;</span>] = df[<span class="hljs
   display: block;
   margin: auto;
 }
-;--marpit-advanced-background-split:50%;" data-marpit-advanced-background="content" data-marpit-advanced-background-split="right">
-<h1>Best uplift model?</h1>
+;--marpit-advanced-background-split:45%;" data-marpit-advanced-background="content" data-marpit-advanced-background-split="right">
+<h1>Best uplift model? <img class="emoji" draggable="false" alt="🤓" src="https://twemoji.maxcdn.com/2/svg/1f913.svg" data-marp-twemoji=""/></h1>
 <blockquote>
 <p>A <strong>perfect model</strong> assigns higher scores to all treated individuals with positive outcomes than any individuals with negative outcomes.</p>
 </blockquote>

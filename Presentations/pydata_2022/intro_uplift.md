@@ -12,7 +12,7 @@ math: katex
 # Introduction to Uplift Modeling
 
 ## [Dr. Juan Orduz](https://juanitorduz.github.io/)
-**Mathematician & Data scientist**
+**Mathematician & Data Scientist**
 
 ### [PyConDE & PyData Berlin 2022](https://2022.pycon.de/)
 
@@ -435,7 +435,7 @@ learner = HistGradientBoostingClassifier()
 # set meta-model
 t_learner = BaseTClassifier(learner=learner)
 
-# compute ate
+# estimate the average treatment effect (ATE)
 t_ate_lwr, t_ate, t_ate_upr = t_learner.estimate_ate(X=x, treatment=w, y=y)
 
 # predict treatment effects
@@ -448,7 +448,7 @@ t_learner.models_t[1]
 
 ---
 
-## Uplift Model Evaluation?
+## Uplift Model Evaluation? 🤨
 
 ![w:600 bg left:50%](images/roc.png)
 
@@ -503,26 +503,28 @@ $$
 
 # How to compute it ? 🫠
 
-![w:240 center](images/ron_thinking.gif)
-
 ```python
-df = uplift_by_percentile_df
+def compute_response_absolutes(df: pd.DataFrame) -> pd.DataFrame:
+  df["responses_treatment"] = df["n_treatment"] * df["response_rate_treatment"]
+  df["responses_control"] = df["n_control"] * df["response_rate_control"]
+  return df
 
-# compute cumulative response rates
-df["responses_treatment"] = df["n_treatment"] * x["response_rate_treatment"]
-df["responses_control"] = df["n_control"] * x["response_rate_control"]
-df["n_treatment_cumsum"] = df["n_treatment"].cumsum()
-df["n_control_cumsum"] = df["n_control"].cumsum()
-df["responses_treatment_cumsum"] = df["responses_treatment"].cumsum()
-df["responses_control_cumsum"] = df["responses_control"].cumsum()
-df["response_rate_treatment_cumsum"] = df["responses_treatment_cumsum"] / x["n_treatment_cumsum"]
-df["response_rate_control_cumsum"] = df["responses_control_cumsum"] / x["n_control_cumsum"]
+def compute_cumulative_response_rates(df: pd.DataFrame) -> pd.DataFrame:
+  df["n_treatment_cumsum"] = df["n_treatment"].cumsum()
+  df["n_control_cumsum"] = df["n_control"].cumsum()
+  df["responses_treatment_cumsum"] = df["responses_treatment"].cumsum()
+  df["responses_control_cumsum"] = df["responses_control"].cumsum()
+  df["response_rate_treatment_cumsum"] = df["responses_treatment_cumsum"] / df["n_treatment_cumsum"]
+  df["response_rate_control_cumsum"] = df["responses_control_cumsum"] / df["n_control_cumsum"]
+  return df
 
-# compute uplifts (at cumulative level)
-df["uplift_cumsum"] = df["response_rate_treatment_cumsum"] - df["response_rate_control_cumsum"]
-# compute cumulative gains
-df["cum_gain"] = df["uplift_cumsum"] * (df["n_treatment_cumsum"] + df["n_control_cumsum"])
+def compute_cumulative_gain(df: pd.DataFrame) -> pd.DataFrame:
+  df["uplift_cumsum"] = df["response_rate_treatment_cumsum"] - df["response_rate_control_cumsum"]
+  df["cum_gain"] = df["uplift_cumsum"] * (df["n_treatment_cumsum"] + df["n_control_cumsum"])
+  return df
 ```
+
+![w:210 center](images/ron_thinking.gif)
 
 ---
 
@@ -571,7 +573,7 @@ _footer: Plot function `plot_uplift_curve` from [`scikit-uplift`](https://github
 _footer: Taken from [Diemert, Eustache, et.al. (2020) *"A Large Scale Benchmark for Uplift Modeling"*](http://ama.imag.fr/~amini/Publis/large-scale-benchmark.pdf)
 -->
 
-# Best uplift model?
+# Best uplift model? 🤓
 
 > A **perfect model** assigns higher scores to all treated individuals with positive outcomes than any individuals with negative outcomes.
 
@@ -586,7 +588,7 @@ summand = y_true if cr_num > tn_num else treatment
 perfect_uplift = 2 * (y_true == treatment) + summand
 ```
 
-![w:600 bg right](images/perfect_uplift_sort.png)
+![w:530 bg right:45%](images/perfect_uplift_sort.png)
 
 ---
 
