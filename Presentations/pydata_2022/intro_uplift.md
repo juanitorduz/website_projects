@@ -439,7 +439,7 @@ t_learner = BaseTClassifier(learner=learner)
 t_ate_lwr, t_ate, t_ate_upr = t_learner.estimate_ate(X=x, treatment=w, y=y)
 
 # predict treatment effects
-t_learnet.predict(X=x)
+t_learner.predict(X=x)
 
 # access ml models
 t_learner.models_c[1]

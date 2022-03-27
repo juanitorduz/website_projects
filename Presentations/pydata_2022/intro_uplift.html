@@ -610,7 +610,7 @@ t_learner = BaseTClassifier(learner=learner)
 t_ate_lwr, t_ate, t_ate_upr = t_learner.estimate_ate(X=x, treatment=w, y=y)
 
 <span class="hljs-comment"># predict treatment effects</span>
-t_learnet.predict(X=x)
+t_learner.predict(X=x)
 
 <span class="hljs-comment"># access ml models</span>
 t_learner.models_c[<span class="hljs-number">1</span>]
