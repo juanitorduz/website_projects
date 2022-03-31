@@ -27,7 +27,7 @@ _footer: Image taken from https://www.uplift-modeling.com/en/latest/user_guide/i
 
 ## How can we optimally select customers to be treated by marketing incentives?
 
-![w:400 center](images/60_percent.gif)
+![w:420 center](images/60_percent.gif)
 
 ![w:500 bg right](https://www.uplift-modeling.com/en/latest/_images/ug_clients_types.jpg)
 
@@ -130,21 +130,21 @@ $$
 ### Step 2: Uplift Prediction
 
 $$
-\widehat{\tau}(X) =
+\widehat{\tau}(X') =
 \hat{\mu}\left(
 \begin{array}{cccc}
-x_{11} & \cdots & x_{1k} & 1 \\
+x_{11}' & \cdots & x_{1k}' & 1 \\
 \vdots & \ddots & \vdots & \vdots \\
-x_{11} & \cdots & x_{mk} & 1 \\
+x_{11}' & \cdots & x_{mk}' & 1 \\
 \end{array}
 \right)
 -
 \hat{\mu}
 \left(
 \begin{array}{cccc}
-x_{11} & \cdots & x_{1k} & 0 \\
+x_{11}' & \cdots & x_{1k}' & 0 \\
 \vdots & \ddots & \vdots & \vdots \\
-x_{11} & \cdots & x_{mk} & 0 \\
+x_{11}' & \cdots & x_{mk}' & 0 \\
 \end{array}
 \right)
 $$
@@ -206,21 +206,21 @@ _footer: Taken from https://causalml.readthedocs.io/en/latest/methodology.html#m
 ### Step 2: Uplift Prediction
 
 $$
-\widehat{\tau}(X) =
+\widehat{\tau}(X') =
 \hat{\mu}_{T}\left(
 \begin{array}{cccc}
-x_{11} & \cdots & x_{1k} \\
+x_{11}' & \cdots & x_{1k}' \\
 \vdots & \ddots & \vdots \\
-x_{11} & \cdots & x_{mk} \\
+x_{11}' & \cdots & x_{mk}' \\
 \end{array}
 \right)
 -
 \hat{\mu}_{C}
 \left(
 \begin{array}{cccc}
-x_{11} & \cdots & x_{1k} \\
+x_{11}' & \cdots & x_{1k}' \\
 \vdots & \ddots & \vdots \\
-x_{11} & \cdots & x_{mk} \\
+x_{11}' & \cdots & x_{mk}' \\
 \end{array}
 \right)
 $$
@@ -299,7 +299,7 @@ x_{11} & \cdots & x_{n_{C}k} \\
 \begin{array}{c}
 \tilde{D}^{C}_{1} \\
 \vdots \\
-\tilde{D}^{C}_{n_{T}}
+\tilde{D}^{C}_{n_{C}}
 \end{array}
 \right)
 $$
@@ -310,7 +310,7 @@ $$
 \begin{array}{ccc}
 x_{11} & \cdots & x_{1k} \\
 \vdots & \ddots & \vdots \\
-x_{11} & \cdots & x_{n_{C}k} \\
+x_{11} & \cdots & x_{n_{T}k} \\
 \end{array}
 \right)}_{X|_{\text{treatment}}}
 \xrightarrow{\tau_{T}}
@@ -333,10 +333,10 @@ _footer: Taken from https://causalml.readthedocs.io/en/latest/methodology.html#m
 ### Step 4: Uplift Prediction
 
 $$
-\widehat{\tau}(X) = g(X)\hat{\tau}_{C}(X) + (1 - g(X))\hat{\tau}_{T}(X)
+\widehat{\tau}(X') = g(X')\hat{\tau}_{C}(X') + (1 - g(X'))\hat{\tau}_{T}(X')
 $$
 
-where $g(X) \in [0, 1]$ is a weight function.
+where $g(X') \in [0, 1]$ is a weight function.
 
 **Remark:** A common choice for $g(X)$ is an estimator of the **propensity score**, which is defined as the probability of treatment given the covariates $X$, i.e. $p(W_{i}=1|X_i)$.
 
