@@ -3,6 +3,8 @@
 [![GitHub stars](https://img.shields.io/github/stars/juanitorduz/website_projects.svg)](https://github.com/juanitorduz/website_projects/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/juanitorduz/website_projects.svg?color=blue)](https://github.com/juanitorduz/website_projects/network)
 
+![Build](https://github.com/juanitorduz/website_projects/workflows/pipenv/badge.svg)
+
 # Website Projects
 
 This repository contains the code of the projects presented in my personal website [https://juanitorduz.github.io](https://juanitorduz.github.io).
