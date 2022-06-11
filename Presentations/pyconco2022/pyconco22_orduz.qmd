@@ -1,0 +1,91 @@
+---
+title: "Introduction to Bayesian Modeling with PyMC"
+subtitle: "PyCon Colombia 2022"
+author: "Dr. Juan Orduz"
+format:
+  revealjs: 
+    slide-number: false
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    footer: <https://juanitorduz.github.io>
+    theme:
+        - "dark"
+---
+
+## Why Bayesian Modeling?
+
+::: incremental
+- Conceptrually transparent interpretation of probablity.
+- Uncertainty quantification.
+- Allows to explicitly include prior knowledge in the model.
+- Felxible and suited for many applications in academia and industry.
+- Scalable*
+:::
+
+## Wy PyMC?
+
+
+![](pyconco22_orduz_files/images/pymc4_announcement.png)
+
+::: footer
+Learn more: [PyMC 4.0 Release Announcement](https://www.pymc.io/blog/v4_announcement.html)
+:::
+
+## Bayesian Inference \: An Example
+
+Suppose you see a person with long hair. You want to estimate the probablity that this person is a woman. That is, for $A = \text{woman}$ and $B = \text{long hair}$, we want to estimate $P(A|B)$
+
+### `Prior-Information`
+
+You belive $P(A) = 0.5$, $P(B)=0.4$ and $P(B|A) = 0.7$.
+
+### `Bayes Rule`
+$$
+P(A|B) = \frac{P(A)P(B|A)}{P(B)} = \frac{0.4 \times 0.7}{0.4} = 0.875
+$$
+
+::: footer
+[Introduction to Bayesian Modeling with PyMC3](https://juanitorduz.github.io/intro_pymc3/)
+:::
+
+## Bayesian Approach to Data Analysis
+
+Assume $y\sim f(y|\theta)$, where $\theta$ is a parameter for the distribution. From Bayes Theorem
+
+$$
+f(\theta|y)=\frac{f(y|\theta)f(\theta)}{f(y)} = 
+\displaystyle{\frac{f(y|\theta)f(\theta)}{\int f(y|\theta)f(\theta)d\theta}}
+$$
+
+- The function $f(y|\theta)$ is called the `likelihood`.
+- $f(\theta)$ is the `prior` distribution of $\theta$.
+
+$$
+f(\theta|y)  \propto \text{likelihood} \times \text{prior}.
+$$
+
+Integrals are **hard** to compute, we need `samplers`.
+
+::: footer
+:::
+
+## Example \: Linear Regression
+
+## Line Highlighting
+
+-   Highlight specific lines for emphasis
+-   Incrementally highlight additional lines
+
+``` {.python code-line-numbers="1-9|4-5|7|10"}
+import numpy as np
+import matplotlib.pyplot as plt
+
+r = np.arange(0, 2, 0.01)
+theta = 2 * np.pi * r
+fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+ax.plot(theta, r)
+ax.set_rticks([0.5, 1, 1.5, 2])
+ax.grid(True)
+plt.show()
+```
