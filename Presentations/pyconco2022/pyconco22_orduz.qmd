@@ -23,7 +23,7 @@ format:
 - Scalable*
 :::
 
-## Wy PyMC?
+## Why PyMC?
 
 
 ![](pyconco22_orduz_files/images/pymc4_announcement.png)
@@ -51,21 +51,21 @@ $$
 
 ## Bayesian Approach to Data Analysis
 
-Assume $y\sim f(y|\theta)$, where $\theta$ is a parameter for the distribution. From Bayes Theorem
+Assume $y\sim p(y|\theta)$, where $\theta$ is a parameter for the distribution (e.g. $y\sim N(\mu, \sigma^2)$). From Bayes Theorem
 
 $$
-f(\theta|y)=\frac{f(y|\theta)f(\theta)}{f(y)} = 
-\displaystyle{\frac{f(y|\theta)f(\theta)}{\int f(y|\theta)f(\theta)d\theta}}
+p(\theta|y)=\frac{p(y|\theta) \times p(\theta)}{p(y)} = 
+\displaystyle{\frac{p(y|\theta)\times p(\theta)}{\color{red}{\int p(y|\theta)p(\theta)d\theta}}}
 $$
 
-- The function $f(y|\theta)$ is called the `likelihood`.
-- $f(\theta)$ is the `prior` distribution of $\theta$.
+- The function $p(y|\theta)$ is called the `likelihood`.
+- $p(\theta)$ is the `prior` distribution of $\theta$.
 
 $$
-f(\theta|y)  \propto \text{likelihood} \times \text{prior}.
+p(\theta|y)  \propto \text{likelihood} \times \text{prior}.
 $$
 
-Integrals are **hard** to compute, we need `samplers`.
+Integrals are **hard** to compute $\Longrightarrow$ we need `samplers`.
 
 ::: footer
 :::

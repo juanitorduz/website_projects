@@ -402,8 +402,8 @@
 </ul>
 </div>
 </section>
-<section id="wy-pymc" class="slide level2">
-<h2>Wy PyMC?</h2>
+<section id="why-pymc" class="slide level2">
+<h2>Why PyMC?</h2>
 
 <img data-src="pyconco22_orduz_files/images/pymc4_announcement.png" class="r-stretch"><div class="footer">
 <p>Learn more: <a href="https://www.pymc.io/blog/v4_announcement.html">PyMC 4.0 Release Announcement</a></p>
@@ -424,19 +424,19 @@ P(A|B) = \frac{P(A)P(B|A)}{P(B)} = \frac{0.4 \times 0.7}{0.4} = 0.875
 </section>
 <section id="bayesian-approach-to-data-analysis" class="slide level2">
 <h2>Bayesian Approach to Data Analysis</h2>
-<p>Assume <span class="math inline">\(y\sim f(y|\theta)\)</span>, where <span class="math inline">\(\theta\)</span> is a parameter for the distribution. From Bayes Theorem</p>
+<p>Assume <span class="math inline">\(y\sim p(y|\theta)\)</span>, where <span class="math inline">\(\theta\)</span> is a parameter for the distribution (e.g.&nbsp;<span class="math inline">\(y\sim N(\mu, \sigma^2)\)</span>). From Bayes Theorem</p>
 <p><span class="math display">\[
-f(\theta|y)=\frac{f(y|\theta)f(\theta)}{f(y)} =
-\displaystyle{\frac{f(y|\theta)f(\theta)}{\int f(y|\theta)f(\theta)d\theta}}
+p(\theta|y)=\frac{p(y|\theta) \times p(\theta)}{p(y)} =
+\displaystyle{\frac{p(y|\theta)\times p(\theta)}{\color{red}{\int p(y|\theta)p(\theta)d\theta}}}
 \]</span></p>
 <ul>
-<li>The function <span class="math inline">\(f(y|\theta)\)</span> is called the <code>likelihood</code>.</li>
-<li><span class="math inline">\(f(\theta)\)</span> is the <code>prior</code> distribution of <span class="math inline">\(\theta\)</span>.</li>
+<li>The function <span class="math inline">\(p(y|\theta)\)</span> is called the <code>likelihood</code>.</li>
+<li><span class="math inline">\(p(\theta)\)</span> is the <code>prior</code> distribution of <span class="math inline">\(\theta\)</span>.</li>
 </ul>
 <p><span class="math display">\[
-f(\theta|y)  \propto \text{likelihood} \times \text{prior}.
+p(\theta|y)  \propto \text{likelihood} \times \text{prior}.
 \]</span></p>
-<p>Integrals are <strong>hard</strong> to compute, we need <code>samplers</code>.</p>
+<p>Integrals are <strong>hard</strong> to compute <span class="math inline">\(\Longrightarrow\)</span> we need <code>samplers</code>.</p>
 <div class="footer">
 
 </div>
