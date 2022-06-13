@@ -72,20 +72,126 @@ Integrals are **hard** to compute $\Longrightarrow$ we need `samplers`.
 
 ## Example \: Linear Regression
 
-## Line Highlighting
+\begin{align*}
+y & \sim \text{Normal}(\mu, \sigma^2)\\
+\mu & = a + bx
+\end{align*}
 
--   Highlight specific lines for emphasis
--   Incrementally highlight additional lines
+![](pymc_lr_files/pymc_lr_3_0.svg)
 
-``` {.python code-line-numbers="1-9|4-5|7|10"}
-import numpy as np
-import matplotlib.pyplot as plt
+::: footer
+:::
 
-r = np.arange(0, 2, 0.01)
-theta = 2 * np.pi * r
-fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-ax.plot(theta, r)
-ax.set_rticks([0.5, 1, 1.5, 2])
-ax.grid(True)
-plt.show()
+## Model Spec 1
+
+![](pymc_lr_files/pymc_lr_5_0.svg)
+
+::: footer
+:::
+
+## Model Spec 2
+
+``` {.python code-line-numbers="1-14|1|2-4|5-8|9-10|11-14"}
+with pm.Model(coords={"idx": range(n_train)}) as model:
+    # --- Data Containers ---
+    x = pm.MutableData(name="x", value=x_train)
+    y = pm.MutableData(name="y", value=y_train)
+    # --- Priors ---
+    a = pm.Normal(name="a", mu=0, sigma=2)
+    b = pm.Normal(name="b", mu=0, sigma=2)
+    sigma = pm.HalfNormal(name="sigma", sigma=2)
+    # --- Model Parametrization ---
+    mu = pm.Deterministic(name="mu", var=a + b * x, dims="idx")
+    # --- Likelihood ---
+    likelihood = pm.Normal(
+        name="likelihood", mu=mu, sigma=sigma, observed=y, dims="idx"
+    )
+```
+
+## Prior Predictive Sampling
+
+``` {.python code-line-numbers="1-2"}
+with model:
+    prior_predictive = pm.sample_prior_predictive(samples=100)
+```
+
+![](pymc_lr_files/pymc_lr_8_0.svg)
+
+## Fit Model
+
+``` {.python code-line-numbers="1-4"}
+with model:
+    idata = pm.sample(target_accept=0.8, draws=1_000, chains=4)
+    posterior_predictive = pm.sample_posterior_predictive(trace=idata)
+```
+
+![](pymc_lr_files/pymc_lr_14_0.svg)
+
+## Posterior Predictive (Training Set)
+
+![](pymc_lr_files/pymc_lr_16_0.svg)
+![](pymc_lr_files/pymc_lr_17_0.svg)
+
+
+## Posterior Predictive (Test Set)
+
+![](pymc_lr_files/pymc_lr_21_0.svg)
+![](pymc_lr_files/pymc_lr_22_0.svg)
+
+## Model Variations: Prior Constraints
+
+``` {.python code-line-numbers="1-14|7"}
+with pm.Model(coords={"idx": range(n_train)}) as model:
+    # --- Data Containers ---
+    x = pm.MutableData(name="x", value=x_train)
+    y = pm.MutableData(name="y", value=y_train)
+    # --- Priors ---
+    a = pm.Normal(name="a", mu=0, sigma=2)
+    b = pm.HalfNormal(name="b", sigma=2)
+    sigma = pm.HalfNormal(name="sigma", sigma=2)
+    # --- Model Parametrization ---
+    mu = pm.Deterministic(name="mu", var=a + b * x, dims="idx")
+    # --- Likelihood ---
+    likelihood = pm.Normal(
+        name="likelihood", mu=mu, sigma=sigma, observed=y, dims="idx"
+    )
+```
+
+## Model Variations: Regularization
+
+``` {.python code-line-numbers="1-14|7"}
+with pm.Model(coords={"idx": range(n_train)}) as model:
+    # --- Data Containers ---
+    x = pm.MutableData(name="x", value=x_train)
+    y = pm.MutableData(name="y", value=y_train)
+    # --- Priors ---
+    a = pm.Normal(name="a", mu=0, sigma=2)
+    b = pm.Laplace(name="b", sigma=2)
+    sigma = pm.HalfNormal(name="sigma", sigma=2)
+    # --- Model Parametrization ---
+    mu = pm.Deterministic(name="mu", var=a + b * x, dims="idx")
+    # --- Likelihood ---
+    likelihood = pm.Normal(
+        name="likelihood", mu=mu, sigma=sigma, observed=y, dims="idx"
+    )
+```
+
+## Model Variations: Robust Regression
+
+``` {.python code-line-numbers="1-15|9|12-15"}
+with pm.Model(coords={"idx": range(n_train)}) as model:
+    # --- Data Containers ---
+    x = pm.MutableData(name="x", value=x_train)
+    y = pm.MutableData(name="y", value=y_train)
+    # --- Priors ---
+    a = pm.Normal(name="a", mu=0, sigma=2)
+    b = pm.Normal(name="b", mu=0, sigma=2)
+    sigma = pm.HalfNormal(name="sigma", sigma=2)
+    nu = pm.Gamma(name="nu", a=10, b=10)
+    # --- Model Parametrization ---
+    mu = pm.Deterministic(name="mu", var=a + b * x, dims="idx")
+    # --- Likelihood ---
+    likelihood = pm.StudentT(
+        name="likelihood", mu=mu, sigma=sigma, nu=nu, observed=y, dims="idx"
+    )
 ```
