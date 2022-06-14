@@ -42,7 +42,7 @@ You belive $P(A) = 0.5$, $P(B)=0.4$ and $P(B|A) = 0.7$.
 
 ### `Bayes Rule`
 $$
-P(A|B) = \frac{P(A)P(B|A)}{P(B)} = \frac{0.4 \times 0.7}{0.4} = 0.875
+P(A|B) = \frac{P(A)\times P(B|A)}{P(B)} = \frac{0.5 \times 0.7}{0.4} = 0.875
 $$
 
 ::: footer
@@ -51,19 +51,25 @@ $$
 
 ## Bayesian Approach to Data Analysis
 
-Assume $y\sim p(y|\theta)$, where $\theta$ is a parameter for the distribution (e.g. $y\sim N(\mu, \sigma^2)$). From Bayes Theorem
+Assume $y\sim p(y|\theta)$, where $\theta$ is a parameter(s) for the distribution (e.g. $y\sim N(\mu, \sigma^2)$). From Bayes Theorem:
 
 $$
 p(\theta|y)=\frac{p(y|\theta) \times p(\theta)}{p(y)} = 
 \displaystyle{\frac{p(y|\theta)\times p(\theta)}{\color{red}{\int p(y|\theta)p(\theta)d\theta}}}
 $$
 
+::: incremental
 - The function $p(y|\theta)$ is called the `likelihood`.
 - $p(\theta)$ is the `prior` distribution of $\theta$.
+:::
+
+. . .
 
 $$
 p(\theta|y)  \propto \text{likelihood} \times \text{prior}.
 $$
+
+. . .
 
 Integrals are **hard** to compute $\Longrightarrow$ we need `samplers`.
 
@@ -77,31 +83,48 @@ y & \sim \text{Normal}(\mu, \sigma^2)\\
 \mu & = a + bx
 \end{align*}
 
-![](pymc_lr_files/pymc_lr_3_0.svg)
+![](pymc_lr_files/pymc_lr_3_0.svg){fig-align="center"}
 
 ::: footer
 :::
 
 ## Model Spec 1
 
-![](pymc_lr_files/pymc_lr_5_0.svg)
+::: columns
+::: {.column width="30%"}
+\begin{align*}
+y & \sim \text{Normal}(\mu, \sigma^2)\\
+\mu & = a + bx \\
+a & \sim \text{Normal}(0, 2)\\
+b & \sim \text{Normal}(0, 2) \\
+\sigma & \sim \text{HalfNormal}(2)
+\end{align*}
+:::
+::: {.column width="70%"}
+![](pymc_lr_files/pymc_lr_5_0.svg){fig-align="center"}
+:::
+:::
 
 ::: footer
 :::
 
 ## Model Spec 2
 
-``` {.python code-line-numbers="1-14|1|2-4|5-8|9-10|11-14"}
+``` {.python code-line-numbers="1-18|1|3-5|7-10|12-13|15-18"}
 with pm.Model(coords={"idx": range(n_train)}) as model:
+
     # --- Data Containers ---
     x = pm.MutableData(name="x", value=x_train)
     y = pm.MutableData(name="y", value=y_train)
+    
     # --- Priors ---
     a = pm.Normal(name="a", mu=0, sigma=2)
     b = pm.Normal(name="b", mu=0, sigma=2)
     sigma = pm.HalfNormal(name="sigma", sigma=2)
+    
     # --- Model Parametrization ---
     mu = pm.Deterministic(name="mu", var=a + b * x, dims="idx")
+    
     # --- Likelihood ---
     likelihood = pm.Normal(
         name="likelihood", mu=mu, sigma=sigma, observed=y, dims="idx"
@@ -115,7 +138,7 @@ with model:
     prior_predictive = pm.sample_prior_predictive(samples=100)
 ```
 
-![](pymc_lr_files/pymc_lr_8_0.svg)
+![](pymc_lr_files/pymc_lr_8_0.svg){fig-align="center"}
 
 ## Fit Model
 
@@ -125,18 +148,30 @@ with model:
     posterior_predictive = pm.sample_posterior_predictive(trace=idata)
 ```
 
-![](pymc_lr_files/pymc_lr_14_0.svg)
+![](pymc_lr_files/pymc_lr_14_0.svg){fig-align="center"}
 
 ## Posterior Predictive (Training Set)
 
+::: columns
+::: {.column width="50%"}
 ![](pymc_lr_files/pymc_lr_16_0.svg)
+:::
+::: {.column width="50%"}
 ![](pymc_lr_files/pymc_lr_17_0.svg)
+:::
+:::
 
 
 ## Posterior Predictive (Test Set)
 
+::: columns
+::: {.column width="50%"}
 ![](pymc_lr_files/pymc_lr_21_0.svg)
+:::
+::: {.column width="50%"}
 ![](pymc_lr_files/pymc_lr_22_0.svg)
+:::
+:::
 
 ## Model Variations: Prior Constraints
 
