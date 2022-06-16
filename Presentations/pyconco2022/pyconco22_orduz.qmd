@@ -8,7 +8,6 @@ format:
     chalkboard: 
       buttons: false
     preview-links: auto
-    footer: <https://juanitorduz.github.io>
     theme:
         - "dark"
 ---
@@ -49,6 +48,8 @@ $$
 [Introduction to Bayesian Modeling with PyMC3](https://juanitorduz.github.io/intro_pymc3/)
 :::
 
+## Some Examples\: distributions 
+
 ## Bayesian Approach to Data Analysis
 
 Assume $y\sim p(y|\theta)$, where $\theta$ is a parameter(s) for the distribution (e.g. $y\sim N(\mu, \sigma^2)$). From Bayes Theorem:
@@ -85,22 +86,29 @@ y & \sim \text{Normal}(\mu, \sigma^2)\\
 
 ![](pymc_lr_files/pymc_lr_3_0.svg){fig-align="center"}
 
+`Objective:` We want to estimate the (posterior) distributions of $a$, $b$ (and hence $\mu$) and $\sigma$ given $x$ and $y$.
+
 ::: footer
 :::
 
-## Model Spec 1
+## Model Specification: Math
 
 ::: columns
-::: {.column width="30%"}
+::: {.column width="50%"}
+`Model Parametrization`:
 \begin{align*}
 y & \sim \text{Normal}(\mu, \sigma^2)\\
 \mu & = a + bx \\
+\end{align*}
+
+`Prior Distributions`:
+\begin{align*}
 a & \sim \text{Normal}(0, 2)\\
 b & \sim \text{Normal}(0, 2) \\
 \sigma & \sim \text{HalfNormal}(2)
 \end{align*}
 :::
-::: {.column width="70%"}
+::: {.column width="50%"}
 ![](pymc_lr_files/pymc_lr_5_0.svg){fig-align="center"}
 :::
 :::
@@ -108,7 +116,7 @@ b & \sim \text{Normal}(0, 2) \\
 ::: footer
 :::
 
-## Model Spec 2
+## Model Specification: PyMC
 
 ``` {.python code-line-numbers="1-18|1|3-5|7-10|12-13|15-18"}
 with pm.Model(coords={"idx": range(n_train)}) as model:
@@ -154,10 +162,10 @@ with model:
 
 ::: columns
 ::: {.column width="50%"}
-![](pymc_lr_files/pymc_lr_16_0.svg)
+![Posterior distribution of $\mu$.](pymc_lr_files/pymc_lr_16_0.svg)
 :::
 ::: {.column width="50%"}
-![](pymc_lr_files/pymc_lr_17_0.svg)
+![Posterior distribution of $y$.](pymc_lr_files/pymc_lr_17_0.svg)
 :::
 :::
 
@@ -166,26 +174,30 @@ with model:
 
 ::: columns
 ::: {.column width="50%"}
-![](pymc_lr_files/pymc_lr_21_0.svg)
+![Posterior distribution of $\mu$.](pymc_lr_files/pymc_lr_21_0.svg)
 :::
 ::: {.column width="50%"}
-![](pymc_lr_files/pymc_lr_22_0.svg)
+![Posterior distribution of $y$](pymc_lr_files/pymc_lr_22_0.svg)
 :::
 :::
 
 ## Model Variations: Prior Constraints
 
-``` {.python code-line-numbers="1-14|7"}
+``` {.python code-line-numbers="1-18|9"}
 with pm.Model(coords={"idx": range(n_train)}) as model:
+    
     # --- Data Containers ---
     x = pm.MutableData(name="x", value=x_train)
     y = pm.MutableData(name="y", value=y_train)
+    
     # --- Priors ---
     a = pm.Normal(name="a", mu=0, sigma=2)
     b = pm.HalfNormal(name="b", sigma=2)
     sigma = pm.HalfNormal(name="sigma", sigma=2)
+    
     # --- Model Parametrization ---
     mu = pm.Deterministic(name="mu", var=a + b * x, dims="idx")
+    
     # --- Likelihood ---
     likelihood = pm.Normal(
         name="likelihood", mu=mu, sigma=sigma, observed=y, dims="idx"
@@ -194,17 +206,21 @@ with pm.Model(coords={"idx": range(n_train)}) as model:
 
 ## Model Variations: Regularization
 
-``` {.python code-line-numbers="1-14|7"}
+``` {.python code-line-numbers="9"}
 with pm.Model(coords={"idx": range(n_train)}) as model:
+    
     # --- Data Containers ---
     x = pm.MutableData(name="x", value=x_train)
     y = pm.MutableData(name="y", value=y_train)
+    
     # --- Priors ---
     a = pm.Normal(name="a", mu=0, sigma=2)
     b = pm.Laplace(name="b", sigma=2)
     sigma = pm.HalfNormal(name="sigma", sigma=2)
+    
     # --- Model Parametrization ---
     mu = pm.Deterministic(name="mu", var=a + b * x, dims="idx")
+    
     # --- Likelihood ---
     likelihood = pm.Normal(
         name="likelihood", mu=mu, sigma=sigma, observed=y, dims="idx"
@@ -213,18 +229,22 @@ with pm.Model(coords={"idx": range(n_train)}) as model:
 
 ## Model Variations: Robust Regression
 
-``` {.python code-line-numbers="1-15|9|12-15"}
+``` {.python code-line-numbers="11|17-19"}
 with pm.Model(coords={"idx": range(n_train)}) as model:
+    
     # --- Data Containers ---
     x = pm.MutableData(name="x", value=x_train)
     y = pm.MutableData(name="y", value=y_train)
+    
     # --- Priors ---
     a = pm.Normal(name="a", mu=0, sigma=2)
     b = pm.Normal(name="b", mu=0, sigma=2)
     sigma = pm.HalfNormal(name="sigma", sigma=2)
     nu = pm.Gamma(name="nu", a=10, b=10)
+    
     # --- Model Parametrization ---
     mu = pm.Deterministic(name="mu", var=a + b * x, dims="idx")
+    
     # --- Likelihood ---
     likelihood = pm.StudentT(
         name="likelihood", mu=mu, sigma=sigma, nu=nu, observed=y, dims="idx"

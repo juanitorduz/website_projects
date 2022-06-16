@@ -422,6 +422,9 @@ P(A|B) = \frac{P(A)\times P(B|A)}{P(B)} = \frac{0.5 \times 0.7}{0.4} = 0.875
 <p><a href="https://juanitorduz.github.io/intro_pymc3/">Introduction to Bayesian Modeling with PyMC3</a></p>
 </div>
 </section>
+<section id="some-examples-distributions" class="slide level2">
+<h2>Some Examples: distributions</h2>
+</section>
 <section id="bayesian-approach-to-data-analysis" class="slide level2">
 <h2>Bayesian Approach to Data Analysis</h2>
 <p>Assume <span class="math inline">\(y\sim p(y|\theta)\)</span>, where <span class="math inline">\(\theta\)</span> is a parameter(s) for the distribution (e.g.&nbsp;<span class="math inline">\(y\sim N(\mu, \sigma^2)\)</span>). From Bayes Theorem:</p>
@@ -454,22 +457,25 @@ y &amp; \sim \text{Normal}(\mu, \sigma^2)\\
 \mu &amp; = a + bx
 \end{align*}\]</span></p>
 
-<img data-src="pymc_lr_files/pymc_lr_3_0.svg" class="r-stretch quarto-figure-center"><div class="footer">
+<img data-src="pymc_lr_files/pymc_lr_3_0.svg" class="r-stretch quarto-figure-center"><p><code>Objective:</code> We want to estimate the (posterior) distributions of <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span> (and hence <span class="math inline">\(\mu\)</span>) and <span class="math inline">\(\sigma\)</span> given <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span>.</p>
+<div class="footer">
 
 </div>
 </section>
-<section id="model-spec-1" class="slide level2">
-<h2>Model Spec 1</h2>
+<section id="model-specification-math" class="slide level2">
+<h2>Model Specification: Math</h2>
 <div class="columns">
-<div class="column" style="width:30%;">
-<p><span class="math display">\[\begin{align*}
+<div class="column" style="width:50%;">
+<p><code>Model Parametrization</code>: <span class="math display">\[\begin{align*}
 y &amp; \sim \text{Normal}(\mu, \sigma^2)\\
 \mu &amp; = a + bx \\
+\end{align*}\]</span></p>
+<p><code>Prior Distributions</code>: <span class="math display">\[\begin{align*}
 a &amp; \sim \text{Normal}(0, 2)\\
 b &amp; \sim \text{Normal}(0, 2) \\
 \sigma &amp; \sim \text{HalfNormal}(2)
 \end{align*}\]</span></p>
-</div><div class="column" style="width:70%;">
+</div><div class="column" style="width:50%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
 <p><img data-src="pymc_lr_files/pymc_lr_5_0.svg"></p>
@@ -481,8 +487,8 @@ b &amp; \sim \text{Normal}(0, 2) \\
 
 </div>
 </section>
-<section id="model-spec-2" class="slide level2">
-<h2>Model Spec 2</h2>
+<section id="model-specification-pymc" class="slide level2">
+<h2>Model Specification: PyMC</h2>
 <div class="sourceCode" id="cb1" data-code-line-numbers="1-18|1|3-5|7-10|12-13|15-18"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>{<span class="st">"idx"</span>: <span class="bu">range</span>(n_train)}) <span class="im">as</span> model:</span>
 <span id="cb1-2"><a href="#cb1-2"></a></span>
 <span id="cb1-3"><a href="#cb1-3"></a>    <span class="co"># --- Data Containers ---</span></span>
@@ -519,9 +525,19 @@ b &amp; \sim \text{Normal}(0, 2) \\
 <h2>Posterior Predictive (Training Set)</h2>
 <div class="columns">
 <div class="column" style="width:50%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
 <p><img data-src="pymc_lr_files/pymc_lr_16_0.svg"></p>
+<p></p><figcaption aria-hidden="true">Posterior distribution of <span class="math inline">\(\mu\)</span>.</figcaption><p></p>
+</figure>
+</div>
 </div><div class="column" style="width:50%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
 <p><img data-src="pymc_lr_files/pymc_lr_17_0.svg"></p>
+<p></p><figcaption aria-hidden="true">Posterior distribution of <span class="math inline">\(y\)</span>.</figcaption><p></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -529,65 +545,87 @@ b &amp; \sim \text{Normal}(0, 2) \\
 <h2>Posterior Predictive (Test Set)</h2>
 <div class="columns">
 <div class="column" style="width:50%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
 <p><img data-src="pymc_lr_files/pymc_lr_21_0.svg"></p>
+<p></p><figcaption aria-hidden="true">Posterior distribution of <span class="math inline">\(\mu\)</span>.</figcaption><p></p>
+</figure>
+</div>
 </div><div class="column" style="width:50%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
 <p><img data-src="pymc_lr_files/pymc_lr_22_0.svg"></p>
+<p></p><figcaption aria-hidden="true">Posterior distribution of <span class="math inline">\(y\)</span></figcaption><p></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
 <section id="model-variations-prior-constraints" class="slide level2">
 <h2>Model Variations: Prior Constraints</h2>
-<div class="sourceCode" id="cb4" data-code-line-numbers="1-14|7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1"></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>{<span class="st">"idx"</span>: <span class="bu">range</span>(n_train)}) <span class="im">as</span> model:</span>
-<span id="cb4-2"><a href="#cb4-2"></a>    <span class="co"># --- Data Containers ---</span></span>
-<span id="cb4-3"><a href="#cb4-3"></a>    x <span class="op">=</span> pm.MutableData(name<span class="op">=</span><span class="st">"x"</span>, value<span class="op">=</span>x_train)</span>
-<span id="cb4-4"><a href="#cb4-4"></a>    y <span class="op">=</span> pm.MutableData(name<span class="op">=</span><span class="st">"y"</span>, value<span class="op">=</span>y_train)</span>
-<span id="cb4-5"><a href="#cb4-5"></a>    <span class="co"># --- Priors ---</span></span>
-<span id="cb4-6"><a href="#cb4-6"></a>    a <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"a"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb4-7"><a href="#cb4-7"></a>    b <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"b"</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb4-8"><a href="#cb4-8"></a>    sigma <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"sigma"</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb4-9"><a href="#cb4-9"></a>    <span class="co"># --- Model Parametrization ---</span></span>
-<span id="cb4-10"><a href="#cb4-10"></a>    mu <span class="op">=</span> pm.Deterministic(name<span class="op">=</span><span class="st">"mu"</span>, var<span class="op">=</span>a <span class="op">+</span> b <span class="op">*</span> x, dims<span class="op">=</span><span class="st">"idx"</span>)</span>
-<span id="cb4-11"><a href="#cb4-11"></a>    <span class="co"># --- Likelihood ---</span></span>
-<span id="cb4-12"><a href="#cb4-12"></a>    likelihood <span class="op">=</span> pm.Normal(</span>
-<span id="cb4-13"><a href="#cb4-13"></a>        name<span class="op">=</span><span class="st">"likelihood"</span>, mu<span class="op">=</span>mu, sigma<span class="op">=</span>sigma, observed<span class="op">=</span>y, dims<span class="op">=</span><span class="st">"idx"</span></span>
-<span id="cb4-14"><a href="#cb4-14"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb4" data-code-line-numbers="1-18|9"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1"></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>{<span class="st">"idx"</span>: <span class="bu">range</span>(n_train)}) <span class="im">as</span> model:</span>
+<span id="cb4-2"><a href="#cb4-2"></a>    </span>
+<span id="cb4-3"><a href="#cb4-3"></a>    <span class="co"># --- Data Containers ---</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a>    x <span class="op">=</span> pm.MutableData(name<span class="op">=</span><span class="st">"x"</span>, value<span class="op">=</span>x_train)</span>
+<span id="cb4-5"><a href="#cb4-5"></a>    y <span class="op">=</span> pm.MutableData(name<span class="op">=</span><span class="st">"y"</span>, value<span class="op">=</span>y_train)</span>
+<span id="cb4-6"><a href="#cb4-6"></a>    </span>
+<span id="cb4-7"><a href="#cb4-7"></a>    <span class="co"># --- Priors ---</span></span>
+<span id="cb4-8"><a href="#cb4-8"></a>    a <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"a"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb4-9"><a href="#cb4-9"></a>    b <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"b"</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb4-10"><a href="#cb4-10"></a>    sigma <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"sigma"</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb4-11"><a href="#cb4-11"></a>    </span>
+<span id="cb4-12"><a href="#cb4-12"></a>    <span class="co"># --- Model Parametrization ---</span></span>
+<span id="cb4-13"><a href="#cb4-13"></a>    mu <span class="op">=</span> pm.Deterministic(name<span class="op">=</span><span class="st">"mu"</span>, var<span class="op">=</span>a <span class="op">+</span> b <span class="op">*</span> x, dims<span class="op">=</span><span class="st">"idx"</span>)</span>
+<span id="cb4-14"><a href="#cb4-14"></a>    </span>
+<span id="cb4-15"><a href="#cb4-15"></a>    <span class="co"># --- Likelihood ---</span></span>
+<span id="cb4-16"><a href="#cb4-16"></a>    likelihood <span class="op">=</span> pm.Normal(</span>
+<span id="cb4-17"><a href="#cb4-17"></a>        name<span class="op">=</span><span class="st">"likelihood"</span>, mu<span class="op">=</span>mu, sigma<span class="op">=</span>sigma, observed<span class="op">=</span>y, dims<span class="op">=</span><span class="st">"idx"</span></span>
+<span id="cb4-18"><a href="#cb4-18"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="model-variations-regularization" class="slide level2">
 <h2>Model Variations: Regularization</h2>
-<div class="sourceCode" id="cb5" data-code-line-numbers="1-14|7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1"></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>{<span class="st">"idx"</span>: <span class="bu">range</span>(n_train)}) <span class="im">as</span> model:</span>
-<span id="cb5-2"><a href="#cb5-2"></a>    <span class="co"># --- Data Containers ---</span></span>
-<span id="cb5-3"><a href="#cb5-3"></a>    x <span class="op">=</span> pm.MutableData(name<span class="op">=</span><span class="st">"x"</span>, value<span class="op">=</span>x_train)</span>
-<span id="cb5-4"><a href="#cb5-4"></a>    y <span class="op">=</span> pm.MutableData(name<span class="op">=</span><span class="st">"y"</span>, value<span class="op">=</span>y_train)</span>
-<span id="cb5-5"><a href="#cb5-5"></a>    <span class="co"># --- Priors ---</span></span>
-<span id="cb5-6"><a href="#cb5-6"></a>    a <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"a"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb5-7"><a href="#cb5-7"></a>    b <span class="op">=</span> pm.Laplace(name<span class="op">=</span><span class="st">"b"</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb5-8"><a href="#cb5-8"></a>    sigma <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"sigma"</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb5-9"><a href="#cb5-9"></a>    <span class="co"># --- Model Parametrization ---</span></span>
-<span id="cb5-10"><a href="#cb5-10"></a>    mu <span class="op">=</span> pm.Deterministic(name<span class="op">=</span><span class="st">"mu"</span>, var<span class="op">=</span>a <span class="op">+</span> b <span class="op">*</span> x, dims<span class="op">=</span><span class="st">"idx"</span>)</span>
-<span id="cb5-11"><a href="#cb5-11"></a>    <span class="co"># --- Likelihood ---</span></span>
-<span id="cb5-12"><a href="#cb5-12"></a>    likelihood <span class="op">=</span> pm.Normal(</span>
-<span id="cb5-13"><a href="#cb5-13"></a>        name<span class="op">=</span><span class="st">"likelihood"</span>, mu<span class="op">=</span>mu, sigma<span class="op">=</span>sigma, observed<span class="op">=</span>y, dims<span class="op">=</span><span class="st">"idx"</span></span>
-<span id="cb5-14"><a href="#cb5-14"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb5" data-code-line-numbers="9"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1"></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>{<span class="st">"idx"</span>: <span class="bu">range</span>(n_train)}) <span class="im">as</span> model:</span>
+<span id="cb5-2"><a href="#cb5-2"></a>    </span>
+<span id="cb5-3"><a href="#cb5-3"></a>    <span class="co"># --- Data Containers ---</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a>    x <span class="op">=</span> pm.MutableData(name<span class="op">=</span><span class="st">"x"</span>, value<span class="op">=</span>x_train)</span>
+<span id="cb5-5"><a href="#cb5-5"></a>    y <span class="op">=</span> pm.MutableData(name<span class="op">=</span><span class="st">"y"</span>, value<span class="op">=</span>y_train)</span>
+<span id="cb5-6"><a href="#cb5-6"></a>    </span>
+<span id="cb5-7"><a href="#cb5-7"></a>    <span class="co"># --- Priors ---</span></span>
+<span id="cb5-8"><a href="#cb5-8"></a>    a <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"a"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb5-9"><a href="#cb5-9"></a>    b <span class="op">=</span> pm.Laplace(name<span class="op">=</span><span class="st">"b"</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb5-10"><a href="#cb5-10"></a>    sigma <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"sigma"</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb5-11"><a href="#cb5-11"></a>    </span>
+<span id="cb5-12"><a href="#cb5-12"></a>    <span class="co"># --- Model Parametrization ---</span></span>
+<span id="cb5-13"><a href="#cb5-13"></a>    mu <span class="op">=</span> pm.Deterministic(name<span class="op">=</span><span class="st">"mu"</span>, var<span class="op">=</span>a <span class="op">+</span> b <span class="op">*</span> x, dims<span class="op">=</span><span class="st">"idx"</span>)</span>
+<span id="cb5-14"><a href="#cb5-14"></a>    </span>
+<span id="cb5-15"><a href="#cb5-15"></a>    <span class="co"># --- Likelihood ---</span></span>
+<span id="cb5-16"><a href="#cb5-16"></a>    likelihood <span class="op">=</span> pm.Normal(</span>
+<span id="cb5-17"><a href="#cb5-17"></a>        name<span class="op">=</span><span class="st">"likelihood"</span>, mu<span class="op">=</span>mu, sigma<span class="op">=</span>sigma, observed<span class="op">=</span>y, dims<span class="op">=</span><span class="st">"idx"</span></span>
+<span id="cb5-18"><a href="#cb5-18"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="model-variations-robust-regression" class="slide level2">
 <h2>Model Variations: Robust Regression</h2>
-<div class="sourceCode" id="cb6" data-code-line-numbers="1-15|9|12-15"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1"></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>{<span class="st">"idx"</span>: <span class="bu">range</span>(n_train)}) <span class="im">as</span> model:</span>
-<span id="cb6-2"><a href="#cb6-2"></a>    <span class="co"># --- Data Containers ---</span></span>
-<span id="cb6-3"><a href="#cb6-3"></a>    x <span class="op">=</span> pm.MutableData(name<span class="op">=</span><span class="st">"x"</span>, value<span class="op">=</span>x_train)</span>
-<span id="cb6-4"><a href="#cb6-4"></a>    y <span class="op">=</span> pm.MutableData(name<span class="op">=</span><span class="st">"y"</span>, value<span class="op">=</span>y_train)</span>
-<span id="cb6-5"><a href="#cb6-5"></a>    <span class="co"># --- Priors ---</span></span>
-<span id="cb6-6"><a href="#cb6-6"></a>    a <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"a"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb6-7"><a href="#cb6-7"></a>    b <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"b"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb6-8"><a href="#cb6-8"></a>    sigma <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"sigma"</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb6-9"><a href="#cb6-9"></a>    nu <span class="op">=</span> pm.Gamma(name<span class="op">=</span><span class="st">"nu"</span>, a<span class="op">=</span><span class="dv">10</span>, b<span class="op">=</span><span class="dv">10</span>)</span>
-<span id="cb6-10"><a href="#cb6-10"></a>    <span class="co"># --- Model Parametrization ---</span></span>
-<span id="cb6-11"><a href="#cb6-11"></a>    mu <span class="op">=</span> pm.Deterministic(name<span class="op">=</span><span class="st">"mu"</span>, var<span class="op">=</span>a <span class="op">+</span> b <span class="op">*</span> x, dims<span class="op">=</span><span class="st">"idx"</span>)</span>
-<span id="cb6-12"><a href="#cb6-12"></a>    <span class="co"># --- Likelihood ---</span></span>
-<span id="cb6-13"><a href="#cb6-13"></a>    likelihood <span class="op">=</span> pm.StudentT(</span>
-<span id="cb6-14"><a href="#cb6-14"></a>        name<span class="op">=</span><span class="st">"likelihood"</span>, mu<span class="op">=</span>mu, sigma<span class="op">=</span>sigma, nu<span class="op">=</span>nu, observed<span class="op">=</span>y, dims<span class="op">=</span><span class="st">"idx"</span></span>
-<span id="cb6-15"><a href="#cb6-15"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb6" data-code-line-numbers="11|17-19"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1"></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>{<span class="st">"idx"</span>: <span class="bu">range</span>(n_train)}) <span class="im">as</span> model:</span>
+<span id="cb6-2"><a href="#cb6-2"></a>    </span>
+<span id="cb6-3"><a href="#cb6-3"></a>    <span class="co"># --- Data Containers ---</span></span>
+<span id="cb6-4"><a href="#cb6-4"></a>    x <span class="op">=</span> pm.MutableData(name<span class="op">=</span><span class="st">"x"</span>, value<span class="op">=</span>x_train)</span>
+<span id="cb6-5"><a href="#cb6-5"></a>    y <span class="op">=</span> pm.MutableData(name<span class="op">=</span><span class="st">"y"</span>, value<span class="op">=</span>y_train)</span>
+<span id="cb6-6"><a href="#cb6-6"></a>    </span>
+<span id="cb6-7"><a href="#cb6-7"></a>    <span class="co"># --- Priors ---</span></span>
+<span id="cb6-8"><a href="#cb6-8"></a>    a <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"a"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb6-9"><a href="#cb6-9"></a>    b <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"b"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb6-10"><a href="#cb6-10"></a>    sigma <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"sigma"</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb6-11"><a href="#cb6-11"></a>    nu <span class="op">=</span> pm.Gamma(name<span class="op">=</span><span class="st">"nu"</span>, a<span class="op">=</span><span class="dv">10</span>, b<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb6-12"><a href="#cb6-12"></a>    </span>
+<span id="cb6-13"><a href="#cb6-13"></a>    <span class="co"># --- Model Parametrization ---</span></span>
+<span id="cb6-14"><a href="#cb6-14"></a>    mu <span class="op">=</span> pm.Deterministic(name<span class="op">=</span><span class="st">"mu"</span>, var<span class="op">=</span>a <span class="op">+</span> b <span class="op">*</span> x, dims<span class="op">=</span><span class="st">"idx"</span>)</span>
+<span id="cb6-15"><a href="#cb6-15"></a>    </span>
+<span id="cb6-16"><a href="#cb6-16"></a>    <span class="co"># --- Likelihood ---</span></span>
+<span id="cb6-17"><a href="#cb6-17"></a>    likelihood <span class="op">=</span> pm.StudentT(</span>
+<span id="cb6-18"><a href="#cb6-18"></a>        name<span class="op">=</span><span class="st">"likelihood"</span>, mu<span class="op">=</span>mu, sigma<span class="op">=</span>sigma, nu<span class="op">=</span>nu, observed<span class="op">=</span>y, dims<span class="op">=</span><span class="st">"idx"</span></span>
+<span id="cb6-19"><a href="#cb6-19"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="footer footer-default">
-<p><a href="https://juanitorduz.github.io" class="uri">https://juanitorduz.github.io</a></p>
+
 </div>
 </section>
     </div>
