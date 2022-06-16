@@ -423,8 +423,9 @@ P(A|B) = \frac{P(A)\times P(B|A)}{P(B)} = \frac{0.5 \times 0.7}{0.4} = 0.875
 </div>
 </section>
 <section id="some-examples-distributions" class="slide level2">
-<h2>Some Examples: distributions</h2>
-</section>
+<h2>Some Examples: Distributions</h2>
+
+<img data-src="pymc_lr_files/pymc_lr_25_0.svg" class="r-stretch quarto-figure-center"></section>
 <section id="bayesian-approach-to-data-analysis" class="slide level2">
 <h2>Bayesian Approach to Data Analysis</h2>
 <p>Assume <span class="math inline">\(y\sim p(y|\theta)\)</span>, where <span class="math inline">\(\theta\)</span> is a parameter(s) for the distribution (e.g.&nbsp;<span class="math inline">\(y\sim N(\mu, \sigma^2)\)</span>). From Bayes Theorem:</p>
@@ -445,9 +446,6 @@ p(\theta|y)  \propto \text{likelihood} \times \text{prior}.
 </div>
 <div class="fragment">
 <p>Integrals are <strong>hard</strong> to compute <span class="math inline">\(\Longrightarrow\)</span> we need <code>samplers</code>.</p>
-<div class="footer">
-
-</div>
 </div>
 </section>
 <section id="example-linear-regression" class="slide level2">
@@ -457,10 +455,7 @@ y &amp; \sim \text{Normal}(\mu, \sigma^2)\\
 \mu &amp; = a + bx
 \end{align*}\]</span></p>
 
-<img data-src="pymc_lr_files/pymc_lr_3_0.svg" class="r-stretch quarto-figure-center"><p><code>Objective:</code> We want to estimate the (posterior) distributions of <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span> (and hence <span class="math inline">\(\mu\)</span>) and <span class="math inline">\(\sigma\)</span> given <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span>.</p>
-<div class="footer">
-
-</div>
+<img data-src="pymc_lr_files/pymc_lr_4_0.svg" class="r-stretch quarto-figure-center"><p><code>Objective:</code> We want to estimate the (posterior) distributions of <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span> (and hence <span class="math inline">\(\mu\)</span>) and <span class="math inline">\(\sigma\)</span> given <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span>.</p>
 </section>
 <section id="model-specification-math" class="slide level2">
 <h2>Model Specification: Math</h2>
@@ -478,13 +473,10 @@ b &amp; \sim \text{Normal}(0, 2) \\
 </div><div class="column" style="width:50%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="pymc_lr_files/pymc_lr_5_0.svg"></p>
+<p><img data-src="pymc_lr_files/pymc_lr_6_0.svg"></p>
 </figure>
 </div>
 </div>
-</div>
-<div class="footer">
-
 </div>
 </section>
 <section id="model-specification-pymc" class="slide level2">
@@ -507,34 +499,38 @@ b &amp; \sim \text{Normal}(0, 2) \\
 <span id="cb1-16"><a href="#cb1-16"></a>    likelihood <span class="op">=</span> pm.Normal(</span>
 <span id="cb1-17"><a href="#cb1-17"></a>        name<span class="op">=</span><span class="st">"likelihood"</span>, mu<span class="op">=</span>mu, sigma<span class="op">=</span>sigma, observed<span class="op">=</span>y, dims<span class="op">=</span><span class="st">"idx"</span></span>
 <span id="cb1-18"><a href="#cb1-18"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="fragment">
+<p><code>Compare to:</code></p>
+<p><a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html#sklearn-linear-model-linearregression">sklearn.linear_model.LinearRegression</a></p>
+</div>
 </section>
 <section id="prior-predictive-sampling" class="slide level2">
 <h2>Prior Predictive Sampling</h2>
 <div class="sourceCode" id="cb2" data-code-line-numbers="1-2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1"></a><span class="cf">with</span> model:</span>
 <span id="cb2-2"><a href="#cb2-2"></a>    prior_predictive <span class="op">=</span> pm.sample_prior_predictive(samples<span class="op">=</span><span class="dv">100</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
-<img data-src="pymc_lr_files/pymc_lr_8_0.svg" class="r-stretch quarto-figure-center"></section>
+<img data-src="pymc_lr_files/pymc_lr_9_0.svg" class="r-stretch quarto-figure-center"></section>
 <section id="fit-model" class="slide level2">
 <h2>Fit Model</h2>
 <div class="sourceCode" id="cb3" data-code-line-numbers="1-4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1"></a><span class="cf">with</span> model:</span>
 <span id="cb3-2"><a href="#cb3-2"></a>    idata <span class="op">=</span> pm.sample(target_accept<span class="op">=</span><span class="fl">0.8</span>, draws<span class="op">=</span><span class="dv">1_000</span>, chains<span class="op">=</span><span class="dv">4</span>)</span>
 <span id="cb3-3"><a href="#cb3-3"></a>    posterior_predictive <span class="op">=</span> pm.sample_posterior_predictive(trace<span class="op">=</span>idata)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
-<img data-src="pymc_lr_files/pymc_lr_14_0.svg" class="r-stretch quarto-figure-center"></section>
+<img data-src="pymc_lr_files/pymc_lr_15_0.svg" class="r-stretch quarto-figure-center"></section>
 <section id="posterior-predictive-training-set" class="slide level2">
 <h2>Posterior Predictive (Training Set)</h2>
 <div class="columns">
 <div class="column" style="width:50%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="pymc_lr_files/pymc_lr_16_0.svg"></p>
+<p><img data-src="pymc_lr_files/pymc_lr_17_0.svg"></p>
 <p></p><figcaption aria-hidden="true">Posterior distribution of <span class="math inline">\(\mu\)</span>.</figcaption><p></p>
 </figure>
 </div>
 </div><div class="column" style="width:50%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="pymc_lr_files/pymc_lr_17_0.svg"></p>
+<p><img data-src="pymc_lr_files/pymc_lr_18_0.svg"></p>
 <p></p><figcaption aria-hidden="true">Posterior distribution of <span class="math inline">\(y\)</span>.</figcaption><p></p>
 </figure>
 </div>
@@ -547,15 +543,15 @@ b &amp; \sim \text{Normal}(0, 2) \\
 <div class="column" style="width:50%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="pymc_lr_files/pymc_lr_21_0.svg"></p>
+<p><img data-src="pymc_lr_files/pymc_lr_22_0.svg"></p>
 <p></p><figcaption aria-hidden="true">Posterior distribution of <span class="math inline">\(\mu\)</span>.</figcaption><p></p>
 </figure>
 </div>
 </div><div class="column" style="width:50%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="pymc_lr_files/pymc_lr_22_0.svg"></p>
-<p></p><figcaption aria-hidden="true">Posterior distribution of <span class="math inline">\(y\)</span></figcaption><p></p>
+<p><img data-src="pymc_lr_files/pymc_lr_23_0.svg"></p>
+<p></p><figcaption aria-hidden="true">Posterior distribution of <span class="math inline">\(y\)</span>.</figcaption><p></p>
 </figure>
 </div>
 </div>
@@ -581,6 +577,10 @@ b &amp; \sim \text{Normal}(0, 2) \\
 <span id="cb4-16"><a href="#cb4-16"></a>    likelihood <span class="op">=</span> pm.Normal(</span>
 <span id="cb4-17"><a href="#cb4-17"></a>        name<span class="op">=</span><span class="st">"likelihood"</span>, mu<span class="op">=</span>mu, sigma<span class="op">=</span>sigma, observed<span class="op">=</span>y, dims<span class="op">=</span><span class="st">"idx"</span></span>
 <span id="cb4-18"><a href="#cb4-18"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="fragment">
+<p><code>Compare to:</code></p>
+<p><a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html#sklearn-linear-model-linearregression">sklearn.linear_model.LinearRegression</a> with <em>positive = True</em>.</p>
+</div>
 </section>
 <section id="model-variations-regularization" class="slide level2">
 <h2>Model Variations: Regularization</h2>
@@ -602,6 +602,10 @@ b &amp; \sim \text{Normal}(0, 2) \\
 <span id="cb5-16"><a href="#cb5-16"></a>    likelihood <span class="op">=</span> pm.Normal(</span>
 <span id="cb5-17"><a href="#cb5-17"></a>        name<span class="op">=</span><span class="st">"likelihood"</span>, mu<span class="op">=</span>mu, sigma<span class="op">=</span>sigma, observed<span class="op">=</span>y, dims<span class="op">=</span><span class="st">"idx"</span></span>
 <span id="cb5-18"><a href="#cb5-18"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="fragment">
+<p><code>Compare to:</code></p>
+<p><a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html#sklearn-linear-model-ridge">sklearn.linear_model.Ridge</a></p>
+</div>
 </section>
 <section id="model-variations-robust-regression" class="slide level2">
 <h2>Model Variations: Robust Regression</h2>
@@ -624,6 +628,34 @@ b &amp; \sim \text{Normal}(0, 2) \\
 <span id="cb6-17"><a href="#cb6-17"></a>    likelihood <span class="op">=</span> pm.StudentT(</span>
 <span id="cb6-18"><a href="#cb6-18"></a>        name<span class="op">=</span><span class="st">"likelihood"</span>, mu<span class="op">=</span>mu, sigma<span class="op">=</span>sigma, nu<span class="op">=</span>nu, observed<span class="op">=</span>y, dims<span class="op">=</span><span class="st">"idx"</span></span>
 <span id="cb6-19"><a href="#cb6-19"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="fragment">
+<p><code>Compare to:</code></p>
+<p><a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html#sklearn-linear-model-huberregressor">sklearn.linear_model.HuberRegressor</a></p>
+</div>
+</section>
+<section id="model-variations-correlation" class="slide level2">
+<h2>Model Variations: Correlation</h2>
+</section>
+<section id="example-time-varying-coefficients" class="slide level2">
+<h2>Example Time Varying Coefficients</h2>
+</section>
+<section id="application-media-mix-model" class="slide level2">
+<h2>Application: Media Mix Model</h2>
+<div class="footer">
+<p>See <a href="https://juanitorduz.github.io/pymc_mmm/">Media Effect Estimation with PyMC: Adstock, Saturation &amp; Diminishing Returns</a></p>
+</div>
+</section>
+<section id="application-customer-lifetime-value" class="slide level2">
+<h2>Application: Customer Lifetime Value</h2>
+<div class="footer">
+<p>See <a href="https://juanitorduz.github.io/bg_nbd_pymc/">BG/NBD Model in PyMC</a> and <a href="https://juanitorduz.github.io/gamma_gamma_pymc/">Gamma-Gamma Model of Monetary Value in PyMC</a></p>
+</div>
+</section>
+<section id="many-more-examples" class="slide level2">
+<h2>Many More Examples</h2>
+</section>
+<section id="references" class="slide level2">
+<h2>References</h2>
 <div class="footer footer-default">
 
 </div>

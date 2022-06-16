@@ -48,7 +48,9 @@ $$
 [Introduction to Bayesian Modeling with PyMC3](https://juanitorduz.github.io/intro_pymc3/)
 :::
 
-## Some Examples\: distributions 
+## Some Examples\: Distributions
+
+![](pymc_lr_files/pymc_lr_25_0.svg){fig-align="center"}
 
 ## Bayesian Approach to Data Analysis
 
@@ -74,8 +76,6 @@ $$
 
 Integrals are **hard** to compute $\Longrightarrow$ we need `samplers`.
 
-::: footer
-:::
 
 ## Example \: Linear Regression
 
@@ -84,12 +84,10 @@ y & \sim \text{Normal}(\mu, \sigma^2)\\
 \mu & = a + bx
 \end{align*}
 
-![](pymc_lr_files/pymc_lr_3_0.svg){fig-align="center"}
+![](pymc_lr_files/pymc_lr_4_0.svg){fig-align="center"}
 
 `Objective:` We want to estimate the (posterior) distributions of $a$, $b$ (and hence $\mu$) and $\sigma$ given $x$ and $y$.
 
-::: footer
-:::
 
 ## Model Specification: Math
 
@@ -109,12 +107,10 @@ b & \sim \text{Normal}(0, 2) \\
 \end{align*}
 :::
 ::: {.column width="50%"}
-![](pymc_lr_files/pymc_lr_5_0.svg){fig-align="center"}
+![](pymc_lr_files/pymc_lr_6_0.svg){fig-align="center"}
 :::
 :::
 
-::: footer
-:::
 
 ## Model Specification: PyMC
 
@@ -138,6 +134,11 @@ with pm.Model(coords={"idx": range(n_train)}) as model:
         name="likelihood", mu=mu, sigma=sigma, observed=y, dims="idx"
     )
 ```
+. . .
+
+`Compare to:`
+
+[sklearn.linear_model.LinearRegression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html#sklearn-linear-model-linearregression)
 
 ## Prior Predictive Sampling
 
@@ -146,7 +147,7 @@ with model:
     prior_predictive = pm.sample_prior_predictive(samples=100)
 ```
 
-![](pymc_lr_files/pymc_lr_8_0.svg){fig-align="center"}
+![](pymc_lr_files/pymc_lr_9_0.svg){fig-align="center"}
 
 ## Fit Model
 
@@ -156,16 +157,16 @@ with model:
     posterior_predictive = pm.sample_posterior_predictive(trace=idata)
 ```
 
-![](pymc_lr_files/pymc_lr_14_0.svg){fig-align="center"}
+![](pymc_lr_files/pymc_lr_15_0.svg){fig-align="center"}
 
 ## Posterior Predictive (Training Set)
 
 ::: columns
 ::: {.column width="50%"}
-![Posterior distribution of $\mu$.](pymc_lr_files/pymc_lr_16_0.svg)
+![Posterior distribution of $\mu$.](pymc_lr_files/pymc_lr_17_0.svg)
 :::
 ::: {.column width="50%"}
-![Posterior distribution of $y$.](pymc_lr_files/pymc_lr_17_0.svg)
+![Posterior distribution of $y$.](pymc_lr_files/pymc_lr_18_0.svg)
 :::
 :::
 
@@ -174,10 +175,10 @@ with model:
 
 ::: columns
 ::: {.column width="50%"}
-![Posterior distribution of $\mu$.](pymc_lr_files/pymc_lr_21_0.svg)
+![Posterior distribution of $\mu$.](pymc_lr_files/pymc_lr_22_0.svg)
 :::
 ::: {.column width="50%"}
-![Posterior distribution of $y$](pymc_lr_files/pymc_lr_22_0.svg)
+![Posterior distribution of $y$.](pymc_lr_files/pymc_lr_23_0.svg)
 :::
 :::
 
@@ -204,6 +205,12 @@ with pm.Model(coords={"idx": range(n_train)}) as model:
     )
 ```
 
+. . .
+
+`Compare to:`
+
+[sklearn.linear_model.LinearRegression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html#sklearn-linear-model-linearregression) with *positive = True*.
+
 ## Model Variations: Regularization
 
 ``` {.python code-line-numbers="9"}
@@ -226,6 +233,12 @@ with pm.Model(coords={"idx": range(n_train)}) as model:
         name="likelihood", mu=mu, sigma=sigma, observed=y, dims="idx"
     )
 ```
+
+. . .
+
+`Compare to:`
+
+[sklearn.linear_model.Ridge](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html#sklearn-linear-model-ridge)
 
 ## Model Variations: Robust Regression
 
@@ -250,3 +263,29 @@ with pm.Model(coords={"idx": range(n_train)}) as model:
         name="likelihood", mu=mu, sigma=sigma, nu=nu, observed=y, dims="idx"
     )
 ```
+
+. . . 
+
+`Compare to:`
+
+[sklearn.linear_model.HuberRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html#sklearn-linear-model-huberregressor)
+
+## Model Variations: Correlation 
+
+## Example Time Varying Coefficients
+
+## Application: Media Mix Model
+
+::: footer
+See [Media Effect Estimation with PyMC: Adstock, Saturation & Diminishing Returns](https://juanitorduz.github.io/pymc_mmm/)
+:::
+
+## Application: Customer Lifetime Value
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/) and [Gamma-Gamma Model of Monetary Value in PyMC](https://juanitorduz.github.io/gamma_gamma_pymc/)
+:::
+
+## Many More Examples
+
+## References
