@@ -147,7 +147,7 @@ with model:
     prior_predictive = pm.sample_prior_predictive(samples=100)
 ```
 
-![](pymc_lr_files/pymc_lr_9_0.svg){fig-align="center"}
+![Prior samples before passing the data through the model.](pymc_lr_files/pymc_lr_9_0.svg){fig-align="center"}
 
 ## Fit Model
 
@@ -157,7 +157,7 @@ with model:
     posterior_predictive = pm.sample_posterior_predictive(trace=idata)
 ```
 
-![](pymc_lr_files/pymc_lr_15_0.svg){fig-align="center"}
+![Posterior samples distriibution viia NUTS sampler in PyMC. For each parameter we run 4 iindependent chains with 1000 samples each.](pymc_lr_files/pymc_lr_15_0.svg){fig-align="center"}
 
 ## Posterior Predictive (Training Set)
 
@@ -274,18 +274,43 @@ with pm.Model(coords={"idx": range(n_train)}) as model:
 
 ## Example Time Varying Coefficients
 
-## Application: Media Mix Model
+## Application: Media Mix Model (MMM)
+
+![](pyconco22_orduz_files/images/z_effect.png){fig-align="center"}
 
 ::: footer
 See [Media Effect Estimation with PyMC: Adstock, Saturation & Diminishing Returns](https://juanitorduz.github.io/pymc_mmm/)
 :::
 
-## Application: Customer Lifetime Value
+## Application: Media Mix Model (MMM)
+
+![MMM structure: Media data (cost, impressions or clicks) is modeled using carryover effects (adstock) and saturation effects. In addition, one can control for seasonality and external regressors. In this example, we allow time-varying coefficients to capture the effect development over tiime.](pyconco22_orduz_files/images/pymc_mmm_67_0.svg){fig-align="center"}
 
 ::: footer
-See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/) and [Gamma-Gamma Model of Monetary Value in PyMC](https://juanitorduz.github.io/gamma_gamma_pymc/)
+See [Media Effect Estimation with PyMC: Adstock, Saturation & Diminishing Returns](https://juanitorduz.github.io/pymc_mmm/)
 :::
 
-## Many More Examples
+## Application: Media Mix Model (MMM)
+
+::: columns
+::: {.column width="45%"}
+![Fitted saturation effect. This can be used for mediia mix burged optimization.](pyconco22_orduz_files/images/lambda_fit.png){fig-align="center"}
+:::
+::: {.column width="55%"}
+![Estimated effect varying over time.](pyconco22_orduz_files/images/z_effect_fitted.png){fig-align="center"}
+:::
+:::
+
+::: footer
+See [Media Effect Estimation with PyMC: Adstock, Saturation & Diminishing Returns](https://juanitorduz.github.io/pymc_mmm/)
+:::
+
+## Many More Examples and Applications!
+
+![](pyconco22_orduz_files/images/pymc_examples.png){fig-align="center"}
+
+::: footer
+See [PyMC Documentation: Example Gallery](https://www.pymc.io/projects/examples/en/latest/gallery.html)
+:::
 
 ## References
