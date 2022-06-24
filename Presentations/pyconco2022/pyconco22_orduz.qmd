@@ -163,10 +163,10 @@ with model:
 
 ::: columns
 ::: {.column width="50%"}
-![Posterior distribution of $\mu$.](pymc_lr_files/pymc_lr_17_0.svg)
+![Posterior distribution of $\mu$.](pymc_lr_files/pymc_lr_18_0.svg)
 :::
 ::: {.column width="50%"}
-![Posterior distribution of $y$.](pymc_lr_files/pymc_lr_18_0.svg)
+![Posterior distribution of $y$.](pymc_lr_files/pymc_lr_19_0.svg)
 :::
 :::
 
@@ -270,8 +270,6 @@ with pm.Model(coords={"idx": range(n_train)}) as model:
 
 [sklearn.linear_model.HuberRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html#sklearn-linear-model-huberregressor)
 
-## Model Variations: Correlation 
-
 ## Example Time Varying Coefficients
 
 ## Application: Media Mix Model (MMM)
@@ -284,7 +282,7 @@ See [Media Effect Estimation with PyMC: Adstock, Saturation & Diminishing Return
 
 ## Application: Media Mix Model (MMM)
 
-![MMM structure: Media data (cost, impressions or clicks) is modeled using carryover effects (adstock) and saturation effects. In addition, one can control for seasonality and external regressors. In this example, we allow time-varying coefficients to capture the effect development over tiime.](pyconco22_orduz_files/images/pymc_mmm_67_0.svg){fig-align="center"}
+![MMM structure: Media data (cost, impressions or clicks) is modeled using **carryover effects** (adstock) and **saturation** effects. In addition, one can control for seasonality and external regressors. In this example, we allow **time-varying coefficients** to capture the effect development over time.](pyconco22_orduz_files/images/pymc_mmm_67_0.svg){fig-align="center"}
 
 ::: footer
 See [Media Effect Estimation with PyMC: Adstock, Saturation & Diminishing Returns](https://juanitorduz.github.io/pymc_mmm/)
@@ -314,3 +312,16 @@ See [PyMC Documentation: Example Gallery](https://www.pymc.io/projects/examples/
 :::
 
 ## References
+
+### Theory
+
+- [Statistical Rethinking by Richard McElreath](https://xcelab.net/rm/statistical-rethinking/)
+    - [Statistical Rethinking in PyMC](https://github.com/pymc-devs/pymc-resources/tree/main/Rethinking_2)
+
+### PyMC
+
+- [PyMC Documentation: Example Gallery](https://www.pymc.io/projects/examples/en/latest/gallery.html)
+
+### Usecases
+
+- [https://learnbayesstats.com/](https://learnbayesstats.com/)
