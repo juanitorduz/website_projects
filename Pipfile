@@ -16,10 +16,10 @@ pytest-mock = "*"
 pytest-xdist = "*"
 
 [packages]
-bambi = ">=0.9.0"
 boto3 = "*"
 botocore = "*"
 causalml = "*"
+darts = "*"
 graphviz = "*"
 ipykernel = "*"
 ipython = "*"
@@ -35,9 +35,8 @@ numpyro = "*"
 openpyxl = "*"
 orbit-ml = "==1.1.2"
 pandas = "*"
-prophet = "==1.0.1"
-pymc = "4.0.0"
-pystan = "==2.19.1.1"
+prophet = "==1.1"
+pymc = "==4.0.1"
 seaborn = "==0.11.2"
 scikit-learn = "*"
 scikit-uplift = "*"
@@ -54,4 +53,4 @@ intel-openmp = {version = "*", sys_platform = "== 'darwin'"}
 tbb = {version = "*", sys_platform = "== 'darwin'"}
 
 [requires]
-python_version = "3.8"
+python_version = "3.9"
