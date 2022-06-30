@@ -516,7 +516,7 @@ b &amp; \sim \text{Normal}(0, 2) \\
 <span id="cb3-2"><a href="#cb3-2"></a>    idata <span class="op">=</span> pm.sample(target_accept<span class="op">=</span><span class="fl">0.8</span>, draws<span class="op">=</span><span class="dv">1_000</span>, chains<span class="op">=</span><span class="dv">4</span>)</span>
 <span id="cb3-3"><a href="#cb3-3"></a>    posterior_predictive <span class="op">=</span> pm.sample_posterior_predictive(trace<span class="op">=</span>idata)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
-<img data-src="pymc_lr_files/pymc_lr_15_0.svg" class="r-stretch quarto-figure-center"><p class="caption">Posterior samples distriibution viia NUTS sampler in PyMC. For each parameter we run 4 iindependent chains with 1000 samples each.</p></section>
+<img data-src="pymc_lr_files/pymc_lr_16_1.svg" class="r-stretch quarto-figure-center"><p class="caption">Posterior samples distriibution viia NUTS sampler in PyMC. For each parameter we run 4 iindependent chains with 1000 samples each.</p></section>
 <section id="posterior-predictive-training-set" class="slide level2">
 <h2>Posterior Predictive (Training Set)</h2>
 <div class="columns">
