@@ -273,7 +273,7 @@ with pm.Model(coords={"idx": range(n_train)}) as model:
 ## Example: Bike Rental Model
 
 <center>
-<img src="bikes_pymc_files/interpretable_ml_10_0.svg"  width="1000">
+<img src="bikes_pymc_files/cnt_temp.png"  width="1000">
 </center>
 
 ::: footer
@@ -287,6 +287,10 @@ See [Exploring Tools for Interpretable Machine Learning](https://juanitorduz.git
 <center>
 <img src="bikes_pymc_files/bikes_pymc_12_0.svg" width="1000">
 </center>
+
+$$
+\text{cnt} = \text{intercept} + b_{\text{temp}}\text{temp} + \cdots 
+$$
 
 ::: footer
 See [Exploring Tools for Interpretable Machine Learning](https://juanitorduz.github.io/interpretable_ml/)
@@ -328,11 +332,16 @@ See [Exploring Tools for Interpretable Machine Learning](https://juanitorduz.git
 :::
 
 ## Example: Bike Rental Model
+
 ### Time-Varying Coefficients
 
 <center>
 <img src="bikes_pymc_files/bikes_pymc_29_0.svg"  width="1000">
 </center>
+
+$$
+b(t) \sim N(b(t - 1), \sigma^2)
+$$
 
 ## Example: Bike Rental Model
 
@@ -351,6 +360,7 @@ See [Exploring Tools for Interpretable Machine Learning](https://juanitorduz.git
 </center>
 
 ## Example: Bike Rental Model
+
 ### Time-Varying Coefficients
 
 ![Effect of temperature on bike rentals as a function of tmie for a time varying coeffiicient model (via Gaussian random walk).](bikes_pymc_files/bikes_pymc_50_0.svg)

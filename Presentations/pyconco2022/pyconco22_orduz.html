@@ -636,7 +636,7 @@ b &amp; \sim \text{Normal}(0, 2) \\
 <section id="example-bike-rental-model" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
 <center>
-<img src="bikes_pymc_files/interpretable_ml_10_0.svg" width="1000">
+<img src="bikes_pymc_files/cnt_temp.png" width="1000">
 </center>
 <div class="footer">
 <p>See <a href="https://juanitorduz.github.io/interpretable_ml/">Exploring Tools for Interpretable Machine Learning</a></p>
@@ -648,6 +648,9 @@ b &amp; \sim \text{Normal}(0, 2) \\
 <center>
 <img src="bikes_pymc_files/bikes_pymc_12_0.svg" width="1000">
 </center>
+<p><span class="math display">\[
+\text{cnt} = \text{intercept} + b_{\text{temp}}\text{temp} + \cdots
+\]</span></p>
 <div class="footer">
 <p>See <a href="https://juanitorduz.github.io/interpretable_ml/">Exploring Tools for Interpretable Machine Learning</a></p>
 </div>
@@ -685,6 +688,9 @@ b &amp; \sim \text{Normal}(0, 2) \\
 <center>
 <img src="bikes_pymc_files/bikes_pymc_29_0.svg" width="1000">
 </center>
+<p><span class="math display">\[
+b(t) \sim N(b(t - 1), \sigma^2)
+\]</span></p>
 </section>
 <section id="example-bike-rental-model-6" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
