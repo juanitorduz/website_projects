@@ -15,7 +15,7 @@ format:
 ## Why Bayesian Modeling?
 
 ::: incremental
-- Conceptrually transparent interpretation of probablity.
+- Conceptually transparent interpretation of probablity.
 - Uncertainty quantification.
 - Allows to explicitly include prior knowledge in the model.
 - Felxible and suited for many applications in academia and industry.
@@ -271,6 +271,17 @@ with pm.Model(coords={"idx": range(n_train)}) as model:
 [sklearn.linear_model.HuberRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html#sklearn-linear-model-huberregressor)
 
 ## Example: Bike Rental Model
+
+<center>
+<img src="bikes_pymc_files/interpretable_ml_10_0.svg"  width="1000">
+</center>
+
+::: footer
+See [Exploring Tools for Interpretable Machine Learning](https://juanitorduz.github.io/interpretable_ml/)
+:::
+
+## Example: Bike Rental Model
+
 ### Linear Regression Baseline
 
 <center>
@@ -281,7 +292,9 @@ with pm.Model(coords={"idx": range(n_train)}) as model:
 See [Exploring Tools for Interpretable Machine Learning](https://juanitorduz.github.io/interpretable_ml/)
 :::
 
+
 ## Example: Bike Rental Model
+
 ### Linear Regression Baseline
 
 <center>
@@ -290,7 +303,25 @@ See [Exploring Tools for Interpretable Machine Learning](https://juanitorduz.git
 
 
 ## Example: Bike Rental Model
+
 ### Two ML Models: Linear Regression ($L^1$) with second order interactions and XGBoost
+
+<center>
+<img src="bikes_pymc_files/interpretable_ml_104_0.svg"  width="850">
+</center>
+
+::: footer
+See [Exploring Tools for Interpretable Machine Learning](https://juanitorduz.github.io/interpretable_ml/)
+:::
+
+## Example: Bike Rental Model
+
+Two ML Models: Both see a negative effect of temperature in bke rentals ini the month of July.
+
+<center>
+<img src="bikes_pymc_files/interpretable_ml_106_0.svg"  width="600">
+</center>
+
 
 ::: footer
 See [Exploring Tools for Interpretable Machine Learning](https://juanitorduz.github.io/interpretable_ml/)
@@ -304,6 +335,7 @@ See [Exploring Tools for Interpretable Machine Learning](https://juanitorduz.git
 </center>
 
 ## Example: Bike Rental Model
+
 ### Time-Varying Coefficients
 
 <center>
@@ -311,16 +343,17 @@ See [Exploring Tools for Interpretable Machine Learning](https://juanitorduz.git
 </center>
 
 ## Example: Bike Rental Model
+
 ### Time-Varying Coefficients
 
 <center>
-<img src="bikes_pymc_files/bikes_pymc_48_0.svg"  width="1000">
+<img src="bikes_pymc_files/bikes_pymc_48_0.svg"  width="900">
 </center>
 
 ## Example: Bike Rental Model
 ### Time-Varying Coefficients
 
-![hola](bikes_pymc_files/bikes_pymc_50_0.svg)
+![Effect of temperature on bike rentals as a function of tmie for a time varying coeffiicient model (via Gaussian random walk).](bikes_pymc_files/bikes_pymc_50_0.svg)
 
 
 
@@ -374,6 +407,6 @@ See [PyMC Documentation: Example Gallery](https://www.pymc.io/projects/examples/
 
 - [PyMC Documentation: Example Gallery](https://www.pymc.io/projects/examples/en/latest/gallery.html)
 
-### Usecases
+### Use cases
 
 - [https://learnbayesstats.com/](https://learnbayesstats.com/)
