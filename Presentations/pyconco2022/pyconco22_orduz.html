@@ -1,13 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head>
-<script src="pyconco22_orduz_files/libs/clipboard/clipboard.min.js"></script>
-<script src="pyconco22_orduz_files/libs/quarto-html/tabby.min.js"></script>
-<script src="pyconco22_orduz_files/libs/quarto-html/popper.min.js"></script>
-<script src="pyconco22_orduz_files/libs/quarto-html/tippy.umd.min.js"></script>
-<link href="pyconco22_orduz_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="pyconco22_orduz_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet">
-<link href="pyconco22_orduz_files/libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
-  <meta name="generator" content="quarto-0.9.571">
+  <meta charset="utf-8">
+  <meta name="generator" content="quarto-0.9.341">
 
   <meta name="author" content="Dr.&nbsp;Juan Orduz">
   <title>Introduction to Bayesian Modeling with PyMC</title>
@@ -49,46 +43,52 @@
         -khtml-user-select: none; -moz-user-select: none;
         -ms-user-select: none; user-select: none;
         padding: 0 4px; width: 4em;
+        color: #aaaaaa;
       }
-    pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
     div.sourceCode
-      { color: #f8f8f2;  }
+      {   }
     @media screen {
     pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
     }
-    code span { color: #f8f8f2; } /* Normal */
-    code span.al { color: #f07178; background-color: #2a0f15; font-weight: bold; } /* Alert */
-    code span.an { color: #d4d0ab; } /* Annotation */
-    code span.at { color: #00e0e0; } /* Attribute */
-    code span.bn { color: #d4d0ab; } /* BaseN */
-    code span.bu { color: #abe338; } /* BuiltIn */
-    code span.cf { color: #ffa07a; font-weight: bold; } /* ControlFlow */
-    code span.ch { color: #abe338; } /* Char */
-    code span.cn { color: #ffd700; } /* Constant */
-    code span.co { color: #f8f8f2; font-style: italic; } /* Comment */
-    code span.cv { color: #ffd700; } /* CommentVar */
-    code span.do { color: #f8f8f2; } /* Documentation */
-    code span.dt { color: #ffa07a; } /* DataType */
-    code span.dv { color: #d4d0ab; } /* DecVal */
-    code span.er { color: #f07178; text-decoration: underline; } /* Error */
-    code span.ex { color: #00e0e0; font-weight: bold; } /* Extension */
-    code span.fl { color: #d4d0ab; } /* Float */
-    code span.fu { color: #ffa07a; } /* Function */
-    code span.im { color: #abe338; } /* Import */
-    code span.in { color: #d4d0ab; } /* Information */
-    code span.kw { color: #ffa07a; font-weight: bold; } /* Keyword */
-    code span.op { color: #ffa07a; } /* Operator */
-    code span.ot { color: #00e0e0; } /* Other */
-    code span.pp { color: #dcc6e0; } /* Preprocessor */
-    code span.re { color: #00e0e0; background-color: #f8f8f2; } /* RegionMarker */
-    code span.sc { color: #abe338; } /* SpecialChar */
-    code span.ss { color: #abe338; } /* SpecialString */
-    code span.st { color: #abe338; } /* String */
-    code span.va { color: #00e0e0; } /* Variable */
-    code span.vs { color: #abe338; } /* VerbatimString */
-    code span.wa { color: #dcc6e0; } /* Warning */
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
   <link rel="stylesheet" href="pyconco22_orduz_files/libs/revealjs/dist/theme/quarto.css" id="theme">
+  <script src="pyconco22_orduz_files/libs/clipboard/clipboard.min.js"></script>
+  <script src="pyconco22_orduz_files/libs/quarto-html/tabby.min.js"></script>
+  <script src="pyconco22_orduz_files/libs/quarto-html/popper.min.js"></script>
+  <script src="pyconco22_orduz_files/libs/quarto-html/tippy.umd.min.js"></script>
+  <link href="pyconco22_orduz_files/libs/quarto-html/tippy.css" rel="stylesheet">
+  <link href="pyconco22_orduz_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet">
+  <link id="quarto-text-highlighting-styles" href="pyconco22_orduz_files/libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet">
   <link href="pyconco22_orduz_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="pyconco22_orduz_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
   <link href="pyconco22_orduz_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
@@ -419,7 +419,7 @@
 P(A|B) = \frac{P(A)\times P(B|A)}{P(B)} = \frac{0.5 \times 0.7}{0.4} = 0.875
 \]</span></p>
 <div class="footer">
-<p><a href="https://juanitorduz.github.io/intro_pymc3/">Introduction to Bayesian Modeling with PyMC3</a></p>
+<p>See <a href="https://juanitorduz.github.io/intro_pymc3/">Introduction to Bayesian Modeling with PyMC3</a></p>
 </div>
 </section>
 <section id="some-examples-distributions" class="slide level2">
@@ -635,20 +635,16 @@ b &amp; \sim \text{Normal}(0, 2) \\
 </section>
 <section id="example-bike-rental-model" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
-<center>
-<img src="bikes_pymc_files/cnt_temp.png" width="1000">
-</center>
-<div class="footer">
+
+<img src="bikes_pymc_files/cnt_temp.png" width="1000" class="r-stretch"><div class="footer">
 <p>See <a href="https://juanitorduz.github.io/interpretable_ml/">Exploring Tools for Interpretable Machine Learning</a></p>
 </div>
 </section>
 <section id="example-bike-rental-model-1" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
 <h3 id="linear-regression-baseline">Linear Regression Baseline</h3>
-<center>
-<img src="bikes_pymc_files/bikes_pymc_12_0.svg" width="1000">
-</center>
-<p><span class="math display">\[
+
+<img src="bikes_pymc_files/bikes_pymc_12_0.svg" width="1000" class="r-stretch"><p><span class="math display">\[
 \text{cnt} = \text{intercept} + b_{\text{temp}}\text{temp} + \cdots
 \]</span></p>
 <div class="footer">
@@ -658,59 +654,62 @@ b &amp; \sim \text{Normal}(0, 2) \\
 <section id="example-bike-rental-model-2" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
 <h3 id="linear-regression-baseline-1">Linear Regression Baseline</h3>
-<center>
-<img src="bikes_pymc_files/bikes_pymc_25_0.svg" width="1000">
-</center>
+
+<img src="bikes_pymc_files/bikes_pymc_25_0.svg" width="1000" class="r-stretch"><div class="footer">
+<p>See <a href="https://juanitorduz.github.io/bikes_pymc/">Time-Varying Regression Coefficients via Gaussian Random Walk in PyMC</a></p>
+</div>
 </section>
 <section id="example-bike-rental-model-3" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
 <h3 id="two-ml-models-linear-regression-l1-with-second-order-interactions-and-xgboost">Two ML Models: Linear Regression (<span class="math inline">\(L^1\)</span>) with second order interactions and XGBoost</h3>
-<center>
-<img src="bikes_pymc_files/interpretable_ml_104_0.svg" width="850">
-</center>
-<div class="footer">
+
+<img src="bikes_pymc_files/interpretable_ml_104_0.svg" width="850" class="r-stretch"><div class="footer">
 <p>See <a href="https://juanitorduz.github.io/interpretable_ml/">Exploring Tools for Interpretable Machine Learning</a></p>
 </div>
 </section>
 <section id="example-bike-rental-model-4" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
 <p>Two ML Models: Both see a negative effect of temperature in bke rentals ini the month of July.</p>
-<center>
-<img src="bikes_pymc_files/interpretable_ml_106_0.svg" width="600">
-</center>
-<div class="footer">
+
+<img src="bikes_pymc_files/interpretable_ml_106_0.svg" width="600" class="r-stretch"><div class="footer">
 <p>See <a href="https://juanitorduz.github.io/interpretable_ml/">Exploring Tools for Interpretable Machine Learning</a></p>
 </div>
 </section>
 <section id="example-bike-rental-model-5" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
 <h3 id="time-varying-coefficients">Time-Varying Coefficients</h3>
-<center>
-<img src="bikes_pymc_files/bikes_pymc_29_0.svg" width="1000">
-</center>
-<p><span class="math display">\[
+
+<img src="bikes_pymc_files/bikes_pymc_29_0.svg" width="1000" class="r-stretch"><p><span class="math display">\[
 b(t) \sim N(b(t - 1), \sigma^2)
 \]</span></p>
+<div class="footer">
+<p>See <a href="https://juanitorduz.github.io/bikes_pymc/">Time-Varying Regression Coefficients via Gaussian Random Walk in PyMC</a></p>
+</div>
 </section>
 <section id="example-bike-rental-model-6" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
 <h3 id="time-varying-coefficients-1">Time-Varying Coefficients</h3>
-<center>
-<img src="bikes_pymc_files/bikes_pymc_44_0.svg" width="1000">
-</center>
+
+<img src="bikes_pymc_files/bikes_pymc_44_0.svg" width="1000" class="r-stretch"><div class="footer">
+<p>See <a href="https://juanitorduz.github.io/bikes_pymc/">Time-Varying Regression Coefficients via Gaussian Random Walk in PyMC</a></p>
+</div>
 </section>
 <section id="example-bike-rental-model-7" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
 <h3 id="time-varying-coefficients-2">Time-Varying Coefficients</h3>
-<center>
-<img src="bikes_pymc_files/bikes_pymc_48_0.svg" width="900">
-</center>
+
+<img src="bikes_pymc_files/bikes_pymc_48_0.svg" width="900" class="r-stretch"><div class="footer">
+<p>See <a href="https://juanitorduz.github.io/bikes_pymc/">Time-Varying Regression Coefficients via Gaussian Random Walk in PyMC</a></p>
+</div>
 </section>
 <section id="example-bike-rental-model-8" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
 <h3 id="time-varying-coefficients-3">Time-Varying Coefficients</h3>
 
-<img data-src="bikes_pymc_files/bikes_pymc_50_0.svg" class="r-stretch quarto-figure-center"><p class="caption">Effect of temperature on bike rentals as a function of tmie for a time varying coeffiicient model (via Gaussian random walk).</p></section>
+<img data-src="bikes_pymc_files/bikes_pymc_50_0.svg" class="r-stretch quarto-figure-center"><p class="caption">Effect of temperature on bike rentals as a function of tmie for a time varying coeffiicient model (via Gaussian random walk).</p><div class="footer">
+<p>See <a href="https://juanitorduz.github.io/bikes_pymc/">Time-Varying Regression Coefficients via Gaussian Random Walk in PyMC</a></p>
+</div>
+</section>
 <section id="application-media-mix-model-mmm" class="slide level2">
 <h2>Application: Media Mix Model (MMM)</h2>
 
@@ -772,7 +771,12 @@ b(t) \sim N(b(t - 1), \sigma^2)
 <ul>
 <li><a href="https://learnbayesstats.com/">https://learnbayesstats.com/</a></li>
 </ul>
-<div class="footer footer-default">
+</section>
+<section id="thank-you" class="slide level2">
+<h2>Thank you!</h2>
+<p><a href="https://juanitorduz.github.io/">juanitorduz.github.io</a></p>
+
+<img src="pyconco22_orduz_files/images/juanitorduz.png" width="900" class="r-stretch"><div class="footer footer-default">
 
 </div>
 </section>
