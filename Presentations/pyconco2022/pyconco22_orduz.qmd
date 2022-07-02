@@ -15,7 +15,7 @@ format:
 ## Why Bayesian Modeling?
 
 ::: incremental
-- Conceptrually transparent interpretation of probablity.
+- Conceptually transparent interpretation of probablity.
 - Uncertainty quantification.
 - Allows to explicitly include prior knowledge in the model.
 - Felxible and suited for many applications in academia and industry.
@@ -45,7 +45,7 @@ P(A|B) = \frac{P(A)\times P(B|A)}{P(B)} = \frac{0.5 \times 0.7}{0.4} = 0.875
 $$
 
 ::: footer
-[Introduction to Bayesian Modeling with PyMC3](https://juanitorduz.github.io/intro_pymc3/)
+See [Introduction to Bayesian Modeling with PyMC3](https://juanitorduz.github.io/intro_pymc3/)
 :::
 
 ## Some Examples\: Distributions
@@ -157,7 +157,7 @@ with model:
     posterior_predictive = pm.sample_posterior_predictive(trace=idata)
 ```
 
-![Posterior samples distriibution viia NUTS sampler in PyMC. For each parameter we run 4 iindependent chains with 1000 samples each.](pymc_lr_files/pymc_lr_15_0.svg){fig-align="center"}
+![Posterior samples distriibution viia NUTS sampler in PyMC. For each parameter we run 4 iindependent chains with 1000 samples each.](pymc_lr_files/pymc_lr_16_1.svg){fig-align="center"}
 
 ## Posterior Predictive (Training Set)
 
@@ -270,7 +270,120 @@ with pm.Model(coords={"idx": range(n_train)}) as model:
 
 [sklearn.linear_model.HuberRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html#sklearn-linear-model-huberregressor)
 
-## Example Time Varying Coefficients
+## Example: Bike Rental Model
+
+<center>
+<img src="bikes_pymc_files/cnt_temp.png"  width="1000">
+</center>
+
+::: footer
+See [Exploring Tools for Interpretable Machine Learning](https://juanitorduz.github.io/interpretable_ml/)
+:::
+
+## Example: Bike Rental Model
+
+### Linear Regression Baseline
+
+<center>
+<img src="bikes_pymc_files/bikes_pymc_12_0.svg" width="1000">
+</center>
+
+$$
+\text{cnt} = \text{intercept} + b_{\text{temp}}\text{temp} + \cdots 
+$$
+
+::: footer
+See [Exploring Tools for Interpretable Machine Learning](https://juanitorduz.github.io/interpretable_ml/)
+:::
+
+
+## Example: Bike Rental Model
+
+### Linear Regression Baseline
+
+<center>
+<img src="bikes_pymc_files/bikes_pymc_25_0.svg"  width="1000">
+</center>
+
+::: footer
+See [Time-Varying Regression Coefficients via Gaussian Random Walk in PyMC](https://juanitorduz.github.io/bikes_pymc/)
+:::
+
+
+## Example: Bike Rental Model
+
+### Two ML Models: Linear Regression ($L^1$) with second order interactions and XGBoost
+
+<center>
+<img src="bikes_pymc_files/interpretable_ml_104_0.svg"  width="850">
+</center>
+
+::: footer
+See [Exploring Tools for Interpretable Machine Learning](https://juanitorduz.github.io/interpretable_ml/)
+:::
+
+## Example: Bike Rental Model
+
+Two ML Models: Both see a negative effect of temperature in bke rentals ini the month of July.
+
+<center>
+<img src="bikes_pymc_files/interpretable_ml_106_0.svg"  width="600">
+</center>
+
+
+::: footer
+See [Exploring Tools for Interpretable Machine Learning](https://juanitorduz.github.io/interpretable_ml/)
+:::
+
+## Example: Bike Rental Model
+
+### Time-Varying Coefficients
+
+<center>
+<img src="bikes_pymc_files/bikes_pymc_29_0.svg"  width="1000">
+</center>
+
+$$
+b(t) \sim N(b(t - 1), \sigma^2)
+$$
+
+::: footer
+See [Time-Varying Regression Coefficients via Gaussian Random Walk in PyMC](https://juanitorduz.github.io/bikes_pymc/)
+:::
+
+## Example: Bike Rental Model
+
+### Time-Varying Coefficients
+
+<center>
+<img src="bikes_pymc_files/bikes_pymc_44_0.svg"  width="1000">
+</center>
+
+::: footer
+See [Time-Varying Regression Coefficients via Gaussian Random Walk in PyMC](https://juanitorduz.github.io/bikes_pymc/)
+:::
+
+## Example: Bike Rental Model
+
+### Time-Varying Coefficients
+
+<center>
+<img src="bikes_pymc_files/bikes_pymc_48_0.svg"  width="900">
+</center>
+
+::: footer
+See [Time-Varying Regression Coefficients via Gaussian Random Walk in PyMC](https://juanitorduz.github.io/bikes_pymc/)
+:::
+
+## Example: Bike Rental Model
+
+### Time-Varying Coefficients
+
+![Effect of temperature on bike rentals as a function of tmie for a time varying coeffiicient model (via Gaussian random walk).](bikes_pymc_files/bikes_pymc_50_0.svg)
+
+::: footer
+See [Time-Varying Regression Coefficients via Gaussian Random Walk in PyMC](https://juanitorduz.github.io/bikes_pymc/)
+:::
 
 ## Application: Media Mix Model (MMM)
 
@@ -322,6 +435,14 @@ See [PyMC Documentation: Example Gallery](https://www.pymc.io/projects/examples/
 
 - [PyMC Documentation: Example Gallery](https://www.pymc.io/projects/examples/en/latest/gallery.html)
 
-### Usecases
+### Use cases
 
 - [https://learnbayesstats.com/](https://learnbayesstats.com/)
+
+## Thank you!
+
+[juanitorduz.github.io](https://juanitorduz.github.io/)
+
+<center>
+<img src="pyconco22_orduz_files/images/juanitorduz.png" width="900">
+</center>
