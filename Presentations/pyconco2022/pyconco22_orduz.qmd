@@ -88,6 +88,13 @@ y & \sim \text{Normal}(\mu, \sigma^2)\\
 
 `Objective:` We want to estimate the (posterior) distributions of $a$, $b$ (and hence $\mu$) and $\sigma$ given $x$ and $y$.
 
+## Example \: Linear Regression
+
+![](pyconco22_orduz_files/images/lm_dist.png){fig-align="center"}
+
+::: footer
+Taken from  [ Bayesian Modeling and Computation in Python, Chapter 3 (Figure 3.7)](https://bayesiancomputationbook.com/notebooks/chp_03.html)
+:::
 
 ## Model Specification: Math
 
@@ -161,7 +168,7 @@ with model:
     posterior_predictive = pm.sample_posterior_predictive(trace=idata)
 ```
 
-![Posterior samples distriibution viia NUTS sampler in PyMC. For each parameter we run 4 iindependent chains with 1000 samples each.](pymc_lr_files/pymc_lr_16_1.svg){fig-align="center"}
+![Posterior samples distriibution via NUTS sampler in PyMC. For each parameter we run 4 iindependent chains with 1000 samples each.](pymc_lr_files/pymc_lr_16_1.svg){fig-align="center"}
 
 ## Posterior Predictive (Training Set)
 
@@ -438,6 +445,8 @@ See [PyMC Documentation: Example Gallery](https://www.pymc.io/projects/examples/
 ### PyMC
 
 - [PyMC Documentation: Example Gallery](https://www.pymc.io/projects/examples/en/latest/gallery.html)
+
+- Online Book: [Bayesian Modeling and Computation in Python](https://bayesiancomputationbook.com/welcome.html)
 
 ### Use cases
 

@@ -1,7 +1,13 @@
 <!DOCTYPE html>
 <html lang="en"><head>
-  <meta charset="utf-8">
-  <meta name="generator" content="quarto-0.9.341">
+<script src="pyconco22_orduz_files/libs/clipboard/clipboard.min.js"></script>
+<script src="pyconco22_orduz_files/libs/quarto-html/tabby.min.js"></script>
+<script src="pyconco22_orduz_files/libs/quarto-html/popper.min.js"></script>
+<script src="pyconco22_orduz_files/libs/quarto-html/tippy.umd.min.js"></script>
+<link href="pyconco22_orduz_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="pyconco22_orduz_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet">
+<link href="pyconco22_orduz_files/libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-0.9.571">
 
   <meta name="author" content="Dr.&nbsp;Juan Orduz">
   <title>Introduction to Bayesian Modeling with PyMC</title>
@@ -43,52 +49,46 @@
         -khtml-user-select: none; -moz-user-select: none;
         -ms-user-select: none; user-select: none;
         padding: 0 4px; width: 4em;
-        color: #aaaaaa;
       }
-    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    pre.numberSource { margin-left: 3em;  padding-left: 4px; }
     div.sourceCode
-      {   }
+      { color: #f8f8f2;  }
     @media screen {
     pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
     }
-    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-    code span.at { color: #7d9029; } /* Attribute */
-    code span.bn { color: #40a070; } /* BaseN */
-    code span.bu { } /* BuiltIn */
-    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-    code span.ch { color: #4070a0; } /* Char */
-    code span.cn { color: #880000; } /* Constant */
-    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-    code span.dt { color: #902000; } /* DataType */
-    code span.dv { color: #40a070; } /* DecVal */
-    code span.er { color: #ff0000; font-weight: bold; } /* Error */
-    code span.ex { } /* Extension */
-    code span.fl { color: #40a070; } /* Float */
-    code span.fu { color: #06287e; } /* Function */
-    code span.im { } /* Import */
-    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-    code span.op { color: #666666; } /* Operator */
-    code span.ot { color: #007020; } /* Other */
-    code span.pp { color: #bc7a00; } /* Preprocessor */
-    code span.sc { color: #4070a0; } /* SpecialChar */
-    code span.ss { color: #bb6688; } /* SpecialString */
-    code span.st { color: #4070a0; } /* String */
-    code span.va { color: #19177c; } /* Variable */
-    code span.vs { color: #4070a0; } /* VerbatimString */
-    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+    code span { color: #f8f8f2; } /* Normal */
+    code span.al { color: #f07178; background-color: #2a0f15; font-weight: bold; } /* Alert */
+    code span.an { color: #d4d0ab; } /* Annotation */
+    code span.at { color: #00e0e0; } /* Attribute */
+    code span.bn { color: #d4d0ab; } /* BaseN */
+    code span.bu { color: #abe338; } /* BuiltIn */
+    code span.cf { color: #ffa07a; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #abe338; } /* Char */
+    code span.cn { color: #ffd700; } /* Constant */
+    code span.co { color: #f8f8f2; font-style: italic; } /* Comment */
+    code span.cv { color: #ffd700; } /* CommentVar */
+    code span.do { color: #f8f8f2; } /* Documentation */
+    code span.dt { color: #ffa07a; } /* DataType */
+    code span.dv { color: #d4d0ab; } /* DecVal */
+    code span.er { color: #f07178; text-decoration: underline; } /* Error */
+    code span.ex { color: #00e0e0; font-weight: bold; } /* Extension */
+    code span.fl { color: #d4d0ab; } /* Float */
+    code span.fu { color: #ffa07a; } /* Function */
+    code span.im { color: #abe338; } /* Import */
+    code span.in { color: #d4d0ab; } /* Information */
+    code span.kw { color: #ffa07a; font-weight: bold; } /* Keyword */
+    code span.op { color: #ffa07a; } /* Operator */
+    code span.ot { color: #00e0e0; } /* Other */
+    code span.pp { color: #dcc6e0; } /* Preprocessor */
+    code span.re { color: #00e0e0; background-color: #f8f8f2; } /* RegionMarker */
+    code span.sc { color: #abe338; } /* SpecialChar */
+    code span.ss { color: #abe338; } /* SpecialString */
+    code span.st { color: #abe338; } /* String */
+    code span.va { color: #00e0e0; } /* Variable */
+    code span.vs { color: #abe338; } /* VerbatimString */
+    code span.wa { color: #dcc6e0; } /* Warning */
   </style>
   <link rel="stylesheet" href="pyconco22_orduz_files/libs/revealjs/dist/theme/quarto.css" id="theme">
-  <script src="pyconco22_orduz_files/libs/clipboard/clipboard.min.js"></script>
-  <script src="pyconco22_orduz_files/libs/quarto-html/tabby.min.js"></script>
-  <script src="pyconco22_orduz_files/libs/quarto-html/popper.min.js"></script>
-  <script src="pyconco22_orduz_files/libs/quarto-html/tippy.umd.min.js"></script>
-  <link href="pyconco22_orduz_files/libs/quarto-html/tippy.css" rel="stylesheet">
-  <link href="pyconco22_orduz_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet">
-  <link id="quarto-text-highlighting-styles" href="pyconco22_orduz_files/libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet">
   <link href="pyconco22_orduz_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="pyconco22_orduz_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
   <link href="pyconco22_orduz_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
@@ -457,6 +457,13 @@ y &amp; \sim \text{Normal}(\mu, \sigma^2)\\
 
 <img data-src="pymc_lr_files/pymc_lr_4_0.svg" class="r-stretch quarto-figure-center"><p><code>Objective:</code> We want to estimate the (posterior) distributions of <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span> (and hence <span class="math inline">\(\mu\)</span>) and <span class="math inline">\(\sigma\)</span> given <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span>.</p>
 </section>
+<section id="example-linear-regression-1" class="slide level2">
+<h2>Example : Linear Regression</h2>
+
+<img data-src="pyconco22_orduz_files/images/lm_dist.png" class="r-stretch quarto-figure-center"><div class="footer">
+<p>Taken from <a href="https://bayesiancomputationbook.com/notebooks/chp_03.html">Bayesian Modeling and Computation in Python, Chapter 3 (Figure 3.7)</a></p>
+</div>
+</section>
 <section id="model-specification-math" class="slide level2">
 <h2>Model Specification: Math</h2>
 <div class="columns">
@@ -519,7 +526,7 @@ b &amp; \sim \text{Normal}(0, 2) \\
 <span id="cb3-2"><a href="#cb3-2"></a>    idata <span class="op">=</span> pm.sample(target_accept<span class="op">=</span><span class="fl">0.8</span>, draws<span class="op">=</span><span class="dv">1_000</span>, chains<span class="op">=</span><span class="dv">4</span>)</span>
 <span id="cb3-3"><a href="#cb3-3"></a>    posterior_predictive <span class="op">=</span> pm.sample_posterior_predictive(trace<span class="op">=</span>idata)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
-<img data-src="pymc_lr_files/pymc_lr_16_1.svg" class="r-stretch quarto-figure-center"><p class="caption">Posterior samples distriibution viia NUTS sampler in PyMC. For each parameter we run 4 iindependent chains with 1000 samples each.</p></section>
+<img data-src="pymc_lr_files/pymc_lr_16_1.svg" class="r-stretch quarto-figure-center"><p class="caption">Posterior samples distriibution via NUTS sampler in PyMC. For each parameter we run 4 iindependent chains with 1000 samples each.</p></section>
 <section id="posterior-predictive-training-set" class="slide level2">
 <h2>Posterior Predictive (Training Set)</h2>
 <div class="columns">
@@ -638,16 +645,20 @@ b &amp; \sim \text{Normal}(0, 2) \\
 </section>
 <section id="example-bike-rental-model" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
-
-<img src="bikes_pymc_files/cnt_temp.png" width="1000" class="r-stretch"><div class="footer">
+<center>
+<img src="bikes_pymc_files/cnt_temp.png" width="1000">
+</center>
+<div class="footer">
 <p>See <a href="https://juanitorduz.github.io/interpretable_ml/">Exploring Tools for Interpretable Machine Learning</a></p>
 </div>
 </section>
 <section id="example-bike-rental-model-1" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
 <h3 id="linear-regression-baseline">Linear Regression Baseline</h3>
-
-<img src="bikes_pymc_files/bikes_pymc_12_0.svg" width="1000" class="r-stretch"><p><span class="math display">\[
+<center>
+<img src="bikes_pymc_files/bikes_pymc_12_0.svg" width="1000">
+</center>
+<p><span class="math display">\[
 \text{cnt} = \text{intercept} + b_{\text{temp}}\text{temp} + \cdots
 \]</span></p>
 <div class="footer">
@@ -657,32 +668,40 @@ b &amp; \sim \text{Normal}(0, 2) \\
 <section id="example-bike-rental-model-2" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
 <h3 id="linear-regression-baseline-1">Linear Regression Baseline</h3>
-
-<img src="bikes_pymc_files/bikes_pymc_25_0.svg" width="1000" class="r-stretch"><div class="footer">
+<center>
+<img src="bikes_pymc_files/bikes_pymc_25_0.svg" width="1000">
+</center>
+<div class="footer">
 <p>See <a href="https://juanitorduz.github.io/bikes_pymc/">Time-Varying Regression Coefficients via Gaussian Random Walk in PyMC</a></p>
 </div>
 </section>
 <section id="example-bike-rental-model-3" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
 <h3 id="two-ml-models-linear-regression-l1-with-second-order-interactions-and-xgboost">Two ML Models: Linear Regression (<span class="math inline">\(L^1\)</span>) with second order interactions and XGBoost</h3>
-
-<img src="bikes_pymc_files/interpretable_ml_104_0.svg" width="850" class="r-stretch"><div class="footer">
+<center>
+<img src="bikes_pymc_files/interpretable_ml_104_0.svg" width="850">
+</center>
+<div class="footer">
 <p>See <a href="https://juanitorduz.github.io/interpretable_ml/">Exploring Tools for Interpretable Machine Learning</a></p>
 </div>
 </section>
 <section id="example-bike-rental-model-4" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
 <p>Two ML Models: Both see a negative effect of temperature in bke rentals ini the month of July.</p>
-
-<img src="bikes_pymc_files/interpretable_ml_106_0.svg" width="600" class="r-stretch"><div class="footer">
+<center>
+<img src="bikes_pymc_files/interpretable_ml_106_0.svg" width="600">
+</center>
+<div class="footer">
 <p>See <a href="https://juanitorduz.github.io/interpretable_ml/">Exploring Tools for Interpretable Machine Learning</a></p>
 </div>
 </section>
 <section id="example-bike-rental-model-5" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
 <h3 id="time-varying-coefficients">Time-Varying Coefficients</h3>
-
-<img src="bikes_pymc_files/bikes_pymc_29_0.svg" width="1000" class="r-stretch"><p><span class="math display">\[
+<center>
+<img src="bikes_pymc_files/bikes_pymc_29_0.svg" width="1000">
+</center>
+<p><span class="math display">\[
 b(t) \sim N(b(t - 1), \sigma^2)
 \]</span></p>
 <div class="footer">
@@ -692,16 +711,20 @@ b(t) \sim N(b(t - 1), \sigma^2)
 <section id="example-bike-rental-model-6" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
 <h3 id="time-varying-coefficients-1">Time-Varying Coefficients</h3>
-
-<img src="bikes_pymc_files/bikes_pymc_44_0.svg" width="1000" class="r-stretch"><div class="footer">
+<center>
+<img src="bikes_pymc_files/bikes_pymc_44_0.svg" width="1000">
+</center>
+<div class="footer">
 <p>See <a href="https://juanitorduz.github.io/bikes_pymc/">Time-Varying Regression Coefficients via Gaussian Random Walk in PyMC</a></p>
 </div>
 </section>
 <section id="example-bike-rental-model-7" class="slide level2">
 <h2>Example: Bike Rental Model</h2>
 <h3 id="time-varying-coefficients-2">Time-Varying Coefficients</h3>
-
-<img src="bikes_pymc_files/bikes_pymc_48_0.svg" width="900" class="r-stretch"><div class="footer">
+<center>
+<img src="bikes_pymc_files/bikes_pymc_48_0.svg" width="900">
+</center>
+<div class="footer">
 <p>See <a href="https://juanitorduz.github.io/bikes_pymc/">Time-Varying Regression Coefficients via Gaussian Random Walk in PyMC</a></p>
 </div>
 </section>
@@ -768,7 +791,8 @@ b(t) \sim N(b(t - 1), \sigma^2)
 </ul>
 <h3 id="pymc">PyMC</h3>
 <ul>
-<li><a href="https://www.pymc.io/projects/examples/en/latest/gallery.html">PyMC Documentation: Example Gallery</a></li>
+<li><p><a href="https://www.pymc.io/projects/examples/en/latest/gallery.html">PyMC Documentation: Example Gallery</a></p></li>
+<li><p>Online Book: <a href="https://bayesiancomputationbook.com/welcome.html">Bayesian Modeling and Computation in Python</a></p></li>
 </ul>
 <h3 id="use-cases">Use cases</h3>
 <ul>
@@ -778,8 +802,10 @@ b(t) \sim N(b(t - 1), \sigma^2)
 <section id="thank-you" class="slide level2">
 <h2>Thank you!</h2>
 <p><a href="https://juanitorduz.github.io/">juanitorduz.github.io</a></p>
-
-<img src="pyconco22_orduz_files/images/juanitorduz.png" width="900" class="r-stretch"><div class="footer footer-default">
+<center>
+<img src="pyconco22_orduz_files/images/juanitorduz.png" width="900">
+</center>
+<div class="footer footer-default">
 
 </div>
 </section>
