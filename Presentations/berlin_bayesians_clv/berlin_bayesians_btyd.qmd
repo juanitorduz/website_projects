@@ -1,0 +1,82 @@
+---
+title: "Introduction to BTYD (Buy Until You Die) Models"
+subtitle: "Berlin Bayesians MeetUp - September 2022"
+author: "Dr. Juan Orduz"
+format:
+  revealjs: 
+    slide-number: false
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    theme:
+        - "dark"
+---
+
+## Purchase Metrics
+
+::: incremental
+
+- `frequency`: Number of repeat purchases the customer has made. More precisely, It’s the count of time periods the customer had a purchase in.
+
+- `T`: Age of the customer in whatever time units chosen (weekly, in the above dataset). This is equal to the duration between a customer’s first purchase and the end of the period under study.
+
+- `recency`: Age of the customer when they made their most recent purchases. This is equal to the duration between a customer’s first purchase and their latest purchase.
+
+:::
+
+## BG/NBD Assumptions (Frequency)
+
+::: incremental
+
+1. While active, the time between transactions is distributed exponential with transaction rate, i.e., 
+
+    $$f(t_{j}|t_{j-1}; \lambda) = \lambda \exp(-\lambda (t_{j} - t_{j - 1})), \quad t_{j} \geq t_{j - 1} \geq 0$$ 
+
+2. Heterogeneity in $\lambda$ follows a gamma distribution with pdf
+
+    $$f(\lambda|r, \alpha) = \frac{\alpha^{r}\lambda^{r - 1}\exp(-\lambda \alpha)}{\Gamma(r)}, \quad \lambda  > 0$$
+
+:::
+
+::: footer
+See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf)
+:::
+
+## BG/NBD Assumptions (Dropout)
+
+::: incremental
+
+3. After any transaction, a customer becomes inactive with probability $p$.
+
+4. Heterogeneity in p follows a beta distribution with pdf
+
+    $$f(p|a, b) = \frac{\Gamma(a + b)}{\Gamma(a) \Gamma(b)} p^{a - 1}(1 - p)^{b - 1}, \quad 0 \leq p \leq 1$$
+
+5. The transaction rate $\lambda$ and the dropout probability $p$ vary independently across customers.
+
+:::
+
+::: footer
+See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf)
+:::
+
+## Inference
+
+The four BG/NBD model parameters can be estimated via the method of **maximum likelihood**.
+
+``` {.python code-line-numbers="1-4|6|8-11|13-14"}
+import numpy as np
+import pandas as pd
+from lifetimes.datasets import load_cdnow_summary
+from lifetimes import BetaGeoFitter
+
+data_df: pd.DataFrame = load_cdnow_summary(index_col=[0])
+
+n = data_df.shape[0]
+x = data_df["frequency"].to_numpy()
+t_x = data_df["recency"].to_numpy()
+T = data_df["T"].to_numpy()
+
+bgf = BetaGeoFitter()
+bgf.fit(frequency=x, recency=t_x, T=T)
+```
