@@ -80,3 +80,42 @@ T = data_df["T"].to_numpy()
 bgf = BetaGeoFitter()
 bgf.fit(frequency=x, recency=t_x, T=T)
 ```
+
+::: footer
+See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quickstart.html)
+:::
+
+## Predicted Future Purchases
+
+``` {.python}
+from lifetimes.plotting import plot_frequency_recency_matrix
+
+ax = plot_frequency_recency_matrix(model=bgf, T=15)
+```
+
+![](berlin_bayesians_btyd_files/images/plot_frequency_recency_matrix_15.png){fig-align="center"}
+
+::: footer
+See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quickstart.html)
+:::
+
+## Probability of Alive
+
+``` {.python}
+from lifetimes.plotting import plot_probability_alive_matrix
+
+ax = plot_probability_alive_matrix(model=bgf)
+```
+
+::: columns
+::: {.column width="43.5%"}
+![](berlin_bayesians_btyd_files/images/plot_probability_alive_matrix.png){fig-align="center"}
+:::
+::: {.column width="56.5%"}
+![](berlin_bayesians_btyd_files/images/p_alive.png){fig-align="center"}
+:::
+:::
+
+::: footer
+See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quickstart.html)
+:::
