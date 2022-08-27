@@ -1,7 +1,13 @@
 <!DOCTYPE html>
 <html lang="en"><head>
-  <meta charset="utf-8">
-  <meta name="generator" content="quarto-0.9.341">
+<script src="berlin_bayesians_btyd_files/libs/clipboard/clipboard.min.js"></script>
+<script src="berlin_bayesians_btyd_files/libs/quarto-html/tabby.min.js"></script>
+<script src="berlin_bayesians_btyd_files/libs/quarto-html/popper.min.js"></script>
+<script src="berlin_bayesians_btyd_files/libs/quarto-html/tippy.umd.min.js"></script>
+<link href="berlin_bayesians_btyd_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="berlin_bayesians_btyd_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet">
+<link href="berlin_bayesians_btyd_files/libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-0.9.571">
 
   <meta name="author" content="Dr.&nbsp;Juan Orduz">
   <title>Introduction to BTYD (Buy Until You Die) Models</title>
@@ -43,52 +49,46 @@
         -khtml-user-select: none; -moz-user-select: none;
         -ms-user-select: none; user-select: none;
         padding: 0 4px; width: 4em;
-        color: #aaaaaa;
       }
-    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    pre.numberSource { margin-left: 3em;  padding-left: 4px; }
     div.sourceCode
-      {   }
+      { color: #f8f8f2;  }
     @media screen {
     pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
     }
-    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-    code span.at { color: #7d9029; } /* Attribute */
-    code span.bn { color: #40a070; } /* BaseN */
-    code span.bu { } /* BuiltIn */
-    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-    code span.ch { color: #4070a0; } /* Char */
-    code span.cn { color: #880000; } /* Constant */
-    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-    code span.dt { color: #902000; } /* DataType */
-    code span.dv { color: #40a070; } /* DecVal */
-    code span.er { color: #ff0000; font-weight: bold; } /* Error */
-    code span.ex { } /* Extension */
-    code span.fl { color: #40a070; } /* Float */
-    code span.fu { color: #06287e; } /* Function */
-    code span.im { } /* Import */
-    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-    code span.op { color: #666666; } /* Operator */
-    code span.ot { color: #007020; } /* Other */
-    code span.pp { color: #bc7a00; } /* Preprocessor */
-    code span.sc { color: #4070a0; } /* SpecialChar */
-    code span.ss { color: #bb6688; } /* SpecialString */
-    code span.st { color: #4070a0; } /* String */
-    code span.va { color: #19177c; } /* Variable */
-    code span.vs { color: #4070a0; } /* VerbatimString */
-    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+    code span { color: #f8f8f2; } /* Normal */
+    code span.al { color: #f07178; background-color: #2a0f15; font-weight: bold; } /* Alert */
+    code span.an { color: #d4d0ab; } /* Annotation */
+    code span.at { color: #00e0e0; } /* Attribute */
+    code span.bn { color: #d4d0ab; } /* BaseN */
+    code span.bu { color: #abe338; } /* BuiltIn */
+    code span.cf { color: #ffa07a; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #abe338; } /* Char */
+    code span.cn { color: #ffd700; } /* Constant */
+    code span.co { color: #f8f8f2; font-style: italic; } /* Comment */
+    code span.cv { color: #ffd700; } /* CommentVar */
+    code span.do { color: #f8f8f2; } /* Documentation */
+    code span.dt { color: #ffa07a; } /* DataType */
+    code span.dv { color: #d4d0ab; } /* DecVal */
+    code span.er { color: #f07178; text-decoration: underline; } /* Error */
+    code span.ex { color: #00e0e0; font-weight: bold; } /* Extension */
+    code span.fl { color: #d4d0ab; } /* Float */
+    code span.fu { color: #ffa07a; } /* Function */
+    code span.im { color: #abe338; } /* Import */
+    code span.in { color: #d4d0ab; } /* Information */
+    code span.kw { color: #ffa07a; font-weight: bold; } /* Keyword */
+    code span.op { color: #ffa07a; } /* Operator */
+    code span.ot { color: #00e0e0; } /* Other */
+    code span.pp { color: #dcc6e0; } /* Preprocessor */
+    code span.re { color: #00e0e0; background-color: #f8f8f2; } /* RegionMarker */
+    code span.sc { color: #abe338; } /* SpecialChar */
+    code span.ss { color: #abe338; } /* SpecialString */
+    code span.st { color: #abe338; } /* String */
+    code span.va { color: #00e0e0; } /* Variable */
+    code span.vs { color: #abe338; } /* VerbatimString */
+    code span.wa { color: #dcc6e0; } /* Warning */
   </style>
   <link rel="stylesheet" href="berlin_bayesians_btyd_files/libs/revealjs/dist/theme/quarto.css" id="theme">
-  <script src="berlin_bayesians_btyd_files/libs/clipboard/clipboard.min.js"></script>
-  <script src="berlin_bayesians_btyd_files/libs/quarto-html/tabby.min.js"></script>
-  <script src="berlin_bayesians_btyd_files/libs/quarto-html/popper.min.js"></script>
-  <script src="berlin_bayesians_btyd_files/libs/quarto-html/tippy.umd.min.js"></script>
-  <link href="berlin_bayesians_btyd_files/libs/quarto-html/tippy.css" rel="stylesheet">
-  <link href="berlin_bayesians_btyd_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet">
-  <link id="quarto-text-highlighting-styles" href="berlin_bayesians_btyd_files/libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet">
   <link href="berlin_bayesians_btyd_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="berlin_bayesians_btyd_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
   <link href="berlin_bayesians_btyd_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
@@ -428,8 +428,27 @@
 <p>See <a href="http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf">“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model</a></p>
 </div>
 </section>
-<section id="inference" class="slide level2">
-<h2>Inference</h2>
+<section id="likelihood-easy-to-compute" class="slide level2">
+<h2>Likelihood: Easy to Compute!</h2>
+<p><span class="math display">\[
+L(a, b, \alpha, r|X=x, t_x, T) = A_{1}A_{2}(A_{3} + \delta_{x&gt;0}A_4)
+\]</span></p>
+<p>where</p>
+<p><span class="math display">\[\begin{align*}
+A_{1}  = \frac{\Gamma(r + x)\alpha^{{r}}}{\Gamma(x)}
+\quad A_{2} &amp; = \frac{\Gamma(a + b)\Gamma(b + x)}{\Gamma(b)\Gamma(a + b + x)} \\
+A_{3} = \left(\frac{1}{\alpha + T}\right)^{r+x}
+\quad A_{4} &amp; = \left(\frac{a}{b + x - 1}\right)\left(\frac{1}{\alpha + t_x}\right)^{r + x}
+\end{align*}\]</span></p>
+<div class="fragment">
+<p><strong>Strategy:</strong> Write this in <a href="https://numpy.org/doc/stable/"><code>numpy</code></a> as pass it through <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html"><code>scipy.optimize.minimize</code></a></p>
+<div class="footer">
+<p>See <a href="http://brucehardie.com/notes/004/bgnbd_spreadsheet_note.pdf">BG/NBD Model for Customer Base Analysis in Excel</a> and <a href="https://github.com/CamDavidsonPilon/lifetimes/blob/master/lifetimes/fitters/beta_geo_fitter.py#L164"><code>lifetimes.BetaGeoFitter._negative_log_likelihood</code></a></p>
+</div>
+</div>
+</section>
+<section id="inference-lifetimes-package" class="slide level2">
+<h2>Inference: <a href="https://github.com/CamDavidsonPilon/lifetimes/"><code>lifetimes</code></a> Package</h2>
 <p>The four BG/NBD model parameters can be estimated via the method of <strong>maximum likelihood</strong>.</p>
 <div class="sourceCode" id="cb1" data-code-line-numbers="1-4|6|8-11|13-14"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
@@ -481,6 +500,95 @@
 </div>
 <div class="footer">
 <p>See <a href="https://lifetimes.readthedocs.io/en/latest/Quickstart.html"><code>lifetimes</code>: Quick Start</a></p>
+</div>
+</section>
+<section id="from-numpy-to-aesara" class="slide level2">
+<h2>From Numpy to Aesara</h2>
+<p>We can re-write the <a href="https://numpy.org/doc/stable/"><code>numpy</code></a> likelihood implementation in <a href="https://github.com/aesara-devs/aesara"><code>aesara</code></a>.</p>
+
+<img data-src="berlin_bayesians_btyd_files/images/aesara_logo.png" class="r-stretch quarto-figure-center"><div class="footer">
+<p>See <a href="https://www.pymc.io/projects/docs/en/stable/learn/core_notebooks/pymc_aesara.html">Intro notebook: PyMC and Aesara</a></p>
+</div>
+</section>
+<section id="log-likelihood-in-aesara" class="slide level2">
+<h2>Log-Likelihood in Aesara</h2>
+<p>The translation bewtween <code>numpy</code> and <code>aesara</code> is very easy (replace <code>np</code> by <code>at</code>)!</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1"></a><span class="im">import</span> aesara.tensor <span class="im">as</span> at</span>
+<span id="cb4-2"><a href="#cb4-2"></a></span>
+<span id="cb4-3"><a href="#cb4-3"></a></span>
+<span id="cb4-4"><a href="#cb4-4"></a><span class="kw">def</span> logp(x, t_x, T, x_zero):</span>
+<span id="cb4-5"><a href="#cb4-5"></a>    a1 <span class="op">=</span> at.gammaln(r <span class="op">+</span> x) <span class="op">-</span> at.gammaln(r) <span class="op">+</span> r <span class="op">*</span> at.log(alpha)</span>
+<span id="cb4-6"><a href="#cb4-6"></a>    a2 <span class="op">=</span> (</span>
+<span id="cb4-7"><a href="#cb4-7"></a>        at.gammaln(a <span class="op">+</span> b)</span>
+<span id="cb4-8"><a href="#cb4-8"></a>        <span class="op">+</span> at.gammaln(b <span class="op">+</span> x)</span>
+<span id="cb4-9"><a href="#cb4-9"></a>        <span class="op">-</span> at.gammaln(b)</span>
+<span id="cb4-10"><a href="#cb4-10"></a>        <span class="op">-</span> at.gammaln(a <span class="op">+</span> b <span class="op">+</span> x)</span>
+<span id="cb4-11"><a href="#cb4-11"></a>    )</span>
+<span id="cb4-12"><a href="#cb4-12"></a>    a3 <span class="op">=</span> <span class="op">-</span>(r <span class="op">+</span> x) <span class="op">*</span> at.log(alpha <span class="op">+</span> T)</span>
+<span id="cb4-13"><a href="#cb4-13"></a>    a4 <span class="op">=</span> (</span>
+<span id="cb4-14"><a href="#cb4-14"></a>        at.log(a) <span class="op">-</span> at.log(b <span class="op">+</span> at.maximum(x, <span class="dv">1</span>) <span class="op">-</span> <span class="dv">1</span>) <span class="op">-</span> (r <span class="op">+</span> x) <span class="op">*</span> at.log(t_x <span class="op">+</span> alpha)</span>
+<span id="cb4-15"><a href="#cb4-15"></a>    )</span>
+<span id="cb4-16"><a href="#cb4-16"></a>    max_a3_a4 <span class="op">=</span> at.maximum(a3, a4)</span>
+<span id="cb4-17"><a href="#cb4-17"></a>    ll_1 <span class="op">=</span> a1 <span class="op">+</span> a2</span>
+<span id="cb4-18"><a href="#cb4-18"></a>    ll_2 <span class="op">=</span> (</span>
+<span id="cb4-19"><a href="#cb4-19"></a>        at.log(</span>
+<span id="cb4-20"><a href="#cb4-20"></a>            at.exp(a3 <span class="op">-</span> max_a3_a4)</span>
+<span id="cb4-21"><a href="#cb4-21"></a>            <span class="op">+</span> at.exp(a4 <span class="op">-</span> max_a3_a4) <span class="op">*</span> pm.math.switch(x_zero, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb4-22"><a href="#cb4-22"></a>        )</span>
+<span id="cb4-23"><a href="#cb4-23"></a>        <span class="op">+</span> max_a3_a4</span>
+<span id="cb4-24"><a href="#cb4-24"></a>    )</span>
+<span id="cb4-25"><a href="#cb4-25"></a>    <span class="cf">return</span> at.<span class="bu">sum</span>(ll_1 <span class="op">+</span> ll_2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="bgnbd-pymc-model" class="slide level2">
+<h2>BG/NBD PyMC Model</h2>
+<h3 id="model-structure">Model Structure</h3>
+<div class="sourceCode" id="cb5" data-code-line-numbers="1|2|5|7-11|13-14|16-19"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1"></a><span class="im">import</span> pymc <span class="im">as</span> pm</span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="im">import</span> pymc.sampling_jax</span>
+<span id="cb5-3"><a href="#cb5-3"></a></span>
+<span id="cb5-4"><a href="#cb5-4"></a></span>
+<span id="cb5-5"><a href="#cb5-5"></a><span class="cf">with</span> pm.Model() <span class="im">as</span> model:</span>
+<span id="cb5-6"><a href="#cb5-6"></a></span>
+<span id="cb5-7"><a href="#cb5-7"></a>    a <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"a"</span>, sigma<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb5-8"><a href="#cb5-8"></a>    b <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"b"</span>, sigma<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb5-9"><a href="#cb5-9"></a></span>
+<span id="cb5-10"><a href="#cb5-10"></a>    alpha <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"alpha"</span>, sigma<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb5-11"><a href="#cb5-11"></a>    r <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"r"</span>, sigma<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb5-12"><a href="#cb5-12"></a></span>
+<span id="cb5-13"><a href="#cb5-13"></a>    <span class="kw">def</span> logp(x, t_x, T, x_zero):</span>
+<span id="cb5-14"><a href="#cb5-14"></a>      ...</span>
+<span id="cb5-15"><a href="#cb5-15"></a></span>
+<span id="cb5-16"><a href="#cb5-16"></a>    likelihood <span class="op">=</span> pm.Potential(</span>
+<span id="cb5-17"><a href="#cb5-17"></a>        name<span class="op">=</span><span class="st">"likelihood"</span>,</span>
+<span id="cb5-18"><a href="#cb5-18"></a>        var<span class="op">=</span>logp(x<span class="op">=</span>x, t_x<span class="op">=</span>t_x, T<span class="op">=</span>T, x_zero<span class="op">=</span>x_zero),</span>
+<span id="cb5-19"><a href="#cb5-19"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="footer">
+<p>See <a href="https://juanitorduz.github.io/bg_nbd_pymc/">BG/NBD Model in PyMC</a></p>
+</div>
+</section>
+<section id="model-sampling" class="slide level2">
+<h2>Model Sampling</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1"></a><span class="cf">with</span> model:</span>
+<span id="cb6-2"><a href="#cb6-2"></a>    trace <span class="op">=</span> pm.sampling_jax.sample_numpyro_nuts(</span>
+<span id="cb6-3"><a href="#cb6-3"></a>      tune<span class="op">=</span><span class="dv">3000</span>, draws<span class="op">=</span><span class="dv">6000</span>, chains<span class="op">=</span><span class="dv">4</span>,target_accept<span class="op">=</span><span class="fl">0.95</span></span>
+<span id="cb6-4"><a href="#cb6-4"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+<img data-src="berlin_bayesians_btyd_files/images/bg_nbd_pymc_files/bg_nbd_pymc_25_0.png" class="r-stretch quarto-figure-center"><div class="footer">
+<p>See <a href="https://juanitorduz.github.io/bg_nbd_pymc/">BG/NBD Model in PyMC</a></p>
+</div>
+</section>
+<section id="time-independent-covariates" class="slide level2">
+<h2>Time-Independent Covariates?</h2>
+<ul>
+<li><p>Allow covariates <span class="math inline">\(z_1\)</span> and <span class="math inline">\(z_2\)</span> to explain the cross-sectional heterogeneity in the purchasing process and cross-sectional heterogeneity in the dropout process respectively.</p></li>
+<li><p>The likelihood and quantities of interests computed by computing expectations, remain almost the same. One only has to replace:</p></li>
+</ul>
+<p><span class="math display">\[\begin{align*}
+\alpha &amp; \longmapsto \alpha_{0}\exp(-\gamma_{1}^{T}z_{1}) \\
+a &amp; \longmapsto a_{0}\exp(\gamma_{2}^{T}z_{2}) \\
+b &amp; \longmapsto b_{0}\exp(\gamma_{3}^{T}z_{2})
+\end{align*}\]</span></p>
+<div class="footer">
+<p>See <a href="http://brucehardie.com/notes/019/time_invariant_covariates.pdf">Incorporating Time-Invariant Covariates into the Pareto/NBD and BG/NBD Models</a> and <a href="https://juanitorduz.github.io/bg_nbd_pymc/">BG/NBD Model in PyMC</a></p>
 </div>
 <div class="footer footer-default">
 
