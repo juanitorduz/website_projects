@@ -204,7 +204,7 @@ with pm.Model() as model:
     r = pm.HalfNormal(name="r", sigma=10)
 
     def logp(x, t_x, T, x_zero):
-      ...
+        ...
 
     likelihood = pm.Potential(
         name="likelihood",
@@ -222,11 +222,21 @@ See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 ```{.python}
 with model:
     trace = pm.sampling_jax.sample_numpyro_nuts(
-      tune=3000, draws=6000, chains=4,target_accept=0.95
+        tune=3000, draws=6000, chains=4,target_accept=0.95
 )
 ```
 
 ![](berlin_bayesians_btyd_files/images/bg_nbd_pymc_files/bg_nbd_pymc_25_0.png){fig-align="center"}
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
+
+## Probability of Active
+
+**How?** Simply use the posterior samples ([`xarray`](https://docs.xarray.dev/en/stable/)) and broadcast the `numpy` expressions.
+
+![](berlin_bayesians_btyd_files/images/bg_nbd_pymc_files/bg_nbd_pymc_34_1.png){fig-align="center"}
 
 ::: footer
 See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
@@ -247,3 +257,74 @@ b & \longmapsto b_{0}\exp(\gamma_{3}^{T}z_{2})
 ::: footer
 See [Incorporating Time-Invariant Covariates into the Pareto/NBD and BG/NBD Models](http://brucehardie.com/notes/019/time_invariant_covariates.pdf) and [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 :::
+
+## Simulated Example
+
+```{.python code-line-numbers="3-6|8-9|11-13|15-17"}
+np.random.seed(42)
+
+# construct covariate
+mu = 0.4
+rho = 0.7
+z = np.random.binomial(n=1, p=mu, size=x.size)
+
+# change frequency values by reducing it the values where z !=0
+x_z = np.floor(x * (1 - (rho * z)))
+
+# make sure the recency is zero whenever the frequency is zero
+t_x_z = t_x.copy()
+t_x_z[np.argwhere(x_z == 0).flatten()] = 0
+
+# sanity checks
+assert x_z.min() == 0
+assert np.all(t_x_z[np.argwhere(x_z == 0).flatten()] == 0)
+```
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
+
+## PyMC Model
+
+```{.python code-line-numbers="6-8"}
+with pm.Model() as model_cov:
+
+    a = pm.HalfNormal(name="a", sigma=10)
+    b = pm.HalfNormal(name="b", sigma=10)
+
+    alpha0 = pm.HalfNormal(name="alpha0", sigma=10)
+    g1 = pm.Normal(name="g1", mu=0, sigma=10)
+    alpha = pm.Deterministic(name="alpha", var=alpha0 * at.exp(- g1 * z))
+    
+    r = pm.HalfNormal(name="r", sigma=10)
+
+    def logp(x, t_x, T, x_zero):
+        ...
+
+    likelihood = pm.Potential(
+        name="likelihood",
+        var=logp(x=x_z, t_x=t_x_z, T=T, x_zero=x_zero_z),
+    )
+```
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
+
+## Effect in Parameters
+
+...
+
+## Bayesian BG NBD Model
+
+It opens many posibilities and oportunities!
+
+- Hierarchical Models
+- Time-Invariant Covariates
+- ...
+
+## A [sucessor package](https://github.com/ColtAllen/btyd) of `lifetimes`
+
+![](berlin_bayesians_btyd_files/images/btyd_github.png){fig-align="center"}
+
+Contributors needed!

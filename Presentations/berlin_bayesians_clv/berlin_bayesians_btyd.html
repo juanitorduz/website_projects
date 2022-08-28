@@ -555,7 +555,7 @@ A_{3} = \left(\frac{1}{\alpha + T}\right)^{r+x}
 <span id="cb5-11"><a href="#cb5-11"></a>    r <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"r"</span>, sigma<span class="op">=</span><span class="dv">10</span>)</span>
 <span id="cb5-12"><a href="#cb5-12"></a></span>
 <span id="cb5-13"><a href="#cb5-13"></a>    <span class="kw">def</span> logp(x, t_x, T, x_zero):</span>
-<span id="cb5-14"><a href="#cb5-14"></a>      ...</span>
+<span id="cb5-14"><a href="#cb5-14"></a>        ...</span>
 <span id="cb5-15"><a href="#cb5-15"></a></span>
 <span id="cb5-16"><a href="#cb5-16"></a>    likelihood <span class="op">=</span> pm.Potential(</span>
 <span id="cb5-17"><a href="#cb5-17"></a>        name<span class="op">=</span><span class="st">"likelihood"</span>,</span>
@@ -569,10 +569,18 @@ A_{3} = \left(\frac{1}{\alpha + T}\right)^{r+x}
 <h2>Model Sampling</h2>
 <div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1"></a><span class="cf">with</span> model:</span>
 <span id="cb6-2"><a href="#cb6-2"></a>    trace <span class="op">=</span> pm.sampling_jax.sample_numpyro_nuts(</span>
-<span id="cb6-3"><a href="#cb6-3"></a>      tune<span class="op">=</span><span class="dv">3000</span>, draws<span class="op">=</span><span class="dv">6000</span>, chains<span class="op">=</span><span class="dv">4</span>,target_accept<span class="op">=</span><span class="fl">0.95</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a>        tune<span class="op">=</span><span class="dv">3000</span>, draws<span class="op">=</span><span class="dv">6000</span>, chains<span class="op">=</span><span class="dv">4</span>,target_accept<span class="op">=</span><span class="fl">0.95</span></span>
 <span id="cb6-4"><a href="#cb6-4"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 <img data-src="berlin_bayesians_btyd_files/images/bg_nbd_pymc_files/bg_nbd_pymc_25_0.png" class="r-stretch quarto-figure-center"><div class="footer">
+<p>See <a href="https://juanitorduz.github.io/bg_nbd_pymc/">BG/NBD Model in PyMC</a></p>
+</div>
+</section>
+<section id="probability-of-active" class="slide level2">
+<h2>Probability of Active</h2>
+<p><strong>How?</strong> Simply use the posterior samples (<a href="https://docs.xarray.dev/en/stable/"><code>xarray</code></a>) and broadcast the <code>numpy</code> expressions.</p>
+
+<img data-src="berlin_bayesians_btyd_files/images/bg_nbd_pymc_files/bg_nbd_pymc_34_1.png" class="r-stretch quarto-figure-center"><div class="footer">
 <p>See <a href="https://juanitorduz.github.io/bg_nbd_pymc/">BG/NBD Model in PyMC</a></p>
 </div>
 </section>
@@ -590,6 +598,71 @@ b &amp; \longmapsto b_{0}\exp(\gamma_{3}^{T}z_{2})
 <div class="footer">
 <p>See <a href="http://brucehardie.com/notes/019/time_invariant_covariates.pdf">Incorporating Time-Invariant Covariates into the Pareto/NBD and BG/NBD Models</a> and <a href="https://juanitorduz.github.io/bg_nbd_pymc/">BG/NBD Model in PyMC</a></p>
 </div>
+</section>
+<section id="simulated-example" class="slide level2">
+<h2>Simulated Example</h2>
+<div class="sourceCode" id="cb7" data-code-line-numbers="3-6|8-9|11-13|15-17"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb7-2"><a href="#cb7-2"></a></span>
+<span id="cb7-3"><a href="#cb7-3"></a><span class="co"># construct covariate</span></span>
+<span id="cb7-4"><a href="#cb7-4"></a>mu <span class="op">=</span> <span class="fl">0.4</span></span>
+<span id="cb7-5"><a href="#cb7-5"></a>rho <span class="op">=</span> <span class="fl">0.7</span></span>
+<span id="cb7-6"><a href="#cb7-6"></a>z <span class="op">=</span> np.random.binomial(n<span class="op">=</span><span class="dv">1</span>, p<span class="op">=</span>mu, size<span class="op">=</span>x.size)</span>
+<span id="cb7-7"><a href="#cb7-7"></a></span>
+<span id="cb7-8"><a href="#cb7-8"></a><span class="co"># change frequency values by reducing it the values where z !=0</span></span>
+<span id="cb7-9"><a href="#cb7-9"></a>x_z <span class="op">=</span> np.floor(x <span class="op">*</span> (<span class="dv">1</span> <span class="op">-</span> (rho <span class="op">*</span> z)))</span>
+<span id="cb7-10"><a href="#cb7-10"></a></span>
+<span id="cb7-11"><a href="#cb7-11"></a><span class="co"># make sure the recency is zero whenever the frequency is zero</span></span>
+<span id="cb7-12"><a href="#cb7-12"></a>t_x_z <span class="op">=</span> t_x.copy()</span>
+<span id="cb7-13"><a href="#cb7-13"></a>t_x_z[np.argwhere(x_z <span class="op">==</span> <span class="dv">0</span>).flatten()] <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb7-14"><a href="#cb7-14"></a></span>
+<span id="cb7-15"><a href="#cb7-15"></a><span class="co"># sanity checks</span></span>
+<span id="cb7-16"><a href="#cb7-16"></a><span class="cf">assert</span> x_z.<span class="bu">min</span>() <span class="op">==</span> <span class="dv">0</span></span>
+<span id="cb7-17"><a href="#cb7-17"></a><span class="cf">assert</span> np.<span class="bu">all</span>(t_x_z[np.argwhere(x_z <span class="op">==</span> <span class="dv">0</span>).flatten()] <span class="op">==</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="footer">
+<p>See <a href="https://juanitorduz.github.io/bg_nbd_pymc/">BG/NBD Model in PyMC</a></p>
+</div>
+</section>
+<section id="pymc-model" class="slide level2">
+<h2>PyMC Model</h2>
+<div class="sourceCode" id="cb8" data-code-line-numbers="6-8"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1"></a><span class="cf">with</span> pm.Model() <span class="im">as</span> model_cov:</span>
+<span id="cb8-2"><a href="#cb8-2"></a></span>
+<span id="cb8-3"><a href="#cb8-3"></a>    a <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"a"</span>, sigma<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb8-4"><a href="#cb8-4"></a>    b <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"b"</span>, sigma<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb8-5"><a href="#cb8-5"></a></span>
+<span id="cb8-6"><a href="#cb8-6"></a>    alpha0 <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"alpha0"</span>, sigma<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb8-7"><a href="#cb8-7"></a>    g1 <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"g1"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb8-8"><a href="#cb8-8"></a>    alpha <span class="op">=</span> pm.Deterministic(name<span class="op">=</span><span class="st">"alpha"</span>, var<span class="op">=</span>alpha0 <span class="op">*</span> at.exp(<span class="op">-</span> g1 <span class="op">*</span> z))</span>
+<span id="cb8-9"><a href="#cb8-9"></a>    </span>
+<span id="cb8-10"><a href="#cb8-10"></a>    r <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"r"</span>, sigma<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb8-11"><a href="#cb8-11"></a></span>
+<span id="cb8-12"><a href="#cb8-12"></a>    <span class="kw">def</span> logp(x, t_x, T, x_zero):</span>
+<span id="cb8-13"><a href="#cb8-13"></a>        ...</span>
+<span id="cb8-14"><a href="#cb8-14"></a></span>
+<span id="cb8-15"><a href="#cb8-15"></a>    likelihood <span class="op">=</span> pm.Potential(</span>
+<span id="cb8-16"><a href="#cb8-16"></a>        name<span class="op">=</span><span class="st">"likelihood"</span>,</span>
+<span id="cb8-17"><a href="#cb8-17"></a>        var<span class="op">=</span>logp(x<span class="op">=</span>x_z, t_x<span class="op">=</span>t_x_z, T<span class="op">=</span>T, x_zero<span class="op">=</span>x_zero_z),</span>
+<span id="cb8-18"><a href="#cb8-18"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="footer">
+<p>See <a href="https://juanitorduz.github.io/bg_nbd_pymc/">BG/NBD Model in PyMC</a></p>
+</div>
+</section>
+<section id="effect-in-parameters" class="slide level2">
+<h2>Effect in Parameters</h2>
+<p>…</p>
+</section>
+<section id="bayesian-bg-nbd-model" class="slide level2">
+<h2>Bayesian BG NBD Model</h2>
+<p>It opens many posibilities and oportunities!</p>
+<ul>
+<li>Hierarchical Models</li>
+<li>Time-Invariant Covariates</li>
+<li>…</li>
+</ul>
+</section>
+<section id="a-sucessor-package-of-lifetimes" class="slide level2">
+<h2>A <a href="https://github.com/ColtAllen/btyd">sucessor package</a> of <code>lifetimes</code></h2>
+
+<img data-src="berlin_bayesians_btyd_files/images/btyd_github.png" class="r-stretch quarto-figure-center"><p>Contributors needed!</p>
 <div class="footer footer-default">
 
 </div>
