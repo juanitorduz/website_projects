@@ -16,3 +16,5 @@ An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_
 - [Davidson-Pilon; `lifetimes` package](https://github.com/CamDavidsonPilon/lifetimes)
 - [Orduz; BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 - [Orduz; Gamma-Gamma Model of Monetary Value in PyMC](https://juanitorduz.github.io/gamma_gamma_pymc/)
+
+---
