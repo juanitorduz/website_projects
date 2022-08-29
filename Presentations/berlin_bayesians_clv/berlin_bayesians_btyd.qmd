@@ -12,6 +12,40 @@ format:
         - "dark"
 ---
 
+### Model Workflow
+
+```{mermaid}
+%%{init: {"theme": "dark" } }%%
+%%| fig-width: 10
+
+flowchart LR
+  A[Transaction Data] --> B(Transaction Model - BG/NBD)
+  A[Transaction Data] --> C(Monetary Model - GG)
+  B(Transaction Model - BG/NBD) --> D[Probability of Alive]
+  B(Transaction Model - BG/NBD) --> E[Predicted Frequency]
+  C(Monetary Model - GG) --> F[Predicted Avg. Monetary Value]
+  E[Predicted Frequency] --> G[Predicted CLV]
+  F[Predicted Avg. Monetary Value] --> G[Predicted CLV]
+```
+- **Transaction Model:** Number of transactions per customer.
+- **Monetary Model:** Average monetary value of a transaction.
+
+. . . 
+
+CLV: [discounted cash flow (DCF) method](https://en.wikipedia.org/wiki/Discounted_cash_flow).
+
+```{.python}
+for i in steps:
+    df["clv"] += (
+        (monetary_value * expected_number_of_transactions) 
+        / (1 + discount_rate) ** i 
+    )
+```
+
+::: footer
+See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quickstart.html)
+:::
+
 ## Purchase Metrics
 
 ::: incremental
@@ -22,6 +56,10 @@ format:
 
 - `recency`: Age of the customer when they made their most recent purchases. This is equal to the duration between a customer’s first purchase and their latest purchase.
 
+:::
+
+::: footer
+See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quickstart.html)
 :::
 
 ## BG/NBD Assumptions (Frequency)
@@ -142,6 +180,10 @@ ax = plot_probability_alive_matrix(model=bgf)
 ::: footer
 See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quickstart.html)
 :::
+
+## Probability of Alive
+
+![](berlin_bayesians_btyd_files/images/p_alive_examples.png){fig-align="center"}
 
 ## From Numpy to Aesara
 
