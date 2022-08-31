@@ -12,6 +12,40 @@ format:
         - "dark"
 ---
 
+### Model Workflow
+
+```{mermaid}
+%%{init: {"theme": "dark" } }%%
+%%| fig-width: 10
+
+flowchart LR
+  A[Transaction Data] --> B(Transaction Model - BG/NBD)
+  A[Transaction Data] --> C(Monetary Model - GG)
+  B(Transaction Model - BG/NBD) --> D[Probability of Alive]
+  B(Transaction Model - BG/NBD) --> E[Predicted Frequency]
+  C(Monetary Model - GG) --> F[Predicted Avg. Monetary Value]
+  E[Predicted Frequency] --> G[Predicted CLV]
+  F[Predicted Avg. Monetary Value] --> G[Predicted CLV]
+```
+- **Transaction Model:** Number of transactions per customer.
+- **Monetary Model:** Average monetary value of a transaction.
+
+. . . 
+
+CLV: [discounted cash flow (DCF) method](https://en.wikipedia.org/wiki/Discounted_cash_flow).
+
+```{.python}
+for i in steps:
+    df["clv"] += (
+        (monetary_value * expected_number_of_transactions) 
+        / (1 + discount_rate) ** i 
+    )
+```
+
+::: footer
+See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quickstart.html)
+:::
+
 ## Purchase Metrics
 
 ::: incremental
@@ -22,6 +56,10 @@ format:
 
 - `recency`: Age of the customer when they made their most recent purchases. This is equal to the duration between a customer’s first purchase and their latest purchase.
 
+:::
+
+::: footer
+See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quickstart.html)
 :::
 
 ## BG/NBD Assumptions (Frequency)
@@ -60,7 +98,30 @@ See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NB
 See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf)
 :::
 
-## Inference
+## Likelihood: Easy to Compute!
+
+$$
+L(a, b, \alpha, r|X=x, t_x, T) = A_{1}A_{2}(A_{3} + \delta_{x>0}A_4)
+$$
+
+where
+
+\begin{align*}
+A_{1}  = \frac{\Gamma(r + x)\alpha^{{r}}}{\Gamma(x)}
+\quad A_{2} & = \frac{\Gamma(a + b)\Gamma(b + x)}{\Gamma(b)\Gamma(a + b + x)} \\
+A_{3} = \left(\frac{1}{\alpha + T}\right)^{r+x}
+\quad A_{4} & = \left(\frac{a}{b + x - 1}\right)\left(\frac{1}{\alpha + t_x}\right)^{r + x}
+\end{align*}
+
+. . .
+
+**Strategy:** Write this in [`numpy`](https://numpy.org/doc/stable/) as pass it through [`scipy.optimize.minimize`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html)
+
+::: footer
+See [BG/NBD Model for Customer Base Analysis in Excel](http://brucehardie.com/notes/004/bgnbd_spreadsheet_note.pdf) and [`lifetimes.BetaGeoFitter._negative_log_likelihood`](https://github.com/CamDavidsonPilon/lifetimes/blob/master/lifetimes/fitters/beta_geo_fitter.py#L164)
+:::
+
+## Inference: [`lifetimes`](https://github.com/CamDavidsonPilon/lifetimes/) Package
 
 The four BG/NBD model parameters can be estimated via the method of **maximum likelihood**.
 
@@ -119,3 +180,193 @@ ax = plot_probability_alive_matrix(model=bgf)
 ::: footer
 See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quickstart.html)
 :::
+
+## Probability of Alive
+
+![](berlin_bayesians_btyd_files/images/p_alive_examples.png){fig-align="center"}
+
+## From Numpy to Aesara
+
+We can re-write the [`numpy`](https://numpy.org/doc/stable/) likelihood implementation in [`aesara`](https://github.com/aesara-devs/aesara).
+
+![](berlin_bayesians_btyd_files/images/aesara_logo.png){fig-align="center"}
+
+::: footer
+See [Intro notebook: PyMC and Aesara](https://www.pymc.io/projects/docs/en/stable/learn/core_notebooks/pymc_aesara.html)
+:::
+
+## Log-Likelihood in Aesara
+
+The translation bewtween `numpy` and `aesara` is very easy (replace `np` by `at`)!
+
+
+``` {.python }
+import aesara.tensor as at
+
+
+def logp(x, t_x, T, x_zero):
+    a1 = at.gammaln(r + x) - at.gammaln(r) + r * at.log(alpha)
+    a2 = (
+        at.gammaln(a + b)
+        + at.gammaln(b + x)
+        - at.gammaln(b)
+        - at.gammaln(a + b + x)
+    )
+    a3 = -(r + x) * at.log(alpha + T)
+    a4 = (
+        at.log(a) - at.log(b + at.maximum(x, 1) - 1) - (r + x) * at.log(t_x + alpha)
+    )
+    max_a3_a4 = at.maximum(a3, a4)
+    ll_1 = a1 + a2
+    ll_2 = (
+        at.log(
+            at.exp(a3 - max_a3_a4)
+            + at.exp(a4 - max_a3_a4) * pm.math.switch(x_zero, 1, 0)
+        )
+        + max_a3_a4
+    )
+    return at.sum(ll_1 + ll_2)
+```
+
+## BG/NBD PyMC Model
+
+### Model Structure
+
+``` {.python code-line-numbers="1|2|5|7-11|13-14|16-19"}
+import pymc as pm
+import pymc.sampling_jax
+
+
+with pm.Model() as model:
+
+    a = pm.HalfNormal(name="a", sigma=10)
+    b = pm.HalfNormal(name="b", sigma=10)
+
+    alpha = pm.HalfNormal(name="alpha", sigma=10)
+    r = pm.HalfNormal(name="r", sigma=10)
+
+    def logp(x, t_x, T, x_zero):
+        ...
+
+    likelihood = pm.Potential(
+        name="likelihood",
+        var=logp(x=x, t_x=t_x, T=T, x_zero=x_zero),
+    )
+```
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
+
+
+## Model Sampling
+
+```{.python}
+with model:
+    trace = pm.sampling_jax.sample_numpyro_nuts(
+        tune=3000, draws=6000, chains=4,target_accept=0.95
+)
+```
+
+![](berlin_bayesians_btyd_files/images/bg_nbd_pymc_files/bg_nbd_pymc_25_0.png){fig-align="center"}
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
+
+## Probability of Active
+
+**How?** Simply use the posterior samples ([`xarray`](https://docs.xarray.dev/en/stable/)) and broadcast the `numpy` expressions.
+
+![](berlin_bayesians_btyd_files/images/bg_nbd_pymc_files/bg_nbd_pymc_34_1.png){fig-align="center"}
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
+
+## Time-Independent Covariates?
+
+- Allow covariates $z_1$ and $z_2$ to explain the cross-sectional heterogeneity in the purchasing process and cross-sectional heterogeneity in the dropout process respectively.
+
+- The likelihood and quantities of interests computed by computing expectations, remain almost the same. One only has to replace:
+
+\begin{align*}
+\alpha & \longmapsto \alpha_{0}\exp(-\gamma_{1}^{T}z_{1}) \\
+a & \longmapsto a_{0}\exp(\gamma_{2}^{T}z_{2}) \\
+b & \longmapsto b_{0}\exp(\gamma_{3}^{T}z_{2})
+\end{align*}
+
+::: footer
+See [Incorporating Time-Invariant Covariates into the Pareto/NBD and BG/NBD Models](http://brucehardie.com/notes/019/time_invariant_covariates.pdf) and [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
+
+## Simulated Example
+
+```{.python code-line-numbers="3-6|8-9|11-13|15-17"}
+np.random.seed(42)
+
+# construct covariate
+mu = 0.4
+rho = 0.7
+z = np.random.binomial(n=1, p=mu, size=x.size)
+
+# change frequency values by reducing it the values where z !=0
+x_z = np.floor(x * (1 - (rho * z)))
+
+# make sure the recency is zero whenever the frequency is zero
+t_x_z = t_x.copy()
+t_x_z[np.argwhere(x_z == 0).flatten()] = 0
+
+# sanity checks
+assert x_z.min() == 0
+assert np.all(t_x_z[np.argwhere(x_z == 0).flatten()] == 0)
+```
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
+
+## PyMC Model
+
+```{.python code-line-numbers="6-8"}
+with pm.Model() as model_cov:
+
+    a = pm.HalfNormal(name="a", sigma=10)
+    b = pm.HalfNormal(name="b", sigma=10)
+
+    alpha0 = pm.HalfNormal(name="alpha0", sigma=10)
+    g1 = pm.Normal(name="g1", mu=0, sigma=10)
+    alpha = pm.Deterministic(name="alpha", var=alpha0 * at.exp(- g1 * z))
+    
+    r = pm.HalfNormal(name="r", sigma=10)
+
+    def logp(x, t_x, T, x_zero):
+        ...
+
+    likelihood = pm.Potential(
+        name="likelihood",
+        var=logp(x=x_z, t_x=t_x_z, T=T, x_zero=x_zero_z),
+    )
+```
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
+
+## Effect in Parameters
+
+...
+
+## Bayesian BG NBD Model
+
+It opens many posibilities and oportunities!
+
+- Hierarchical Models
+- Time-Invariant Covariates
+- ...
+
+## A [sucessor package](https://github.com/ColtAllen/btyd) of `lifetimes`
+
+![](berlin_bayesians_btyd_files/images/btyd_github.png){fig-align="center"}
+
+Contributors needed!
