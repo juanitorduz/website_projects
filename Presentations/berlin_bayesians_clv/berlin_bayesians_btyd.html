@@ -391,9 +391,22 @@
   <p class="author">Dr.&nbsp;Juan Orduz</p>
 </section>
 
-<section class="slide level2">
+<section id="classifying-customer-bases" class="slide level2">
+<h2>Classifying Customer Bases</h2>
 
-<h3 id="model-workflow">Model Workflow</h3>
+<img data-src="berlin_bayesians_btyd_files/images/square.png" class="r-stretch quarto-figure-center"><div class="footer">
+<p>See <a href="https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdfl">Probability Models for Customer-Base Analysis</a></p>
+</div>
+</section>
+<section id="purchase-histories" class="slide level2">
+<h2>Purchase Histories</h2>
+
+<img data-src="berlin_bayesians_btyd_files/images/purchase_histories.png" class="r-stretch quarto-figure-center"><div class="footer">
+<p>See <a href="https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdfl">Probability Models for Customer-Base Analysis</a></p>
+</div>
+</section>
+<section id="models-workflow" class="slide level2">
+<h2>Models Workflow</h2>
 <figure class="cell">
 <div class="cell-output-display" data-code-fold="false">
 <pre class="mermaid">%%{init: {"theme": "dark" } }%%
@@ -401,12 +414,12 @@
 
 flowchart LR
   A[Transaction Data] --&gt; B(Transaction Model - BG/NBD)
-  A[Transaction Data] --&gt; C(Monetary Model - GG)
-  B(Transaction Model - BG/NBD) --&gt; D[Probability of Alive]
-  B(Transaction Model - BG/NBD) --&gt; E[Predicted Frequency]
-  C(Monetary Model - GG) --&gt; F[Predicted Avg. Monetary Value]
-  E[Predicted Frequency] --&gt; G[Predicted CLV]
-  F[Predicted Avg. Monetary Value] --&gt; G[Predicted CLV]
+  A --&gt; C(Monetary Model - GG)
+  B --&gt; D[Probability of Alive]
+  B --&gt; E[Predicted Frequency]
+  C --&gt; F[Predicted Avg. Monetary Value]
+  E --&gt; G[Predicted CLV]
+  F --&gt; G[Predicted CLV]
 </pre>
 </div>
 </figure>
@@ -424,6 +437,13 @@ flowchart LR
 <div class="footer">
 <p>See <a href="https://lifetimes.readthedocs.io/en/latest/Quickstart.html"><code>lifetimes</code>: Quick Start</a></p>
 </div>
+</div>
+</section>
+<section id="the-bgnbd-model" class="slide level2">
+<h2>The BG/NBD Model</h2>
+
+<img data-src="berlin_bayesians_btyd_files/images/model_summary.png" class="r-stretch quarto-figure-center"><div class="footer">
+<p>See <a href="http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf">“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model</a> and<a href="https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdfl">Probability Models for Customer-Base Analysis</a></p>
 </div>
 </section>
 <section id="purchase-metrics" class="slide level2">
