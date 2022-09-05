@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "76d478dfb48f8da88def204f7927e5c7bd2974855ccd87413dbf9d30c21e53c5"
+            "sha256": "300681c51bb6f9a10e6b4309d4d04c80fa8b3ffa7c06e8ce23f385e88417336a"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -129,7 +129,7 @@
                 "sha256:02bd91c4de869fbb1e1c50aafc4098827a7a54ab2f39d9dcba6c9547ed920e24",
                 "sha256:265a455292d0bd8a72453494fa24df5a11eb18373a60c7c0430889f22548605e"
             ],
-            "markers": "sys_platform == 'darwin'",
+            "markers": "platform_system == 'Darwin'",
             "version": "==0.1.3"
         },
         "argon2-cffi": {
@@ -2021,7 +2021,7 @@
                 "sha256:f743740eb0b9417023598cb8b0968a457a8a8806a5f89697ce789c9a255ad0a0",
                 "sha256:ff6c18c3ce5cb48b9365ac6d744d8ac9bdb22a522bbdfe6d5bb42d06f31e0acb"
             ],
-            "markers": "python_version >= '3.7'",
+            "index": "pypi",
             "version": "==1.1"
         },
         "protobuf": {
@@ -2245,29 +2245,8 @@
             "version": "==0.18.1"
         },
         "pystan": {
-            "hashes": [
-                "sha256:1127522641533a6ccb7684d4008d06c092cbe6f3ee7d44679a87937ee39093ab",
-                "sha256:2b44502aaa8866e0bcc81df1537e7e08b74aaf4cc9d4bf43e7c8b168f3568ca6",
-                "sha256:2baa4106ddc7fb90712bd0e5ab8693ce130b001c6166839247511326edc6d0ba",
-                "sha256:3622520b2e55d2ce70a3027d9910b6197a8bc2ef59e01967be9c4e607a48a9c1",
-                "sha256:43fdd98561f0cba0637f1fa343ed7d5adc885d04a655ab6302dbfd08f016105d",
-                "sha256:4a0820df5fcd13c7a4cae75d59809adee72d1135a604dc2b5f068d4ac8ca349e",
-                "sha256:5020ac3ca3a840f428f090fc5fe75412e2a7948ac7e3de59f4bbfd7a4539c0ef",
-                "sha256:5b67008f5780c7cf0f3fbad5bc54bc9919efc9655d63e0314dc013e85c7a0f14",
-                "sha256:61340356889547e29e2e6db7ef28f821b91e73fee80a888e81a794a24a249987",
-                "sha256:6c4bbbb0a59144135d9821f2b9c308bfdf70aa61befdc7dc435f4c86bfb4457e",
-                "sha256:837a62976b32e4fd2bd48fee3b419c651e19747280e440d5934bea3822b22115",
-                "sha256:9d8c2ae05d1dca854a55b2ae9276af5866e473fb8264d03d5267abadb3c602da",
-                "sha256:b2ef9031dfbd65757828e2441cb9a76c9217fb5bb93817fee2550722e7a785b3",
-                "sha256:bc1193f52bc6c6419dd753bcb0b6958b24fe588dc3da3c7f70bd23dcbda6ec2a",
-                "sha256:c87bd98db2b5c67fa08177de04c98b46d1fcd68ae53dbe55ffc5187868068002",
-                "sha256:e6580cec2f5ed1bdb44eab83d54fe87b11e673ed65d6c2064d8d9f76265ce049",
-                "sha256:e8e0924c318a0ea67260167a74f040078a4ce0d3fd4a7d566aa76f7752a85fab",
-                "sha256:e9fbbf10dfc0ef8e7343ee4a3e17fd5c214fb12fc42615673e14908949b410e4",
-                "sha256:f16c399da3d9d72e9661b131c23d51a59c789416598885714813fcb552234c83",
-                "sha256:fa8bad8dbc0da22bbe6f36af56c9abbfcf10f92df8ce627d59a36bd8d25eb038"
-            ],
-            "version": "==2.19.1.1"
+            "git": "https://github.com/stan-dev/pystan2.git",
+            "ref": "1dd043db3c2618a9360a0f2ccbb57221634e5b08"
         },
         "python-dateutil": {
             "hashes": [
@@ -3143,7 +3122,7 @@
                 "sha256:02bd91c4de869fbb1e1c50aafc4098827a7a54ab2f39d9dcba6c9547ed920e24",
                 "sha256:265a455292d0bd8a72453494fa24df5a11eb18373a60c7c0430889f22548605e"
             ],
-            "markers": "sys_platform == 'darwin'",
+            "markers": "platform_system == 'Darwin'",
             "version": "==0.1.3"
         },
         "asttokens": {
@@ -3688,7 +3667,7 @@
                 "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc",
                 "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"
             ],
-            "markers": "python_version >= '3.7'",
+            "markers": "python_version < '3.11'",
             "version": "==2.0.1"
         },
         "traitlets": {
