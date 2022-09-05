@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "ddef6b5e3cf8d2205a6602171888a98f11e010093ace1516e8d49e4d262e1503"
+            "sha256": "b04adf135e99f3157be50e6924bc2aced5ba8a90cdb38f6c181adc0808a0bc15"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -129,7 +129,7 @@
                 "sha256:02bd91c4de869fbb1e1c50aafc4098827a7a54ab2f39d9dcba6c9547ed920e24",
                 "sha256:265a455292d0bd8a72453494fa24df5a11eb18373a60c7c0430889f22548605e"
             ],
-            "markers": "platform_system == 'Darwin'",
+            "markers": "sys_platform == 'darwin'",
             "version": "==0.1.3"
         },
         "argon2-cffi": {
@@ -2243,6 +2243,7 @@
             "version": "==0.18.1"
         },
         "pystan": {
+            "git": "https://github.com/stan-dev/pystan2.git",
             "hashes": [
                 "sha256:1127522641533a6ccb7684d4008d06c092cbe6f3ee7d44679a87937ee39093ab",
                 "sha256:2b44502aaa8866e0bcc81df1537e7e08b74aaf4cc9d4bf43e7c8b168f3568ca6",
@@ -2265,8 +2266,7 @@
                 "sha256:f16c399da3d9d72e9661b131c23d51a59c789416598885714813fcb552234c83",
                 "sha256:fa8bad8dbc0da22bbe6f36af56c9abbfcf10f92df8ce627d59a36bd8d25eb038"
             ],
-            "index": "pypi",
-            "version": "==2.19.1.1"
+            "ref": "1dd043db3c2618a9360a0f2ccbb57221634e5b08"
         },
         "python-dateutil": {
             "hashes": [
@@ -3143,7 +3143,7 @@
                 "sha256:02bd91c4de869fbb1e1c50aafc4098827a7a54ab2f39d9dcba6c9547ed920e24",
                 "sha256:265a455292d0bd8a72453494fa24df5a11eb18373a60c7c0430889f22548605e"
             ],
-            "markers": "platform_system == 'Darwin'",
+            "markers": "sys_platform == 'darwin'",
             "version": "==0.1.3"
         },
         "asttokens": {
@@ -3688,7 +3688,7 @@
                 "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc",
                 "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"
             ],
-            "markers": "python_full_version < '3.11.0a7'",
+            "markers": "python_version < '3.11'",
             "version": "==2.0.1"
         },
         "traitlets": {

@@ -41,7 +41,7 @@ numpyro = "*"
 openpyxl = "*"
 orbit-ml = "*"
 pandas = "*"
-pystan = "==2.19.1.1"
+pystan = {git = "git+https://github.com/stan-dev/pystan2.git@master"}
 prophet = "==1.1"
 pymc = "==4.1.7"
 seaborn = "==0.11.2"
