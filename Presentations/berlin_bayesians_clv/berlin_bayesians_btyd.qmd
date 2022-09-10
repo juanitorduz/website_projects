@@ -46,9 +46,16 @@ flowchart LR
 - **Transaction Model:** Number of transactions per customer.
 - **Monetary Model:** Average monetary value of a transaction.
 
-. . . 
+## CLV Formula
 
-CLV: [discounted cash flow (DCF) method](https://en.wikipedia.org/wiki/Discounted_cash_flow).
+[Discounted cash flow (DCF) method](https://en.wikipedia.org/wiki/Discounted_cash_flow):
+
+$$
+CLV = \sum_{i=1}^{\infty} \frac{M_i}{(1+\delta)^t}
+$$
+
+- $M_{i}$: cash flow in period $i$.
+- $\delta$: discount rate.
 
 ```{.python}
 for i in steps:
@@ -62,7 +69,7 @@ for i in steps:
 See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quickstart.html)
 :::
 
-## The BG/NBD Model
+## The BG/NBD Transaction Model
 
 ![](berlin_bayesians_btyd_files/images/model_summary.png){fig-align="center"}
 
@@ -345,6 +352,9 @@ t_x_z[np.argwhere(x_z == 0).flatten()] = 0
 assert x_z.min() == 0
 assert np.all(t_x_z[np.argwhere(x_z == 0).flatten()] == 0)
 ```
+. . .
+
+$z = 1 \Rightarrow$ the frequency is reduced by $70\%$.
 
 ::: footer
 See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
@@ -377,9 +387,24 @@ with pm.Model() as model_cov:
 See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 :::
 
+## Model Parameters
+
+![](berlin_bayesians_btyd_files/images/trace_m2.png){fig-align="center"}
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
+
 ## Effect in Parameters
 
-...
+![](berlin_bayesians_btyd_files/images/alpha_posterior.png){fig-align="center"}
+
+- Recall $\lambda \sim \text{Gamma}(r, \alpha)$, which has expected value $r/\alpha$.
+- Hence, as $g_1 < 0$,  then $\alpha(z=1) > \alpha(z=0)$ which is consistent with the data generation process where $z = 1$ implied a lower frequency.
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
 
 ## Bayesian BG NBD Model
 
