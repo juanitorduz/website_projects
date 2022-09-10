@@ -76,7 +76,7 @@ See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NB
 
 - `frequency`: Number of repeat purchases the customer has made. More precisely, It’s the count of time periods the customer had a purchase in.
 
-- `T`: Age of the customer in whatever time units chosen (weekly, in the above dataset). This is equal to the duration between a customer’s first purchase and the end of the period under study.
+- `T`: Age of the customer in whatever time units chosen. This is equal to the duration between a customer’s first purchase and the end of the period under study.
 
 - `recency`: Age of the customer when they made their most recent purchases. This is equal to the duration between a customer’s first purchase and their latest purchase.
 
@@ -394,3 +394,34 @@ It opens many posibilities and oportunities!
 ![](berlin_bayesians_btyd_files/images/btyd_github.png){fig-align="center"}
 
 Contributors needed!
+
+## References
+
+### Blog Posts
+
+- [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+- [Gamma-Gamma Model of Monetary Value in PyMC](https://juanitorduz.github.io/gamma_gamma_pymc/)
+
+### Papers
+
+- [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdfl)
+- [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf)
+
+## References
+
+### Software
+
+#### Python
+
+- [`lifetimes`](https://github.com/CamDavidsonPilon/lifetimes)
+- A sucessor package [`btyd`](https://github.com/ColtAllen/btyd) of `lifetimes`.
+- [PyMC](https://docs.pymc.io/)
+
+#### R
+
+- [`BTYD`](https://cran.r-project.org/web/packages/BTYD/index.html)
+- [`BTYDplus`](https://cran.r-project.org/web/packages/BTYDplus/index.html)
+
+## Thank you!
+
+[juanitorduz.github.io](https://juanitorduz.github.io/)
