@@ -12,7 +12,23 @@ format:
         - "dark"
 ---
 
-### Model Workflow
+## Classifying Customer Bases
+
+![](berlin_bayesians_btyd_files/images/square.png){fig-align="center"}
+
+::: footer
+See [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdfl)
+:::
+
+## Purchase Histories
+
+![](berlin_bayesians_btyd_files/images/purchase_histories.png){fig-align="center"}
+
+::: footer
+See [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdfl)
+:::
+
+## Models Workflow
 
 ```{mermaid}
 %%{init: {"theme": "dark" } }%%
@@ -20,12 +36,12 @@ format:
 
 flowchart LR
   A[Transaction Data] --> B(Transaction Model - BG/NBD)
-  A[Transaction Data] --> C(Monetary Model - GG)
-  B(Transaction Model - BG/NBD) --> D[Probability of Alive]
-  B(Transaction Model - BG/NBD) --> E[Predicted Frequency]
-  C(Monetary Model - GG) --> F[Predicted Avg. Monetary Value]
-  E[Predicted Frequency] --> G[Predicted CLV]
-  F[Predicted Avg. Monetary Value] --> G[Predicted CLV]
+  A --> C(Monetary Model - GG)
+  B --> D[Probability of Alive]
+  B --> E[Predicted Frequency]
+  C --> F[Predicted Avg. Monetary Value]
+  E --> G[Predicted CLV]
+  F --> G[Predicted CLV]
 ```
 - **Transaction Model:** Number of transactions per customer.
 - **Monetary Model:** Average monetary value of a transaction.
@@ -44,6 +60,14 @@ for i in steps:
 
 ::: footer
 See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quickstart.html)
+:::
+
+## The BG/NBD Model
+
+![](berlin_bayesians_btyd_files/images/model_summary.png){fig-align="center"}
+
+::: footer
+See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf) and[Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdfl)
 :::
 
 ## Purchase Metrics
