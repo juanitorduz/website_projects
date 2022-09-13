@@ -28,6 +28,14 @@ See [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/
 See [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdfl)
 :::
 
+## The Pareto/NBD Model
+
+![](berlin_bayesians_btyd_files/images/pareto_model_summary.png){fig-align="center"}
+
+::: footer
+[Counting Your Customers: Who Are They and What Will They Do Next?](https://www.jstor.org/stable/2631608) and [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf)
+:::
+
 ## Models Workflow
 
 ```{mermaid}
@@ -71,10 +79,10 @@ See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quicks
 
 ## The BG/NBD Transaction Model
 
-![](berlin_bayesians_btyd_files/images/model_summary.png){fig-align="center"}
+![](berlin_bayesians_btyd_files/images/bg_nbd_model_summary.png){fig-align="center"}
 
 ::: footer
-See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf) and[Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdfl)
+[“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf) and [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf)
 :::
 
 ## Purchase Metrics
@@ -215,6 +223,29 @@ See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quicks
 ## Probability of Alive
 
 ![](berlin_bayesians_btyd_files/images/p_alive_examples.png){fig-align="center"}
+
+## Model Evaluation
+
+::: columns
+::: {.column width="47.5%"}
+![](berlin_bayesians_btyd_files/images/plot_period_transactions.png){fig-align="center"}
+:::
+::: {.column width="52.5%"}
+![](berlin_bayesians_btyd_files/images/plot_calibration_purchases_vs_holdout_purchases.png){fig-align="center"}
+:::
+:::
+
+``` {.python}
+summary["model_predictions"] = model.conditional_expected_number_of_purchases_up_to_time(
+    duration_holdout, summary["frequency_cal"], summary["recency_cal"], summary["T_cal"]
+)
+
+summary.groupby("frequency_cal")[["frequency_holdout", "model_predictions"]].mean().plot()
+```
+
+::: footer
+See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quickstart.html)
+:::
 
 ## From Numpy to Aesara
 
@@ -429,7 +460,8 @@ Contributors needed!
 
 ### Papers
 
-- [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdfl)
+- [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf)
+- [Counting Your Customers: Who Are They and What Will They Do Next?](https://www.jstor.org/stable/2631608)
 - [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf)
 
 ## References
