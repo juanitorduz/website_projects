@@ -8,7 +8,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Install build-essential
+      - name: Install c compiler
         run: sudo apt-get install build-essential
       - name: Set up Python 3.9
         uses: actions/setup-python@v4
@@ -16,5 +16,7 @@ jobs:
           python-version: 3.9
       - name: Install pipenv
         run: pip install pipenv
+      - name: Install cython and numpy (pystan dependency)
+        run: pipenv install Cython numpy
       - name: Install dependencies
         run: pipenv install --dev
