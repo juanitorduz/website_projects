@@ -16,7 +16,7 @@ jobs:
           python-version: 3.9
       - name: Install pipenv
         run: pip install pipenv
-      - name: Install dependencies part 1
+      - name: Install cython and numpy (pystan dependency)
         run: pipenv install Cython numpy
-      - name: Install dependencies part 2
+      - name: Install dependencies
         run: pipenv install --dev
