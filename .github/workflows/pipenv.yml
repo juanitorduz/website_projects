@@ -8,6 +8,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - name: Install c compiler
+        run: apt-get install build-essential
       - name: Set up Python 3.9
         uses: actions/setup-python@v4
         with:
