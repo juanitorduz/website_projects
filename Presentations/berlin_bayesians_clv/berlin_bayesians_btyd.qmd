@@ -430,7 +430,7 @@ See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 
 ## Model Parameters
 
-![](berlin_bayesians_btyd_files/images/bg_nbd_pymc_files/bg_nbd_pymc_55_1.png){fig-align="center"}
+![](berlin_bayesians_btyd_files/images/bg_nbd_pymc_files/bg_nbd_pymc_52_0.svg){fig-align="center"}
 
 ::: footer
 See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
@@ -447,12 +447,44 @@ See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 :::
 
-## Bayesian BG NBD Model
+## Hierarchical BG/NBD Model - Data
+
+```{.python}
+groups = ["g1", "g2", "g3", "g4"]
+
+data_df["group"] = rng.choice(
+    a=groups, p=[0.45, 0.35, 0.15, 0.05], size=n_obs
+)
+```
+
+![](berlin_bayesians_btyd_files/images/bg_nbd_pymc_files/bg_nbd_pymc_66_0.png){fig-align="center"}
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
+
+## Hierarchical BG/NBD Model Structure
+
+![](berlin_bayesians_btyd_files/images/bg_nbd_pymc_files/bg_nbd_pymc_68_0.svg){fig-align="center"}
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
+
+## Hierarchical BG/NBD Model Results
+
+![](berlin_bayesians_btyd_files/images/bg_nbd_pymc_files/bg_nbd_pymc_74_0.png){fig-align="center"}
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
+
+## Bayesian BG/NBD Model
 
 It opens many posibilities and oportunities!
 
-- Hierarchical Models
 - Time-Invariant Covariates
+- Hierarchical Models
 - ...
 
 ## A [sucessor package](https://github.com/ColtAllen/btyd) of `lifetimes`
