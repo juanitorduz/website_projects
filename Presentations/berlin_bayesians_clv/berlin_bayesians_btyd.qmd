@@ -28,6 +28,14 @@ See [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/
 See [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdfl)
 :::
 
+## The Pareto/NBD Model
+
+![](berlin_bayesians_btyd_files/images/pareto_model_summary.png){fig-align="center"}
+
+::: footer
+[Counting Your Customers: Who Are They and What Will They Do Next?](https://www.jstor.org/stable/2631608) and [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf)
+:::
+
 ## Models Workflow
 
 ```{mermaid}
@@ -46,9 +54,16 @@ flowchart LR
 - **Transaction Model:** Number of transactions per customer.
 - **Monetary Model:** Average monetary value of a transaction.
 
-. . . 
+## CLV Formula
 
-CLV: [discounted cash flow (DCF) method](https://en.wikipedia.org/wiki/Discounted_cash_flow).
+[Discounted cash flow (DCF) method](https://en.wikipedia.org/wiki/Discounted_cash_flow):
+
+$$
+CLV = \sum_{i=1}^{\infty} \frac{M_i}{(1+\delta)^t}
+$$
+
+- $M_{i}$: cash flow in period $i$.
+- $\delta$: discount rate.
 
 ```{.python}
 for i in steps:
@@ -62,12 +77,12 @@ for i in steps:
 See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quickstart.html)
 :::
 
-## The BG/NBD Model
+## The BG/NBD Transaction Model
 
-![](berlin_bayesians_btyd_files/images/model_summary.png){fig-align="center"}
+![](berlin_bayesians_btyd_files/images/bg_nbd_model_summary.png){fig-align="center"}
 
 ::: footer
-See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf) and[Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdfl)
+[“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf) and [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf)
 :::
 
 ## Purchase Metrics
@@ -76,7 +91,7 @@ See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NB
 
 - `frequency`: Number of repeat purchases the customer has made. More precisely, It’s the count of time periods the customer had a purchase in.
 
-- `T`: Age of the customer in whatever time units chosen (weekly, in the above dataset). This is equal to the duration between a customer’s first purchase and the end of the period under study.
+- `T`: Age of the customer in whatever time units chosen. This is equal to the duration between a customer’s first purchase and the end of the period under study.
 
 - `recency`: Age of the customer when they made their most recent purchases. This is equal to the duration between a customer’s first purchase and their latest purchase.
 
@@ -209,6 +224,29 @@ See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quicks
 
 ![](berlin_bayesians_btyd_files/images/p_alive_examples.png){fig-align="center"}
 
+## Model Evaluation
+
+::: columns
+::: {.column width="47.5%"}
+![](berlin_bayesians_btyd_files/images/plot_period_transactions.png){fig-align="center"}
+:::
+::: {.column width="52.5%"}
+![](berlin_bayesians_btyd_files/images/plot_calibration_purchases_vs_holdout_purchases.png){fig-align="center"}
+:::
+:::
+
+``` {.python}
+summary["model_predictions"] = model.conditional_expected_number_of_purchases_up_to_time(
+    duration_holdout, summary["frequency_cal"], summary["recency_cal"], summary["T_cal"]
+)
+
+summary.groupby("frequency_cal")[["frequency_holdout", "model_predictions"]].mean().plot()
+```
+
+::: footer
+See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quickstart.html)
+:::
+
 ## From Numpy to Aesara
 
 We can re-write the [`numpy`](https://numpy.org/doc/stable/) likelihood implementation in [`aesara`](https://github.com/aesara-devs/aesara).
@@ -308,6 +346,16 @@ See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 :::
 
+## Future Purchases
+
+Similarty, using the analytical expressions:
+
+![](berlin_bayesians_btyd_files/images/bg_nbd_pymc_files/bg_nbd_pymc_42_0.png){fig-align="center"}
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
+
 ## Time-Independent Covariates?
 
 - Allow covariates $z_1$ and $z_2$ to explain the cross-sectional heterogeneity in the purchasing process and cross-sectional heterogeneity in the dropout process respectively.
@@ -345,6 +393,9 @@ t_x_z[np.argwhere(x_z == 0).flatten()] = 0
 assert x_z.min() == 0
 assert np.all(t_x_z[np.argwhere(x_z == 0).flatten()] == 0)
 ```
+. . .
+
+$z = 1 \Rightarrow$ the frequency is reduced by $70\%$.
 
 ::: footer
 See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
@@ -377,9 +428,24 @@ with pm.Model() as model_cov:
 See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 :::
 
+## Model Parameters
+
+![](berlin_bayesians_btyd_files/images/bg_nbd_pymc_files/bg_nbd_pymc_55_1.png){fig-align="center"}
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
+
 ## Effect in Parameters
 
-...
+![](berlin_bayesians_btyd_files/images/bg_nbd_pymc_files/bg_nbd_pymc_59_0.png){fig-align="center"}
+
+- Recall $\lambda \sim \text{Gamma}(r, \alpha)$, which has expected value $r/\alpha$.
+- Hence, as $g_1 < 0$,  then $\alpha(z=1) > \alpha(z=0)$ which is consistent with the data generation process where $z = 1$ implied a lower frequency.
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
 
 ## Bayesian BG NBD Model
 
@@ -394,3 +460,35 @@ It opens many posibilities and oportunities!
 ![](berlin_bayesians_btyd_files/images/btyd_github.png){fig-align="center"}
 
 Contributors needed!
+
+## References
+
+### Blog Posts
+
+- [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+- [Gamma-Gamma Model of Monetary Value in PyMC](https://juanitorduz.github.io/gamma_gamma_pymc/)
+
+### Papers
+
+- [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf)
+- [Counting Your Customers: Who Are They and What Will They Do Next?](https://www.jstor.org/stable/2631608)
+- [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf)
+
+## References
+
+### Software
+
+#### Python
+
+- [`lifetimes`](https://github.com/CamDavidsonPilon/lifetimes)
+- A sucessor package [`btyd`](https://github.com/ColtAllen/btyd) of `lifetimes`.
+- [PyMC](https://docs.pymc.io/)
+
+#### R
+
+- [`BTYD`](https://cran.r-project.org/web/packages/BTYD/index.html)
+- [`BTYDplus`](https://cran.r-project.org/web/packages/BTYDplus/index.html)
+
+## Thank you!
+
+[juanitorduz.github.io](https://juanitorduz.github.io/)
