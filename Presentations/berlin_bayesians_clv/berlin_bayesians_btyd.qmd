@@ -195,6 +195,8 @@ ax = plot_frequency_recency_matrix(model=bgf, T=15)
 
 ![](berlin_bayesians_btyd_files/images/plot_frequency_recency_matrix_15.png){fig-align="center"}
 
+$$E[Y(t) | X=x, t_x, T, r, \alpha, a , b]$$
+
 ::: footer
 See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quickstart.html)
 :::
@@ -217,7 +219,7 @@ ax = plot_probability_alive_matrix(model=bgf)
 :::
 
 ::: footer
-See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quickstart.html)
+See [`lifetimes`: Quick Start](https://lifetimes.readthedocs.io/en/latest/Quickstart.html) and [Computing P(alive) Using the BG/NBD Model](https://brucehardie.com/notes/021/palive_for_BGNBD.pdf)
 :::
 
 ## Probability of Alive
@@ -493,7 +495,7 @@ It opens many posibilities and oportunities!
 
 Contributors needed!
 
-## References
+## References {.smaller}
 
 ### Blog Posts
 
@@ -505,6 +507,11 @@ Contributors needed!
 - [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf)
 - [Counting Your Customers: Who Are They and What Will They Do Next?](https://www.jstor.org/stable/2631608)
 - [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf)
+- [Computing P(alive) Using the BG/NBD Model](https://brucehardie.com/notes/021/palive_for_BGNBD.pdf)
+
+### Videos
+
+- [New Perspectives on CLV and E-Commerce Buying Patterns, Peter Fader](https://www.youtube.com/watch?v=guj2gVEEx4s&t=1s)
 
 ## References
 
@@ -524,3 +531,5 @@ Contributors needed!
 ## Thank you!
 
 [juanitorduz.github.io](https://juanitorduz.github.io/)
+
+![](berlin_bayesians_btyd_files/images/juanitorduz.png){fig-align="center"}
