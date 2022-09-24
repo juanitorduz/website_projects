@@ -22,7 +22,7 @@ format:
 3. BG/NBD Model: Bayesian Estimation (`pymc`)
     
     - External Regressors
-    - Hierarcical Model
+    - Hierarchical Model
 
 4. References and Resources
 
@@ -75,7 +75,7 @@ flowchart LR
 [Discounted cash flow (DCF) method](https://en.wikipedia.org/wiki/Discounted_cash_flow):
 
 $$
-CLV = \sum_{i=1}^{\infty} \frac{M_i}{(1+\delta)^t}
+CLV = \sum_{i=1}^{\infty} \frac{M_i}{(1+\delta)^i}
 $$
 
 - $M_{i}$: cash flow in period $i$.
@@ -141,7 +141,7 @@ See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NB
 
 3. After any transaction, a customer becomes inactive with probability $p$.
 
-4. Heterogeneity in p follows a beta distribution with pdf
+4. Heterogeneity in $p$ follows a beta distribution with pdf
 
     $$f(p|a, b) = \frac{\Gamma(a + b)}{\Gamma(a) \Gamma(b)} p^{a - 1}(1 - p)^{b - 1}, \quad 0 \leq p \leq 1$$
 
