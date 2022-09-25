@@ -456,12 +456,27 @@ See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 :::
 
-## Effect in Parameters
+
+## Effect in Parameters {.smaller}
+
+::: columns
+
+::: {.column width="45%"}
+
+![](berlin_bayesians_btyd_files/images/bg_nbd_pymc_files/bg_nbd_pymc_55_1.png){fig-align="center"}
+
+:::
+
+::: {.column width="55%"}
 
 ![](berlin_bayesians_btyd_files/images/bg_nbd_pymc_files/bg_nbd_pymc_59_0.png){fig-align="center"}
 
 - Recall $\lambda \sim \text{Gamma}(r, \alpha)$, which has expected value $r/\alpha$.
-- Hence, as $g_1 < 0$,  then $\alpha(z=1) > \alpha(z=0)$ which is consistent with the data generation process where $z = 1$ implied a lower frequency.
+- As $g_1 < 0$,  then $\alpha(z=1) > \alpha(z=0)$ which is consistent with the data generation process.
+
+:::
+
+:::
 
 ::: footer
 See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
