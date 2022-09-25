@@ -10,6 +10,7 @@ format:
     preview-links: auto
     theme:
         - "dark"
+    highlight-style: monokai
 ---
 
 ## Outline
@@ -55,17 +56,18 @@ See [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/
 ## Models Workflow
 
 ```{mermaid}
-%%{init: {"theme": "dark" } }%%
-%%| fig-width: 10
+%%| fig-width: 1000px
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "12px"}, "flowchart":{"htmlLabels":false}}}%%
+
 
 flowchart LR
-  A[Transaction Data] --> B(Transaction Model - BG/NBD)
-  A --> C(Monetary Model - GG)
-  B --> D[Probability of Alive]
-  B --> E[Predicted Frequency]
-  C --> F[Predicted Avg. Monetary Value]
-  E --> G[Predicted CLV]
-  F --> G[Predicted CLV]
+  A["Transaction Data"] --> B("Transaction Model - BG/NBD")
+  A --> C("Monetary Model - GG")
+  B --> D["Probability of Alive"]
+  B --> E["Predicted Frequency"]
+  C --> F["Predicted Avg. Monetary Value"]
+  E --> G["Predicted CLV"]
+  F --> G
 ```
 - **Transaction Model:** Number of transactions per customer.
 - **Monetary Model:** Average monetary value of a transaction.
