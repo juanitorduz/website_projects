@@ -1,7 +1,10 @@
+import logging
 from datetime import datetime
+
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+from rich.logging import RichHandler
 from scipy.special import expit
 
 
@@ -142,6 +145,13 @@ class ZipCodeDataGenerator:
 
 
 if __name__ == "__main__":
+
+    FORMAT: str = "%(message)s"
+    logging.basicConfig(
+        level="INFO", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
+    )
+
+    logging.info("Generating data...")
     seed: int = sum(map(ord, "wolt"))
     rng: np.random.Generator = np.random.default_rng(seed=seed)
     n_zipcodes: int = 100
@@ -160,5 +170,7 @@ if __name__ == "__main__":
     )
 
     data_df: pd.DataFrame = zipcode_data_generator.run()
+    logging.info("Data generation complete!")
 
     data_df.to_csv("data/zipcodes_data.csv", index=False)
+    logging.info("Data saved to data/zipcodes_data.csv")
