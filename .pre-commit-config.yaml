@@ -1,0 +1,20 @@
+repos:
+  - repo: local
+    hooks:
+      - id: black
+        name: black
+        entry: black
+        language: system
+        types: [python]
+      - id: flake8
+        name: flake8
+        args: [--format=pylint]
+        entry: flake8
+        language: system
+        types: [python]
+      - id: isort
+        name: isort
+        args: [--profile=black]
+        entry: isort
+        language: system
+        types: [python]
