@@ -60,7 +60,8 @@ pandas = "*"
 pandas-stubs = "*"
 pystan = {git = "git+https://github.com/stan-dev/pystan2.git", ref = "v2.19.1.1"}
 prophet = "==1.1.1"
-pymc = "==4.4.0"
+pymc = "==4.3.0"
+pymc_experimental = {git = "git+https://github.com/pymc-devs/pymcx.git", ref = "main"}
 pytorch-lightning = "*"
 seaborn = ">=0.12.1"
 scikit-learn = "*"
