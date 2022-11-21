@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "ec993096a741ae50b0cac8908af6d5092af8ef205a38d4e475e1426ace800d13"
+            "sha256": "b8d0dc55dc4382c8141b1541a50609ee16009575c7c2159ee5ae87d6f8337ed2"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -161,7 +161,7 @@
                 "sha256:02bd91c4de869fbb1e1c50aafc4098827a7a54ab2f39d9dcba6c9547ed920e24",
                 "sha256:265a455292d0bd8a72453494fa24df5a11eb18373a60c7c0430889f22548605e"
             ],
-            "markers": "platform_system == 'Darwin'",
+            "markers": "sys_platform == 'darwin'",
             "version": "==0.1.3"
         },
         "argon2-cffi": {
@@ -821,17 +821,6 @@
             "index": "pypi",
             "version": "==0.22.0"
         },
-        "dask": {
-            "extras": [
-                "array"
-            ],
-            "hashes": [
-                "sha256:18e5c442778cdbb177041dadf9950546884c0f1ce1ac25c98aa2cade2a9d83f0",
-                "sha256:89e3772c30072c7dacd83846164eca6bc0a8b347df7bc0ab2ce69f7effdc03bd"
-            ],
-            "markers": "python_version >= '3.8'",
-            "version": "==2022.11.1"
-        },
         "debugpy": {
             "hashes": [
                 "sha256:34d2cdd3a7c87302ba5322b86e79c32c2115be396f3f09ca13306d8a04fe0f16",
@@ -1374,7 +1363,7 @@
                 "sha256:fb7229fa2a201a0c377ff3283174ec966da8f9fd7ffcc9a92f162d2e7fc9025b",
                 "sha256:fdac966699707b5554b815acc272d81e619dd0999f187cd52a61aef075f870ee"
             ],
-            "markers": "python_version >= '3.6'",
+            "markers": "python_version < '3.10'",
             "version": "==1.43.0"
         },
         "h5py": {
@@ -1820,14 +1809,6 @@
             ],
             "markers": "python_version >= '3.7'",
             "version": "==0.39.1"
-        },
-        "locket": {
-            "hashes": [
-                "sha256:5c0d4c052a8bbbf750e056a8e65ccd309086f4f0f18a2eac306a8dfa4112a632",
-                "sha256:b6c819a722f7b6bd955b80781788e4a66a55628b858d347536b7e81325a3a5e3"
-            ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
-            "version": "==1.0.0"
         },
         "logical-unification": {
             "hashes": [
@@ -2550,14 +2531,6 @@
             "markers": "python_version >= '3.6'",
             "version": "==0.8.3"
         },
-        "partd": {
-            "hashes": [
-                "sha256:6393a0c898a0ad945728e34e52de0df3ae295c5aff2e2926ba7cc3c60a734a15",
-                "sha256:ce91abcdc6178d668bcaa431791a5a917d902341cb193f543fe445d494660485"
-            ],
-            "markers": "python_version >= '3.7'",
-            "version": "==1.3.0"
-        },
         "pathy": {
             "hashes": [
                 "sha256:7da78fc4b6188d5e62c7aeea1676e6875b9e88e70bbe899c466e4cdb450fd4f1",
@@ -3048,10 +3021,6 @@
             ],
             "index": "pypi",
             "version": "==4.4.0"
-        },
-        "pymc-experimental": {
-            "git": "https://github.com/pymc-devs/pymcx.git",
-            "ref": "c3634e1497a414e847e0c548acfa7f1f4a79d88d"
         },
         "pymeeus": {
             "hashes": [
@@ -4478,14 +4447,6 @@
             "index": "pypi",
             "version": "==1.7.1"
         },
-        "xhistogram": {
-            "hashes": [
-                "sha256:56b0751e1469eaed81710f644c8ba5c574b51883baa2feee26a95f2f708f91a1",
-                "sha256:ad55330d55296d273b3370678223fde0f50085e04cb744c7b3b0bb7702a2c6bf"
-            ],
-            "markers": "python_version >= '3.7'",
-            "version": "==0.3.2"
-        },
         "yarl": {
             "hashes": [
                 "sha256:076eede537ab978b605f41db79a56cad2e7efeea2aa6e0fa8f05a26c24a034fb",
@@ -4574,7 +4535,7 @@
                 "sha256:02bd91c4de869fbb1e1c50aafc4098827a7a54ab2f39d9dcba6c9547ed920e24",
                 "sha256:265a455292d0bd8a72453494fa24df5a11eb18373a60c7c0430889f22548605e"
             ],
-            "markers": "platform_system == 'Darwin'",
+            "markers": "sys_platform == 'darwin'",
             "version": "==0.1.3"
         },
         "asttokens": {
