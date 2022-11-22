@@ -19,4 +19,4 @@ jobs:
       - name: Install pipenv
         run: pip install pipenv
       - name: Install dependencies
-        run: pipenv install  --dev --system --deploy
+        run: pipenv install  --dev
