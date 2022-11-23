@@ -18,7 +18,7 @@ rich = "*"
 watermark = "*"
 
 [packages]
-arviz = ">=0.13.0"
+arviz = ">=0.14.0"
 bambi = "*"
 blackjax = "==0.9.6"
 boto3 = "*"
@@ -55,13 +55,10 @@ numpy = "*"
 numpyro = "*"
 openpyxl = "*"
 optuna = "*"
-orbit-ml = "*"
 pandas = "*"
 pandas-stubs = "*"
-pystan = {git = "git+https://github.com/stan-dev/pystan2.git", ref = "v2.19.1.1"}
 prophet = "==1.1.1"
 pymc = "==4.4.0"
-pymc_experimental = {git = "git+https://github.com/pymc-devs/pymcx.git", ref = "main"}
 pytorch-lightning = "*"
 seaborn = ">=0.12.1"
 scikit-learn = "*"
@@ -77,7 +74,6 @@ spacy-transformers = "*"
 statsmodels = "*"
 tensorflow = "*"
 tensorflow-probability = "*"
-tfcausalimpact = "*"
 transformers= "*"
 torch = "*"
 xgboost = "*"
@@ -87,4 +83,4 @@ intel-openmp = {version = "*", sys_platform = "== 'darwin'"}
 tbb = {version = "*", sys_platform = "== 'darwin'"}
 
 [requires]
-python_version = "3.9"
+python_version = "3.10"
