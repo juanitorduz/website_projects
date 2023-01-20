@@ -70,9 +70,9 @@ class CohortDataGenerator:
             data_df["cohort_age"] == 0, data_df["n_users"], data_df["n_active_users"]
         )
 
-        lam = np.exp(
+        lam = 1e-2 * np.exp(
             data_df["cohort_age"] / (data_df["age"] + 1)
-            + (data_df["cohort_age"] / data_df["cohort_age"].std())
+            + (data_df["cohort_age"] / data_df["cohort_age"].max())
         )
 
         data_df["revenue"] = self.rng.gamma(
