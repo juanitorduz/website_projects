@@ -1,0 +1,116 @@
+---
+title: "Media Mix Models: A Bayesian Approach with PyMC"
+subtitle: "Lithuania AI"
+author: "Dr. Juan Orduz"
+format:
+  revealjs: 
+    slide-number: false
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    theme:
+        - "dark"
+    highlight-style: monokai
+---
+
+## Outline
+
+::: incremental
+
+1. Introduction MMM
+
+2. Example: Simulated Use Case
+
+    2.1 Data Generating Process
+
+    2.2 Model Specification
+
+    2.3 Results
+
+:::
+
+## Media Optimization is Hard
+
+![](mmm_files/images/cases.png){fig-align="center"}
+
+## Media Mix Models
+
+::: incremental
+
+- Media Mix Models (MMM) are used by advertisers to measure the effectiveness of their advertising and provide insight in making future budget allocation decisions.
+
+- Media mix models are also used to find the optimal media mix that maximizes the revenue under a budget constraint in the selected time period. 
+
+:::
+
+. . .
+
+### Marketing Measurement
+
+```{mermaid}
+%%| fig-width: 500px
+%%| fig-align: "center"
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart LR
+  Experimentation("Experimentation") --> MMM("Media Mix Model")
+  MMM --> Attribution("Attribution")
+  Attribution --> Experimentation
+```
+
+::: footer
+See [Challenges And Opportunities In Media Mix Modeling](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45998.pdf)
+:::
+
+## Offline Media Experimentation
+
+![](mmm_files/images/meetup_wolt.png){fig-align="center"}
+
+::: footer
+[Offline Campaign Analysis Measurement — Juan Orduz, Data Scientist at Wolt](https://www.youtube.com/watch?v=gMaxM8PAcpo)
+:::
+
+
+## Funnel Effects: Causality
+
+> “When an ad channel also impacts the level of another ad channel, using a model like in the baseline above, which simultaneously estimate the impact of all ad channels in one equation, will lead to biased estimates.”
+
+. . .
+
+### We need to draw the DAG!
+
+We need to do a causal analysis to define the causal connections (DAG) and fit the model accordingly so that we do not induce biased estimates. 
+
+::: footer
+See [Challenges And Opportunities In Media Mix Modeling](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45998.pdf)
+:::
+
+## Funnel effects: Causality
+
+![](mmm_files/images/dag.png){fig-align="center"}
+
+::: footer
+See [Media Effect Estimation with PyMC: Adstock, Saturation & Diminishing Returns](https://juanitorduz.github.io/pymc_mmm/)
+:::
+
+## MMM in Practice
+
+![](mmm_files/images/owl.png){fig-align="center"}
+
+## MMM Modern Approaches: Bayesian Modeling
+
+::: incremental
+- Conceptually transparent interpretation of probablity.
+- Uncertainty quantification.
+- Allows to explicitly include prior knowledge in the model.
+- Felxible and suited for many applications in academia and industry.
+:::
+
+. . .
+```{mermaid}
+%%| fig-width: 500px
+%%| fig-align: "center"
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart LR
+  Prior("Prior") --> Data("Data")
+  Data --> Posterior("Posterior")
+```
