@@ -114,3 +114,146 @@ flowchart LR
   Prior("Prior") --> Data("Data")
   Data --> Posterior("Posterior")
 ```
+
+## Simulated Data: Two Media Input
+
+![](mmm_files/images/mmm_example_files/mmm_example_8_0.png){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## Simulated Data: Media Transformations
+
+![](mmm_files/images/mmm_example_files/mmm_example_15_0.png){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## Simulated Data: Trend and Seasonality Components
+
+::: columns
+::: {.column width="50.0%"}
+![](mmm_files/images/mmm_example_files/mmm_example_17_0.png){fig-align="center"}
+:::
+::: {.column width="50.0%"}
+![](mmm_files/images/mmm_example_files/mmm_example_21_0.png){fig-align="center"}
+:::
+:::
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## Simulated Data: Media Contributions
+
+![](mmm_files/images/mmm_example_files/mmm_example_26_0.png){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## PyMC Model
+
+![](mmm_files/images/mmm_example_files/mmm_example_46_0.svg){fig-align="center"}
+
+::: footer
+See [Bayesian Methods for Media Mix Modeling with Carryover and Shape Effects](https://research.google/pubs/pub46001/) and [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## PyMC Model: Components
+
+![](mmm_files/images/mmm_example_files/mmm_example_61_0.png){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## PyMC Model: Parameter Recovery
+
+::: columns
+::: {.column width="50.0%"}
+![](mmm_files/images/mmm_example_files/mmm_example_63_0.png){fig-align="center"}
+:::
+::: {.column width="50.0%"}
+![](mmm_files/images/mmm_example_files/mmm_example_64_0.png){fig-align="center"}
+:::
+:::
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## PyMC Model: Media Contribution
+
+::: columns
+::: {.column width="47.5%"}
+![](mmm_files/images/mmm_example_files/mmm_example_67_0.png){fig-align="center"}
+:::
+::: {.column width="52.5%"}
+![](mmm_files/images/mmm_example_files/mmm_example_69_0.png){fig-align="center"}
+:::
+:::
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## PyMC Model: Media Contribution
+
+::: columns
+::: {.column width="47.5%"}
+![](mmm_files/images/mmm_example_files/mmm_example_67_0.png){fig-align="center"}
+:::
+::: {.column width="52.5%"}
+![](mmm_files/images/mmm_example_files/mmm_example_69_0.png){fig-align="center"}
+:::
+:::
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## PyMC Model: Media Contribution
+
+![](mmm_files/images/mmm_example_files/mmm_example_72_0.png){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## PyMC Model: ROAS Estimation
+
+![](mmm_files/images/mmm_example_files/mmm_example_75_0.png){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## PyMC-Marketing
+
+![](mmm_files/images/pymc_marketing_docs.png){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing)
+:::
+
+## References {.smaller}
+
+### Bayesian Media Mix Models
+
+- Original Google's paper: [Bayesian Methods for Media Mix Modeling with Carryover and Shape Effects](https://research.google/pubs/pub46001/)
+
+- PyMC bayesian model details: [Media Effect Estimation with PyMC: Adstock, Saturation & Diminishing Returns](https://juanitorduz.github.io/pymc_mmm/)
+
+- [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing)
+
+- [Bayesian Media Mix Models: Modelling changes in marketing effectiveness over time](https://www.pymc-labs.io/blog-posts/modelling-changes-marketing-effectiveness-over-time/)
+
+- Uber's Orbit: [Bayesian Time Varying Coefficient Model with Applications to Marketing Mix Modeling](https://arxiv.org/abs/2106.03322)
+
+### Marketing + Bayes + Causal Inference
+
+- [`CausalPy`](https://github.com/pymc-labs/CausalPy)
+- [Personal Blog: `juanitorduz.github.io`](https://juanitorduz.github.io/)
