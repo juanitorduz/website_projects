@@ -63,6 +63,50 @@ least forecast the future revenue and retention rates.
 
 \section{Introduction}
 
+Retention and customer lifetime value estimation are one of the most important aspects
+to understand customer behavior. There are many ways to model retention and revenue 
+by modeling individual-level purchase behavior for both the contractual and the
+non-contractual setting, see for example the work by Fader and Herdie
+\cite{FaderHardie2007} and \cite{FaderHardie2005} respectively\footnote{Our definition
+of retention is what they call survival curve. See precise definitions below.}. In real
+cases, one is interested in modeling retention and revenue at cohort-level. There are
+(at least) three options to use the techniques mentioned above to model cohort-level
+retention:
+
+\begin{enumerate}
+    \item Pool the cohorts together and model the retention and revenue as a whole.
+    \item Un-pool the cohorts and model each cohort separately.
+    \item Try to model the cohorts jointly.
+\end{enumerate}
+
+See \cite{FaderHardieNote2017} for more details on these approaches. One of the
+limitations of those approaches is that they are not flexible enough to model
+seasonality and add external regressors. One can argue that seasonality is not that
+important when trying to estimate the customer-lifetime-value. Nevertheless, in
+practice, there are business models on which the customer base is very seasonal.
+
+In this work, we present a bayesian approach to model cohort-level retention rates from
+a top-down perspective. We do not model the individual-level purchase behavior but
+rather the retention and revenue at cohort matrices. This approach allows for modeling
+non-linear relationships between cohorts, adding seasonality and external regressors.
+Concretely, we use bayesian additive regression trees (BART, see
+\cite{quiroga2022bart}) to model the retention component and we couple it with a linear
+model to model the revenue.
+
+\begin{align*}
+\text{Revenue} & \sim \text{Gamma}(N_{\text{active}}, \lambda) \\
+\log(\lambda) = (& \text{intercept} \\
+    & + \beta_{\text{cohort age}} \text{cohort age} \\
+    & + \beta_{\text{age}} \text{age} \\
+    & + \beta_{\text{cohort age} \times \text{age}} \text{cohort age} \times \text{age}) \\
+N_{\text{active}} & \sim \text{Binomial}(N_{\text{total}}, p) \\
+\textrm{logit}(p) & = \text{BART}(\text{cohort age}, \text{age}, \text{month})
+\end{align*}
+
+This work is the result of a sequence of blog posts where all the details on the code
+and implementation are presented, see \cite{orduz_retention},
+\cite{orduz_retention_bart} and \cite{orduz_revenue_retention}.
+
 \begin{figure}
         \includegraphics[width=\textwidth]{images/revenue_retention_17_0.png}
 \end{figure}
@@ -222,5 +266,7 @@ with pm.Model(coords={"feature": features}) as model:
 
 \includegraphics[width=\textwidth]{images/revenue_retention_33_0.png}
 
+\bibliographystyle{acm}
+\bibliography{references}
 
 \end{document}
