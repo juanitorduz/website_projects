@@ -13,26 +13,25 @@
 \usepackage{slashed}
 \usepackage{tikz}
 
-
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 
 \lstset{frame=tb,
-  language=python,
-  aboveskip=3mm,
-  belowskip=3mm,
-  showstringspaces=false,
-  columns=flexible,
-  basicstyle={\small\ttfamily},
-  numbers=left,
-  numberstyle=\tiny\color{gray},
-  keywordstyle=\color{blue},
-  commentstyle=\color{dkgreen},
-  stringstyle=\color{mauve},
-  breaklines=true,
-  breakatwhitespace=true,
-  tabsize=3
+    language=python,
+    aboveskip=3mm,
+    belowskip=3mm,
+    showstringspaces=false,
+    columns=flexible,
+    basicstyle={\small\ttfamily},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    keywordstyle=\color{blue},
+    commentstyle=\color{dkgreen},
+    stringstyle=\color{mauve},
+    breaklines=true,
+    breakatwhitespace=true,
+    tabsize=3
 }
 
 \textwidth = 420pt
@@ -44,16 +43,17 @@
 \author{Juan Camilo Orduz}
 \email{juanitorduz@gmail.com}
 \urladdr{\href{https://juanitorduz.github.io/}{https://juanitorduz.github.io/}}
+\address{Berlin, Germany}
 \date{\today}
 
 \begin{abstract}
 We present a bayesian approach to model cohort-level retention rates and revenue over
-time. We user bayesian additive regression trees (BART) to model the retention
+time. We use bayesian additive regression trees (BART) to model the retention
 component which we couple with a linear model to model the revenue component.
 This method is flexible enough to allow adding additional covariates to both model
-components. This bayesian model allow us to quantify the uncertainty in the
+components. This bayesian model allows us to quantify the uncertainty in the
 estimation, understand the effect of the covariates on the retention through partial
-dependence plots (PDP), individual conditional expectation (ICE) plots and las but not
+dependence plots (PDP), individual conditional expectation (ICE) plots and last but not
 least forecast the future revenue and retention rates.
 \end{abstract}
 
@@ -63,9 +63,77 @@ least forecast the future revenue and retention rates.
 
 \section{Introduction}
 
-\includegraphics[width=\textwidth]{images/revenue_retention_17_0.png}
+\begin{figure}
+        \includegraphics[width=\textwidth]{images/revenue_retention_17_0.png}
+\end{figure}
 
+\begin{figure}
 \includegraphics[width=\textwidth]{images/revenue_retention_19_0.png}
+\end{figure}
+
+\section{Data and Exploratory}
+
+\begin{figure}
+\includegraphics[width=\textwidth]{images/revenue_retention_21_0.png}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\textwidth]{images/revenue_retention_23_0.png}
+\end{figure}
+
+\section{Model Specification and Diagnostics}
+
+\begin{figure}
+    \includegraphics[width=\textwidth]{images/revenue_retention_37_0.png}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\textwidth]{images/revenue_retention_41_0.png}
+\end{figure}
+
+\section{Predictions}
+
+\subsection{In-Sample Predictions}
+
+\begin{figure}
+    \begin{tabular}{cc}
+        \includegraphics[width=0.5 \textwidth]{images/revenue_retention_45_0.png} & 
+        \includegraphics[width=0.5 \textwidth]{images/revenue_retention_47_0.png}
+    \end{tabular}
+    \caption{My caption}
+\end{figure}
+
+\begin{figure}
+    \begin{tabular}{cc}
+        \includegraphics[width=0.5 \textwidth]{images/revenue_retention_45_0.png} & 
+        \includegraphics[width=0.5 \textwidth]{images/revenue_retention_45_0.png}
+    \end{tabular}
+    \caption{My caption}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\textwidth]{images/revenue_retention_51_0.png}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\textwidth]{images/revenue_retention_53_0.png}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\textwidth]{images/revenue_retention_56_0.png}
+\end{figure}
+
+\subsection{Out-of-Sample Predictions}
+
+\begin{figure}
+    \includegraphics[width=\textwidth]{images/revenue_retention_66_0.png}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\textwidth]{images/revenue_retention_68_0.png}
+\end{figure}
+
+\newpage
 
 \appendix{Appendix: Python Code}
 
