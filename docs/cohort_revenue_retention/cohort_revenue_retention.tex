@@ -17,6 +17,8 @@
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 
+\newtheorem{remark}{Remark}
+
 \lstset{frame=tb,
     language=python,
     aboveskip=3mm,
@@ -81,35 +83,93 @@ retention:
 
 See \cite{FaderHardieNote2017} for more details on these approaches. One of the
 limitations of those approaches is that they are not flexible enough to model
-seasonality and add external regressors. One can argue that seasonality is not that
-important when trying to estimate the customer-lifetime-value. Nevertheless, in
-practice, there are business models on which the customer base is very seasonal.
+seasonality and add external regressors\footnote{Actually, one can add regressors in
+some cases as described in \cite{FaderHardieNote2007} in the non-contractual case.}.
+One can argue that seasonality is not that important when trying to estimate the
+customer-lifetime-value. Nevertheless, in practice, there are business models on which
+the customer base is very seasonal. \\
 
 In this work, we present a bayesian approach to model cohort-level retention rates from
-a top-down perspective. We do not model the individual-level purchase behavior but
-rather the retention and revenue at cohort matrices. This approach allows for modeling
-non-linear relationships between cohorts, adding seasonality and external regressors.
-Concretely, we use bayesian additive regression trees (BART, see
-\cite{quiroga2022bart}) to model the retention component and we couple it with a linear
-model to model the revenue.
+a top-down perspective. We do not model the individual-level purchase
+behavior\footnote{This is a clear limitation if one is interested at customer-level
+parameters and predictions.} but rather the retention and revenue at cohort matrices.
+This approach allows for modeling non-linear relationships between cohorts, adding
+seasonality and external regressors. Concretely, we use bayesian additive regression
+trees (BART, see \cite{quiroga2022bart}) to model the retention component and we couple
+it with a linear model to model the revenue. The following are the main ingredients 
+behind the model:
 
-\begin{align*}
-\text{Revenue} & \sim \text{Gamma}(N_{\text{active}}, \lambda) \\
-\log(\lambda) = (& \text{intercept} \\
-    & + \beta_{\text{cohort age}} \text{cohort age} \\
-    & + \beta_{\text{age}} \text{age} \\
-    & + \beta_{\text{cohort age} \times \text{age}} \text{cohort age} \times \text{age}) \\
-N_{\text{active}} & \sim \text{Binomial}(N_{\text{total}}, p) \\
-\textrm{logit}(p) & = \text{BART}(\text{cohort age}, \text{age}, \text{month})
-\end{align*}
 
-This work is the result of a sequence of blog posts where all the details on the code
-and implementation are presented, see \cite{orduz_retention},
-\cite{orduz_retention_bart} and \cite{orduz_revenue_retention}.
+\subsection*{Features}        
+\begin{itemize}
+    \item {\bf Cohort age}: Age of the cohort in months.
+    \item {\bf Age}: Age of the cohort with respect to the observation time.
+        This feature is a numerical encoder for the cohort.
+    \item {\bf Month}: Month of the observation time.
+\end{itemize}
+
+In Figure \ref{fig:retention_matrix} we show an example of a retention matrix. Note that
+we are removing the diagonal as it is not informative since it has just ones. As an 
+example, let us assume our observation month is $2022-11$ and consider the cohort
+$2022-09$. In this case, the age of this cohort is $2$ months as it is always relative
+to the observation period. This cohort was two observation periods $2022-10$ and
+$2022-11$ with cohort age $1$ and $2$ respectively.
 
 \begin{figure}
-        \includegraphics[width=\textwidth]{images/revenue_retention_17_0.png}
+    \centering
+    \includegraphics[width=\textwidth]{images/revenue_retention_17_0.png}
+    \caption{Retention matrix example.}
+    \label{fig:retention_matrix}
 \end{figure}
+
+\subsection*{Model Specification}   
+\begin{itemize}
+    \item We model the number of active users in the cohort as a binomial
+        random variable $\text{Binomial}(N_{\text{total}}, p)$, where
+        the parameter $p$ represents the retention. We model the latent
+        variable $p$ using a BART model with features cohort age, age and
+        month.
+    
+        \item We model the revenue as a gamma random variable
+    $\text{Gamma}(N_{\text{active}}, \lambda)$. We model the latent
+    variable $\lambda$ through a linear model with features cohort age, age
+    and a multiplicative interaction. Note that we do not add a seasonality
+    component as we often see most of the seasonality coming from the
+    retention itself. This of course can be added as a feature (plus any
+    other covariates!) to the model.
+    
+    \item Here is a summary of how the retention and revenue components are coupled
+        together:
+    
+    \begin{align*}
+        \text{Revenue} & \sim \text{Gamma}(N_{\text{active}}, \lambda) \\
+        \log(\lambda) = (& \text{intercept} \\
+            & + \beta_{\text{cohort age}} \text{cohort age} \\
+            & + \beta_{\text{age}} \text{age} \\
+            & + \beta_{\text{cohort age} \times \text{age}} \text{cohort age} \times \text{age}) \\
+        N_{\text{active}} & \sim \text{Binomial}(N_{\text{total}}, p) \\
+        \textrm{logit}(p) & = \text{BART}(\text{cohort age}, \text{age}, \text{month})
+    \end{align*}
+    
+\end{itemize}
+
+Figure \ref{fig:revenue_retention_model} summarizes the model structure.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{images/revenue_retention_33_0.png}
+    \caption{Cohort-revenue-retention model structure.}
+    \label{fig:revenue_retention_model}
+\end{figure}
+
+
+\begin{remark}
+This work is the result of a sequence of blog posts where all the details on the code
+and implementation are presented, see \cite{orduz_retention},
+\cite{orduz_retention_bart} and \cite{orduz_revenue_retention}.  
+\end{remark}
+
+
 
 \begin{figure}
 \includegraphics[width=\textwidth]{images/revenue_retention_19_0.png}
@@ -264,7 +324,7 @@ with pm.Model(coords={"feature": features}) as model:
     )
 \end{lstlisting}
 
-\includegraphics[width=\textwidth]{images/revenue_retention_33_0.png}
+
 
 \bibliographystyle{acm}
 \bibliography{references}
