@@ -100,7 +100,8 @@ it with a linear model to model the revenue. The following are the main ingredie
 behind the model:
 
 
-\subsection*{Features}        
+\subsection*{Features}
+The following are the main features used to model the retention and revenue:
 \begin{itemize}
     \item {\bf Cohort age}: Age of the cohort in months.
     \item {\bf Age}: Age of the cohort with respect to the observation time.
@@ -108,12 +109,17 @@ behind the model:
     \item {\bf Month}: Month of the observation time.
 \end{itemize}
 
-In Figure \ref{fig:retention_matrix} we show an example of a retention matrix. Note that
-we are removing the diagonal as it is not informative since it has just ones. As an 
-example, let us assume our observation month is $2022-11$ and consider the cohort
-$2022-09$. In this case, the age of this cohort is $2$ months as it is always relative
-to the observation period. This cohort was two observation periods $2022-10$ and
-$2022-11$ with cohort age $1$ and $2$ respectively.
+In Figure \ref{fig:retention_matrix} we show an example of a retention matrix. Note
+that we are removing the diagonal as it is not informative since it has just ones. As
+an example, let us assume our observation month is {\em 2022-11} and consider the cohort
+{\em 2022-09}. In this case, the age of this cohort is $2$ months as it is always
+relative to the observation period. This cohort was two observation periods
+{\em 2022-10} and {\em 2022-11} with cohort age $1$ and $2$ respectively.\\
+
+Note that all of these features are accessible for out-of-sample predictions.
+As we will see below, in practice we can add more covariates to the model.
+The only requirement for out-of-sample predictions is that the covariates are available
+for the new observation period. \\
 
 \begin{figure}
     \centering
@@ -124,19 +130,17 @@ $2022-11$ with cohort age $1$ and $2$ respectively.
 
 \subsection*{Model Specification}   
 \begin{itemize}
-    \item We model the number of active users in the cohort as a binomial
-        random variable $\text{Binomial}(N_{\text{total}}, p)$, where
-        the parameter $p$ represents the retention. We model the latent
-        variable $p$ using a BART model with features cohort age, age and
-        month.
+    \item We model the number of active users in the cohort as a binomial random
+        variable $\text{Binomial}(N_{\text{total}}, p)$, where the parameter $p$
+        represents the retention. We model the latent variable $p$ using a BART model
+        with features cohort age, age and month.
     
-        \item We model the revenue as a gamma random variable
-    $\text{Gamma}(N_{\text{active}}, \lambda)$. We model the latent
-    variable $\lambda$ through a linear model with features cohort age, age
-    and a multiplicative interaction. Note that we do not add a seasonality
-    component as we often see most of the seasonality coming from the
-    retention itself. This of course can be added as a feature (plus any
-    other covariates!) to the model.
+    \item We model the revenue as a gamma random variable
+        $\text{Gamma}(N_{\text{active}}, \lambda)$. We model the latent variable
+        $\lambda$ through a linear model with features cohort age, age and a
+        multiplicative interaction. Note that we do not add a seasonality component as
+        we often see most of the seasonality coming from the retention itself. This of
+        course can be added as a feature (plus any other covariates!) to the model.
     
     \item Here is a summary of how the retention and revenue components are coupled
         together:
@@ -153,7 +157,9 @@ $2022-11$ with cohort age $1$ and $2$ respectively.
     
 \end{itemize}
 
-Figure \ref{fig:revenue_retention_model} summarizes the model structure.
+We are interested in estimating the BART parameters and the beta coefficients (plus the
+intercept) of the linear component simultaneously. Figure
+\ref{fig:revenue_retention_model} summarizes the model structure.
 
 \begin{figure}
     \centering
@@ -169,7 +175,10 @@ and implementation are presented, see \cite{orduz_retention},
 \cite{orduz_retention_bart} and \cite{orduz_revenue_retention}.  
 \end{remark}
 
-
+We illustrate the definitions, concepts and model using a synthetic data set (you can
+get it as {\em csv} from \cite{orduz_revenue_retention_data}). The code to
+(deterministically!) generate the data set is publicly available in 
+\cite{orduz_revenue_retention_data_code}.
 
 \begin{figure}
 \includegraphics[width=\textwidth]{images/revenue_retention_19_0.png}
