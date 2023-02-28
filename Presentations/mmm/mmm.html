@@ -1,7 +1,13 @@
 <!DOCTYPE html>
 <html lang="en"><head>
-  <meta charset="utf-8">
-  <meta name="generator" content="quarto-0.9.341">
+<script src="mmm_files/libs/clipboard/clipboard.min.js"></script>
+<script src="mmm_files/libs/quarto-html/tabby.min.js"></script>
+<script src="mmm_files/libs/quarto-html/popper.min.js"></script>
+<script src="mmm_files/libs/quarto-html/tippy.umd.min.js"></script>
+<link href="mmm_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="mmm_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
+<link href="mmm_files/libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.2.335">
 
   <meta name="author" content="Dr.&nbsp;Juan Orduz">
   <title>Media Mix Models: A Bayesian Approach with PyMC</title>
@@ -13,19 +19,81 @@
   <style>
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
-    span.underline{text-decoration: underline;}
-    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
     ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+      }
+    pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+    div.sourceCode
+      { color: #f8f8f2; background-color: #2e3440; }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span { color: #f8f8f2; } /* Normal */
+    code span.al { color: #ff5555; font-weight: bold; } /* Alert */
+    code span.an { color: #75715e; } /* Annotation */
+    code span.at { color: #f92672; } /* Attribute */
+    code span.bn { color: #ae81ff; } /* BaseN */
+    code span.bu { color: #66d9ef; } /* BuiltIn */
+    code span.cf { color: #f92672; } /* ControlFlow */
+    code span.ch { color: #e6db74; } /* Char */
+    code span.cn { color: #ae81ff; } /* Constant */
+    code span.co { color: #75715e; } /* Comment */
+    code span.cv { color: #75715e; } /* CommentVar */
+    code span.do { color: #75715e; } /* Documentation */
+    code span.dt { color: #66d9ef; font-style: italic; } /* DataType */
+    code span.dv { color: #ae81ff; } /* DecVal */
+    code span.er { color: #ff5555; text-decoration: underline; } /* Error */
+    code span.ex { color: #a6e22e; font-weight: bold; } /* Extension */
+    code span.fl { color: #ae81ff; } /* Float */
+    code span.fu { color: #a6e22e; } /* Function */
+    code span.im { color: #f92672; } /* Import */
+    code span.in { color: #f1fa8c; } /* Information */
+    code span.kw { color: #f92672; } /* Keyword */
+    code span.op { color: #f8f8f2; } /* Operator */
+    code span.ot { color: #a6e22e; } /* Other */
+    code span.pp { color: #f92672; } /* Preprocessor */
+    code span.re { color: #75715e; } /* RegionMarker */
+    code span.sc { color: #ae81ff; } /* SpecialChar */
+    code span.ss { color: #e6db74; } /* SpecialString */
+    code span.st { color: #e6db74; } /* String */
+    code span.va { color: #f8f8f2; } /* Variable */
+    code span.vs { color: #e6db74; } /* VerbatimString */
+    code span.wa { color: #ff5555; } /* Warning */
   </style>
   <link rel="stylesheet" href="mmm_files/libs/revealjs/dist/theme/quarto.css" id="theme">
-  <script src="mmm_files/libs/clipboard/clipboard.min.js"></script>
-  <script src="mmm_files/libs/quarto-html/tabby.min.js"></script>
-  <script src="mmm_files/libs/quarto-html/popper.min.js"></script>
-  <script src="mmm_files/libs/quarto-html/tippy.umd.min.js"></script>
-  <link href="mmm_files/libs/quarto-html/tippy.css" rel="stylesheet">
-  <link href="mmm_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet">
-  <link id="quarto-text-highlighting-styles" href="mmm_files/libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet">
   <link href="mmm_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="mmm_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
   <link href="mmm_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
@@ -316,18 +384,27 @@
       margin-right: 0; 
     }
   </style>
-  <script src="mmm_files/libs/mermaid/mermaid.min.js"></script>
+  <script src="mmm_files/libs/quarto-diagram/mermaid.min.js"></script>
+  <script src="mmm_files/libs/quarto-diagram/mermaid-init.js"></script>
+  <link href="mmm_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
 </head>
-<body>
+<body class="quarto-dark">
   <div class="reveal">
     <div class="slides">
 
-<section id="title-slide" class="center">
+<section id="title-slide" class="quarto-title-block center">
   <h1 class="title">Media Mix Models: A Bayesian Approach with PyMC</h1>
   <p class="subtitle">Lithuania AI</p>
-  <p class="author">Dr.&nbsp;Juan Orduz</p>
-</section>
 
+<div class="quarto-title-authors">
+<div class="quarto-title-author">
+<div class="quarto-title-author-name">
+Dr.&nbsp;Juan Orduz 
+</div>
+</div>
+</div>
+
+</section>
 <section id="outline" class="slide level2">
 <h2>Outline</h2>
 <div>
@@ -337,6 +414,7 @@
 <p>2.1 Data Generating Process</p>
 <p>2.2 Model Specification</p>
 <p>2.3 Results</p></li>
+<li class="fragment"><p>References</p></li>
 </ol>
 </div>
 </section>
@@ -348,24 +426,29 @@
 <h2>Media Mix Models</h2>
 <div>
 <ul>
-<li class="fragment"><p>Media Mix Models (MMM) are used by advertisers to measure the effectiveness of their advertising and provide insight in making future budget allocation decisions.</p></li>
+<li class="fragment"><p>Media Mix Models (MMM) are used by advertisers to measure the effectiveness of their advertising and provide insights for making future budget allocation decisions.</p></li>
 <li class="fragment"><p>Media mix models are also used to find the optimal media mix that maximizes the revenue under a budget constraint in the selected time period.</p></li>
 </ul>
 </div>
 <div class="fragment">
 <h3 id="marketing-measurement">Marketing Measurement</h3>
-<figure class="cell" data-fig-width="500px">
-<div class="cell-output-display" data-code-fold="false">
-<pre class="mermaid">%%| fig-width: 500px
-%%| fig-align: "center"
-%%{init: {"theme": "dark", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
+<div class="cell" data-reveal="true" data-fig-width="900px">
+<div class="cell-output-display">
+<div>
+<p>
+</p><pre class="mermaid mermaid-js" data-tooltip-selector="#mermaid-tooltip-1">%%{init: {"theme": "dark", "themeVariables": {"fontSize": "32px"}, "flowchart":{"htmlLabels":false}}}%%
 flowchart LR
   Experimentation("Experimentation") --&gt; MMM("Media Mix Model")
   MMM --&gt; Attribution("Attribution")
   Attribution --&gt; Experimentation
 </pre>
+<div id="mermaid-tooltip-1" class="mermaidTooltip">
+
 </div>
-</figure>
+<p></p>
+</div>
+</div>
+</div>
 <div class="footer">
 <p>See <a href="https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45998.pdf">Challenges And Opportunities In Media Mix Modeling</a></p>
 </div>
@@ -381,7 +464,7 @@ flowchart LR
 <section id="funnel-effects-causality" class="slide level2">
 <h2>Funnel Effects: Causality</h2>
 <blockquote>
-<p>“When an ad channel also impacts the level of another ad channel, using a model like in the baseline above, which simultaneously estimate the impact of all ad channels in one equation, will lead to biased estimates.”</p>
+<p>“When an ad channel also impacts the level of another ad channel, using a model like in the baseline above, which simultaneously estimates the impact of all ad channels in one equation, will lead to biased estimates.”</p>
 </blockquote>
 <div class="fragment">
 <h3 id="we-need-to-draw-the-dag">We need to draw the DAG!</h3>
@@ -406,24 +489,29 @@ flowchart LR
 <h2>MMM Modern Approaches: Bayesian Modeling</h2>
 <div>
 <ul>
-<li class="fragment">Conceptually transparent interpretation of probablity.</li>
+<li class="fragment">Conceptually transparent interpretation of probability.</li>
 <li class="fragment">Uncertainty quantification.</li>
 <li class="fragment">Allows to explicitly include prior knowledge in the model.</li>
-<li class="fragment">Felxible and suited for many applications in academia and industry.</li>
+<li class="fragment">Flexible and suited for many applications in academia and industry.</li>
 </ul>
 </div>
 <div class="fragment">
-<figure class="cell" data-fig-width="500px">
-<div class="cell-output-display" data-code-fold="false">
-<pre class="mermaid">%%| fig-width: 500px
-%%| fig-align: "center"
-%%{init: {"theme": "dark", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels":false}}}%%
+<div class="cell" data-reveal="true" data-fig-width="900px">
+<div class="cell-output-display">
+<div>
+<p>
+</p><pre class="mermaid mermaid-js" data-tooltip-selector="#mermaid-tooltip-2">%%{init: {"theme": "dark", "themeVariables": {"fontSize": "28px"}, "flowchart":{"htmlLabels":false}}}%%
 flowchart LR
   Prior("Prior") --&gt; Data("Data")
   Data --&gt; Posterior("Posterior")
 </pre>
+<div id="mermaid-tooltip-2" class="mermaidTooltip">
+
 </div>
-</figure>
+<p></p>
+</div>
+</div>
+</div>
 </div>
 </section>
 <section id="simulated-data-two-media-input" class="slide level2">
@@ -440,19 +528,28 @@ flowchart LR
 <p>See <a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a>: <a href="https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html">MMM Example</a></p>
 </div>
 </section>
+<section id="simulated-data-media-contributions" class="slide level2">
+<h2>Simulated Data: Media Contributions</h2>
+
+<img data-src="mmm_files/images/mmm_example_files/mmm_example_26_0.png" class="r-stretch quarto-figure-center"><div class="footer">
+<p>See <a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a>: <a href="https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html">MMM Example</a></p>
+</div>
+</section>
 <section id="simulated-data-trend-and-seasonality-components" class="slide level2">
 <h2>Simulated Data: Trend and Seasonality Components</h2>
 <div class="columns">
-<div class="column" style="width:50.0%;">
+<div class="column" style="width:45.0%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
 <p><img data-src="mmm_files/images/mmm_example_files/mmm_example_17_0.png"></p>
+<p></p><figcaption>Seasonal and trend components.</figcaption><p></p>
 </figure>
 </div>
-</div><div class="column" style="width:50.0%;">
+</div><div class="column" style="width:55.0%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
 <p><img data-src="mmm_files/images/mmm_example_files/mmm_example_21_0.png"></p>
+<p></p><figcaption>Target variable: linear combination of media contribution, trend, seasonality and Gaussian noise.</figcaption><p></p>
 </figure>
 </div>
 </div>
@@ -461,14 +558,61 @@ flowchart LR
 <p>See <a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a>: <a href="https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html">MMM Example</a></p>
 </div>
 </section>
-<section id="simulated-data-media-contributions" class="slide level2">
-<h2>Simulated Data: Media Contributions</h2>
-
-<img data-src="mmm_files/images/mmm_example_files/mmm_example_26_0.png" class="r-stretch quarto-figure-center"><div class="footer">
-<p>See <a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a>: <a href="https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html">MMM Example</a></p>
+<section id="model-specification" class="slide level2">
+<h2>Model Specification</h2>
+<p><span class="math display">\[
+y_{t} = \text{intercept} + \sum_{m=1}^{M}\beta_{m}f_{\theta}(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c}z_{c, t} + \varepsilon_{t},
+\]</span></p>
+<ul>
+<li><span class="math inline">\(x_{m, t}\)</span>: media input data (e.g.&nbsp;impressions or total costs)</li>
+<li><span class="math inline">\(f_{\theta}\)</span>: media transformation function (e.g.&nbsp;adstock and saturation) which depends on a parameter <span class="math inline">\(\theta\)</span></li>
+<li><span class="math inline">\(z_{c, t}\)</span>: control variables (e.g.&nbsp;trend and seasonality)</li>
+<li><span class="math inline">\(\varepsilon_{t}\)</span>: Gaussian noise</li>
+</ul>
+<div class="footer">
+<p>See <a href="https://research.google/pubs/pub46001/">Bayesian Methods for Media Mix Modeling with Carryover and Shape Effects</a></p>
 </div>
 </section>
 <section id="pymc-model" class="slide level2">
+<h2>PyMC Model</h2>
+<div class="sourceCode" id="cb1" data-code-line-numbers="|4-6|7|8|11-18|19-23|24-29|31-33"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>coords) <span class="im">as</span> <span class="va">self</span>.model:</span>
+<span id="cb1-2"><a href="#cb1-2"></a>    <span class="co"># --- Priors ---</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a>    intercept <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"intercept"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb1-4"><a href="#cb1-4"></a>    beta_channel <span class="op">=</span> pm.HalfNormal(</span>
+<span id="cb1-5"><a href="#cb1-5"></a>        name<span class="op">=</span><span class="st">"beta_channel"</span>, sigma<span class="op">=</span><span class="dv">2</span>, dims<span class="op">=</span><span class="st">"channel"</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a>    )</span>
+<span id="cb1-7"><a href="#cb1-7"></a>    alpha <span class="op">=</span> pm.Beta(name<span class="op">=</span><span class="st">"alpha"</span>, alpha<span class="op">=</span><span class="dv">1</span>, beta<span class="op">=</span><span class="dv">3</span>, dims<span class="op">=</span><span class="st">"channel"</span>)</span>
+<span id="cb1-8"><a href="#cb1-8"></a>    lam <span class="op">=</span> pm.Gamma(name<span class="op">=</span><span class="st">"lam"</span>, alpha<span class="op">=</span><span class="dv">3</span>, beta<span class="op">=</span><span class="dv">1</span>, dims<span class="op">=</span><span class="st">"channel"</span>)</span>
+<span id="cb1-9"><a href="#cb1-9"></a>    sigma <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"sigma"</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb1-10"><a href="#cb1-10"></a>    <span class="co"># --- Parametrization ---</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a>    channel_adstock <span class="op">=</span> pm.Deterministic(</span>
+<span id="cb1-12"><a href="#cb1-12"></a>        name<span class="op">=</span><span class="st">"channel_adstock"</span>,</span>
+<span id="cb1-13"><a href="#cb1-13"></a>        var<span class="op">=</span>geometric_adstock_vectorized(</span>
+<span id="cb1-14"><a href="#cb1-14"></a>            x<span class="op">=</span>channel_data,</span>
+<span id="cb1-15"><a href="#cb1-15"></a>            alpha<span class="op">=</span>alpha,</span>
+<span id="cb1-16"><a href="#cb1-16"></a>        ),</span>
+<span id="cb1-17"><a href="#cb1-17"></a>        dims<span class="op">=</span>(<span class="st">"date"</span>, <span class="st">"channel"</span>),</span>
+<span id="cb1-18"><a href="#cb1-18"></a>    )</span>
+<span id="cb1-19"><a href="#cb1-19"></a>    channel_adstock_saturated <span class="op">=</span> pm.Deterministic(</span>
+<span id="cb1-20"><a href="#cb1-20"></a>        name<span class="op">=</span><span class="st">"channel_adstock_saturated"</span>,</span>
+<span id="cb1-21"><a href="#cb1-21"></a>        var<span class="op">=</span>logistic_saturation(x<span class="op">=</span>channel_adstock, lam<span class="op">=</span>lam),</span>
+<span id="cb1-22"><a href="#cb1-22"></a>        dims<span class="op">=</span>(<span class="st">"date"</span>, <span class="st">"channel"</span>),</span>
+<span id="cb1-23"><a href="#cb1-23"></a>    )</span>
+<span id="cb1-24"><a href="#cb1-24"></a>    channel_contributions <span class="op">=</span> pm.Deterministic(</span>
+<span id="cb1-25"><a href="#cb1-25"></a>        name<span class="op">=</span><span class="st">"channel_contributions"</span>,</span>
+<span id="cb1-26"><a href="#cb1-26"></a>        var<span class="op">=</span>channel_adstock_saturated <span class="op">*</span> beta_channel,</span>
+<span id="cb1-27"><a href="#cb1-27"></a>        dims<span class="op">=</span>(<span class="st">"date"</span>, <span class="st">"channel"</span>),</span>
+<span id="cb1-28"><a href="#cb1-28"></a>    )</span>
+<span id="cb1-29"><a href="#cb1-29"></a>    mu <span class="op">=</span> intercept <span class="op">+</span> channel_contributions.<span class="bu">sum</span>(axis<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb1-30"><a href="#cb1-30"></a>    <span class="co"># --- Likelihood ---</span></span>
+<span id="cb1-31"><a href="#cb1-31"></a>    pm.Normal(</span>
+<span id="cb1-32"><a href="#cb1-32"></a>      name<span class="op">=</span><span class="st">"likelihood"</span>, mu<span class="op">=</span>mu, sigma<span class="op">=</span>sigma, observed<span class="op">=</span>target, dims<span class="op">=</span><span class="st">"date"</span>,</span>
+<span id="cb1-33"><a href="#cb1-33"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="footer">
+<p>See <a href="https://juanitorduz.github.io/pymc_mmm/">Media Effect Estimation with PyMC: Adstock, Saturation &amp; Diminishing Returns</a></p>
+</div>
+</section>
+<section id="pymc-model-1" class="slide level2">
 <h2>PyMC Model</h2>
 
 <img data-src="mmm_files/images/mmm_example_files/mmm_example_46_0.svg" class="r-stretch quarto-figure-center"><div class="footer">
@@ -485,16 +629,13 @@ flowchart LR
 <section id="pymc-model-parameter-recovery" class="slide level2">
 <h2>PyMC Model: Parameter Recovery</h2>
 <div class="columns">
-<div class="column" style="width:50.0%;">
+<div class="column" style="width:45%;">
+<p><img data-src="mmm_files/images/mmm_example_files/mmm_example_63_0.png"> <img data-src="mmm_files/images/mmm_example_files/mmm_example_64_0.png"></p>
+</div><div class="column" style="width:55%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="mmm_files/images/mmm_example_files/mmm_example_63_0.png"></p>
-</figure>
-</div>
-</div><div class="column" style="width:50.0%;">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="mmm_files/images/mmm_example_files/mmm_example_64_0.png"></p>
+<p><img data-src="mmm_files/images/mmm_example_files/mmm_example_69_0.png"></p>
+<p></p><figcaption>We recover the parameters from the data generation process!</figcaption><p></p>
 </figure>
 </div>
 </div>
@@ -504,48 +645,6 @@ flowchart LR
 </div>
 </section>
 <section id="pymc-model-media-contribution" class="slide level2">
-<h2>PyMC Model: Media Contribution</h2>
-<div class="columns">
-<div class="column" style="width:47.5%;">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="mmm_files/images/mmm_example_files/mmm_example_67_0.png"></p>
-</figure>
-</div>
-</div><div class="column" style="width:52.5%;">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="mmm_files/images/mmm_example_files/mmm_example_69_0.png"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="footer">
-<p>See <a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a>: <a href="https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html">MMM Example</a></p>
-</div>
-</section>
-<section id="pymc-model-media-contribution-1" class="slide level2">
-<h2>PyMC Model: Media Contribution</h2>
-<div class="columns">
-<div class="column" style="width:47.5%;">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="mmm_files/images/mmm_example_files/mmm_example_67_0.png"></p>
-</figure>
-</div>
-</div><div class="column" style="width:52.5%;">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="mmm_files/images/mmm_example_files/mmm_example_69_0.png"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="footer">
-<p>See <a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a>: <a href="https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html">MMM Example</a></p>
-</div>
-</section>
-<section id="pymc-model-media-contribution-2" class="slide level2">
 <h2>PyMC Model: Media Contribution</h2>
 
 <img data-src="mmm_files/images/mmm_example_files/mmm_example_72_0.png" class="r-stretch quarto-figure-center"><div class="footer">
@@ -562,8 +661,15 @@ flowchart LR
 <section id="pymc-marketing" class="slide level2">
 <h2>PyMC-Marketing</h2>
 
-<img data-src="mmm_files/images/pymc_marketing_docs.png" class="r-stretch quarto-figure-center"><div class="footer">
+<img data-src="mmm_files/images/pymc-marketing-pypi.png" class="r-stretch quarto-figure-center"><div class="footer">
 <p>See <a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a></p>
+</div>
+</section>
+<section id="pymc-models-and-custom-transformations" class="slide level2">
+<h2>PyMC Models and Custom Transformations</h2>
+
+<img data-src="mmm_files/images/pymc_mmm_98_1.svg" class="r-stretch quarto-figure-center"><div class="footer">
+<p>See <a href="https://juanitorduz.github.io/pymc_mmm/">Media Effect Estimation with PyMC: Adstock, Saturation &amp; Diminishing Returns</a></p>
 </div>
 </section>
 <section id="references" class="slide level2 smaller">
@@ -574,14 +680,19 @@ flowchart LR
 <li><p>PyMC bayesian model details: <a href="https://juanitorduz.github.io/pymc_mmm/">Media Effect Estimation with PyMC: Adstock, Saturation &amp; Diminishing Returns</a></p></li>
 <li><p><a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a></p></li>
 <li><p><a href="https://www.pymc-labs.io/blog-posts/modelling-changes-marketing-effectiveness-over-time/">Bayesian Media Mix Models: Modelling changes in marketing effectiveness over time</a></p></li>
-<li><p>Uber’s Orbit: <a href="https://arxiv.org/abs/2106.03322">Bayesian Time Varying Coefficient Model with Applications to Marketing Mix Modeling</a></p></li>
+<li><p>Uber’s Orbit: <a href="https://arxiv.org/abs/2106.03322">Bayesian Time-Varying Coefficient Model with Applications to Marketing Mix Modeling</a></p></li>
 </ul>
 <h3 id="marketing-bayes-causal-inference">Marketing + Bayes + Causal Inference</h3>
 <ul>
 <li><a href="https://github.com/pymc-labs/CausalPy"><code>CausalPy</code></a></li>
 <li><a href="https://juanitorduz.github.io/">Personal Blog: <code>juanitorduz.github.io</code></a></li>
 </ul>
-<div class="footer footer-default">
+</section>
+<section id="thank-you" class="slide level2">
+<h2>Thank you!</h2>
+<p><a href="https://juanitorduz.github.io/">juanitorduz.github.io</a></p>
+
+<img data-src="mmm_files/images/juanitorduz.png" class="r-stretch quarto-figure-center"><div class="footer footer-default">
 
 </div>
 </section>
@@ -798,19 +909,26 @@ flowchart LR
         ]
       });
     </script>
-    <script>
-            mermaid.initialize({ startOnLoad: false });
-            window.addEventListener(
-              'load',
-              function () {
-                debugger;
-                mermaid.init("div.cell-output-display > pre.mermaid");
-              },
-              false
-            );
-            </script>
     <script id="quarto-html-after-body" type="application/javascript">
     window.document.addEventListener("DOMContentLoaded", function (event) {
+      const toggleBodyColorMode = (bsSheetEl) => {
+        const mode = bsSheetEl.getAttribute("data-mode");
+        const bodyEl = window.document.querySelector("body");
+        if (mode === "dark") {
+          bodyEl.classList.add("quarto-dark");
+          bodyEl.classList.remove("quarto-light");
+        } else {
+          bodyEl.classList.add("quarto-light");
+          bodyEl.classList.remove("quarto-dark");
+        }
+      }
+      const toggleBodyColorPrimary = () => {
+        const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+        if (bsSheetEl) {
+          toggleBodyColorMode(bsSheetEl);
+        }
+      }
+      toggleBodyColorPrimary();  
       const tabsets =  window.document.querySelectorAll(".panel-tabset-tabby")
       tabsets.forEach(function(tabset) {
         const tabby = new Tabby('#' + tabset.id);
@@ -829,7 +947,24 @@ flowchart LR
         button.classList.add('code-copy-button-checked');
         var currentTitle = button.getAttribute("title");
         button.setAttribute("title", "Copied!");
+        let tooltip;
+        if (window.bootstrap) {
+          button.setAttribute("data-bs-toggle", "tooltip");
+          button.setAttribute("data-bs-placement", "left");
+          button.setAttribute("data-bs-title", "Copied!");
+          tooltip = new bootstrap.Tooltip(button, 
+            { trigger: "manual", 
+              customClass: "code-copy-button-tooltip",
+              offset: [0, -8]});
+          tooltip.show();    
+        }
         setTimeout(function() {
+          if (tooltip) {
+            tooltip.hide();
+            button.removeAttribute("data-bs-title");
+            button.removeAttribute("data-bs-toggle");
+            button.removeAttribute("data-bs-placement");
+          }
           button.setAttribute("title", currentTitle);
           button.classList.remove('code-copy-button-checked');
         }, 1000);
@@ -859,31 +994,50 @@ flowchart LR
       for (var i=0; i<noterefs.length; i++) {
         const ref = noterefs[i];
         tippyHover(ref, function() {
-          let href = ref.getAttribute('href');
+          // use id or data attribute instead here
+          let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
           try { href = new URL(href).hash; } catch {}
           const id = href.replace(/^#\/?/, "");
           const note = window.document.getElementById(id);
           return note.innerHTML;
         });
       }
+      const findCites = (el) => {
+        const parentEl = el.parentElement;
+        if (parentEl) {
+          const cites = parentEl.dataset.cites;
+          if (cites) {
+            return {
+              el,
+              cites: cites.split(' ')
+            };
+          } else {
+            return findCites(el.parentElement)
+          }
+        } else {
+          return undefined;
+        }
+      };
       var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
       for (var i=0; i<bibliorefs.length; i++) {
         const ref = bibliorefs[i];
-        const cites = ref.parentNode.getAttribute('data-cites').split(' ');
-        tippyHover(ref, function() {
-          var popup = window.document.createElement('div');
-          cites.forEach(function(cite) {
-            var citeDiv = window.document.createElement('div');
-            citeDiv.classList.add('hanging-indent');
-            citeDiv.classList.add('csl-entry');
-            var biblioDiv = window.document.getElementById('ref-' + cite);
-            if (biblioDiv) {
-              citeDiv.innerHTML = biblioDiv.innerHTML;
-            }
-            popup.appendChild(citeDiv);
+        const citeInfo = findCites(ref);
+        if (citeInfo) {
+          tippyHover(citeInfo.el, function() {
+            var popup = window.document.createElement('div');
+            citeInfo.cites.forEach(function(cite) {
+              var citeDiv = window.document.createElement('div');
+              citeDiv.classList.add('hanging-indent');
+              citeDiv.classList.add('csl-entry');
+              var biblioDiv = window.document.getElementById('ref-' + cite);
+              if (biblioDiv) {
+                citeDiv.innerHTML = biblioDiv.innerHTML;
+              }
+              popup.appendChild(citeDiv);
+            });
+            return popup.innerHTML;
           });
-          return popup.innerHTML;
-        });
+        }
       }
     });
     </script>

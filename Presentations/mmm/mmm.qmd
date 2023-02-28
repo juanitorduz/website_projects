@@ -27,6 +27,8 @@ format:
 
     2.3 Results
 
+3. References
+
 :::
 
 ## Media Optimization is Hard
@@ -37,7 +39,7 @@ format:
 
 ::: incremental
 
-- Media Mix Models (MMM) are used by advertisers to measure the effectiveness of their advertising and provide insight in making future budget allocation decisions.
+- Media Mix Models (MMM) are used by advertisers to measure the effectiveness of their advertising and provide insights for making future budget allocation decisions.
 
 - Media mix models are also used to find the optimal media mix that maximizes the revenue under a budget constraint in the selected time period. 
 
@@ -48,9 +50,9 @@ format:
 ### Marketing Measurement
 
 ```{mermaid}
-%%| fig-width: 500px
+%%| fig-width: 900px
 %%| fig-align: "center"
-%%{init: {"theme": "dark", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "32px"}, "flowchart":{"htmlLabels":false}}}%%
 flowchart LR
   Experimentation("Experimentation") --> MMM("Media Mix Model")
   MMM --> Attribution("Attribution")
@@ -72,7 +74,7 @@ See [Challenges And Opportunities In Media Mix Modeling](https://static.googleus
 
 ## Funnel Effects: Causality
 
-> “When an ad channel also impacts the level of another ad channel, using a model like in the baseline above, which simultaneously estimate the impact of all ad channels in one equation, will lead to biased estimates.”
+> “When an ad channel also impacts the level of another ad channel, using a model like in the baseline above, which simultaneously estimates the impact of all ad channels in one equation, will lead to biased estimates.”
 
 . . .
 
@@ -99,17 +101,18 @@ See [Media Effect Estimation with PyMC: Adstock, Saturation & Diminishing Return
 ## MMM Modern Approaches: Bayesian Modeling
 
 ::: incremental
-- Conceptually transparent interpretation of probablity.
+- Conceptually transparent interpretation of probability.
 - Uncertainty quantification.
 - Allows to explicitly include prior knowledge in the model.
-- Felxible and suited for many applications in academia and industry.
+- Flexible and suited for many applications in academia and industry.
 :::
 
 . . .
+
 ```{mermaid}
-%%| fig-width: 500px
+%%| fig-width: 900px
 %%| fig-align: "center"
-%%{init: {"theme": "dark", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels":false}}}%%
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "28px"}, "flowchart":{"htmlLabels":false}}}%%
 flowchart LR
   Prior("Prior") --> Data("Data")
   Data --> Posterior("Posterior")
@@ -131,27 +134,84 @@ See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Exampl
 See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
 :::
 
-## Simulated Data: Trend and Seasonality Components
-
-::: columns
-::: {.column width="50.0%"}
-![](mmm_files/images/mmm_example_files/mmm_example_17_0.png){fig-align="center"}
-:::
-::: {.column width="50.0%"}
-![](mmm_files/images/mmm_example_files/mmm_example_21_0.png){fig-align="center"}
-:::
-:::
-
-::: footer
-See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
-:::
-
 ## Simulated Data: Media Contributions
 
 ![](mmm_files/images/mmm_example_files/mmm_example_26_0.png){fig-align="center"}
 
 ::: footer
 See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## Simulated Data: Trend and Seasonality Components
+
+::: columns
+::: {.column width="45.0%"}
+![Seasonal and trend components.](mmm_files/images/mmm_example_files/mmm_example_17_0.png)
+:::
+::: {.column width="55.0%"}
+![Target variable: linear combination of media contribution, trend, seasonality and Gaussian noise.](mmm_files/images/mmm_example_files/mmm_example_21_0.png){}
+:::
+:::
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## Model Specification
+
+$$
+y_{t} = \text{intercept} + \sum_{m=1}^{M}\beta_{m}f_{\theta}(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c}z_{c, t} + \varepsilon_{t},
+$$
+
+- $x_{m, t}$: media input data (e.g. impressions or total costs)
+- $f_{\theta}$: media transformation function (e.g. adstock and saturation) which depends on a parameter $\theta$
+- $z_{c, t}$: control variables (e.g. trend and seasonality)
+- $\varepsilon_{t}$: Gaussian noise
+
+::: footer
+See [Bayesian Methods for Media Mix Modeling with Carryover and Shape Effects](https://research.google/pubs/pub46001/)
+:::
+
+## PyMC Model
+
+``` {.python code-line-numbers="|4-6|7|8|11-18|19-23|24-29|31-33"}
+with pm.Model(coords=coords) as self.model:
+    # --- Priors ---
+    intercept = pm.Normal(name="intercept", mu=0, sigma=2)
+    beta_channel = pm.HalfNormal(
+        name="beta_channel", sigma=2, dims="channel"
+    )
+    alpha = pm.Beta(name="alpha", alpha=1, beta=3, dims="channel")
+    lam = pm.Gamma(name="lam", alpha=3, beta=1, dims="channel")
+    sigma = pm.HalfNormal(name="sigma", sigma=2)
+    # --- Parametrization ---
+    channel_adstock = pm.Deterministic(
+        name="channel_adstock",
+        var=geometric_adstock_vectorized(
+            x=channel_data,
+            alpha=alpha,
+        ),
+        dims=("date", "channel"),
+    )
+    channel_adstock_saturated = pm.Deterministic(
+        name="channel_adstock_saturated",
+        var=logistic_saturation(x=channel_adstock, lam=lam),
+        dims=("date", "channel"),
+    )
+    channel_contributions = pm.Deterministic(
+        name="channel_contributions",
+        var=channel_adstock_saturated * beta_channel,
+        dims=("date", "channel"),
+    )
+    mu = intercept + channel_contributions.sum(axis=-1)
+    # --- Likelihood ---
+    pm.Normal(
+      name="likelihood", mu=mu, sigma=sigma, observed=target, dims="date",
+    )
+```
+
+::: footer
+See [Media Effect Estimation with PyMC: Adstock, Saturation & Diminishing Returns](https://juanitorduz.github.io/pymc_mmm/)
 :::
 
 ## PyMC Model
@@ -173,41 +233,12 @@ See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Exampl
 ## PyMC Model: Parameter Recovery
 
 ::: columns
-::: {.column width="50.0%"}
-![](mmm_files/images/mmm_example_files/mmm_example_63_0.png){fig-align="center"}
+::: {.column width="45%"}
+![](mmm_files/images/mmm_example_files/mmm_example_63_0.png)
+![](mmm_files/images/mmm_example_files/mmm_example_64_0.png)
 :::
-::: {.column width="50.0%"}
-![](mmm_files/images/mmm_example_files/mmm_example_64_0.png){fig-align="center"}
-:::
-:::
-
-::: footer
-See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
-:::
-
-## PyMC Model: Media Contribution
-
-::: columns
-::: {.column width="47.5%"}
-![](mmm_files/images/mmm_example_files/mmm_example_67_0.png){fig-align="center"}
-:::
-::: {.column width="52.5%"}
-![](mmm_files/images/mmm_example_files/mmm_example_69_0.png){fig-align="center"}
-:::
-:::
-
-::: footer
-See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
-:::
-
-## PyMC Model: Media Contribution
-
-::: columns
-::: {.column width="47.5%"}
-![](mmm_files/images/mmm_example_files/mmm_example_67_0.png){fig-align="center"}
-:::
-::: {.column width="52.5%"}
-![](mmm_files/images/mmm_example_files/mmm_example_69_0.png){fig-align="center"}
+::: {.column width="55%"}
+![We recover the parameters from the data generation process!](mmm_files/images/mmm_example_files/mmm_example_69_0.png)
 :::
 :::
 
@@ -233,11 +264,20 @@ See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Exampl
 
 ## PyMC-Marketing
 
-![](mmm_files/images/pymc_marketing_docs.png){fig-align="center"}
+![](mmm_files/images/pymc-marketing-pypi.png){fig-align="center"}
 
 ::: footer
 See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing)
 :::
+
+## PyMC Models and Custom Transformations
+
+![](mmm_files/images/pymc_mmm_98_1.svg){fig-align="center"}
+
+::: footer
+See [Media Effect Estimation with PyMC: Adstock, Saturation & Diminishing Returns](https://juanitorduz.github.io/pymc_mmm/)
+:::
+
 
 ## References {.smaller}
 
@@ -251,9 +291,15 @@ See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing)
 
 - [Bayesian Media Mix Models: Modelling changes in marketing effectiveness over time](https://www.pymc-labs.io/blog-posts/modelling-changes-marketing-effectiveness-over-time/)
 
-- Uber's Orbit: [Bayesian Time Varying Coefficient Model with Applications to Marketing Mix Modeling](https://arxiv.org/abs/2106.03322)
+- Uber's Orbit: [Bayesian Time-Varying Coefficient Model with Applications to Marketing Mix Modeling](https://arxiv.org/abs/2106.03322)
 
 ### Marketing + Bayes + Causal Inference
 
 - [`CausalPy`](https://github.com/pymc-labs/CausalPy)
 - [Personal Blog: `juanitorduz.github.io`](https://juanitorduz.github.io/)
+
+## Thank you!
+
+[juanitorduz.github.io](https://juanitorduz.github.io/)
+
+![](mmm_files/images/juanitorduz.png){fig-align="center"}
