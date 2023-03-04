@@ -175,19 +175,50 @@ and implementation are presented, see \cite{orduz_retention},
 \cite{orduz_retention_bart} and \cite{orduz_revenue_retention}.  
 \end{remark}
 
+
+\section{Synthetic Data}
+
 We illustrate the definitions, concepts and model using a synthetic data set (you can
 get it as {\em csv} from \cite{orduz_revenue_retention_data}). The code to
 (deterministically!) generate the data set is publicly available in 
-\cite{orduz_revenue_retention_data_code}.
+\cite{orduz_revenue_retention_data_code}. \\
+
+To start the analysis, let's do some exploratory data analysis. Figure
+\ref{fig:retention_matrix} shows the retention matrix per cohort and period. There are 
+two things to note at first glance:
+
+\begin{enumerate}
+    \item The retention has a clear seasonal pattern concerning the period. Note it is 
+        higher in the last months of the year and lower in the middle of the year. To 
+        see the seasonality pattern in a clearer way see Figure 
+        \ref{fig:retention_seasonal}.
+    \item The retention seems to be increasing as the age decreases. You could see this
+    by comparing the retention values when the period month is November and the cohort
+    age is one.
+\end{enumerate}
 
 \begin{figure}
-\includegraphics[width=\textwidth]{images/revenue_retention_19_0.png}
+    \centering
+    \includegraphics[width=\textwidth]{images/revenue_retention_19_0.png}
+    \caption{Retention as a function of the period. This plot clearly shows the yearly
+    seasonality pattern of the retention values.}
+    \label{fig:retention_seasonal}
 \end{figure}
 
-\section{Data and Exploratory}
+It is important to keep in mind that the retention metric is a quotient, and therefore
+the cohort size matters. For example, a retention rate of 0.4 could come from $4/10$ or
+$4\times 10^{5} / 1 \times 10^{6}$. One could argue that the former case carries more
+uncertainty regarding the estimation. This motivates looking into the number of active
+users' values. These are shown in Figure \ref{fig:active_users}. We can see that the
+number of active users increases considerably for newer cohorts. We would like this
+information to be encoded in the model.
+
 
 \begin{figure}
-\includegraphics[width=\textwidth]{images/revenue_retention_21_0.png}
+    \centering
+    \includegraphics[width=\textwidth]{images/revenue_retention_21_0.png}
+    \caption{Active users' values.}
+    \label{fig:active_users}
 \end{figure}
 
 \begin{figure}
