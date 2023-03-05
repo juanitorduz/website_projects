@@ -207,12 +207,11 @@ two things to note at first glance:
 
 It is important to keep in mind that the retention metric is a quotient, and therefore
 the cohort size matters. For example, a retention rate of 0.4 could come from $4/10$ or
-$4\times 10^{5} / 1 \times 10^{6}$. One could argue that the former case carries more
+$4\times 10^{5} / 10^{6}$. One could argue that the former case carries more
 uncertainty regarding the estimation. This motivates looking into the number of active
 users' values. These are shown in Figure \ref{fig:active_users}. We can see that the
 number of active users increases considerably for newer cohorts. We would like this
-information to be encoded in the model.
-
+information to be encoded in the model. \\
 
 \begin{figure}
     \centering
@@ -222,8 +221,44 @@ information to be encoded in the model.
 \end{figure}
 
 \begin{figure}
+    \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_23_0.png}
+    \caption{Revenue per cohort.}
+    \label{fig:revenue}
 \end{figure}
+
+Now, let us look at the revenue. Figure \ref{fig:revenue} shows the revenue per cohort. 
+We see from the plots how the revenue correlates with the number of active users. This 
+hints that the revenue per user does not change dramatically over time. To see this,
+we can compute the revenue per user as a function of the age and the period (see Figure
+\ref{fig:revenue_per_user}). We also can compute the revenue per {\em active} user (see
+Figure \ref{fig:revenue_per_active_user}). The main difference between the two is that
+for the former we divide by the cohort size, while for the latter we divide by the
+number of active users in the given period. Here are some observations:
+
+\begin{itemize}
+    \item The revenue per user shows a clear seasonality pattern. This is expected as
+        the retention has a seasonality pattern.
+    \item The revenue per active user does now the seasonality pattern as it s already
+        encoded in the denominator. In addition, we see that the revenue per active user
+        seems to be decreasing as the cohort age increases.
+\end{itemize}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{images/revenue_retention_27_0.png}
+    \caption{Revenue per cohort.}
+    \label{fig:revenue_per_user}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{images/revenue_retention_25_0.png}
+    \caption{Revenue per cohort.}
+    \label{fig:revenue_per_active_user}
+\end{figure}
+
+After this exploratory analysis, we can start the modeling phase.
 
 \section{Model Specification and Diagnostics}
 
@@ -277,7 +312,7 @@ information to be encoded in the model.
     \includegraphics[width=\textwidth]{images/revenue_retention_68_0.png}
 \end{figure}
 
-\newpage
+\clearpage
 
 \appendix{Appendix: Python Code}
 
