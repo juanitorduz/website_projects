@@ -101,7 +101,7 @@ behind the model:
 
 
 \subsection*{Features}
-The following are the main features used to model the retention and revenue:
+The following are the main features used to model retention and revenue:
 \begin{itemize}
     \item {\bf Cohort age}: Age of the cohort in months.
     \item {\bf Age}: Age of the cohort with respect to the observation time.
@@ -128,7 +128,7 @@ for the new observation period. \\
     \label{fig:retention_matrix}
 \end{figure}
 
-\subsection*{Model Specification}   
+\subsection*{Model Specification} 
 \begin{itemize}
     \item We model the number of active users in the cohort as a binomial random
         variable $\text{Binomial}(N_{\text{total}}, p)$, where the parameter $p$
@@ -261,6 +261,21 @@ number of active users in the given period. Here are some observations:
 After this exploratory analysis, we can start the modeling phase.
 
 \section{Model Specification and Diagnostics}
+
+Now we expand on the model structure described in the introduction. The main idea is to
+model the number of active users as a binomial random variable
+$\text{Binomial}(N_{\text{total}}, p)$, where the parameter $p$ represents the retention.
+We use bayesian additive regression trees (BART) to model the latent variable $p$ using
+as features cohort age, age and (period) month. One could of course start with a simpler
+model, say a linear model as described in \cite{orduz_revenue_retention}. Nevertheless,
+in real datasets, this approach does not fit the data well. \\
+
+On the other hand, we model the revenue as a gamma random variable
+$\text{Gamma}(N_{\text{active}}, \lambda)$, where the parameter $\lambda$ is modeled
+through a linear model of the cohort age and age (and potentially higher-order
+interactions). One of the key observations we have seen in many real applications (and 
+also in this synthetic data set is that we do not need to add a seasonality component
+into the retention model as it is already captured by the retention itself.
 
 \begin{figure}
     \includegraphics[width=\textwidth]{images/revenue_retention_37_0.png}
