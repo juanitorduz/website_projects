@@ -424,6 +424,13 @@ captures most of the variability of the data.
 
 \subsection{Out-of-Sample Predictions}
 
+We can generate analogous plots for the out-of-sample predictions for retention and
+revenue, see Figure \ref{fig:out_sample_retention} and Figure 
+\ref{fig:out_sample_revenue} respectively. The credible intervals match the holdout set
+consistently well. Note in particular how we can generate very good predictions for the 
+cohort {\em 2022-07-01} for we just have $4$ data points in the training set. We are 
+successfully pooling information (trend and seasonality) from previous cohorts.
+
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_66_0.png}
