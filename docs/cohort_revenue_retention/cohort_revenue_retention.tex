@@ -316,7 +316,11 @@ in this synthetic data set is that we do not need to add a seasonality component
 the retention model as it is already captured by the retention itself.
 
 \begin{remark}
-TODO: Explain why we used continuous features against categorical features for the cohort age.
+Note that the {\em age} feature characterizes the cohort itself. One could try to replace
+the age numerical encoding with a one-hot encoding of the cohort. This would allow the 
+addition of a hierarchical structure to the model to pool information across cohorts.
+However, under the assumption that close cohorts are more similar than distant cohorts,
+the numerical encoding is more appropriate and results in a simpler model.
 \end{remark}
 
 As part of the pre-processing step, we standardize the features for the linear models.
@@ -375,6 +379,10 @@ In this section, we present the in-sample and out-of-sample predictions of the m
 
 \subsection{In-Sample Predictions}
 
+The first thing we can do is to check the in-sample mean posterior predictions of the
+model. We can compare the in-sample predictions with the actuals in Figure
+\ref{fig:in_sample_mean}. The results look quite good.
+
 \begin{figure}
     \centering
     \begin{tabular}{cc}
@@ -386,13 +394,28 @@ In this section, we present the in-sample and out-of-sample predictions of the m
     \label{fig:in_sample_mean}
 \end{figure}
 
+We can also visualize the in-sample posterior predictive distribution of the retention
+for a specific subset of cohorts as in Figure \ref{fig:in_sample_retention}. Observe
+how the credible intervals are quite narrow for the cohorts with more data (more recent
+ones). Overall, the in-sample predictions capture the behavior of the data quite well.
+We can also visualize the in-sample posterior predictive distribution of the revenue
+values, see Figure \ref{fig:in_sample_revenue}. Again, the model posterior predictive 
+captures most of the variability of the data.
 
 \begin{figure}
+    \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_51_0.png}
+    \caption{Retention in-sample posterior predictive distribution for a subset of
+    cohorts.}
+    \label{fig:in_sample_retention}
 \end{figure}
 
 \begin{figure}
+    \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_53_0.png}
+    \caption{Revenue in-sample posterior predictive distribution for a subset of
+    cohorts.}
+    \label{fig:in_sample_revenue}
 \end{figure}
 
 \begin{figure}
@@ -402,11 +425,19 @@ In this section, we present the in-sample and out-of-sample predictions of the m
 \subsection{Out-of-Sample Predictions}
 
 \begin{figure}
+    \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_66_0.png}
+    \caption{Retention out-of-sample posterior predictive distribution for a subset of
+    cohorts.}
+    \label{fig:out_sample_retention}
 \end{figure}
 
 \begin{figure}
+    \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_68_0.png}
+    \caption{Revenue out-of-sample posterior predictive distribution for a subset of
+    cohorts.}
+    \label{fig:out_sample_revenue}
 \end{figure}
 
 \clearpage
@@ -415,7 +446,10 @@ In this section, we present the in-sample and out-of-sample predictions of the m
 
 \section{Python Code}\label{sec:appendix}
 
-\begin{lstlisting}[language=Python, caption=Python example]
+In this appendix, we present the Python code core used to implement the model in PyMC. 
+The detailed implementation can be found in \cite{orduz_revenue_retention_data}.
+
+\begin{lstlisting}[language=Python, caption=PyMC model implementation.]
 import pymc_bart as pmb
 import pymc as pm
 
