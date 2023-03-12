@@ -17,6 +17,7 @@
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 
+\theoremstyle{definition}
 \newtheorem{remark}{Remark}
 
 \lstset{frame=tb,
@@ -62,6 +63,7 @@ least forecast the future revenue and retention rates.
 \maketitle
 
 \tableofcontents
+\addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
 
 \section{Introduction}
 
@@ -101,12 +103,12 @@ behind the model:
 
 
 \subsection*{Features}
-The following are the main features used to model the retention and revenue:
+The following are the main features used to model retention and revenue:
 \begin{itemize}
     \item {\bf Cohort age}: Age of the cohort in months.
     \item {\bf Age}: Age of the cohort with respect to the observation time.
         This feature is a numerical encoder for the cohort.
-    \item {\bf Month}: Month of the observation time.
+    \item {\bf Month}: Month of the observation time (period).
 \end{itemize}
 
 In Figure \ref{fig:retention_matrix} we show an example of a retention matrix. Note
@@ -128,7 +130,7 @@ for the new observation period. \\
     \label{fig:retention_matrix}
 \end{figure}
 
-\subsection*{Model Specification}   
+\subsection*{Model Specification} 
 \begin{itemize}
     \item We model the number of active users in the cohort as a binomial random
         variable $\text{Binomial}(N_{\text{total}}, p)$, where the parameter $p$
@@ -137,10 +139,11 @@ for the new observation period. \\
     
     \item We model the revenue as a gamma random variable
         $\text{Gamma}(N_{\text{active}}, \lambda)$. We model the latent variable
-        $\lambda$ through a linear model with features cohort age, age and a
-        multiplicative interaction. Note that we do not add a seasonality component as
-        we often see most of the seasonality coming from the retention itself. This of
-        course can be added as a feature (plus any other covariates!) to the model.
+        $\lambda$ through a linear model with features cohort age, age and, a
+        multiplicative interaction (to be precise using a $\log$ as a link function).
+        Note that we do not add a seasonality component as we often see most of the
+        seasonality coming from the retention itself. This of course can be added as a
+        feature (plus any other covariates!) to the model.
     
     \item Here is a summary of how the retention and revenue components are coupled
         together:
@@ -262,40 +265,157 @@ After this exploratory analysis, we can start the modeling phase.
 
 \section{Model Specification and Diagnostics}
 
+Now we expand on the model structure described in the introduction. The main idea is to
+model the number of active users as a binomial random variable
+$\text{Binomial}(N_{\text{total}}, p)$, where the parameter $p$ represents the retention.
+We use bayesian additive regression trees (BART) to model the latent variable $p$ using
+as features cohort age, age and (period) month. 
+
+\begin{align*}
+    N_{\text{active}} & \sim \text{Binomial}(N_{\text{total}}, p) \\
+    \textrm{logit}(p) & = \text{BART}(\text{cohort age}, \text{age}, \text{month})
+\end{align*}
+
+The only parameter we need to specify is ht number of trees in the BART model. We
+generally start with a small number of trees and increase them by checking the posterior
+predictive distribution (see below).
+
+\begin{remark}
+Using a BART model is very easy to add new covariates to the model. For example, we have
+experimented with adding certain customer segmentation features (e.g. media channel
+acquisition from an attribution model) in some real business applications. This turns to
+provide key insights into the whole media channel return-on-investment (ROI) to not only
+consider the cost per acquisition but also the estimated revenue per user over a given
+period (that is, blend with customer lifetime value estimations through this model).
+\end{remark}
+
+\begin{remark}
+One could of course start with a simpler model, say a linear model as described in
+\cite{orduz_revenue_retention}. Nevertheless, in real datasets, this approach does not
+fit the data well. 
+\end{remark}
+
+On the other hand, we model the revenue component using a gamma random variable
+$\text{Gamma}(N_{\text{active}}, \lambda)$ (this was inspired in the work
+\cite{stucchio2015bayesian}). Note that the mean of this gamma distribution is
+$N_{\text{active}} / \lambda$, thus we can interpret $1 / \lambda$ as the
+{\em average revenue per active user}. We model $\log(\lambda)$ through a linear model
+using the cohort age and age (and potentially higher-order interactions) as
+features. 
+
+\begin{align*}
+    \text{Revenue} & \sim \text{Gamma}(N_{\text{active}}, \lambda) \\
+    \log(\lambda) = (& \text{intercept} \\
+        & + \beta_{\text{cohort age}} \text{cohort age} \\
+        & + \beta_{\text{age}} \text{age} \\
+        & + \beta_{\text{cohort age} \times \text{age}} \text{cohort age} \times \text{age})
+\end{align*}
+
+One of the key observations we have seen in many real applications (and also
+in this synthetic data set is that we do not need to add a seasonality component into
+the retention model as it is already captured by the retention itself.
+
+\begin{remark}
+Note that the {\em age} feature characterizes the cohort itself. One could try to replace
+the age numerical encoding with a one-hot encoding of the cohort. This would allow the 
+addition of a hierarchical structure to the model to pool information across cohorts.
+However, under the assumption that close cohorts are more similar than distant cohorts,
+the numerical encoding is more appropriate and results in a simpler model.
+\end{remark}
+
+As part of the pre-processing step, we standardize the features for the linear models.
+The main benefit of this is to be able to specify priors for the coefficients of the
+regression which could be interpreted as the effect of a one standard deviation change.
+That is, we could regularize by taking standard normal priors for the coefficients (see
+\cite{orduz_retention_bart}). \\
+
+In summary, the cohort-revenue-retention model is specified as follows:
+
+\begin{align*}
+    \text{Revenue} & \sim \text{Gamma}(N_{\text{active}}, \lambda) \\
+    \log(\lambda) = (& \text{intercept} \\
+        & + \beta_{\text{cohort age}} \text{cohort age} \\
+        & + \beta_{\text{age}} \text{age} \\
+        & + \beta_{\text{cohort age} \times \text{age}} \text{cohort age} \times \text{age}) \\
+    N_{\text{active}} & \sim \text{Binomial}(N_{\text{total}}, p) \\
+    \textrm{logit}(p) & = \text{BART}(\text{cohort age}, \text{age}, \text{month}) \\
+    \text{intercept} & \sim \text{Normal}(0, 1) \\
+    \beta_{\text{cohort age}} & \sim \text{Normal}(0, 1) \\
+    \beta_{\text{age}} & \sim \text{Normal}(0, 1) \\
+    \beta_{\text{cohort age} \times \text{age}} & \sim \text{Normal}(0, 1)
+\end{align*}
+
+\begin{remark}
+Remember that in the linear model, we standardize the features. We do not add it to the 
+specification above to simplify the notation.
+\end{remark}
+
+Once we have the model specification, we can implement it in PyMC (see 
+Appendix \ref{sec:appendix} and \cite{orduz_revenue_retention}). Figure
+\ref{fig:posterior_predictive} shows the posterior predictive distribution of both
+of the components. The results look quite good. In addition, we can check the trace of
+the linear terms (see Figure \ref{fig:trace}). The model did not present any
+divergences or warnings. 
+
 \begin{figure}
+    \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_37_0.png}
+    \caption{Posterior predictive distribution of the retention (left) and revenue
+    (right) per cohort.}
+    \label{fig:posterior_predictive}
 \end{figure}
 
 \begin{figure}
+    \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_41_0.png}
+    \caption{Linear model trace plots.}
+    \label{fig:trace}
 \end{figure}
+
 
 \section{Predictions}
 
+In this section, we present the in-sample and out-of-sample predictions of the model.
+
 \subsection{In-Sample Predictions}
 
+The first thing we can do is to check the in-sample mean posterior predictions of the
+model. We can compare the in-sample predictions with the actuals in Figure
+\ref{fig:in_sample_mean}. The results look quite good.
+
 \begin{figure}
+    \centering
     \begin{tabular}{cc}
         \includegraphics[width=0.5 \textwidth]{images/revenue_retention_45_0.png} & 
         \includegraphics[width=0.5 \textwidth]{images/revenue_retention_47_0.png}
     \end{tabular}
-    \caption{My caption}
+    \caption{Retention (left) and revenue (right) in-sample posterior predictive mean
+    against the actuals.}
+    \label{fig:in_sample_mean}
 \end{figure}
 
-\begin{figure}
-    \begin{tabular}{cc}
-        \includegraphics[width=0.5 \textwidth]{images/revenue_retention_45_0.png} & 
-        \includegraphics[width=0.5 \textwidth]{images/revenue_retention_45_0.png}
-    \end{tabular}
-    \caption{My caption}
-\end{figure}
+We can also visualize the in-sample posterior predictive distribution of the retention
+for a specific subset of cohorts as in Figure \ref{fig:in_sample_retention}. Observe
+how the credible intervals are quite narrow for the cohorts with more data (more recent
+ones). Overall, the in-sample predictions capture the behavior of the data quite well.
+We can also visualize the in-sample posterior predictive distribution of the revenue
+values, see Figure \ref{fig:in_sample_revenue}. Again, the model posterior predictive 
+captures most of the variability of the data.
 
 \begin{figure}
+    \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_51_0.png}
+    \caption{Retention in-sample posterior predictive distribution for a subset of
+    cohorts.}
+    \label{fig:in_sample_retention}
 \end{figure}
 
 \begin{figure}
+    \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_53_0.png}
+    \caption{Revenue in-sample posterior predictive distribution for a subset of
+    cohorts.}
+    \label{fig:in_sample_revenue}
 \end{figure}
 
 \begin{figure}
@@ -304,19 +424,39 @@ After this exploratory analysis, we can start the modeling phase.
 
 \subsection{Out-of-Sample Predictions}
 
+We can generate analogous plots for the out-of-sample predictions for retention and
+revenue, see Figure \ref{fig:out_sample_retention} and Figure 
+\ref{fig:out_sample_revenue} respectively. The credible intervals match the holdout set
+consistently well. Note in particular how we can generate very good predictions for the 
+cohort {\em 2022-07-01} for we just have $4$ data points in the training set. We are 
+successfully pooling information (trend and seasonality) from previous cohorts.
+
 \begin{figure}
+    \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_66_0.png}
+    \caption{Retention out-of-sample posterior predictive distribution for a subset of
+    cohorts.}
+    \label{fig:out_sample_retention}
 \end{figure}
 
 \begin{figure}
+    \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_68_0.png}
+    \caption{Revenue out-of-sample posterior predictive distribution for a subset of
+    cohorts.}
+    \label{fig:out_sample_revenue}
 \end{figure}
 
 \clearpage
 
-\appendix{Appendix: Python Code}
+\appendix
 
-\begin{lstlisting}[language=Python, caption=Python example]
+\section{Python Code}\label{sec:appendix}
+
+In this appendix, we present the Python code core used to implement the model in PyMC. 
+The detailed implementation can be found in \cite{orduz_revenue_retention_data}.
+
+\begin{lstlisting}[language=Python, caption=PyMC model implementation.]
 import pymc_bart as pmb
 import pymc as pm
 
@@ -398,7 +538,6 @@ with pm.Model(coords={"feature": features}) as model:
         dims="obs"
     )
 \end{lstlisting}
-
 
 
 \bibliographystyle{acm}
