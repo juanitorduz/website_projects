@@ -29,6 +29,71 @@
       margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
       vertical-align: middle;
     }
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+      }
+    pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+    div.sourceCode
+      { color: #e1e4e8; background-color: #24292e; }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span { color: #e1e4e8; } /* Normal */
+    code span.al { color: #ff5555; font-weight: bold; } /* Alert */
+    code span.an { color: #6a737d; } /* Annotation */
+    code span.at { color: #f97583; } /* Attribute */
+    code span.bn { color: #79b8ff; } /* BaseN */
+    code span.bu { color: #f97583; } /* BuiltIn */
+    code span.cf { color: #f97583; } /* ControlFlow */
+    code span.ch { color: #9ecbff; } /* Char */
+    code span.cn { color: #79b8ff; } /* Constant */
+    code span.co { color: #6a737d; } /* Comment */
+    code span.cv { color: #6a737d; } /* CommentVar */
+    code span.do { color: #6a737d; } /* Documentation */
+    code span.dt { color: #f97583; } /* DataType */
+    code span.dv { color: #79b8ff; } /* DecVal */
+    code span.er { color: #ff5555; text-decoration: underline; } /* Error */
+    code span.ex { color: #f97583; font-weight: bold; } /* Extension */
+    code span.fl { color: #79b8ff; } /* Float */
+    code span.fu { color: #b392f0; } /* Function */
+    code span.im { color: #9ecbff; } /* Import */
+    code span.in { color: #6a737d; } /* Information */
+    code span.kw { color: #f97583; } /* Keyword */
+    code span.op { color: #e1e4e8; } /* Operator */
+    code span.ot { color: #b392f0; } /* Other */
+    code span.pp { color: #f97583; } /* Preprocessor */
+    code span.re { color: #6a737d; } /* RegionMarker */
+    code span.sc { color: #79b8ff; } /* SpecialChar */
+    code span.ss { color: #9ecbff; } /* SpecialString */
+    code span.st { color: #9ecbff; } /* String */
+    code span.va { color: #ffab70; } /* Variable */
+    code span.vs { color: #9ecbff; } /* VerbatimString */
+    code span.wa { color: #ff5555; } /* Warning */
   </style>
   <link rel="stylesheet" href="marketing_bayes_files/libs/revealjs/dist/theme/quarto.css">
   <link href="marketing_bayes_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
@@ -338,9 +403,85 @@
 <div class="quarto-title-author-name">
 Dr.&nbsp;Juan Orduz 
 </div>
+<div class="quarto-title-author-email">
+<a href="mailto:juanitorduz@gmail.com">juanitorduz@gmail.com</a>
 </div>
+        <p class="quarto-title-affiliation">
+            Mathematician &amp; Data Scientist
+          </p>
+    </div>
 </div>
 
+</section>
+<section id="outline" class="slide level2">
+<h2>Outline</h2>
+<div>
+<ol type="1">
+<li class="fragment"><p>Geo-Experimentation</p></li>
+<li class="fragment"><p>Media Mix Models</p></li>
+<li class="fragment"><p>Customer Lifetime Value</p>
+<ul>
+<li class="fragment">BG/NBD Model</li>
+<li class="fragment">Gamma Gamma Model</li>
+</ul></li>
+<li class="fragment"><p>Causal Inference</p></li>
+<li class="fragment"><p>Revenue-Retention Modeling</p></li>
+<li class="fragment"><p>References</p></li>
+</ol>
+</div>
+</section>
+<section id="geo-experimentation" class="slide level2">
+<h2>Geo-Experimentation</h2>
+
+<img data-src="images/orders_per_zipcode.png" class="r-stretch quarto-figure-center"><div class="footer">
+<p>See <a href="https://juanitorduz.github.io/time_based_regression_pymc/">Geo-Experimentation via Time-Based Regression in PyMC</a></p>
+</div>
+</section>
+<section id="time-based-regression" class="slide level2">
+<h2>Time-Based Regression</h2>
+<div class="columns">
+<div class="column" style="width:55%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="images/geo_pymc.svg"></p>
+<figcaption>Linear regression to model the pre-intervention period.</figcaption>
+</figure>
+</div>
+</div><div class="column" style="width:45%;">
+<p><img data-src="images/geo_train.png" data-fig-align="center"> <img data-src="images/geo_test.png" data-fig-align="center"></p>
+</div>
+</div>
+<div class="footer">
+<p>See <a href="https://juanitorduz.github.io/time_based_regression_pymc/">Geo-Experimentation via Time-Based Regression in PyMC</a></p>
+</div>
+</section>
+<section id="regression-model-in-pymc" class="slide level2">
+<h2>Regression Model in PyMC</h2>
+<div class="sourceCode" id="cb1" data-code-line-numbers="|2-9|10-14|15-18|19-22"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a><span class="cf">with</span> pm.Model() <span class="im">as</span> model:</span>
+<span id="cb1-2"><a href="#cb1-2"></a>    <span class="co"># --- Data Containers ---</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a>    model.add_coord(name<span class="op">=</span><span class="st">"date"</span>, values<span class="op">=</span>date_train, mutable<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-4"><a href="#cb1-4"></a>    y_control_data <span class="op">=</span> pm.MutableData(</span>
+<span id="cb1-5"><a href="#cb1-5"></a>        name<span class="op">=</span><span class="st">"y_control_data"</span>, value<span class="op">=</span>y_control_train_scaled, dims<span class="op">=</span><span class="st">"date"</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a>    )</span>
+<span id="cb1-7"><a href="#cb1-7"></a>    y_treatment_data <span class="op">=</span> pm.MutableData(</span>
+<span id="cb1-8"><a href="#cb1-8"></a>        name<span class="op">=</span><span class="st">"y_treatment_data"</span>, value<span class="op">=</span>y_treatment_train_scaled, dims<span class="op">=</span><span class="st">"date"</span></span>
+<span id="cb1-9"><a href="#cb1-9"></a>    )</span>
+<span id="cb1-10"><a href="#cb1-10"></a>    <span class="co"># --- Priors ---</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a>    intercept <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"intercept"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb1-12"><a href="#cb1-12"></a>    beta <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"beta"</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb1-13"><a href="#cb1-13"></a>    sigma <span class="op">=</span> pm.HalfNormal(name<span class="op">=</span><span class="st">"sigma"</span>, sigma<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb1-14"><a href="#cb1-14"></a>    nu <span class="op">=</span> pm.Gamma(name<span class="op">=</span><span class="st">"nu"</span>, alpha<span class="op">=</span><span class="dv">20</span>, beta<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb1-15"><a href="#cb1-15"></a>    <span class="co"># --- Model Parametrization ---</span></span>
+<span id="cb1-16"><a href="#cb1-16"></a>    mu <span class="op">=</span> pm.Deterministic(</span>
+<span id="cb1-17"><a href="#cb1-17"></a>      name<span class="op">=</span><span class="st">"mu"</span>, var<span class="op">=</span>intercept <span class="op">+</span> beta <span class="op">*</span> y_control_data, dims<span class="op">=</span><span class="st">"date"</span></span>
+<span id="cb1-18"><a href="#cb1-18"></a>    )</span>
+<span id="cb1-19"><a href="#cb1-19"></a>    <span class="co"># --- Likelihood ---</span></span>
+<span id="cb1-20"><a href="#cb1-20"></a>    pm.StudentT(</span>
+<span id="cb1-21"><a href="#cb1-21"></a>        name<span class="op">=</span><span class="st">"likelihood"</span>, mu<span class="op">=</span>mu, nu<span class="op">=</span>nu, sigma<span class="op">=</span>sigma, observed<span class="op">=</span>y_treatment_data, dims<span class="op">=</span><span class="st">"date"</span></span>
+<span id="cb1-22"><a href="#cb1-22"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="footer">
+<p>See <a href="https://juanitorduz.github.io/time_based_regression_pymc/">Geo-Experimentation via Time-Based Regression in PyMC</a></p>
+</div>
 </section>
 <section id="marketing-measurement" class="slide level2">
 <h2>Marketing Measurement</h2>
@@ -392,18 +533,147 @@ flowchart LR
 <p>See <a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a>, <a href="https://github.com/pymc-labs/pymc-marketing/issues/259">Issue 259</a></p>
 </div>
 </section>
-<section id="clv-estimation" class="slide level2">
-<h2>CLV Estimation</h2>
+<section id="pymc-marketing" class="slide level2">
+<h2>PyMC-Marketing</h2>
+<p>Bayesian marketing toolbox in PyMC. Media Mix (MMM), customer lifetime value (CLV), buy-till-you-die (BTYD) models and more.</p>
+<div class="columns">
+<div class="column" style="width:60%;">
+<div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1"></a>mmm <span class="op">=</span> DelayedSaturatedMMM(</span>
+<span id="cb2-2"><a href="#cb2-2"></a>    data<span class="op">=</span>data,</span>
+<span id="cb2-3"><a href="#cb2-3"></a>    target_column<span class="op">=</span><span class="st">"y"</span>,</span>
+<span id="cb2-4"><a href="#cb2-4"></a>    date_column<span class="op">=</span><span class="st">"date_week"</span>,</span>
+<span id="cb2-5"><a href="#cb2-5"></a>    channel_columns<span class="op">=</span>[<span class="st">"x1"</span>, <span class="st">"x2"</span>],</span>
+<span id="cb2-6"><a href="#cb2-6"></a>    control_columns<span class="op">=</span>[</span>
+<span id="cb2-7"><a href="#cb2-7"></a>        <span class="st">"event_1"</span>,</span>
+<span id="cb2-8"><a href="#cb2-8"></a>        <span class="st">"event_2"</span>,</span>
+<span id="cb2-9"><a href="#cb2-9"></a>        <span class="st">"t"</span>,</span>
+<span id="cb2-10"><a href="#cb2-10"></a>    ],</span>
+<span id="cb2-11"><a href="#cb2-11"></a>    adstock_max_lag<span class="op">=</span><span class="dv">8</span>,</span>
+<span id="cb2-12"><a href="#cb2-12"></a>    yearly_seasonality<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb2-13"><a href="#cb2-13"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div><div class="column" style="width:40%;">
+<p><img data-src="images/marketing-logo-light.png"></p>
+</div>
+</div>
+<div class="footer">
+<p>See <a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a>: <a href="https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html">MMM Example</a></p>
+</div>
+</section>
+<section id="customer-lifetime-value-clv" class="slide level2">
+<h2>Customer Lifetime Value (CLV)</h2>
+
+<img data-src="images/customer_classification.png" class="r-stretch quarto-figure-center"></section>
+<section id="continuous-non-contractractual-clv" class="slide level2">
+<h2>Continuous Non-Contractractual CLV</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="images/customer_btyd.png"></p>
+</figure>
+</div>
+</div><div class="column" style="width:50%;">
+<ul>
+<li><p><code>frequency</code>: Number of repeat purchases the customer has made.</p></li>
+<li><p><code>T</code>: Age of the customer in whatever time units chosen.</p></li>
+<li><p><code>recency</code>: Age of the customer when they made their most recent purchases.</p></li>
+</ul>
+</div>
+</div>
+<div class="footer">
+<p>See <a href="https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf">Probability Models for Customer-Base Analysis</a></p>
+</div>
+</section>
+<section id="bgnbd-assumptions-frequency" class="slide level2">
+<h2>BG/NBD Assumptions (Frequency)</h2>
+<div>
+<ol type="1">
+<li class="fragment"><p>While active, the time between transactions is distributed exponential with transaction rate, i.e.,</p>
+<p><span class="math display">\[f(t_{j}|t_{j-1}; \lambda) = \lambda \exp(-\lambda (t_{j} - t_{j - 1})), \quad t_{j} \geq t_{j - 1} \geq 0\]</span></p></li>
+<li class="fragment"><p>Heterogeneity in <span class="math inline">\(\lambda\)</span> follows a gamma distribution with pdf</p>
+<p><span class="math display">\[f(\lambda|r, \alpha) = \frac{\alpha^{r}\lambda^{r - 1}\exp(-\lambda \alpha)}{\Gamma(r)}, \quad \lambda  &gt; 0\]</span></p></li>
+</ol>
+</div>
+<div class="footer">
+<p>See <a href="http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf">“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model</a></p>
+</div>
+</section>
+<section id="bgnbd-assumptions-dropout" class="slide level2">
+<h2>BG/NBD Assumptions (Dropout)</h2>
+<div>
+<ol start="3" type="1">
+<li class="fragment"><p>After any transaction, a customer becomes inactive with probability <span class="math inline">\(p\)</span>.</p></li>
+<li class="fragment"><p>Heterogeneity in <span class="math inline">\(p\)</span> follows a beta distribution with pdf</p>
+<p><span class="math display">\[f(p|a, b) = \frac{\Gamma(a + b)}{\Gamma(a) \Gamma(b)} p^{a - 1}(1 - p)^{b - 1}, \quad 0 \leq p \leq 1\]</span></p></li>
+<li class="fragment"><p>The transaction rate <span class="math inline">\(\lambda\)</span> and the dropout probability <span class="math inline">\(p\)</span> vary independently across customers.</p></li>
+</ol>
+</div>
+</section>
+<section id="bgnbd---probability-of-alive" class="slide level2">
+<h2>BG/NBD - Probability of Alive</h2>
 
 <img data-src="images/p_alive.png" class="r-stretch quarto-figure-center"><div class="footer">
 <p>See <a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a>: <a href="https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html">CLV Quickstart</a></p>
 </div>
 </section>
-<section id="geo-experimentation" class="slide level2">
-<h2>Geo-Experimentation</h2>
+<section id="gamma-gamma-model" class="slide level2">
+<h2>Gamma-Gamma Model</h2>
+<div class="columns">
+<div class="column" style="width:60%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="images/gamma_gamma_forest.png"></p>
+</figure>
+</div>
+</div><div class="column" style="width:40%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="images/gamma_gamma_new_customer.png"></p>
+<figcaption>We can estimate the distribution spend for new customers.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="footer">
+<p>See <a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a>: <a href="https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html">CLV Quickstart</a></p>
+</div>
 </section>
 <section id="causal-inference" class="slide level2">
 <h2>Causal Inference</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="synthetic-control">Synthetic Control</h4>
+<p><img data-src="images/synthetic_control.png"></p>
+</div><div class="column" style="width:50%;">
+<p><img data-src="images/causalpy_logo.png"></p>
+</div>
+</div>
+<div class="footer">
+<p><a href="https://causalpy.readthedocs.io/en/latest/"><code>CausalPy</code></a></p>
+</div>
+</section>
+<section id="causal-inference-1" class="slide level2">
+<h2>Causal Inference</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="difference-in-differences">Difference-in-Differences</h4>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="images/diff_in_diff.png"></p>
+</figure>
+</div>
+</div><div class="column" style="width:50%;">
+<h4 id="regression-discontinuity">Regression Discontinuity</h4>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="images/regression_discontinuity.png"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="footer">
+<p>See <a href="https://causalpy.readthedocs.io/en/latest/"><code>CausalPy</code></a></p>
+</div>
 </section>
 <section id="revenue-retention-modeling" class="slide level2">
 <h2>Revenue-Retention Modeling</h2>
@@ -417,7 +687,7 @@ flowchart LR
 </ul>
 <h3 id="customer-lifetime-value">Customer Lifetime Value</h3>
 <h3 id="geo-experimentaton">Geo-Experimentaton</h3>
-<h3 id="causal-inference-1">Causal Inference</h3>
+<h3 id="causal-inference-2">Causal Inference</h3>
 <h3 id="revenue-retention-modeling-1">Revenue-Retention Modeling</h3>
 <div class="footer footer-default">
 

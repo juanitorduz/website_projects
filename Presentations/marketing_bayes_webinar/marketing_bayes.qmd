@@ -1,7 +1,11 @@
 ---
-title: "Bayesian Methods in Modern Marketing Analytics"
-subtitle: "PyMC Labs Online Meetup - May 2023"
-author: "Dr. Juan Orduz"
+title: Bayesian Methods in Modern Marketing Analytics
+subtitle: PyMC Labs Online Meetup - May 2023
+author: 
+  - name: Dr. Juan Orduz
+    email: juanitorduz@gmail.com
+    affiliations:
+      - name: Mathematician & Data Scientist
 format:
   revealjs: 
     slide-number: false
@@ -9,9 +13,81 @@ format:
       buttons: false
     preview-links: auto
     theme:
-        - "default"
+        - white
     highlight-style: github-dark
 ---
+
+## Outline
+
+::: incremental
+
+1. Geo-Experimentation
+2. Media Mix Models
+3. Customer Lifetime Value
+
+    - BG/NBD Model
+    - Gamma Gamma Model
+
+4. Causal Inference
+5. Revenue-Retention Modeling
+6. References
+
+:::
+
+## Geo-Experimentation
+
+![](images/orders_per_zipcode.png){fig-align="center"}
+
+::: footer
+See [Geo-Experimentation via Time-Based Regression in PyMC](https://juanitorduz.github.io/time_based_regression_pymc/)
+:::
+
+## Time-Based Regression
+
+::: columns
+::: {.column width="55%"}
+![Linear regression to model the pre-intervention period.](images/geo_pymc.svg){fig-align="center"}
+:::
+::: {.column width="45%"}
+![](images/geo_train.png){fig-align="center"}
+![](images/geo_test.png){fig-align="center"}
+:::
+:::
+
+::: footer
+See [Geo-Experimentation via Time-Based Regression in PyMC](https://juanitorduz.github.io/time_based_regression_pymc/)
+:::
+
+## Regression Model in PyMC
+
+``` {.python code-line-numbers="|2-9|10-14|15-18|19-22"}
+with pm.Model() as model:
+    # --- Data Containers ---
+    model.add_coord(name="date", values=date_train, mutable=True)
+    y_control_data = pm.MutableData(
+        name="y_control_data", value=y_control_train_scaled, dims="date"
+    )
+    y_treatment_data = pm.MutableData(
+        name="y_treatment_data", value=y_treatment_train_scaled, dims="date"
+    )
+    # --- Priors ---
+    intercept = pm.Normal(name="intercept", mu=0, sigma=1)
+    beta = pm.HalfNormal(name="beta", sigma=2)
+    sigma = pm.HalfNormal(name="sigma", sigma=2)
+    nu = pm.Gamma(name="nu", alpha=20, beta=2)
+    # --- Model Parametrization ---
+    mu = pm.Deterministic(
+      name="mu", var=intercept + beta * y_control_data, dims="date"
+    )
+    # --- Likelihood ---
+    pm.StudentT(
+        name="likelihood", mu=mu, nu=nu, sigma=sigma, observed=y_treatment_data, dims="date"
+    )
+```
+
+::: footer
+See [Geo-Experimentation via Time-Based Regression in PyMC](https://juanitorduz.github.io/time_based_regression_pymc/)
+:::
 
 ## Marketing Measurement
 
@@ -67,7 +143,94 @@ See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Exampl
 See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing), [Issue 259](https://github.com/pymc-labs/pymc-marketing/issues/259)
 :::
 
-## CLV Estimation
+## PyMC-Marketing
+
+Bayesian marketing toolbox in PyMC. Media Mix (MMM), customer lifetime value (CLV), buy-till-you-die (BTYD) models and more.
+
+
+::: columns
+::: {.column width="60%"}
+``` {.python}
+mmm = DelayedSaturatedMMM(
+    data=data,
+    target_column="y",
+    date_column="date_week",
+    channel_columns=["x1", "x2"],
+    control_columns=[
+        "event_1",
+        "event_2",
+        "t",
+    ],
+    adstock_max_lag=8,
+    yearly_seasonality=2,
+)
+```
+:::
+::: {.column width="40%"}
+![](images/marketing-logo-light.png)
+:::
+:::
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## Customer Lifetime Value (CLV)
+
+![](images/customer_classification.png){fig-align="center"}
+
+## Continuous Non-Contractractual CLV
+
+::: columns
+::: {.column width="50%"}
+![](images/customer_btyd.png){fig-align="center"}
+:::
+::: {.column width="50%"}
+- `frequency`: Number of repeat purchases the customer has made.
+
+- `T`: Age of the customer in whatever time units chosen.
+
+- `recency`: Age of the customer when they made their most recent purchases.
+:::
+:::
+
+::: footer
+See [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf)
+:::
+
+## BG/NBD Assumptions (Frequency)
+
+::: incremental
+
+1. While active, the time between transactions is distributed exponential with transaction rate, i.e., 
+
+    $$f(t_{j}|t_{j-1}; \lambda) = \lambda \exp(-\lambda (t_{j} - t_{j - 1})), \quad t_{j} \geq t_{j - 1} \geq 0$$ 
+
+2. Heterogeneity in $\lambda$ follows a gamma distribution with pdf
+
+    $$f(\lambda|r, \alpha) = \frac{\alpha^{r}\lambda^{r - 1}\exp(-\lambda \alpha)}{\Gamma(r)}, \quad \lambda  > 0$$
+
+:::
+
+::: footer
+See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf)
+:::
+
+## BG/NBD Assumptions (Dropout)
+
+::: incremental
+
+3. After any transaction, a customer becomes inactive with probability $p$.
+
+4. Heterogeneity in $p$ follows a beta distribution with pdf
+
+    $$f(p|a, b) = \frac{\Gamma(a + b)}{\Gamma(a) \Gamma(b)} p^{a - 1}(1 - p)^{b - 1}, \quad 0 \leq p \leq 1$$
+
+5. The transaction rate $\lambda$ and the dropout probability $p$ vary independently across customers.
+
+:::
+
+## BG/NBD - Probability of Alive 
 
 ![](images/p_alive.png){fig-align="center"}
 
@@ -75,9 +238,56 @@ See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing), [Issue 259]
 See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [CLV Quickstart](https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html)
 :::
 
-## Geo-Experimentation
+## Gamma-Gamma Model
+
+::: columns
+::: {.column width="60%"}
+![](images/gamma_gamma_forest.png){fig-align="center"}
+:::
+::: {.column width="40%"}
+![We can estimate the distribution spend for new customers.](images/gamma_gamma_new_customer.png){fig-align="center"}
+:::
+:::
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [CLV Quickstart](https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html)
+:::
+
 
 ## Causal Inference
+
+::: columns
+::: {.column width="50%"}
+####  Synthetic Control
+![](images/synthetic_control.png)
+:::
+::: {.column width="50%"}
+![](images/causalpy_logo.png)
+:::
+:::
+
+::: footer
+[`CausalPy`](https://causalpy.readthedocs.io/en/latest/)
+:::
+
+
+## Causal Inference
+
+::: columns
+::: {.column width="50%"}
+####  Difference-in-Differences
+![](images/diff_in_diff.png){fig-align="center"}
+:::
+::: {.column width="50%"}
+
+#### Regression Discontinuity
+![](images/regression_discontinuity.png){fig-align="center"}
+:::
+:::
+
+::: footer
+See [`CausalPy`](https://causalpy.readthedocs.io/en/latest/)
+:::
 
 ## Revenue-Retention Modeling
 
