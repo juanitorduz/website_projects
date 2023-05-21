@@ -1,0 +1,98 @@
+---
+title: "Bayesian Methods in Modern Marketing Analytics"
+subtitle: "PyMC Labs Online Meetup - May 2023"
+author: "Dr. Juan Orduz"
+format:
+  revealjs: 
+    slide-number: false
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    theme:
+        - "default"
+    highlight-style: github-dark
+---
+
+## Marketing Measurement
+
+```{mermaid}
+%%| fig-height: 2
+%%| fig-width: 10
+%%| fig-align: "center"
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart LR
+  Experimentation("Experimentation") --> MMM("Media Mix Model")
+  MMM --> Attribution("Attribution")
+  Attribution --> Experimentation
+```
+
+\vspace{20em}
+
+### Media Mix Models
+
+- Media Mix Models (MMM) are used by advertisers to measure the effectiveness of their advertising and provide insights for making future budget allocation decisions.
+
+- Media mix models are also used to find the optimal media mix that maximizes the revenue under a budget constraint in the selected time period. 
+
+
+## Media Transformations
+
+![](images/media_transformations.png){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## MMM Structure
+
+![](images/mmm_structure.svg){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## Media Contribution Estimation
+
+![](images/contribution_components.png){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## Budget Optimization
+
+![](images/cost_curves.png){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing), [Issue 259](https://github.com/pymc-labs/pymc-marketing/issues/259)
+:::
+
+## CLV Estimation
+
+![](images/p_alive.png){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [CLV Quickstart](https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html)
+:::
+
+## Geo-Experimentation
+
+## Causal Inference
+
+## Revenue-Retention Modeling
+
+## References {.smaller}
+
+### Media Mix Models
+
+- PyMC bayesian model details: [Media Effect Estimation with PyMC: Adstock, Saturation & Diminishing Returns](https://juanitorduz.github.io/pymc_mmm/)
+
+- [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): Bayesian marketing toolbox in PyMC. Media Mix (MMM), customer lifetime value (CLV), buy-till-you-die (BTYD) models and more.
+
+### Customer Lifetime Value
+
+### Geo-Experimentaton
+
+### Causal Inference
+
+### Revenue-Retention Modeling
