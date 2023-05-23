@@ -18,6 +18,22 @@ format:
     highlight-style: github-dark
 ---
 
+## Webinar's Objective
+
+> Present some selected applications of bayesian methods to solve marketing data science problems in the industry.
+
+```{mermaid}
+%%| fig-height: 4
+%%| fig-width: 7
+%%| fig-align: "center"
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart TD
+  BayesianMethods("BayesianMethods") --> MarketingDataScience("Marketing Data Science")
+
+  style BayesianMethods fill:#ff3660
+  style MarketingDataScience fill:#1790D0
+```
+
 ## Outline
 
 ::: incremental
@@ -32,6 +48,7 @@ format:
 
 :::
 
+
 ## Applied Data Science
 
 ```{mermaid}
@@ -45,6 +62,8 @@ flowchart TD
   Product --> Measure("Measure")
   Measure --> Stakeholders("Stakeholders")
   Stakeholders --> BusinessProblem 
+
+  style Model fill:#a0cdf7
 ```
 
 ## Bayesian Methods
@@ -324,7 +343,7 @@ See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 :::
 
 ::: footer
-See [`CausalPy`](https://causalpy.readthedocs.io/en/latest/)
+[`CausalPy`](https://causalpy.readthedocs.io/en/latest/)
 :::
 
 ## Instrumental Variables
@@ -347,17 +366,28 @@ See [Experimentation, Non-Compliance and Instrumental Variables with PyMC](https
 See [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitorduz.github.io/revenue_retention/)
 :::
 
-## Cohot Revenue-Retention Model
+##
+
+### Retention Component
 
 \begin{align*}
     \textrm{logit}(p) & = \text{BART}(\text{cohort age}, \text{age}, \text{month}) \\
-    N_{\text{active}} & \sim \text{Binomial}(N_{\text{total}}, p) \\
+    N_{\text{active}} & \sim \text{Binomial}(N_{\text{total}}, p)
+\end{align*}
+
+### Revenue Component
+
+\begin{align*}
     \log(\lambda) = \: (& \text{intercept} \\
         & + \beta_{\text{cohort age}} \text{cohort age} \\
         & + \beta_{\text{age}} \text{age} \\
         & + \beta_{\text{cohort age} \times \text{age}} \text{cohort age} \times \text{age}) \\
     \text{Revenue} & \sim \text{Gamma}(N_{\text{active}}, \lambda)
 \end{align*}
+
+::: footer
+See [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitorduz.github.io/revenue_retention/)
+:::
 
 ## Cohot Revenue-Retention Model
 
