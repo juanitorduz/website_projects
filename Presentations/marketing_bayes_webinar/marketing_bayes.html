@@ -698,8 +698,8 @@ flowchart LR
 <p>See <a href="https://causalpy.readthedocs.io/en/latest/"><code>CausalPy</code></a></p>
 </div>
 </section>
-<section id="revenue-retention-modeling" class="slide level2 smaller">
-<h2>Revenue-Retention Modeling</h2>
+<section id="cohort-revenue-retention-modeling" class="slide level2 smaller">
+<h2>Cohort Revenue-Retention Modeling</h2>
 
 <img data-src="images/retention_matrix.png" class="r-stretch quarto-figure-center"><ul>
 <li><strong>Cohort Age:</strong> Age of the cohort in months.</li>
@@ -710,8 +710,23 @@ flowchart LR
 <p>See <a href="https://juanitorduz.github.io/revenue_retention/">Cohort Revenue &amp; Retention Analysis: A Bayesian Approach</a></p>
 </div>
 </section>
-<section id="revenue-retention-model" class="slide level2">
-<h2>Revenue-Retention Model</h2>
+<section id="cohot-revenue-retention-model" class="slide level2">
+<h2>Cohot Revenue-Retention Model</h2>
+<p><span class="math display">\[\begin{align*}
+    \text{Revenue} &amp; \sim \text{Gamma}(N_{\text{active}}, \lambda) \\
+    \log(\lambda) = (&amp; \text{intercept} \\
+        &amp; + \beta_{\text{cohort age}} \text{cohort age} \\
+        &amp; + \beta_{\text{age}} \text{age} \\
+        &amp; + \beta_{\text{cohort age} \times \text{age}} \text{cohort age} \times \text{age}) \\
+    N_{\text{active}} &amp; \sim \text{Binomial}(N_{\text{total}}, p) \\
+    \textrm{logit}(p) &amp; = \text{BART}(\text{cohort age}, \text{age}, \text{month})
+\end{align*}\]</span></p>
+<div class="footer">
+<p>See <a href="https://juanitorduz.github.io/revenue_retention/">Cohort Revenue &amp; Retention Analysis: A Bayesian Approach</a></p>
+</div>
+</section>
+<section id="cohort-revenue-retention-model" class="slide level2">
+<h2>Cohort Revenue-Retention Model</h2>
 
 <img data-src="images/revenue_retention_model.svg" class="r-stretch"><div class="footer">
 <p>See <a href="https://juanitorduz.github.io/revenue_retention/">Cohort Revenue &amp; Retention Analysis: A Bayesian Approach</a></p>
@@ -739,29 +754,33 @@ flowchart LR
 <h2>References</h2>
 <h4 id="media-mix-models-1">Media Mix Models</h4>
 <ul>
+<li><p><a href="https://research.google/pubs/pub46001/">Bayesian Methods for Media Mix Modeling with Carryover and Shape Effects</a></p></li>
 <li><p>PyMC bayesian model details: <a href="https://juanitorduz.github.io/pymc_mmm/">Media Effect Estimation with PyMC: Adstock, Saturation &amp; Diminishing Returns</a></p></li>
-<li><p><a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a></p></li>
+<li><p><a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a>: Bayesian marketing toolbox in PyMC. Media Mix (MMM), customer lifetime value (CLV), buy-till-you-die (BTYD) models and more.</p></li>
 </ul>
 <h4 id="customer-lifetime-value">Customer Lifetime Value</h4>
 <ul>
-<li><a href="https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf">Probability Models for Customer-Base Analysis</a></li>
-<li><a href="http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf">“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model</a></li>
-<li><a href="https://juanitorduz.github.io/bg_nbd_pymc/">BG/NBD Model in PyMC</a></li>
+<li><p><a href="https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf">Probability Models for Customer-Base Analysis</a></p></li>
+<li><p><a href="http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf">“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model</a></p></li>
+<li><p><a href="https://juanitorduz.github.io/bg_nbd_pymc/">BG/NBD Model in PyMC</a></p></li>
 </ul>
 </section>
 <section id="references-1" class="slide level2 smaller">
 <h2>References</h2>
 <h4 id="geo-experimentaton">Geo-Experimentaton</h4>
 <ul>
-<li><a href="https://juanitorduz.github.io/time_based_regression_pymc/">Geo-Experimentation via Time-Based Regression in PyMC</a></li>
+<li><p><a href="https://juanitorduz.github.io/time_based_regression_pymc/">Geo-Experimentation via Time-Based Regression in PyMC</a></p></li>
+<li><p><a href="https://juanitorduz.github.io/wolt_ds_meetup/">Offline Campaign Analysis Measurement: A journey through causal impact, geo-experimentation and synthetic control</a></p></li>
 </ul>
 <h4 id="causal-inference-2">Causal Inference</h4>
 <ul>
 <li><a href="https://causalpy.readthedocs.io/en/latest/"><code>CausalPy</code></a>: A Python package for causal inference in quasi-experimental settings</li>
 </ul>
-<h4 id="revenue-retention-modeling-1">Revenue-Retention Modeling</h4>
+<h4 id="revenue-retention-modeling">Revenue-Retention Modeling</h4>
 <ul>
-<li><a href="https://juanitorduz.github.io/revenue_retention/">Cohort Revenue &amp; Retention Analysis: A Bayesian Approach</a></li>
+<li><p><a href="https://juanitorduz.github.io/retention/">A Simple Cohort Retention Analysis in PyMC</a></p></li>
+<li><p><a href="https://juanitorduz.github.io/retention_bart/">Cohort Retention Analysis with BART</a></p></li>
+<li><p><a href="https://juanitorduz.github.io/revenue_retention/">Cohort Revenue &amp; Retention Analysis: A Bayesian Approach</a></p></li>
 </ul>
 <div class="footer footer-default">
 

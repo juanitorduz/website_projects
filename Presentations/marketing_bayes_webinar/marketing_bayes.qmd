@@ -311,7 +311,7 @@ See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 See [`CausalPy`](https://causalpy.readthedocs.io/en/latest/)
 :::
 
-## Revenue-Retention Modeling {.smaller}
+## Cohort Revenue-Retention Modeling {.smaller}
 
 ![](images/retention_matrix.png){fig-align="center"}
 
@@ -323,7 +323,23 @@ See [`CausalPy`](https://causalpy.readthedocs.io/en/latest/)
 See [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitorduz.github.io/revenue_retention/)
 :::
 
-## Revenue-Retention Model
+## Cohot Revenue-Retention Model
+
+\begin{align*}
+    \text{Revenue} & \sim \text{Gamma}(N_{\text{active}}, \lambda) \\
+    \log(\lambda) = (& \text{intercept} \\
+        & + \beta_{\text{cohort age}} \text{cohort age} \\
+        & + \beta_{\text{age}} \text{age} \\
+        & + \beta_{\text{cohort age} \times \text{age}} \text{cohort age} \times \text{age}) \\
+    N_{\text{active}} & \sim \text{Binomial}(N_{\text{total}}, p) \\
+    \textrm{logit}(p) & = \text{BART}(\text{cohort age}, \text{age}, \text{month})
+\end{align*}
+
+::: footer
+See [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitorduz.github.io/revenue_retention/)
+:::
+
+## Cohort Revenue-Retention Model
 
 ![](images/revenue_retention_model.svg)
 
@@ -347,14 +363,18 @@ See [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitord
 
 #### Media Mix Models
 
-- PyMC bayesian model details: [Media Effect Estimation with PyMC: Adstock, Saturation & Diminishing Returns](https://juanitorduz.github.io/pymc_mmm/)
+- [Bayesian Methods for Media Mix Modeling with Carryover and Shape Effects](https://research.google/pubs/pub46001/)
 
-- [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing)
+- PyMC bayesian model details: [Media Effect Estimation with PyMC: Adstock, Saturation & Diminishing Returns](https://juanitorduz.github.io/pymc_mmm/)
+  
+- [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): Bayesian marketing toolbox in PyMC. Media Mix (MMM), customer lifetime value (CLV), buy-till-you-die (BTYD) models and more.
 
 #### Customer Lifetime Value
 
 - [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf)
+
 - [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf)
+
 - [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 
 ## References {.smaller}
@@ -363,10 +383,16 @@ See [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitord
 
 - [Geo-Experimentation via Time-Based Regression in PyMC](https://juanitorduz.github.io/time_based_regression_pymc/)
 
+- [Offline Campaign Analysis Measurement: A journey through causal impact, geo-experimentation and synthetic control](https://juanitorduz.github.io/wolt_ds_meetup/)
+
 #### Causal Inference
 
 - [`CausalPy`](https://causalpy.readthedocs.io/en/latest/): A Python package for causal inference in quasi-experimental settings
 
 #### Revenue-Retention Modeling
+
+- [A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
+
+- [Cohort Retention Analysis with BART](https://juanitorduz.github.io/retention_bart/)
 
 - [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitorduz.github.io/revenue_retention/)
