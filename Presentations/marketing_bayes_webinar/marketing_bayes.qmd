@@ -21,18 +21,30 @@ format:
 
 ::: incremental
 
-1. Geo-Experimentation
-2. Media Mix Models
-3. Customer Lifetime Value
-
-    - BG/NBD Model
-    - Gamma Gamma Model
-
-4. Causal Inference
-5. Revenue-Retention Modeling
-6. References
+1. Introduction
+2. Geo-Experimentation
+3. Media Mix Models
+4. Customer Lifetime Value
+5. Causal Inference
+6. Revenue-Retention Modeling
+7. References
 
 :::
+
+## Applied Data Science
+
+```{mermaid}
+%%| fig-height: 6
+%%| fig-width: 9
+%%| fig-align: "center"
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart TD
+  BusinessProblem("Business Problem") --> Model("Model")
+  Model --> Product("Product")
+  Product --> Measure("Measure")
+  Measure --> Stakeholders("Stakeholders")
+  Stakeholders --> BusinessProblem 
+```
 
 ## Geo-Experimentation
 
@@ -198,11 +210,11 @@ See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Exampl
 See [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf)
 :::
 
-## BG/NBD Assumptions (Frequency)
+## BG/NBD Assumptions {.smaller}
 
 ::: incremental
 
-1. While active, the time between transactions is distributed exponential with transaction rate, i.e., 
+1. While active, the time between transactions is distributed exponentially with transaction rate, i.e., 
 
     $$f(t_{j}|t_{j-1}; \lambda) = \lambda \exp(-\lambda (t_{j} - t_{j - 1})), \quad t_{j} \geq t_{j - 1} \geq 0$$ 
 
@@ -210,15 +222,6 @@ See [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/
 
     $$f(\lambda|r, \alpha) = \frac{\alpha^{r}\lambda^{r - 1}\exp(-\lambda \alpha)}{\Gamma(r)}, \quad \lambda  > 0$$
 
-:::
-
-::: footer
-See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf)
-:::
-
-## BG/NBD Assumptions (Dropout)
-
-::: incremental
 
 3. After any transaction, a customer becomes inactive with probability $p$.
 
@@ -227,7 +230,18 @@ See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NB
     $$f(p|a, b) = \frac{\Gamma(a + b)}{\Gamma(a) \Gamma(b)} p^{a - 1}(1 - p)^{b - 1}, \quad 0 \leq p \leq 1$$
 
 5. The transaction rate $\lambda$ and the dropout probability $p$ vary independently across customers.
+:::
 
+::: footer
+See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf)
+:::
+
+## BG/NBD - Parameter Estimation
+
+![](images/bg_nbd_pymc.png){fig-align="center"}
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 :::
 
 ## BG/NBD - Probability of Alive 
@@ -251,6 +265,14 @@ See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [CLV Quicks
 
 ::: footer
 See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [CLV Quickstart](https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html)
+:::
+
+## BG/NBD - Hierarchical Models
+
+![](images/bg_nbd_pymc_hierarchical.png){fig-align="center"}
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 :::
 
 
@@ -289,20 +311,62 @@ See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [CLV Quicks
 See [`CausalPy`](https://causalpy.readthedocs.io/en/latest/)
 :::
 
-## Revenue-Retention Modeling
+## Revenue-Retention Modeling {.smaller}
+
+![](images/retention_matrix.png){fig-align="center"}
+
+- **Cohort Age:** Age of the cohort in months.
+- **Age:** Age of the cohort with respect to the observation time.
+- **Month:** Month of the observation time (period).
+
+::: footer
+See [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitorduz.github.io/revenue_retention/)
+:::
+
+## Revenue-Retention Model
+
+![](images/revenue_retention_model.svg)
+
+::: footer
+See [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitorduz.github.io/revenue_retention/)
+:::
+
+##  Revenue-Retention - Predictions
+
+::: columns
+::: {.column width="50%"}
+![](images/retention_predictions.png){fig-align="center"}
+:::
+::: {.column width="50%"}
+![](images/revenue_predictions.png){fig-align="center"}
+:::
+:::
+
 
 ## References {.smaller}
 
-### Media Mix Models
+#### Media Mix Models
 
 - PyMC bayesian model details: [Media Effect Estimation with PyMC: Adstock, Saturation & Diminishing Returns](https://juanitorduz.github.io/pymc_mmm/)
 
-- [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): Bayesian marketing toolbox in PyMC. Media Mix (MMM), customer lifetime value (CLV), buy-till-you-die (BTYD) models and more.
+- [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing)
 
-### Customer Lifetime Value
+#### Customer Lifetime Value
 
-### Geo-Experimentaton
+- [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf)
+- [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf)
+- [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 
-### Causal Inference
+## References {.smaller}
 
-### Revenue-Retention Modeling
+#### Geo-Experimentaton
+
+- [Geo-Experimentation via Time-Based Regression in PyMC](https://juanitorduz.github.io/time_based_regression_pymc/)
+
+#### Causal Inference
+
+- [`CausalPy`](https://causalpy.readthedocs.io/en/latest/): A Python package for causal inference in quasi-experimental settings
+
+#### Revenue-Retention Modeling
+
+- [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitorduz.github.io/revenue_retention/)

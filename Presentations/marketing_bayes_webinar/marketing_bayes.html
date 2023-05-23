@@ -417,17 +417,33 @@ Dr.&nbsp;Juan Orduz
 <h2>Outline</h2>
 <div>
 <ol type="1">
-<li class="fragment"><p>Geo-Experimentation</p></li>
-<li class="fragment"><p>Media Mix Models</p></li>
-<li class="fragment"><p>Customer Lifetime Value</p>
-<ul>
-<li class="fragment">BG/NBD Model</li>
-<li class="fragment">Gamma Gamma Model</li>
-</ul></li>
-<li class="fragment"><p>Causal Inference</p></li>
-<li class="fragment"><p>Revenue-Retention Modeling</p></li>
-<li class="fragment"><p>References</p></li>
+<li class="fragment">Introduction</li>
+<li class="fragment">Geo-Experimentation</li>
+<li class="fragment">Media Mix Models</li>
+<li class="fragment">Customer Lifetime Value</li>
+<li class="fragment">Causal Inference</li>
+<li class="fragment">Revenue-Retention Modeling</li>
+<li class="fragment">References</li>
 </ol>
+</div>
+</section>
+<section id="applied-data-science" class="slide level2">
+<h2>Applied Data Science</h2>
+<div class="cell" data-reveal="true" data-fig-height="6" data-fig-width="9" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {"theme": "dark", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart TD
+  BusinessProblem("Business Problem") --&gt; Model("Model")
+  Model --&gt; Product("Product")
+  Product --&gt; Measure("Measure")
+  Measure --&gt; Stakeholders("Stakeholders")
+  Stakeholders --&gt; BusinessProblem 
+</pre>
+</div>
+</div>
+</div>
 </div>
 </section>
 <section id="geo-experimentation" class="slide level2">
@@ -584,29 +600,29 @@ flowchart LR
 <p>See <a href="https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf">Probability Models for Customer-Base Analysis</a></p>
 </div>
 </section>
-<section id="bgnbd-assumptions-frequency" class="slide level2">
-<h2>BG/NBD Assumptions (Frequency)</h2>
+<section id="bgnbd-assumptions" class="slide level2 smaller">
+<h2>BG/NBD Assumptions</h2>
 <div>
 <ol type="1">
-<li class="fragment"><p>While active, the time between transactions is distributed exponential with transaction rate, i.e.,</p>
+<li class="fragment"><p>While active, the time between transactions is distributed exponentially with transaction rate, i.e.,</p>
 <p><span class="math display">\[f(t_{j}|t_{j-1}; \lambda) = \lambda \exp(-\lambda (t_{j} - t_{j - 1})), \quad t_{j} \geq t_{j - 1} \geq 0\]</span></p></li>
 <li class="fragment"><p>Heterogeneity in <span class="math inline">\(\lambda\)</span> follows a gamma distribution with pdf</p>
 <p><span class="math display">\[f(\lambda|r, \alpha) = \frac{\alpha^{r}\lambda^{r - 1}\exp(-\lambda \alpha)}{\Gamma(r)}, \quad \lambda  &gt; 0\]</span></p></li>
+<li class="fragment"><p>After any transaction, a customer becomes inactive with probability <span class="math inline">\(p\)</span>.</p></li>
+<li class="fragment"><p>Heterogeneity in <span class="math inline">\(p\)</span> follows a beta distribution with pdf</p>
+<p><span class="math display">\[f(p|a, b) = \frac{\Gamma(a + b)}{\Gamma(a) \Gamma(b)} p^{a - 1}(1 - p)^{b - 1}, \quad 0 \leq p \leq 1\]</span></p></li>
+<li class="fragment"><p>The transaction rate <span class="math inline">\(\lambda\)</span> and the dropout probability <span class="math inline">\(p\)</span> vary independently across customers.</p></li>
 </ol>
 </div>
 <div class="footer">
 <p>See <a href="http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf">“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model</a></p>
 </div>
 </section>
-<section id="bgnbd-assumptions-dropout" class="slide level2">
-<h2>BG/NBD Assumptions (Dropout)</h2>
-<div>
-<ol start="3" type="1">
-<li class="fragment"><p>After any transaction, a customer becomes inactive with probability <span class="math inline">\(p\)</span>.</p></li>
-<li class="fragment"><p>Heterogeneity in <span class="math inline">\(p\)</span> follows a beta distribution with pdf</p>
-<p><span class="math display">\[f(p|a, b) = \frac{\Gamma(a + b)}{\Gamma(a) \Gamma(b)} p^{a - 1}(1 - p)^{b - 1}, \quad 0 \leq p \leq 1\]</span></p></li>
-<li class="fragment"><p>The transaction rate <span class="math inline">\(\lambda\)</span> and the dropout probability <span class="math inline">\(p\)</span> vary independently across customers.</p></li>
-</ol>
+<section id="bgnbd---parameter-estimation" class="slide level2">
+<h2>BG/NBD - Parameter Estimation</h2>
+
+<img data-src="images/bg_nbd_pymc.png" class="r-stretch quarto-figure-center"><div class="footer">
+<p>See <a href="https://juanitorduz.github.io/bg_nbd_pymc/">BG/NBD Model in PyMC</a></p>
 </div>
 </section>
 <section id="bgnbd---probability-of-alive" class="slide level2">
@@ -636,6 +652,13 @@ flowchart LR
 </div>
 <div class="footer">
 <p>See <a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a>: <a href="https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html">CLV Quickstart</a></p>
+</div>
+</section>
+<section id="bgnbd---hierarchical-models" class="slide level2">
+<h2>BG/NBD - Hierarchical Models</h2>
+
+<img data-src="images/bg_nbd_pymc_hierarchical.png" class="r-stretch quarto-figure-center"><div class="footer">
+<p>See <a href="https://juanitorduz.github.io/bg_nbd_pymc/">BG/NBD Model in PyMC</a></p>
 </div>
 </section>
 <section id="causal-inference" class="slide level2">
@@ -675,20 +698,71 @@ flowchart LR
 <p>See <a href="https://causalpy.readthedocs.io/en/latest/"><code>CausalPy</code></a></p>
 </div>
 </section>
-<section id="revenue-retention-modeling" class="slide level2">
+<section id="revenue-retention-modeling" class="slide level2 smaller">
 <h2>Revenue-Retention Modeling</h2>
+
+<img data-src="images/retention_matrix.png" class="r-stretch quarto-figure-center"><ul>
+<li><strong>Cohort Age:</strong> Age of the cohort in months.</li>
+<li><strong>Age:</strong> Age of the cohort with respect to the observation time.</li>
+<li><strong>Month:</strong> Month of the observation time (period).</li>
+</ul>
+<div class="footer">
+<p>See <a href="https://juanitorduz.github.io/revenue_retention/">Cohort Revenue &amp; Retention Analysis: A Bayesian Approach</a></p>
+</div>
+</section>
+<section id="revenue-retention-model" class="slide level2">
+<h2>Revenue-Retention Model</h2>
+
+<img data-src="images/revenue_retention_model.svg" class="r-stretch"><div class="footer">
+<p>See <a href="https://juanitorduz.github.io/revenue_retention/">Cohort Revenue &amp; Retention Analysis: A Bayesian Approach</a></p>
+</div>
+</section>
+<section id="revenue-retention---predictions" class="slide level2">
+<h2>Revenue-Retention - Predictions</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="images/retention_predictions.png"></p>
+</figure>
+</div>
+</div><div class="column" style="width:50%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="images/revenue_predictions.png"></p>
+</figure>
+</div>
+</div>
+</div>
 </section>
 <section id="references" class="slide level2 smaller">
 <h2>References</h2>
-<h3 id="media-mix-models-1">Media Mix Models</h3>
+<h4 id="media-mix-models-1">Media Mix Models</h4>
 <ul>
 <li><p>PyMC bayesian model details: <a href="https://juanitorduz.github.io/pymc_mmm/">Media Effect Estimation with PyMC: Adstock, Saturation &amp; Diminishing Returns</a></p></li>
-<li><p><a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a>: Bayesian marketing toolbox in PyMC. Media Mix (MMM), customer lifetime value (CLV), buy-till-you-die (BTYD) models and more.</p></li>
+<li><p><a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a></p></li>
 </ul>
-<h3 id="customer-lifetime-value">Customer Lifetime Value</h3>
-<h3 id="geo-experimentaton">Geo-Experimentaton</h3>
-<h3 id="causal-inference-2">Causal Inference</h3>
-<h3 id="revenue-retention-modeling-1">Revenue-Retention Modeling</h3>
+<h4 id="customer-lifetime-value">Customer Lifetime Value</h4>
+<ul>
+<li><a href="https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf">Probability Models for Customer-Base Analysis</a></li>
+<li><a href="http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf">“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model</a></li>
+<li><a href="https://juanitorduz.github.io/bg_nbd_pymc/">BG/NBD Model in PyMC</a></li>
+</ul>
+</section>
+<section id="references-1" class="slide level2 smaller">
+<h2>References</h2>
+<h4 id="geo-experimentaton">Geo-Experimentaton</h4>
+<ul>
+<li><a href="https://juanitorduz.github.io/time_based_regression_pymc/">Geo-Experimentation via Time-Based Regression in PyMC</a></li>
+</ul>
+<h4 id="causal-inference-2">Causal Inference</h4>
+<ul>
+<li><a href="https://causalpy.readthedocs.io/en/latest/"><code>CausalPy</code></a>: A Python package for causal inference in quasi-experimental settings</li>
+</ul>
+<h4 id="revenue-retention-modeling-1">Revenue-Retention Modeling</h4>
+<ul>
+<li><a href="https://juanitorduz.github.io/revenue_retention/">Cohort Revenue &amp; Retention Analysis: A Bayesian Approach</a></li>
+</ul>
 <div class="footer footer-default">
 
 </div>
