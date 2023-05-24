@@ -1,0 +1,501 @@
+---
+title: Bayesian Methods in Modern Marketing Analytics
+subtitle: PyMC Labs Online Meetup - May 2023
+author: 
+  - name: Dr. Juan Orduz
+    email: juanitorduz@gmail.com
+    affiliations:
+      - name: Mathematician & Data Scientist
+format:
+  revealjs:
+    transition: none
+    slide-number: false
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    theme:
+        - white
+    highlight-style: github-dark
+---
+
+## Webinar's Objective
+
+> Present some selected applications of bayesian methods to solve marketing data science problems in the industry.
+
+```{mermaid}
+%%| fig-height: 4
+%%| fig-width: 7
+%%| fig-align: "center"
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart TD
+  BayesianMethods("BayesianMethods") --> MarketingDataScience("Marketing Data Science")
+
+  style BayesianMethods fill:#ff3660
+  style MarketingDataScience fill:#1790D0
+```
+
+## Outline
+
+::: incremental
+
+1. Introduction
+2. Geo-Experimentation
+3. Media Mix Models
+4. Customer Lifetime Value
+5. Causal Inference
+6. Revenue-Retention Modeling
+7. References
+
+:::
+
+
+## Applied Data Science
+
+```{mermaid}
+%%| fig-height: 6
+%%| fig-width: 9
+%%| fig-align: "center"
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart TD
+  BusinessProblem("Business Problem") --> Model("Model")
+  Model --> Product("Product")
+  Product --> Measure("Measure")
+  Measure --> Stakeholders("Stakeholders")
+  Stakeholders --> BusinessProblem 
+
+  style Model fill:#a0cdf7
+```
+
+## Bayesian Methods
+
+::: incremental
+
+- We need to explicitly describe our assumptions through the data-generating process.
+
+- Allow to include domain knowledge and constraints through priors.
+
+- Flexibility.
+
+- Uncertainty quantification.
+
+
+:::
+
+## Geo-Experimentation
+
+![](images/orders_per_zipcode.png){fig-align="center"}
+
+::: footer
+See [Geo-Experimentation via Time-Based Regression in PyMC](https://juanitorduz.github.io/time_based_regression_pymc/)
+:::
+
+## Time-Based Regression
+
+::: columns
+::: {.column width="55%"}
+![Linear regression to model the pre-intervention period.](images/geo_pymc.svg){fig-align="center"}
+:::
+::: {.column width="45%"}
+![](images/geo_train.png){fig-align="center"}
+![](images/geo_test.png){fig-align="center"}
+:::
+:::
+
+::: footer
+See [Geo-Experimentation via Time-Based Regression in PyMC](https://juanitorduz.github.io/time_based_regression_pymc/)
+:::
+
+## Regression Model in PyMC
+
+``` {.python code-line-numbers="|2-9|10-14|15-18|19-22"}
+with pm.Model() as model:
+    # --- Data Containers ---
+    model.add_coord(name="date", values=date_train, mutable=True)
+    y_control_data = pm.MutableData(
+        name="y_control_data", value=y_control_train_scaled, dims="date"
+    )
+    y_treatment_data = pm.MutableData(
+        name="y_treatment_data", value=y_treatment_train_scaled, dims="date"
+    )
+    # --- Priors ---
+    intercept = pm.Normal(name="intercept", mu=0, sigma=1)
+    beta = pm.HalfNormal(name="beta", sigma=2)
+    sigma = pm.HalfNormal(name="sigma", sigma=2)
+    nu = pm.Gamma(name="nu", alpha=20, beta=2)
+    # --- Model Parametrization ---
+    mu = pm.Deterministic(
+      name="mu", var=intercept + beta * y_control_data, dims="date"
+    )
+    # --- Likelihood ---
+    pm.StudentT(
+        name="likelihood", mu=mu, nu=nu, sigma=sigma, observed=y_treatment_data, dims="date"
+    )
+```
+
+::: footer
+See [Geo-Experimentation via Time-Based Regression in PyMC](https://juanitorduz.github.io/time_based_regression_pymc/)
+:::
+
+## Marketing Measurement
+
+```{mermaid}
+%%| fig-height: 2
+%%| fig-width: 10
+%%| fig-align: "center"
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart LR
+  Experimentation("Experimentation") --> MMM("Media Mix Model")
+  MMM --> Attribution("Attribution")
+  Attribution --> Experimentation
+```
+
+\vspace{20em}
+
+### Media Mix Models
+
+- Media Mix Models (MMM) are used by advertisers to measure the effectiveness of their advertising and provide insights for making future budget allocation decisions.
+
+- Media mix models are also used to find the optimal media mix that maximizes the revenue under a budget constraint in the selected time period. 
+
+
+## Media Transformations
+
+![](images/media_transformations.png){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## MMM Structure
+
+![](images/mmm_structure.svg){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## Media Contribution Estimation
+
+![](images/contribution_components.png){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## Budget Optimization
+
+![](images/cost_curves.png){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing), [Issue 259](https://github.com/pymc-labs/pymc-marketing/issues/259)
+:::
+
+## PyMC-Marketing
+
+Bayesian marketing toolbox in PyMC. Media Mix (MMM), customer lifetime value (CLV), buy-till-you-die (BTYD) models and more.
+
+
+::: columns
+::: {.column width="60%"}
+``` {.python}
+mmm = DelayedSaturatedMMM(
+    data=data,
+    target_column="y",
+    date_column="date_week",
+    channel_columns=["x1", "x2"],
+    control_columns=[
+        "event_1",
+        "event_2",
+        "t",
+    ],
+    adstock_max_lag=8,
+    yearly_seasonality=2,
+)
+```
+:::
+::: {.column width="40%"}
+![](images/marketing-logo-light.png)
+:::
+:::
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## PyMC-Marketing - More MMM Flavours
+
+Very ambitious plans! E.g. Time-varying coefficients through hierarchical Gaussian Processes
+
+![](images/hierarchical-gaussian-process.png){fig-align="center"}
+
+::: footer
+See [Bayesian Media Mix Models: Modelling changes in marketing effectiveness over time, by PyMC Labs](https://www.pymc-labs.io/blog-posts/modelling-changes-marketing-effectiveness-over-time/)
+:::
+
+## Customer Lifetime Value (CLV)
+
+![](images/customer_classification.png){fig-align="center"}
+
+## Continuous Non-Contractractual CLV
+
+::: columns
+::: {.column width="50%"}
+![](images/customer_btyd.png){fig-align="center"}
+:::
+::: {.column width="50%"}
+- `frequency`: Number of repeat purchases the customer has made.
+
+- `T`: Age of the customer in whatever time units chosen.
+
+- `recency`: Age of the customer when they made their most recent purchases.
+:::
+:::
+
+::: footer
+See [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf)
+:::
+
+## BG/NBD Assumptions {.smaller}
+
+::: incremental
+
+1. While active, the time between transactions is distributed exponentially with transaction rate, i.e., 
+
+    $$f(t_{j}|t_{j-1}; \lambda) = \lambda \exp(-\lambda (t_{j} - t_{j - 1})), \quad t_{j} \geq t_{j - 1} \geq 0$$ 
+
+2. Heterogeneity in $\lambda$ follows a gamma distribution with pdf
+
+    $$f(\lambda|r, \alpha) = \frac{\alpha^{r}\lambda^{r - 1}\exp(-\lambda \alpha)}{\Gamma(r)}, \quad \lambda  > 0$$
+
+
+3. After any transaction, a customer becomes inactive with probability $p$.
+
+4. Heterogeneity in $p$ follows a beta distribution with pdf
+
+    $$f(p|a, b) = \frac{\Gamma(a + b)}{\Gamma(a) \Gamma(b)} p^{a - 1}(1 - p)^{b - 1}, \quad 0 \leq p \leq 1$$
+
+5. The transaction rate $\lambda$ and the dropout probability $p$ vary independently across customers.
+:::
+
+::: footer
+See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf)
+:::
+
+## BG/NBD - Parameter Estimation
+
+![](images/bg_nbd_pymc.png){fig-align="center"}
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
+
+## BG/NBD - Probability of Alive 
+
+![](images/p_alive.png){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [CLV Quickstart](https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html)
+:::
+
+## Gamma-Gamma Model
+
+::: columns
+::: {.column width="60%"}
+![](images/gamma_gamma_forest.png){fig-align="center"}
+:::
+::: {.column width="40%"}
+![We can estimate the distribution spend for new customers.](images/gamma_gamma_new_customer.png){fig-align="center"}
+:::
+:::
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [CLV Quickstart](https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html)
+:::
+
+## BG/NBD - Hierarchical Models
+
+![](images/bg_nbd_pymc_hierarchical.png){fig-align="center"}
+
+::: footer
+See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+:::
+
+
+## Causal Inference
+
+::: columns
+::: {.column width="50%"}
+####  Synthetic Control
+![](images/synthetic_control.png)
+:::
+::: {.column width="50%"}
+![](images/causalpy_logo.png)
+:::
+:::
+
+::: footer
+[`CausalPy`](https://causalpy.readthedocs.io/en/latest/)
+:::
+
+
+## Causal Inference
+
+::: columns
+::: {.column width="50%"}
+####  Difference-in-Differences
+![](images/diff_in_diff.png){fig-align="center"}
+:::
+::: {.column width="50%"}
+
+#### Regression Discontinuity
+![](images/regression_discontinuity.png){fig-align="center"}
+:::
+:::
+
+::: footer
+[`CausalPy`](https://causalpy.readthedocs.io/en/latest/)
+:::
+
+## Instrumental Variables
+
+![](images/iv_pymc.png){fig-align="center"}
+
+::: footer
+See [Experimentation, Non-Compliance and Instrumental Variables with PyMC](https://juanitorduz.github.io/iv_pymc/)
+:::
+
+## Cohort Revenue-Retention Modeling {.smaller}
+
+![](images/retention_matrix.png){fig-align="center"}
+
+- **Cohort Age:** Age of the cohort in months.
+- **Age:** Age of the cohort with respect to the observation time.
+- **Month:** Month of the observation time (period).
+
+::: footer
+See [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitorduz.github.io/revenue_retention/)
+:::
+
+##
+
+### Retention Component
+
+\begin{align*}
+    \textrm{logit}(p) & = \text{BART}(\text{cohort age}, \text{age}, \text{month}) \\
+    N_{\text{active}} & \sim \text{Binomial}(N_{\text{total}}, p)
+\end{align*}
+
+### Revenue Component
+
+\begin{align*}
+    \log(\lambda) = \: (& \text{intercept} \\
+        & + \beta_{\text{cohort age}} \text{cohort age} \\
+        & + \beta_{\text{age}} \text{age} \\
+        & + \beta_{\text{cohort age} \times \text{age}} \text{cohort age} \times \text{age}) \\
+    \text{Revenue} & \sim \text{Gamma}(N_{\text{active}}, \lambda)
+\end{align*}
+
+::: footer
+See [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitorduz.github.io/revenue_retention/)
+:::
+
+## Cohot Revenue-Retention Model
+
+``` {.python code-line-numbers="|1-3|5-14|16-30"}
+mu = pmb.BART(name="mu", X=x, Y=train_retention_logit, m=50, dims="obs")
+
+p = pm.Deterministic(name="p", var=pm.math.invlogit(mu), dims="obs")
+
+lam_log = pm.Deterministic(
+    name="lam_log",
+    var=intercept
+    + b_age_scaled * age_scaled
+    + b_cohort_age_scaled * cohort_age_scaled
+    + b_age_cohort_age_interaction * age_scaled * cohort_age_scaled,
+    dims="obs",
+)
+
+lam = pm.Deterministic(name="lam", var=pm.math.exp(lam_log), dims="obs")
+
+n_active_users_estimated = pm.Binomial(
+    name="n_active_users_estimated",
+    n=n_users,
+    p=p,
+    observed=n_active_users,
+    dims="obs",
+)
+
+x = pm.Gamma(
+    name="revenue_estimated",
+    alpha=n_active_users_estimated + eps,
+    beta=lam,
+    observed=revenue,
+    dims="obs",
+)
+```
+
+::: footer
+See [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitorduz.github.io/revenue_retention/)
+:::
+
+## Cohort Revenue-Retention Model
+
+![](images/revenue_retention_model.svg)
+
+::: footer
+See [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitorduz.github.io/revenue_retention/)
+:::
+
+##  Revenue-Retention - Predictions
+
+::: columns
+::: {.column width="50%"}
+![](images/retention_predictions.png){fig-align="center"}
+:::
+::: {.column width="50%"}
+![](images/revenue_predictions.png){fig-align="center"}
+:::
+:::
+
+
+## References {.smaller}
+
+#### Media Mix Models
+
+- [Bayesian Methods for Media Mix Modeling with Carryover and Shape Effects](https://research.google/pubs/pub46001/)
+
+- PyMC bayesian model details: [Media Effect Estimation with PyMC: Adstock, Saturation & Diminishing Returns](https://juanitorduz.github.io/pymc_mmm/)
+
+- [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): Bayesian marketing toolbox in PyMC. Media Mix (MMM), customer lifetime value (CLV), buy-till-you-die (BTYD) models and more.
+
+- [Bayesian Media Mix Models: Modelling changes in marketing effectiveness over time, by PyMC Labs](https://www.pymc-labs.io/blog-posts/modelling-changes-marketing-effectiveness-over-time/)
+
+#### Customer Lifetime Value
+
+- [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf)
+
+- [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf)
+
+- [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+
+## References {.smaller}
+
+#### Geo-Experimentaton
+
+- [Geo-Experimentation via Time-Based Regression in PyMC](https://juanitorduz.github.io/time_based_regression_pymc/)
+
+- [Offline Campaign Analysis Measurement: A journey through causal impact, geo-experimentation and synthetic control](https://juanitorduz.github.io/wolt_ds_meetup/)
+
+#### Causal Inference
+
+- [`CausalPy`](https://causalpy.readthedocs.io/en/latest/): A Python package for causal inference in quasi-experimental settings
+
+- [Experimentation, Non-Compliance and Instrumental Variables with PyMC](https://juanitorduz.github.io/iv_pymc/) 
+
+#### Revenue-Retention Modeling
+
+- [A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
+
+- [Cohort Retention Analysis with BART](https://juanitorduz.github.io/retention_bart/)
+
+- [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitorduz.github.io/revenue_retention/)
