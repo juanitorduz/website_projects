@@ -83,7 +83,7 @@ flowchart TD
 
 ## Geo-Experimentation
 
-![](images/orders_per_zipcode.png){fig-align="center"}
+![](marketing_bayes_files/images/orders_per_zipcode.png){fig-align="center"}
 
 ::: footer
 See [Geo-Experimentation via Time-Based Regression in PyMC](https://juanitorduz.github.io/time_based_regression_pymc/)
@@ -93,11 +93,11 @@ See [Geo-Experimentation via Time-Based Regression in PyMC](https://juanitorduz.
 
 ::: columns
 ::: {.column width="55%"}
-![Linear regression to model the pre-intervention period.](images/geo_pymc.svg){fig-align="center"}
+![Linear regression to model the pre-intervention period.](marketing_bayes_files/images/geo_pymc.svg){fig-align="center"}
 :::
 ::: {.column width="45%"}
-![](images/geo_train.png){fig-align="center"}
-![](images/geo_test.png){fig-align="center"}
+![](marketing_bayes_files/images/geo_train.png){fig-align="center"}
+![](marketing_bayes_files/images/geo_test.png){fig-align="center"}
 :::
 :::
 
@@ -160,7 +160,7 @@ flowchart LR
 
 ## Media Transformations
 
-![](images/media_transformations.png){fig-align="center"}
+![](marketing_bayes_files/images/media_transformations.png){fig-align="center"}
 
 ::: footer
 See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
@@ -168,7 +168,7 @@ See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Exampl
 
 ## MMM Structure
 
-![](images/mmm_structure.svg){fig-align="center"}
+![](marketing_bayes_files/images/mmm_structure.svg){fig-align="center"}
 
 ::: footer
 See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
@@ -176,7 +176,7 @@ See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Exampl
 
 ## Media Contribution Estimation
 
-![](images/contribution_components.png){fig-align="center"}
+![](marketing_bayes_files/images/contribution_components.png){fig-align="center"}
 
 ::: footer
 See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
@@ -184,7 +184,7 @@ See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Exampl
 
 ## Budget Optimization
 
-![](images/cost_curves.png){fig-align="center"}
+![](marketing_bayes_files/images/cost_curves.png){fig-align="center"}
 
 ::: footer
 See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing), [Issue 259](https://github.com/pymc-labs/pymc-marketing/issues/259)
@@ -214,7 +214,7 @@ mmm = DelayedSaturatedMMM(
 ```
 :::
 ::: {.column width="40%"}
-![](images/marketing-logo-light.png)
+![](marketing_bayes_files/images/marketing-logo-light.png)
 :::
 :::
 
@@ -226,7 +226,7 @@ See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Exampl
 
 Very ambitious plans! E.g. Time-varying coefficients through hierarchical Gaussian Processes
 
-![](images/hierarchical-gaussian-process.png){fig-align="center"}
+![](marketing_bayes_files/images/hierarchical-gaussian-process.png){fig-align="center"}
 
 ::: footer
 See [Bayesian Media Mix Models: Modelling changes in marketing effectiveness over time, by PyMC Labs](https://www.pymc-labs.io/blog-posts/modelling-changes-marketing-effectiveness-over-time/)
@@ -234,13 +234,13 @@ See [Bayesian Media Mix Models: Modelling changes in marketing effectiveness ove
 
 ## Customer Lifetime Value (CLV)
 
-![](images/customer_classification.png){fig-align="center"}
+![](marketing_bayes_files/images/customer_classification.png){fig-align="center"}
 
 ## Continuous Non-Contractractual CLV
 
 ::: columns
 ::: {.column width="50%"}
-![](images/customer_btyd.png){fig-align="center"}
+![](marketing_bayes_files/images/customer_btyd.png){fig-align="center"}
 :::
 ::: {.column width="50%"}
 - `frequency`: Number of repeat purchases the customer has made.
@@ -283,7 +283,7 @@ See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NB
 
 ## BG/NBD - Parameter Estimation
 
-![](images/bg_nbd_pymc.png){fig-align="center"}
+![](marketing_bayes_files/images/bg_nbd_pymc.png){fig-align="center"}
 
 ::: footer
 See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
@@ -291,7 +291,7 @@ See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 
 ## BG/NBD - Probability of Alive 
 
-![](images/p_alive.png){fig-align="center"}
+![](marketing_bayes_files/images/p_alive.png){fig-align="center"}
 
 ::: footer
 See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [CLV Quickstart](https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html)
@@ -301,10 +301,10 @@ See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [CLV Quicks
 
 ::: columns
 ::: {.column width="60%"}
-![](images/gamma_gamma_forest.png){fig-align="center"}
+![](marketing_bayes_files/images/gamma_gamma_forest.png){fig-align="center"}
 :::
 ::: {.column width="40%"}
-![We can estimate the distribution spend for new customers.](images/gamma_gamma_new_customer.png){fig-align="center"}
+![We can estimate the distribution spend for new customers.](marketing_bayes_files/images/gamma_gamma_new_customer.png){fig-align="center"}
 :::
 :::
 
@@ -314,7 +314,7 @@ See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [CLV Quicks
 
 ## BG/NBD - Hierarchical Models
 
-![](images/bg_nbd_pymc_hierarchical.png){fig-align="center"}
+![](marketing_bayes_files/images/bg_nbd_pymc_hierarchical.png){fig-align="center"}
 
 ::: footer
 See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
@@ -326,10 +326,10 @@ See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 ::: columns
 ::: {.column width="50%"}
 ####  Synthetic Control
-![](images/synthetic_control.png)
+![](marketing_bayes_files/images/synthetic_control.png)
 :::
 ::: {.column width="50%"}
-![](images/causalpy_logo.png)
+![](marketing_bayes_files/images/causalpy_logo.png)
 :::
 :::
 
@@ -343,12 +343,12 @@ See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 ::: columns
 ::: {.column width="50%"}
 ####  Difference-in-Differences
-![](images/diff_in_diff.png){fig-align="center"}
+![](marketing_bayes_files/images/diff_in_diff.png){fig-align="center"}
 :::
 ::: {.column width="50%"}
 
 #### Regression Discontinuity
-![](images/regression_discontinuity.png){fig-align="center"}
+![](marketing_bayes_files/images/regression_discontinuity.png){fig-align="center"}
 :::
 :::
 
@@ -358,7 +358,7 @@ See [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
 
 ## Instrumental Variables
 
-![](images/iv_pymc.png){fig-align="center"}
+![](marketing_bayes_files/images/iv_pymc.png){fig-align="center"}
 
 ::: footer
 See [Experimentation, Non-Compliance and Instrumental Variables with PyMC](https://juanitorduz.github.io/iv_pymc/)
@@ -366,7 +366,7 @@ See [Experimentation, Non-Compliance and Instrumental Variables with PyMC](https
 
 ## Cohort Revenue-Retention Modeling {.smaller}
 
-![](images/retention_matrix.png){fig-align="center"}
+![](marketing_bayes_files/images/retention_matrix.png){fig-align="center"}
 
 - **Cohort Age:** Age of the cohort in months.
 - **Age:** Age of the cohort with respect to the observation time.
@@ -440,7 +440,7 @@ See [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitord
 
 ## Cohort Revenue-Retention Model
 
-![](images/revenue_retention_model.svg)
+![](marketing_bayes_files/images/revenue_retention_model.svg)
 
 ::: footer
 See [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitorduz.github.io/revenue_retention/)
@@ -450,10 +450,10 @@ See [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitord
 
 ::: columns
 ::: {.column width="50%"}
-![](images/retention_predictions.png){fig-align="center"}
+![](marketing_bayes_files/images/retention_predictions.png){fig-align="center"}
 :::
 ::: {.column width="50%"}
-![](images/revenue_predictions.png){fig-align="center"}
+![](marketing_bayes_files/images/revenue_predictions.png){fig-align="center"}
 :::
 :::
 
