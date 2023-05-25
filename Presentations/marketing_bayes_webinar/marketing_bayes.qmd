@@ -160,7 +160,17 @@ flowchart LR
 
 ## Media Transformations
 
+### Carryover (Adstock) & Saturation
+
 ![](marketing_bayes_files/images/media_transformations.png){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
+:::
+
+## Media Mix Model Target
+
+![We want to understand the contribution of channels $x_1$ and $x_2$ spend into the target variable *sales*.](marketing_bayes_files/images/mmm_target.png){fig-align="center"}
 
 ::: footer
 See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [MMM Example](https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html)
@@ -254,6 +264,36 @@ See [Bayesian Media Mix Models: Modelling changes in marketing effectiveness ove
 ::: footer
 See [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf)
 :::
+
+## CLV Estimation Strategy
+
+
+```{mermaid}
+%%| fig-height: 5
+%%| fig-width: 10
+%%| fig-align: "center"
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart LR
+    Recency("Recency") --> BGNBD(["BG/NBD"])
+    T("T") --> BGNBD
+    Frequency("Frequency") --> BGNBD
+    Recency("Recency") --> GammaGamma(["Gamma-Gamma"])
+    T --> GammaGamma
+    Frequency("Frequency") --> GammaGamma
+    MonetaryValue("Monetary Value") --> GammaGamma
+    BGNBD --> ProbabilityAlive("Probability Alive")
+    BGNBD --> PurchasePrediction("Purchase Prediction")
+    GammaGamma --> MonetaryValuePrediction("Monetary Value Prediction")
+    PurchasePrediction --> CLV(("CLV"))
+    MonetaryValuePrediction --> CLV
+
+    style BGNBD fill:#ff3660
+    style GammaGamma fill:#ff3660
+    style ProbabilityAlive fill:#1790D0
+    style PurchasePrediction fill:#1790D0
+    style MonetaryValuePrediction fill:#1790D0
+    style CLV fill:#0bb09d
+```
 
 ## BG/NBD Assumptions {.smaller}
 

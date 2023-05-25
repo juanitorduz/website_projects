@@ -557,8 +557,16 @@ flowchart LR
 </section>
 <section id="media-transformations" class="slide level2">
 <h2>Media Transformations</h2>
+<h3 id="carryover-adstock-saturation">Carryover (Adstock) &amp; Saturation</h3>
 
 <img data-src="marketing_bayes_files/images/media_transformations.png" class="r-stretch quarto-figure-center"><div class="footer">
+<p>See <a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a>: <a href="https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html">MMM Example</a></p>
+</div>
+</section>
+<section id="media-mix-model-target" class="slide level2">
+<h2>Media Mix Model Target</h2>
+
+<img data-src="marketing_bayes_files/images/mmm_target.png" class="r-stretch quarto-figure-center"><p class="caption">We want to understand the contribution of channels <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> spend into the target variable <em>sales</em>.</p><div class="footer">
 <p>See <a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a>: <a href="https://pymc-marketing.readthedocs.io/en/latest/notebooks/mmm/mmm_example.html">MMM Example</a></p>
 </div>
 </section>
@@ -640,6 +648,39 @@ flowchart LR
 </div>
 <div class="footer">
 <p>See <a href="https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf">Probability Models for Customer-Base Analysis</a></p>
+</div>
+</section>
+<section id="clv-estimation-strategy" class="slide level2">
+<h2>CLV Estimation Strategy</h2>
+<div class="cell" data-reveal="true" data-fig-height="5" data-fig-width="10" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {"theme": "dark", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart LR
+    Recency("Recency") --&gt; BGNBD(["BG/NBD"])
+    T("T") --&gt; BGNBD
+    Frequency("Frequency") --&gt; BGNBD
+    Recency("Recency") --&gt; GammaGamma(["Gamma-Gamma"])
+    T --&gt; GammaGamma
+    Frequency("Frequency") --&gt; GammaGamma
+    MonetaryValue("Monetary Value") --&gt; GammaGamma
+    BGNBD --&gt; ProbabilityAlive("Probability Alive")
+    BGNBD --&gt; PurchasePrediction("Purchase Prediction")
+    GammaGamma --&gt; MonetaryValuePrediction("Monetary Value Prediction")
+    PurchasePrediction --&gt; CLV(("CLV"))
+    MonetaryValuePrediction --&gt; CLV
+
+    style BGNBD fill:#ff3660
+    style GammaGamma fill:#ff3660
+    style ProbabilityAlive fill:#1790D0
+    style PurchasePrediction fill:#1790D0
+    style MonetaryValuePrediction fill:#1790D0
+    style CLV fill:#0bb09d
+</pre>
+</div>
+</div>
+</div>
 </div>
 </section>
 <section id="bgnbd-assumptions" class="slide level2 smaller">
