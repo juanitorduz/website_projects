@@ -8,8 +8,9 @@ author:
       - name: Mathematician & Data Scientist
 format:
   revealjs:
+    logo: marketing_bayes_files/images/pymc-labs-icon.png
     transition: none
-    slide-number: false
+    slide-number: true
     chalkboard: 
       buttons: false
     preview-links: auto
@@ -20,13 +21,13 @@ format:
 
 ## Webinar's Objective
 
-> Present some selected applications of bayesian methods to solve marketing data science problems in the industry.
+> Present some selected applications of **Bayesian Methods** to solve **marketing data science** problems in the industry.
 
 ```{mermaid}
 %%| fig-height: 4
 %%| fig-width: 7
 %%| fig-align: "center"
-%%{init: {"theme": "dark", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
+%%{init: {"theme": "white", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
 flowchart TD
   BayesianMethods("BayesianMethods") --> MarketingDataScience("Marketing Data Science")
 
@@ -55,7 +56,7 @@ flowchart TD
 %%| fig-height: 6
 %%| fig-width: 9
 %%| fig-align: "center"
-%%{init: {"theme": "dark", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
+%%{init: {"theme": "white", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
 flowchart TD
   BusinessProblem("Business Problem") --> Model("Model")
   Model --> Product("Product")
@@ -142,7 +143,7 @@ See [Geo-Experimentation via Time-Based Regression in PyMC](https://juanitorduz.
 %%| fig-height: 2
 %%| fig-width: 10
 %%| fig-align: "center"
-%%{init: {"theme": "dark", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
+%%{init: {"theme": "white", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
 flowchart LR
   Experimentation("Experimentation") --> MMM("Media Mix Model")
   MMM --> Attribution("Attribution")
@@ -224,7 +225,7 @@ mmm = DelayedSaturatedMMM(
 ```
 :::
 ::: {.column width="40%"}
-![](marketing_bayes_files/images/marketing-logo-light.png)
+![Info: [www.pymc-marketing.io](www.pymc-marketing.io)](marketing_bayes_files/images/marketing-logo-light.png)
 :::
 :::
 
@@ -539,3 +540,24 @@ See [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitord
 - [Cohort Retention Analysis with BART](https://juanitorduz.github.io/retention_bart/)
 
 - [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitorduz.github.io/revenue_retention/)
+
+
+## Thank you!
+
+[juanitorduz.github.io](https://juanitorduz.github.io/)
+
+![](marketing_bayes_files/images/juanitorduz.png){fig-align="center"}
+
+## Connect with PyMC Labs {.smaller}
+
+### 🔗 Learn more about `pymc-marketing`:
+
+- 🐙 GitHub: [https://github.com/pymc-labs/pymc-marketing](https://github.com/pymc-labs/pymc-marketing)
+- 📝 Documentation: [https://www.pymc-marketing.io/en/stable/](https://www.pymc-marketing.io/en/stable/)
+
+### 🔗 Connecting with **PyMC Labs**:
+
+- 👥 LinkedIn: [https://www.linkedin.com/company/pymc-labs/](https://www.linkedin.com/company/pymc-labs/)
+- 🐦 Twitter: [https://twitter.com/pymc_labs](https://twitter.com/pymc_labs)
+- 🎥 YouTube: [https://www.youtube.com/PyMCLabs](https://www.youtube.com/PyMCLabs)
+- 🤝 Meetup: [https://www.meetup.com/pymc-labs-online-meetup/](https://www.meetup.com/pymc-labs-online-meetup/)
