@@ -22,11 +22,13 @@ def generate_users_observational_data(
     Generate a dataframe of users with visits, sales, and loyalty according to the DAG:
 
     >> import graphviz as gr
+    >>
     >> g = gr.Digraph()
+    >>
     >> g.node(name="sales", label="sales", color="deepskyblue", style="filled")
     >> g.node(name="discount", label="discount", color="deeppink", style="filled")
-
     >> g.edge(tail_name="discount", head_name="sales")
+    >>
     >> g.edge(tail_name="visits", head_name="discount")
     >> g.edge(tail_name="visits", head_name="sales")
     >> g.edge(tail_name="discount", head_name="is_loyal")
