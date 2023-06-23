@@ -1,0 +1,404 @@
+---
+title: "Cohort Revenue & Retention Analysis: A Bayesian Approach"
+subtitle: PyData Berlin - July 2023
+author: 
+  - name: Dr. Juan Orduz
+    url: https://juanitorduz.github.io/
+    affiliations:
+      - name: Mathematician & Data Scientist
+format:
+  revealjs:
+    logo: images/revenue_retention_presentation_files/juanitorduz_logo.gif
+    transition: none
+    slide-number: true
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    theme:
+        - white
+    highlight-style: github-dark
+    footer: '<a href="https://juanitorduz.github.io/revenue_retention/">Cohort Revenue & Retention Analysis: A Bayesian Approach</a>'
+---
+
+## Outline
+
+::: incremental
+
+1. Introduction
+2. Bottom-Up Approaches
+3. Simple Cohort Retention Model
+4. Retention Model with BART
+5. Cohort Revenue-Retention Model
+6. Remarks
+7. References
+
+:::
+
+---
+
+## Business Problem
+
+::: incremental
+
+- During January $2020$, $100$ users signed up for a service (cohort).
+
+- In February $2020$, there were $17$ users from the $2020-01$ cohort active (e.g. did at least one purchase). The retention rate is $17\%$.
+
+- We want to understand and predict how retention develops over time.
+
+- The main motivation is to estimate customer lifetime value (CLV).
+
+:::
+
+
+## Number of Active Users
+
+![](images/revenue_retention_presentation_files/retention_files/retention_11_0.png){fig-align="center"}
+
+::: footer
+[A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
+:::
+
+## Retention Matrix {.smaller}
+
+![](images/revenue_retention_presentation_files/retention_files/retention_14_0.png){fig-align="center"}
+
+::: footer
+[A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
+:::
+
+## Retention Matrix {.smaller}
+
+![](images/revenue_retention_presentation_files/retention_files/retention_14_0.png){fig-align="center"}
+
+- **Cohort Age:** Age of the cohort in months.
+- **Age:** Age of the cohort with respect to the observation time.
+- **Month:** Month of the observation time (period).
+
+## Retention Over Time (period)
+
+![](images/revenue_retention_presentation_files/retention_files/retention_15_0.png){fig-align="center"}
+
+
+## Retention - Generalized Linear Model
+
+\begin{align*}
+N_{\text{active}} \sim & \: \text{Binomial}(N_{\text{total}}, p) \\
+\textrm{logit}(p) = & \: ( \text{intercept} \\
+    & + \beta_{\text{cohort age}} \text{cohort age} \\
+    & + \beta_{\text{age}} \text{age} \\
+    & + \beta_{\text{cohort age} \times \text{age}} \text{cohort age} \times \text{age} \\
+    & + \beta_{\text{seasonality}} \text{seasonality} )
+\end{align*}
+
+where $p$ represents the **retention** and $\text{logit}: (0, 1) \longrightarrow \mathbb{R}$ is defined by $\text{logit}(p) = \log\left(\frac{p}{1-p}\right)$.
+
+
+::: footer
+[A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
+:::
+
+## Retention - GLM in PyMC
+
+![](images/revenue_retention_presentation_files/retention_files/retention_27_0.svg){fig-align="center"}
+
+
+::: footer
+[A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
+:::
+
+## Retention - GLM in PyMC
+
+``` {.python code-line-numbers="|1|2-14|16-25|27-38|40-47"}
+with pm.Model(coords=coords) as model:
+    # --- Data ---
+    model.add_coord(name="obs", values=train_obs_idx, mutable=True)
+    age_scaled = pm.MutableData(name="age_scaled", value=train_age_scaled, dims="obs")
+    cohort_age_scaled = pm.MutableData(
+        name="cohort_age_scaled", value=train_cohort_age_scaled, dims="obs"
+    )
+    period_month_idx = pm.MutableData(
+        name="period_month_idx", value=train_period_month_idx, dims="obs"
+    )
+    n_users = pm.MutableData(name="n_users", value=train_n_users, dims="obs")
+    n_active_users = pm.MutableData(
+        name="n_active_users", value=train_n_active_users, dims="obs"
+    )
+
+    # --- Priors ---
+    intercept = pm.Normal(name="intercept", mu=0, sigma=1)
+    b_age_scaled = pm.Normal(name="b_age_scaled", mu=0, sigma=1)
+    b_cohort_age_scaled = pm.Normal(name="b_cohort_age_scaled", mu=0, sigma=1)
+    b_period_month = pm.ZeroSumNormal(
+        name="b_period_month", sigma=1, dims="period_month"
+    )
+    b_age_cohort_age_interaction = pm.Normal(
+        name="b_age_cohort_age_interaction", mu=0, sigma=1
+    )
+
+    # --- Parametrization ---
+    mu = pm.Deterministic(
+        name="mu",
+        var=intercept
+        + b_age_scaled * age_scaled
+        + b_cohort_age_scaled * cohort_age_scaled
+        + b_age_cohort_age_interaction * age_scaled * cohort_age_scaled
+        + b_period_month[period_month_idx],
+        dims="obs",
+    )
+
+    p = pm.Deterministic(name="p", var=pm.math.invlogit(mu), dims="obs")
+
+    # --- Likelihood ---
+    pm.Binomial(
+        name="likelihood",
+        n=n_users,
+        p=p,
+        observed=n_active_users,
+        dims="obs",
+    )
+```
+
+::: footer
+[A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
+:::
+
+## Posterior Distribution
+
+![](images/revenue_retention_presentation_files/retention_files/retention_33_0.png){fig-align="center"}
+
+
+::: footer
+[A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
+:::
+
+## Posterior Predictive Check
+
+![](images/revenue_retention_presentation_files/retention_files/retention_36_0.png){fig-align="center"}
+
+
+::: footer
+[A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
+:::
+
+## In-Sample Predictions
+
+![](images/revenue_retention_presentation_files/retention_files/retention_40_0.png){fig-align="center"}
+
+
+::: footer
+[A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
+:::
+
+## Out-of-Sample Predictions
+
+![](images/revenue_retention_presentation_files/retention_files/retention_50_0.png){fig-align="center"}
+
+
+::: footer
+[A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
+:::
+
+---
+
+## More Complex Models - Requirements
+
+::: incremental
+
+- In many real-world scenarios, the data is more complex and the linear model is not enough (still, we could work out useful features).
+
+- We need a more flexible model that can capture non-linearities and interactions.
+
+- We care about uncertainty.
+
+- We want to be able to iterate fast.
+
+- We want to couple retention modeling with revenue modeling (CLV).
+
+:::
+
+::: footer
+:::
+
+## BART
+
+### Bayesian Additive Regression Trees
+
+...
+
+::: footer
+[Cohort Retention Analysis with BART](https://juanitorduz.github.io/retention_bart/)
+:::
+
+## BART Retention Model
+
+
+::: columns
+::: {.column width="70%"}
+\begin{align*}
+N_{\text{active}} & \sim \text{Binomial}(N_{\text{total}}, p) \\
+\textrm{logit}(p) & = \text{BART}(\text{cohort age}, \text{age}, \text{month})
+\end{align*}
+
+``` {.python}
+import pymc as pm
+import pymc_bart as pmb
+
+with pm.Model() as model
+    ...
+    mu = pmb.BART(
+        name="mu",
+        X=x_train,
+        Y=train_retention_logit,
+        m=30,
+        alpha=0.25
+        dims="obs",
+    
+    ...
+```
+
+:::
+::: {.column width="30%"}
+![](images/revenue_retention_presentation_files/retention_bart_files/retention_bart_17_0.svg){.absolute top=0 right=0 width=300 height=700}
+:::
+:::
+
+::: footer
+[Cohort Retention Analysis with BART](https://juanitorduz.github.io/retention_bart/)
+:::
+
+## PDP \& ICE Plots
+
+...
+
+::: footer
+[Cohort Retention Analysis with BART](https://juanitorduz.github.io/retention_bart/)
+:::
+
+---
+
+## Revenue
+
+![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_23_0.png){fig-align="center"}
+
+## Revenue per User (cohort)
+
+![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_27_0.png){fig-align="center"}
+
+## Revenue per Active User
+
+![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_25_0.png){fig-align="center"}
+
+
+## Cohort Revenue-Retention Model
+
+```{mermaid}
+%%| fig-height: 6
+%%| fig-width: 12
+%%| fig-align: "center"
+%%{init: {"theme": "white", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart TD
+  N[Number of Users] --> N_active[Number of Active Users]
+  N_active --> Retention[Retention]
+  Retention --> Revenue[Revenue]
+```
+
+##
+
+### Retention Component
+
+\begin{align*}
+    \textrm{logit}(p) & = \text{BART}(\text{cohort age}, \text{age}, \text{month}) \\
+    N_{\text{active}} & \sim \text{Binomial}(N_{\text{total}}, p)
+\end{align*}
+
+### Revenue Component
+
+\begin{align*}
+    \log(\lambda) = \: (& \text{intercept} \\
+        & + \beta_{\text{cohort age}} \text{cohort age} \\
+        & + \beta_{\text{age}} \text{age} \\
+        & + \beta_{\text{cohort age} \times \text{age}} \text{cohort age} \times \text{age}) \\
+    \text{Revenue} & \sim \text{Gamma}(N_{\text{active}}, \lambda)
+\end{align*}
+
+
+## Cohot Revenue-Retention Model
+
+``` {.python code-line-numbers="|1-3|5-14|16-30"}
+mu = pmb.BART(name="mu", X=x, Y=train_retention_logit, m=50, dims="obs")
+
+p = pm.Deterministic(name="p", var=pm.math.invlogit(mu), dims="obs")
+
+lam_log = pm.Deterministic(
+    name="lam_log",
+    var=intercept
+    + b_age_scaled * age_scaled
+    + b_cohort_age_scaled * cohort_age_scaled
+    + b_age_cohort_age_interaction * age_scaled * cohort_age_scaled,
+    dims="obs",
+)
+
+lam = pm.Deterministic(name="lam", var=pm.math.exp(lam_log), dims="obs")
+
+n_active_users_estimated = pm.Binomial(
+    name="n_active_users_estimated",
+    n=n_users,
+    p=p,
+    observed=n_active_users,
+    dims="obs",
+)
+
+x = pm.Gamma(
+    name="revenue_estimated",
+    alpha=n_active_users_estimated + eps,
+    beta=lam,
+    observed=revenue,
+    dims="obs",
+)
+```
+
+## Cohort Revenue-Retention Model
+
+![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_33_0.svg){fig-align="center"}
+
+
+##  Revenue-Retention - Predictions
+
+::: columns
+::: {.column width="50%"}
+![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_66_0.png){fig-align="center"}
+:::
+::: {.column width="50%"}
+![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_66_0.png){fig-align="center"}
+:::
+:::
+
+::: footer
+:::
+
+## References {.smaller}
+
+### Blog Posts
+
+- [A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
+
+- [Cohort Retention Analysis with BART](https://juanitorduz.github.io/retention_bart/)
+
+- [Cohort Revenue & Retention Analysis: A Bayesian Approach](https://juanitorduz.github.io/revenue_retention/)
+
+### Packages
+
+- [`pymc`](https://github.com/pymc-devs/pymc)
+- [`pymc-bart`](https://github.com/pymc-devs/pymc-bart)
+
+### Papers
+
+- [BART: Bayesian additive regression trees](https://arxiv.org/abs/0806.3286)
+- [Bayesian additive regression trees for probabilistic programming](https://arxiv.org/abs/2206.03619)
+
+## Thank you!
+
+[juanitorduz.github.io](https://juanitorduz.github.io/)
+
+![](images/revenue_retention_presentation_files/juanitorduz.png){.absolute top=0 right=0 width=600 height=600}

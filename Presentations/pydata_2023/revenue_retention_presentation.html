@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en"><head>
-<script src="revenue_retention_files/libs/clipboard/clipboard.min.js"></script>
-<script src="revenue_retention_files/libs/quarto-html/tabby.min.js"></script>
-<script src="revenue_retention_files/libs/quarto-html/popper.min.js"></script>
-<script src="revenue_retention_files/libs/quarto-html/tippy.umd.min.js"></script>
-<link href="revenue_retention_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="revenue_retention_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<link href="revenue_retention_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
-<link href="revenue_retention_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+<script src="revenue_retention_presentation_files/libs/clipboard/clipboard.min.js"></script>
+<script src="revenue_retention_presentation_files/libs/quarto-html/tabby.min.js"></script>
+<script src="revenue_retention_presentation_files/libs/quarto-html/popper.min.js"></script>
+<script src="revenue_retention_presentation_files/libs/quarto-html/tippy.umd.min.js"></script>
+<link href="revenue_retention_presentation_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="revenue_retention_presentation_files/libs/quarto-html/light-border.css" rel="stylesheet">
+<link href="revenue_retention_presentation_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
+<link href="revenue_retention_presentation_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.3.353">
 
   <meta name="author" content="Dr.&nbsp;Juan Orduz">
@@ -15,8 +15,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
-  <link rel="stylesheet" href="revenue_retention_files/libs/revealjs/dist/reset.css">
-  <link rel="stylesheet" href="revenue_retention_files/libs/revealjs/dist/reveal.css">
+  <link rel="stylesheet" href="revenue_retention_presentation_files/libs/revealjs/dist/reset.css">
+  <link rel="stylesheet" href="revenue_retention_presentation_files/libs/revealjs/dist/reveal.css">
   <style>
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
@@ -95,13 +95,13 @@
     code span.vs { color: #9ecbff; } /* VerbatimString */
     code span.wa { color: #ff5555; } /* Warning */
   </style>
-  <link rel="stylesheet" href="revenue_retention_files/libs/revealjs/dist/theme/quarto.css">
-  <link href="revenue_retention_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
-  <link href="revenue_retention_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
-  <link href="revenue_retention_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
-  <link href="revenue_retention_files/libs/revealjs/plugin/reveal-chalkboard/font-awesome/css/all.css" rel="stylesheet">
-  <link href="revenue_retention_files/libs/revealjs/plugin/reveal-chalkboard/style.css" rel="stylesheet">
-  <link href="revenue_retention_files/libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
+  <link rel="stylesheet" href="revenue_retention_presentation_files/libs/revealjs/dist/theme/quarto.css">
+  <link href="revenue_retention_presentation_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
+  <link href="revenue_retention_presentation_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
+  <link href="revenue_retention_presentation_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="revenue_retention_presentation_files/libs/revealjs/plugin/reveal-chalkboard/font-awesome/css/all.css" rel="stylesheet">
+  <link href="revenue_retention_presentation_files/libs/revealjs/plugin/reveal-chalkboard/style.css" rel="stylesheet">
+  <link href="revenue_retention_presentation_files/libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
   <style type="text/css">
 
   .callout {
@@ -386,6 +386,9 @@
       margin-right: 0; 
     }
   </style>
+  <script src="revenue_retention_presentation_files/libs/quarto-diagram/mermaid.min.js"></script>
+  <script src="revenue_retention_presentation_files/libs/quarto-diagram/mermaid-init.js"></script>
+  <link href="revenue_retention_presentation_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
 </head>
 <body class="quarto-light">
   <div class="reveal">
@@ -421,21 +424,235 @@
 </ol>
 </div>
 </section>
+<section id="business-problem" class="slide level2">
+<h2>Business Problem</h2>
+<div>
+<ul>
+<li class="fragment"><p>During January <span class="math inline">\(2020\)</span>, <span class="math inline">\(100\)</span> users signed up for a service (cohort).</p></li>
+<li class="fragment"><p>In February <span class="math inline">\(2020\)</span>, there were <span class="math inline">\(17\)</span> users from the <span class="math inline">\(2020-01\)</span> cohort active (e.g.&nbsp;did at least one purchase). The retention rate is <span class="math inline">\(17\%\)</span>.</p></li>
+<li class="fragment"><p>We want to understand and predict how retention develops over time.</p></li>
+<li class="fragment"><p>The main motivation is to estimate customer lifetime value (CLV).</p></li>
+</ul>
+</div>
+</section>
+<section id="number-of-active-users" class="slide level2">
+<h2>Number of Active Users</h2>
+
+<img data-src="images/revenue_retention_presentation_files/retention_files/retention_11_0.png" class="r-stretch quarto-figure-center"><div class="footer">
+<p><a href="https://juanitorduz.github.io/retention/">A Simple Cohort Retention Analysis in PyMC</a></p>
+</div>
+</section>
 <section id="retention-matrix" class="slide level2 smaller">
 <h2>Retention Matrix</h2>
 
-<img data-src="images/retention_bart_files/retention_bart_9_0.png" class="r-stretch quarto-figure-center"><div class="footer">
+<img data-src="images/revenue_retention_presentation_files/retention_files/retention_14_0.png" class="r-stretch quarto-figure-center"><div class="footer">
 <p><a href="https://juanitorduz.github.io/retention/">A Simple Cohort Retention Analysis in PyMC</a></p>
 </div>
 </section>
 <section id="retention-matrix-1" class="slide level2 smaller">
 <h2>Retention Matrix</h2>
 
-<img data-src="images/retention_bart_files/retention_bart_9_0.png" class="r-stretch quarto-figure-center"><ul>
+<img data-src="images/revenue_retention_presentation_files/retention_files/retention_14_0.png" class="r-stretch quarto-figure-center"><ul>
 <li><strong>Cohort Age:</strong> Age of the cohort in months.</li>
 <li><strong>Age:</strong> Age of the cohort with respect to the observation time.</li>
 <li><strong>Month:</strong> Month of the observation time (period).</li>
 </ul>
+</section>
+<section id="retention-over-time-period" class="slide level2">
+<h2>Retention Over Time (period)</h2>
+
+<img data-src="images/revenue_retention_presentation_files/retention_files/retention_15_0.png" class="r-stretch quarto-figure-center"></section>
+<section id="retention---generalized-linear-model" class="slide level2">
+<h2>Retention - Generalized Linear Model</h2>
+<p><span class="math display">\[\begin{align*}
+N_{\text{active}} \sim &amp; \: \text{Binomial}(N_{\text{total}}, p) \\
+\textrm{logit}(p) = &amp; \: ( \text{intercept} \\
+    &amp; + \beta_{\text{cohort age}} \text{cohort age} \\
+    &amp; + \beta_{\text{age}} \text{age} \\
+    &amp; + \beta_{\text{cohort age} \times \text{age}} \text{cohort age} \times \text{age} \\
+    &amp; + \beta_{\text{seasonality}} \text{seasonality} )
+\end{align*}\]</span></p>
+<p>where <span class="math inline">\(p\)</span> represents the <strong>retention</strong> and <span class="math inline">\(\text{logit}: (0, 1) \longrightarrow \mathbb{R}\)</span> is defined by <span class="math inline">\(\text{logit}(p) = \log\left(\frac{p}{1-p}\right)\)</span>.</p>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/retention/">A Simple Cohort Retention Analysis in PyMC</a></p>
+</div>
+</section>
+<section id="retention---glm-in-pymc" class="slide level2">
+<h2>Retention - GLM in PyMC</h2>
+
+<img data-src="images/revenue_retention_presentation_files/retention_files/retention_27_0.svg" class="r-stretch quarto-figure-center"><div class="footer">
+<p><a href="https://juanitorduz.github.io/retention/">A Simple Cohort Retention Analysis in PyMC</a></p>
+</div>
+</section>
+<section id="retention---glm-in-pymc-1" class="slide level2">
+<h2>Retention - GLM in PyMC</h2>
+<div class="sourceCode" id="cb1" data-code-line-numbers="|1|2-14|16-25|27-38|40-47"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>coords) <span class="im">as</span> model:</span>
+<span id="cb1-2"><a href="#cb1-2"></a>    <span class="co"># --- Data ---</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a>    model.add_coord(name<span class="op">=</span><span class="st">"obs"</span>, values<span class="op">=</span>train_obs_idx, mutable<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-4"><a href="#cb1-4"></a>    age_scaled <span class="op">=</span> pm.MutableData(name<span class="op">=</span><span class="st">"age_scaled"</span>, value<span class="op">=</span>train_age_scaled, dims<span class="op">=</span><span class="st">"obs"</span>)</span>
+<span id="cb1-5"><a href="#cb1-5"></a>    cohort_age_scaled <span class="op">=</span> pm.MutableData(</span>
+<span id="cb1-6"><a href="#cb1-6"></a>        name<span class="op">=</span><span class="st">"cohort_age_scaled"</span>, value<span class="op">=</span>train_cohort_age_scaled, dims<span class="op">=</span><span class="st">"obs"</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a>    )</span>
+<span id="cb1-8"><a href="#cb1-8"></a>    period_month_idx <span class="op">=</span> pm.MutableData(</span>
+<span id="cb1-9"><a href="#cb1-9"></a>        name<span class="op">=</span><span class="st">"period_month_idx"</span>, value<span class="op">=</span>train_period_month_idx, dims<span class="op">=</span><span class="st">"obs"</span></span>
+<span id="cb1-10"><a href="#cb1-10"></a>    )</span>
+<span id="cb1-11"><a href="#cb1-11"></a>    n_users <span class="op">=</span> pm.MutableData(name<span class="op">=</span><span class="st">"n_users"</span>, value<span class="op">=</span>train_n_users, dims<span class="op">=</span><span class="st">"obs"</span>)</span>
+<span id="cb1-12"><a href="#cb1-12"></a>    n_active_users <span class="op">=</span> pm.MutableData(</span>
+<span id="cb1-13"><a href="#cb1-13"></a>        name<span class="op">=</span><span class="st">"n_active_users"</span>, value<span class="op">=</span>train_n_active_users, dims<span class="op">=</span><span class="st">"obs"</span></span>
+<span id="cb1-14"><a href="#cb1-14"></a>    )</span>
+<span id="cb1-15"><a href="#cb1-15"></a></span>
+<span id="cb1-16"><a href="#cb1-16"></a>    <span class="co"># --- Priors ---</span></span>
+<span id="cb1-17"><a href="#cb1-17"></a>    intercept <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"intercept"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb1-18"><a href="#cb1-18"></a>    b_age_scaled <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"b_age_scaled"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb1-19"><a href="#cb1-19"></a>    b_cohort_age_scaled <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"b_cohort_age_scaled"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb1-20"><a href="#cb1-20"></a>    b_period_month <span class="op">=</span> pm.ZeroSumNormal(</span>
+<span id="cb1-21"><a href="#cb1-21"></a>        name<span class="op">=</span><span class="st">"b_period_month"</span>, sigma<span class="op">=</span><span class="dv">1</span>, dims<span class="op">=</span><span class="st">"period_month"</span></span>
+<span id="cb1-22"><a href="#cb1-22"></a>    )</span>
+<span id="cb1-23"><a href="#cb1-23"></a>    b_age_cohort_age_interaction <span class="op">=</span> pm.Normal(</span>
+<span id="cb1-24"><a href="#cb1-24"></a>        name<span class="op">=</span><span class="st">"b_age_cohort_age_interaction"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb1-25"><a href="#cb1-25"></a>    )</span>
+<span id="cb1-26"><a href="#cb1-26"></a></span>
+<span id="cb1-27"><a href="#cb1-27"></a>    <span class="co"># --- Parametrization ---</span></span>
+<span id="cb1-28"><a href="#cb1-28"></a>    mu <span class="op">=</span> pm.Deterministic(</span>
+<span id="cb1-29"><a href="#cb1-29"></a>        name<span class="op">=</span><span class="st">"mu"</span>,</span>
+<span id="cb1-30"><a href="#cb1-30"></a>        var<span class="op">=</span>intercept</span>
+<span id="cb1-31"><a href="#cb1-31"></a>        <span class="op">+</span> b_age_scaled <span class="op">*</span> age_scaled</span>
+<span id="cb1-32"><a href="#cb1-32"></a>        <span class="op">+</span> b_cohort_age_scaled <span class="op">*</span> cohort_age_scaled</span>
+<span id="cb1-33"><a href="#cb1-33"></a>        <span class="op">+</span> b_age_cohort_age_interaction <span class="op">*</span> age_scaled <span class="op">*</span> cohort_age_scaled</span>
+<span id="cb1-34"><a href="#cb1-34"></a>        <span class="op">+</span> b_period_month[period_month_idx],</span>
+<span id="cb1-35"><a href="#cb1-35"></a>        dims<span class="op">=</span><span class="st">"obs"</span>,</span>
+<span id="cb1-36"><a href="#cb1-36"></a>    )</span>
+<span id="cb1-37"><a href="#cb1-37"></a></span>
+<span id="cb1-38"><a href="#cb1-38"></a>    p <span class="op">=</span> pm.Deterministic(name<span class="op">=</span><span class="st">"p"</span>, var<span class="op">=</span>pm.math.invlogit(mu), dims<span class="op">=</span><span class="st">"obs"</span>)</span>
+<span id="cb1-39"><a href="#cb1-39"></a></span>
+<span id="cb1-40"><a href="#cb1-40"></a>    <span class="co"># --- Likelihood ---</span></span>
+<span id="cb1-41"><a href="#cb1-41"></a>    pm.Binomial(</span>
+<span id="cb1-42"><a href="#cb1-42"></a>        name<span class="op">=</span><span class="st">"likelihood"</span>,</span>
+<span id="cb1-43"><a href="#cb1-43"></a>        n<span class="op">=</span>n_users,</span>
+<span id="cb1-44"><a href="#cb1-44"></a>        p<span class="op">=</span>p,</span>
+<span id="cb1-45"><a href="#cb1-45"></a>        observed<span class="op">=</span>n_active_users,</span>
+<span id="cb1-46"><a href="#cb1-46"></a>        dims<span class="op">=</span><span class="st">"obs"</span>,</span>
+<span id="cb1-47"><a href="#cb1-47"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/retention/">A Simple Cohort Retention Analysis in PyMC</a></p>
+</div>
+</section>
+<section id="posterior-distribution" class="slide level2">
+<h2>Posterior Distribution</h2>
+
+<img data-src="images/revenue_retention_presentation_files/retention_files/retention_33_0.png" class="r-stretch quarto-figure-center"><div class="footer">
+<p><a href="https://juanitorduz.github.io/retention/">A Simple Cohort Retention Analysis in PyMC</a></p>
+</div>
+</section>
+<section id="posterior-predictive-check" class="slide level2">
+<h2>Posterior Predictive Check</h2>
+
+<img data-src="images/revenue_retention_presentation_files/retention_files/retention_36_0.png" class="r-stretch quarto-figure-center"><div class="footer">
+<p><a href="https://juanitorduz.github.io/retention/">A Simple Cohort Retention Analysis in PyMC</a></p>
+</div>
+</section>
+<section id="in-sample-predictions" class="slide level2">
+<h2>In-Sample Predictions</h2>
+
+<img data-src="images/revenue_retention_presentation_files/retention_files/retention_40_0.png" class="r-stretch quarto-figure-center"><div class="footer">
+<p><a href="https://juanitorduz.github.io/retention/">A Simple Cohort Retention Analysis in PyMC</a></p>
+</div>
+</section>
+<section id="out-of-sample-predictions" class="slide level2">
+<h2>Out-of-Sample Predictions</h2>
+
+<img data-src="images/revenue_retention_presentation_files/retention_files/retention_50_0.png" class="r-stretch quarto-figure-center"><div class="footer">
+<p><a href="https://juanitorduz.github.io/retention/">A Simple Cohort Retention Analysis in PyMC</a></p>
+</div>
+</section>
+<section id="more-complex-models---requirements" class="slide level2">
+<h2>More Complex Models - Requirements</h2>
+<div>
+<ul>
+<li class="fragment"><p>In many real-world scenarios, the data is more complex and the linear model is not enough (still, we could work out useful features).</p></li>
+<li class="fragment"><p>We need a more flexible model that can capture non-linearities and interactions.</p></li>
+<li class="fragment"><p>We care about uncertainty.</p></li>
+<li class="fragment"><p>We want to be able to iterate fast.</p></li>
+<li class="fragment"><p>We want to couple retention modeling with revenue modeling (CLV).</p></li>
+</ul>
+</div>
+<div class="footer">
+
+</div>
+</section>
+<section id="bart" class="slide level2">
+<h2>BART</h2>
+<h3 id="bayesian-additive-regression-trees">Bayesian Additive Regression Trees</h3>
+<p>…</p>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/retention_bart/">Cohort Retention Analysis with BART</a></p>
+</div>
+</section>
+<section id="bart-retention-model" class="slide level2">
+<h2>BART Retention Model</h2>
+<div class="columns">
+<div class="column" style="width:70%;">
+<p><span class="math display">\[\begin{align*}
+N_{\text{active}} &amp; \sim \text{Binomial}(N_{\text{total}}, p) \\
+\textrm{logit}(p) &amp; = \text{BART}(\text{cohort age}, \text{age}, \text{month})
+\end{align*}\]</span></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1"></a><span class="im">import</span> pymc <span class="im">as</span> pm</span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="im">import</span> pymc_bart <span class="im">as</span> pmb</span>
+<span id="cb2-3"><a href="#cb2-3"></a></span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="cf">with</span> pm.Model() <span class="im">as</span> model</span>
+<span id="cb2-5"><a href="#cb2-5"></a>    ...</span>
+<span id="cb2-6"><a href="#cb2-6"></a>    mu <span class="op">=</span> pmb.BART(</span>
+<span id="cb2-7"><a href="#cb2-7"></a>        name<span class="op">=</span><span class="st">"mu"</span>,</span>
+<span id="cb2-8"><a href="#cb2-8"></a>        X<span class="op">=</span>x_train,</span>
+<span id="cb2-9"><a href="#cb2-9"></a>        Y<span class="op">=</span>train_retention_logit,</span>
+<span id="cb2-10"><a href="#cb2-10"></a>        m<span class="op">=</span><span class="dv">30</span>,</span>
+<span id="cb2-11"><a href="#cb2-11"></a>        alpha<span class="op">=</span><span class="fl">0.25</span></span>
+<span id="cb2-12"><a href="#cb2-12"></a>        dims<span class="op">=</span><span class="st">"obs"</span>,</span>
+<span id="cb2-13"><a href="#cb2-13"></a>    </span>
+<span id="cb2-14"><a href="#cb2-14"></a>    ...</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div><div class="column" style="width:30%;">
+<p><img data-src="images/revenue_retention_presentation_files/retention_bart_files/retention_bart_17_0.svg" class="absolute" style="top: 0px; right: 0px; width: 300px; height: 700px; "></p>
+</div>
+</div>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/retention_bart/">Cohort Retention Analysis with BART</a></p>
+</div>
+</section>
+<section id="pdp-ice-plots" class="slide level2">
+<h2>PDP &amp; ICE Plots</h2>
+<p>…</p>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/retention_bart/">Cohort Retention Analysis with BART</a></p>
+</div>
+</section>
+<section id="revenue" class="slide level2">
+<h2>Revenue</h2>
+
+<img data-src="images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_23_0.png" class="r-stretch quarto-figure-center"></section>
+<section id="revenue-per-user-cohort" class="slide level2">
+<h2>Revenue per User (cohort)</h2>
+
+<img data-src="images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_27_0.png" class="r-stretch quarto-figure-center"></section>
+<section id="revenue-per-active-user" class="slide level2">
+<h2>Revenue per Active User</h2>
+
+<img data-src="images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_25_0.png" class="r-stretch quarto-figure-center"></section>
+<section id="cohort-revenue-retention-model" class="slide level2">
+<h2>Cohort Revenue-Retention Model</h2>
+<div class="cell" data-reveal="true" data-fig-height="6" data-fig-width="12" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {"theme": "white", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart TD
+  N[Number of Users] --&gt; N_active[Number of Active Users]
+  N_active --&gt; Retention[Retention]
+  Retention --&gt; Revenue[Revenue]
+</pre>
+</div>
+</div>
+</div>
+</div>
 </section>
 <section id="section" class="slide level2">
 <h2></h2>
@@ -455,54 +672,54 @@
 </section>
 <section id="cohot-revenue-retention-model" class="slide level2">
 <h2>Cohot Revenue-Retention Model</h2>
-<div class="sourceCode" id="cb1" data-code-line-numbers="|1-3|5-14|16-30"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a>mu <span class="op">=</span> pmb.BART(name<span class="op">=</span><span class="st">"mu"</span>, X<span class="op">=</span>x, Y<span class="op">=</span>train_retention_logit, m<span class="op">=</span><span class="dv">50</span>, dims<span class="op">=</span><span class="st">"obs"</span>)</span>
-<span id="cb1-2"><a href="#cb1-2"></a></span>
-<span id="cb1-3"><a href="#cb1-3"></a>p <span class="op">=</span> pm.Deterministic(name<span class="op">=</span><span class="st">"p"</span>, var<span class="op">=</span>pm.math.invlogit(mu), dims<span class="op">=</span><span class="st">"obs"</span>)</span>
-<span id="cb1-4"><a href="#cb1-4"></a></span>
-<span id="cb1-5"><a href="#cb1-5"></a>lam_log <span class="op">=</span> pm.Deterministic(</span>
-<span id="cb1-6"><a href="#cb1-6"></a>    name<span class="op">=</span><span class="st">"lam_log"</span>,</span>
-<span id="cb1-7"><a href="#cb1-7"></a>    var<span class="op">=</span>intercept</span>
-<span id="cb1-8"><a href="#cb1-8"></a>    <span class="op">+</span> b_age_scaled <span class="op">*</span> age_scaled</span>
-<span id="cb1-9"><a href="#cb1-9"></a>    <span class="op">+</span> b_cohort_age_scaled <span class="op">*</span> cohort_age_scaled</span>
-<span id="cb1-10"><a href="#cb1-10"></a>    <span class="op">+</span> b_age_cohort_age_interaction <span class="op">*</span> age_scaled <span class="op">*</span> cohort_age_scaled,</span>
-<span id="cb1-11"><a href="#cb1-11"></a>    dims<span class="op">=</span><span class="st">"obs"</span>,</span>
-<span id="cb1-12"><a href="#cb1-12"></a>)</span>
-<span id="cb1-13"><a href="#cb1-13"></a></span>
-<span id="cb1-14"><a href="#cb1-14"></a>lam <span class="op">=</span> pm.Deterministic(name<span class="op">=</span><span class="st">"lam"</span>, var<span class="op">=</span>pm.math.exp(lam_log), dims<span class="op">=</span><span class="st">"obs"</span>)</span>
-<span id="cb1-15"><a href="#cb1-15"></a></span>
-<span id="cb1-16"><a href="#cb1-16"></a>n_active_users_estimated <span class="op">=</span> pm.Binomial(</span>
-<span id="cb1-17"><a href="#cb1-17"></a>    name<span class="op">=</span><span class="st">"n_active_users_estimated"</span>,</span>
-<span id="cb1-18"><a href="#cb1-18"></a>    n<span class="op">=</span>n_users,</span>
-<span id="cb1-19"><a href="#cb1-19"></a>    p<span class="op">=</span>p,</span>
-<span id="cb1-20"><a href="#cb1-20"></a>    observed<span class="op">=</span>n_active_users,</span>
-<span id="cb1-21"><a href="#cb1-21"></a>    dims<span class="op">=</span><span class="st">"obs"</span>,</span>
-<span id="cb1-22"><a href="#cb1-22"></a>)</span>
-<span id="cb1-23"><a href="#cb1-23"></a></span>
-<span id="cb1-24"><a href="#cb1-24"></a>x <span class="op">=</span> pm.Gamma(</span>
-<span id="cb1-25"><a href="#cb1-25"></a>    name<span class="op">=</span><span class="st">"revenue_estimated"</span>,</span>
-<span id="cb1-26"><a href="#cb1-26"></a>    alpha<span class="op">=</span>n_active_users_estimated <span class="op">+</span> eps,</span>
-<span id="cb1-27"><a href="#cb1-27"></a>    beta<span class="op">=</span>lam,</span>
-<span id="cb1-28"><a href="#cb1-28"></a>    observed<span class="op">=</span>revenue,</span>
-<span id="cb1-29"><a href="#cb1-29"></a>    dims<span class="op">=</span><span class="st">"obs"</span>,</span>
-<span id="cb1-30"><a href="#cb1-30"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb3" data-code-line-numbers="|1-3|5-14|16-30"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1"></a>mu <span class="op">=</span> pmb.BART(name<span class="op">=</span><span class="st">"mu"</span>, X<span class="op">=</span>x, Y<span class="op">=</span>train_retention_logit, m<span class="op">=</span><span class="dv">50</span>, dims<span class="op">=</span><span class="st">"obs"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2"></a></span>
+<span id="cb3-3"><a href="#cb3-3"></a>p <span class="op">=</span> pm.Deterministic(name<span class="op">=</span><span class="st">"p"</span>, var<span class="op">=</span>pm.math.invlogit(mu), dims<span class="op">=</span><span class="st">"obs"</span>)</span>
+<span id="cb3-4"><a href="#cb3-4"></a></span>
+<span id="cb3-5"><a href="#cb3-5"></a>lam_log <span class="op">=</span> pm.Deterministic(</span>
+<span id="cb3-6"><a href="#cb3-6"></a>    name<span class="op">=</span><span class="st">"lam_log"</span>,</span>
+<span id="cb3-7"><a href="#cb3-7"></a>    var<span class="op">=</span>intercept</span>
+<span id="cb3-8"><a href="#cb3-8"></a>    <span class="op">+</span> b_age_scaled <span class="op">*</span> age_scaled</span>
+<span id="cb3-9"><a href="#cb3-9"></a>    <span class="op">+</span> b_cohort_age_scaled <span class="op">*</span> cohort_age_scaled</span>
+<span id="cb3-10"><a href="#cb3-10"></a>    <span class="op">+</span> b_age_cohort_age_interaction <span class="op">*</span> age_scaled <span class="op">*</span> cohort_age_scaled,</span>
+<span id="cb3-11"><a href="#cb3-11"></a>    dims<span class="op">=</span><span class="st">"obs"</span>,</span>
+<span id="cb3-12"><a href="#cb3-12"></a>)</span>
+<span id="cb3-13"><a href="#cb3-13"></a></span>
+<span id="cb3-14"><a href="#cb3-14"></a>lam <span class="op">=</span> pm.Deterministic(name<span class="op">=</span><span class="st">"lam"</span>, var<span class="op">=</span>pm.math.exp(lam_log), dims<span class="op">=</span><span class="st">"obs"</span>)</span>
+<span id="cb3-15"><a href="#cb3-15"></a></span>
+<span id="cb3-16"><a href="#cb3-16"></a>n_active_users_estimated <span class="op">=</span> pm.Binomial(</span>
+<span id="cb3-17"><a href="#cb3-17"></a>    name<span class="op">=</span><span class="st">"n_active_users_estimated"</span>,</span>
+<span id="cb3-18"><a href="#cb3-18"></a>    n<span class="op">=</span>n_users,</span>
+<span id="cb3-19"><a href="#cb3-19"></a>    p<span class="op">=</span>p,</span>
+<span id="cb3-20"><a href="#cb3-20"></a>    observed<span class="op">=</span>n_active_users,</span>
+<span id="cb3-21"><a href="#cb3-21"></a>    dims<span class="op">=</span><span class="st">"obs"</span>,</span>
+<span id="cb3-22"><a href="#cb3-22"></a>)</span>
+<span id="cb3-23"><a href="#cb3-23"></a></span>
+<span id="cb3-24"><a href="#cb3-24"></a>x <span class="op">=</span> pm.Gamma(</span>
+<span id="cb3-25"><a href="#cb3-25"></a>    name<span class="op">=</span><span class="st">"revenue_estimated"</span>,</span>
+<span id="cb3-26"><a href="#cb3-26"></a>    alpha<span class="op">=</span>n_active_users_estimated <span class="op">+</span> eps,</span>
+<span id="cb3-27"><a href="#cb3-27"></a>    beta<span class="op">=</span>lam,</span>
+<span id="cb3-28"><a href="#cb3-28"></a>    observed<span class="op">=</span>revenue,</span>
+<span id="cb3-29"><a href="#cb3-29"></a>    dims<span class="op">=</span><span class="st">"obs"</span>,</span>
+<span id="cb3-30"><a href="#cb3-30"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
-<section id="cohort-revenue-retention-model" class="slide level2">
+<section id="cohort-revenue-retention-model-1" class="slide level2">
 <h2>Cohort Revenue-Retention Model</h2>
 
-<img data-src="images/revenue_retention_files/revenue_retention_33_0.svg" class="r-stretch quarto-figure-center"></section>
+<img data-src="images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_33_0.svg" class="r-stretch quarto-figure-center"></section>
 <section id="revenue-retention---predictions" class="slide level2">
 <h2>Revenue-Retention - Predictions</h2>
 <div class="columns">
 <div class="column" style="width:50%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="images/revenue_retention_files/revenue_retention_66_0.png"></p>
+<p><img data-src="images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_66_0.png"></p>
 </figure>
 </div>
 </div><div class="column" style="width:50%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="images/revenue_retention_files/revenue_retention_66_0.png"></p>
+<p><img data-src="images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_66_0.png"></p>
 </figure>
 </div>
 </div>
@@ -533,8 +750,8 @@
 <section id="thank-you" class="slide level2">
 <h2>Thank you!</h2>
 <p><a href="https://juanitorduz.github.io/">juanitorduz.github.io</a></p>
-<p><img data-src="images/juanitorduz.png" class="absolute" style="top: 0px; right: 0px; width: 600px; height: 600px; "></p>
-<p><img src="images/juanitorduz_logo.gif" class="slide-logo"></p>
+<p><img data-src="images/revenue_retention_presentation_files/juanitorduz.png" class="absolute" style="top: 0px; right: 0px; width: 600px; height: 600px; "></p>
+<p><img src="images/revenue_retention_presentation_files/juanitorduz_logo.gif" class="slide-logo"></p>
 <div class="footer footer-default">
 <p><a href="https://juanitorduz.github.io/revenue_retention/">Cohort Revenue &amp; Retention Analysis: A Bayesian Approach</a></p>
 </div>
@@ -543,20 +760,20 @@
   </div>
 
   <script>window.backupDefine = window.define; window.define = undefined;</script>
-  <script src="revenue_retention_files/libs/revealjs/dist/reveal.js"></script>
+  <script src="revenue_retention_presentation_files/libs/revealjs/dist/reveal.js"></script>
   <!-- reveal.js plugins -->
-  <script src="revenue_retention_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
-  <script src="revenue_retention_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
-  <script src="revenue_retention_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
-  <script src="revenue_retention_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
-  <script src="revenue_retention_files/libs/revealjs/plugin/reveal-chalkboard/plugin.js"></script>
-  <script src="revenue_retention_files/libs/revealjs/plugin/quarto-support/support.js"></script>
+  <script src="revenue_retention_presentation_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
+  <script src="revenue_retention_presentation_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
+  <script src="revenue_retention_presentation_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
+  <script src="revenue_retention_presentation_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="revenue_retention_presentation_files/libs/revealjs/plugin/reveal-chalkboard/plugin.js"></script>
+  <script src="revenue_retention_presentation_files/libs/revealjs/plugin/quarto-support/support.js"></script>
   
 
-  <script src="revenue_retention_files/libs/revealjs/plugin/notes/notes.js"></script>
-  <script src="revenue_retention_files/libs/revealjs/plugin/search/search.js"></script>
-  <script src="revenue_retention_files/libs/revealjs/plugin/zoom/zoom.js"></script>
-  <script src="revenue_retention_files/libs/revealjs/plugin/math/math.js"></script>
+  <script src="revenue_retention_presentation_files/libs/revealjs/plugin/notes/notes.js"></script>
+  <script src="revenue_retention_presentation_files/libs/revealjs/plugin/search/search.js"></script>
+  <script src="revenue_retention_presentation_files/libs/revealjs/plugin/zoom/zoom.js"></script>
+  <script src="revenue_retention_presentation_files/libs/revealjs/plugin/math/math.js"></script>
   <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
 
   <script>
