@@ -26,7 +26,7 @@ format:
 
 1. Introduction
 2. Bottom-Up Approaches
-3. Simple Cohort Retention Model
+3. Simple Cohort Retention Model (GLM)
 4. Retention Model with BART
 5. Cohort Revenue-Retention Model
 6. Remarks
@@ -37,6 +37,8 @@ format:
 ---
 
 ## Business Problem
+
+### Example
 
 ::: incremental
 
@@ -59,12 +61,19 @@ format:
 [A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
 :::
 
-## Retention Matrix {.smaller}
+## Retention Matrix
 
 ![](images/revenue_retention_presentation_files/retention_files/retention_14_0.png){fig-align="center"}
 
 ::: footer
 [A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
+:::
+
+## Bottom-Up Approaches
+
+...
+
+::: footer
 :::
 
 ## Retention Matrix {.smaller}
@@ -205,29 +214,39 @@ with pm.Model(coords=coords) as model:
 
 ::: incremental
 
-- In many real-world scenarios, the data is more complex and the linear model is not enough (still, we could work out useful features).
+- In many real-world scenarios, the **data is more complex** and the linear model is not enough (still, we could work out useful features).
 
-- We need a more flexible model that can capture non-linearities and interactions.
+- We need a more flexible model that can capture **non-linearities and interactions**.
 
-- We care about uncertainty.
+- We care about **uncertainty**.
 
-- We want to be able to iterate fast.
+- We want to be able to **iterate fast**.
 
-- We want to couple retention modeling with revenue modeling (CLV).
+- Interested in **out-of-sample predictions**. 
+
+- **We want to couple retention modeling with revenue modeling (CLV)**.
 
 :::
 
 ::: footer
 :::
 
-## BART
+## Bayesian Additive Regression Trees
 
-### Bayesian Additive Regression Trees
+::: incremental
 
-...
+- Bayesian **"sum-of-trees”** model where each tree is constrained by a regularization prior to be a weak learner.
+
+- To fit the sum-of-trees model, BART uses a tailored version of Bayesian backfitting MCMC that **iteratively constructs and fits successive residuals**.
+
+- BART depends on the **number of trees** $m\in \mathbb{N}$ and **prior parameters** $\alpha \in (0, 1)$ and $\beta \in [0, \infty)$ so that the probability that a node at depth $d \in \mathbb{N}_{0}$ is nonterminal is 
+$\alpha(1 + d)^{-\beta}$.
+
+- BART is implemented in [`pymc-bart`](https://github.com/pymc-devs/pymc-bart).
+:::
 
 ::: footer
-[Cohort Retention Analysis with BART](https://juanitorduz.github.io/retention_bart/)
+[BART: Bayesian additive regression trees](https://projecteuclid.org/journals/annals-of-applied-statistics/volume-4/issue-1/BART-Bayesian-additive-regression-trees/10.1214/09-AOAS285.full)
 :::
 
 ## BART Retention Model
@@ -294,7 +313,7 @@ with pm.Model() as model
 
 ```{mermaid}
 %%| fig-height: 6
-%%| fig-width: 12
+%%| fig-width: 10
 %%| fig-align: "center"
 %%{init: {"theme": "white", "themeVariables": {"fontSize": "48px"}, "flowchart":{"htmlLabels":false}}}%%
 flowchart TD
@@ -394,7 +413,7 @@ x = pm.Gamma(
 
 ### Papers
 
-- [BART: Bayesian additive regression trees](https://arxiv.org/abs/0806.3286)
+- [BART: Bayesian additive regression trees](https://projecteuclid.org/journals/annals-of-applied-statistics/volume-4/issue-1/BART-Bayesian-additive-regression-trees/10.1214/09-AOAS285.full)
 - [Bayesian additive regression trees for probabilistic programming](https://arxiv.org/abs/2206.03619)
 
 ## Thank you!

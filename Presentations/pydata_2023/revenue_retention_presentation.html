@@ -416,7 +416,7 @@
 <ol type="1">
 <li class="fragment">Introduction</li>
 <li class="fragment">Bottom-Up Approaches</li>
-<li class="fragment">Simple Cohort Retention Model</li>
+<li class="fragment">Simple Cohort Retention Model (GLM)</li>
 <li class="fragment">Retention Model with BART</li>
 <li class="fragment">Cohort Revenue-Retention Model</li>
 <li class="fragment">Remarks</li>
@@ -426,6 +426,7 @@
 </section>
 <section id="business-problem" class="slide level2">
 <h2>Business Problem</h2>
+<h3 id="example">Example</h3>
 <div>
 <ul>
 <li class="fragment"><p>During January <span class="math inline">\(2020\)</span>, <span class="math inline">\(100\)</span> users signed up for a service (cohort).</p></li>
@@ -442,11 +443,18 @@
 <p><a href="https://juanitorduz.github.io/retention/">A Simple Cohort Retention Analysis in PyMC</a></p>
 </div>
 </section>
-<section id="retention-matrix" class="slide level2 smaller">
+<section id="retention-matrix" class="slide level2">
 <h2>Retention Matrix</h2>
 
 <img data-src="images/revenue_retention_presentation_files/retention_files/retention_14_0.png" class="r-stretch quarto-figure-center"><div class="footer">
 <p><a href="https://juanitorduz.github.io/retention/">A Simple Cohort Retention Analysis in PyMC</a></p>
+</div>
+</section>
+<section id="bottom-up-approaches" class="slide level2">
+<h2>Bottom-Up Approaches</h2>
+<p>…</p>
+<div class="footer">
+
 </div>
 </section>
 <section id="retention-matrix-1" class="slide level2 smaller">
@@ -569,23 +577,30 @@ N_{\text{active}} \sim &amp; \: \text{Binomial}(N_{\text{total}}, p) \\
 <h2>More Complex Models - Requirements</h2>
 <div>
 <ul>
-<li class="fragment"><p>In many real-world scenarios, the data is more complex and the linear model is not enough (still, we could work out useful features).</p></li>
-<li class="fragment"><p>We need a more flexible model that can capture non-linearities and interactions.</p></li>
-<li class="fragment"><p>We care about uncertainty.</p></li>
-<li class="fragment"><p>We want to be able to iterate fast.</p></li>
-<li class="fragment"><p>We want to couple retention modeling with revenue modeling (CLV).</p></li>
+<li class="fragment"><p>In many real-world scenarios, the <strong>data is more complex</strong> and the linear model is not enough (still, we could work out useful features).</p></li>
+<li class="fragment"><p>We need a more flexible model that can capture <strong>non-linearities and interactions</strong>.</p></li>
+<li class="fragment"><p>We care about <strong>uncertainty</strong>.</p></li>
+<li class="fragment"><p>We want to be able to <strong>iterate fast</strong>.</p></li>
+<li class="fragment"><p>Interested in <strong>out-of-sample predictions</strong>.</p></li>
+<li class="fragment"><p><strong>We want to couple retention modeling with revenue modeling (CLV)</strong>.</p></li>
 </ul>
 </div>
 <div class="footer">
 
 </div>
 </section>
-<section id="bart" class="slide level2">
-<h2>BART</h2>
-<h3 id="bayesian-additive-regression-trees">Bayesian Additive Regression Trees</h3>
-<p>…</p>
+<section id="bayesian-additive-regression-trees" class="slide level2">
+<h2>Bayesian Additive Regression Trees</h2>
+<div>
+<ul>
+<li class="fragment"><p>Bayesian <strong>“sum-of-trees”</strong> model where each tree is constrained by a regularization prior to be a weak learner.</p></li>
+<li class="fragment"><p>To fit the sum-of-trees model, BART uses a tailored version of Bayesian backfitting MCMC that <strong>iteratively constructs and fits successive residuals</strong>.</p></li>
+<li class="fragment"><p>BART depends on the <strong>number of trees</strong> <span class="math inline">\(m\in \mathbb{N}\)</span> and <strong>prior parameters</strong> <span class="math inline">\(\alpha \in (0, 1)\)</span> and <span class="math inline">\(\beta \in [0, \infty)\)</span> so that the probability that a node at depth <span class="math inline">\(d \in \mathbb{N}_{0}\)</span> is nonterminal is <span class="math inline">\(\alpha(1 + d)^{-\beta}\)</span>.</p></li>
+<li class="fragment"><p>BART is implemented in <a href="https://github.com/pymc-devs/pymc-bart"><code>pymc-bart</code></a>.</p></li>
+</ul>
+</div>
 <div class="footer">
-<p><a href="https://juanitorduz.github.io/retention_bart/">Cohort Retention Analysis with BART</a></p>
+<p><a href="https://projecteuclid.org/journals/annals-of-applied-statistics/volume-4/issue-1/BART-Bayesian-additive-regression-trees/10.1214/09-AOAS285.full">BART: Bayesian additive regression trees</a></p>
 </div>
 </section>
 <section id="bart-retention-model" class="slide level2">
@@ -639,7 +654,7 @@ N_{\text{active}} &amp; \sim \text{Binomial}(N_{\text{total}}, p) \\
 <img data-src="images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_25_0.png" class="r-stretch quarto-figure-center"></section>
 <section id="cohort-revenue-retention-model" class="slide level2">
 <h2>Cohort Revenue-Retention Model</h2>
-<div class="cell" data-reveal="true" data-fig-height="6" data-fig-width="12" data-layout-align="center">
+<div class="cell" data-reveal="true" data-fig-height="6" data-fig-width="10" data-layout-align="center">
 <div class="cell-output-display">
 <div>
 <div>
@@ -743,7 +758,7 @@ flowchart TD
 </ul>
 <h3 id="papers">Papers</h3>
 <ul>
-<li><a href="https://arxiv.org/abs/0806.3286">BART: Bayesian additive regression trees</a></li>
+<li><a href="https://projecteuclid.org/journals/annals-of-applied-statistics/volume-4/issue-1/BART-Bayesian-additive-regression-trees/10.1214/09-AOAS285.full">BART: Bayesian additive regression trees</a></li>
 <li><a href="https://arxiv.org/abs/2206.03619">Bayesian additive regression trees for probabilistic programming</a></li>
 </ul>
 </section>
