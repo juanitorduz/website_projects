@@ -55,7 +55,7 @@ format:
 
 ## Number of Active Users
 
-![](images/revenue_retention_presentation_files/retention_files/retention_11_0.png){fig-align="center"}
+![](images/revenue_retention_presentation_files/retention_files/retention_11_1.png){fig-align="center"}
 
 ::: footer
 [A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
@@ -63,7 +63,7 @@ format:
 
 ## Retention Matrix
 
-![](images/revenue_retention_presentation_files/retention_files/retention_14_0.png){fig-align="center"}
+![](images/revenue_retention_presentation_files/retention_files/retention_14_1.png){fig-align="center"}
 
 ::: footer
 [A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
@@ -78,7 +78,7 @@ format:
 
 ## Retention Matrix {.smaller}
 
-![](images/revenue_retention_presentation_files/retention_files/retention_14_0.png){fig-align="center"}
+![](images/revenue_retention_presentation_files/retention_files/retention_14_1.png){fig-align="center"}
 
 - **Cohort Age:** Age of the cohort in months.
 - **Age:** Age of the cohort with respect to the observation time.
@@ -86,7 +86,7 @@ format:
 
 ## Retention Over Time (period)
 
-![](images/revenue_retention_presentation_files/retention_files/retention_15_0.png){fig-align="center"}
+![](images/revenue_retention_presentation_files/retention_files/retention_15_1.png){fig-align="center"}
 
 
 ## Retention - Generalized Linear Model
@@ -174,7 +174,7 @@ with pm.Model(coords=coords) as model:
 
 ## Posterior Distribution
 
-![](images/revenue_retention_presentation_files/retention_files/retention_33_0.png){fig-align="center"}
+![](images/revenue_retention_presentation_files/retention_files/retention_33_1.png){fig-align="center"}
 
 
 ::: footer
@@ -183,7 +183,7 @@ with pm.Model(coords=coords) as model:
 
 ## Posterior Predictive Check
 
-![](images/revenue_retention_presentation_files/retention_files/retention_36_0.png){fig-align="center"}
+![](images/revenue_retention_presentation_files/retention_files/retention_36_1.png){fig-align="center"}
 
 
 ::: footer
@@ -192,7 +192,7 @@ with pm.Model(coords=coords) as model:
 
 ## In-Sample Predictions
 
-![](images/revenue_retention_presentation_files/retention_files/retention_40_0.png){fig-align="center"}
+![](images/revenue_retention_presentation_files/retention_files/retention_40_1.png){fig-align="center"}
 
 
 ::: footer
@@ -201,7 +201,7 @@ with pm.Model(coords=coords) as model:
 
 ## Out-of-Sample Predictions
 
-![](images/revenue_retention_presentation_files/retention_files/retention_50_0.png){fig-align="center"}
+![](images/revenue_retention_presentation_files/retention_files/retention_50_1.png){fig-align="center"}
 
 
 ::: footer
@@ -266,19 +266,19 @@ import pymc_bart as pmb
 with pm.Model() as model
     ...
     mu = pmb.BART(
-        name="mu",
-        X=x_train,
-        Y=train_retention_logit,
-        m=30,
-        alpha=0.25
-        dims="obs",
-    
+            name="mu",
+            X=x,
+            Y=train_retention_logit,
+            m=100,
+            response="mix",
+            dims="obs",
+        )
     ...
 ```
 
 :::
 ::: {.column width="30%"}
-![](images/revenue_retention_presentation_files/retention_bart_files/retention_bart_17_0.svg){.absolute top=0 right=0 width=300 height=700}
+![](images/revenue_retention_presentation_files/retention_bart_files/retention_bart_17_1.svg){.absolute top=0 right=0 width=300 height=700}
 :::
 :::
 
@@ -286,9 +286,17 @@ with pm.Model() as model
 [Cohort Retention Analysis with BART](https://juanitorduz.github.io/retention_bart/)
 :::
 
-## PDP \& ICE Plots
+## PDP Plot
 
-...
+![](images/revenue_retention_presentation_files/retention_bart_files/retention_bart_31_2.png){fig-align="center"}
+
+::: footer
+[Cohort Retention Analysis with BART](https://juanitorduz.github.io/retention_bart/)
+:::
+
+## ICE Plot
+
+![](images/revenue_retention_presentation_files/retention_bart_files/retention_bart_32_0.png){fig-align="center"}
 
 ::: footer
 [Cohort Retention Analysis with BART](https://juanitorduz.github.io/retention_bart/)
@@ -298,15 +306,15 @@ with pm.Model() as model
 
 ## Revenue
 
-![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_23_0.png){fig-align="center"}
+![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_23_1.png){fig-align="center"}
 
 ## Revenue per User (cohort)
 
-![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_27_0.png){fig-align="center"}
+![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_27_1.png){fig-align="center"}
 
 ## Revenue per Active User
 
-![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_25_0.png){fig-align="center"}
+![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_25_1.png){fig-align="center"}
 
 
 ## Cohort Revenue-Retention Model
@@ -344,8 +352,10 @@ flowchart TD
 
 ## Cohot Revenue-Retention Model
 
-``` {.python code-line-numbers="|1-3|5-14|16-30"}
-mu = pmb.BART(name="mu", X=x, Y=train_retention_logit, m=50, dims="obs")
+``` {.python code-line-numbers="|1-5|7-16|18-32"}
+mu = pmb.BART(
+    name="mu", X=x, Y=train_retention_logit, m=100, response="mix", dims="obs"
+)
 
 p = pm.Deterministic(name="p", var=pm.math.invlogit(mu), dims="obs")
 
@@ -379,17 +389,17 @@ x = pm.Gamma(
 
 ## Cohort Revenue-Retention Model
 
-![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_33_0.svg){fig-align="center"}
+![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_33_1.svg){fig-align="center"}
 
 
 ##  Revenue-Retention - Predictions
 
 ::: columns
 ::: {.column width="50%"}
-![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_66_0.png){fig-align="center"}
+![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_66_1.png){fig-align="center"}
 :::
 ::: {.column width="50%"}
-![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_66_0.png){fig-align="center"}
+![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_68_1.png){fig-align="center"}
 :::
 :::
 
