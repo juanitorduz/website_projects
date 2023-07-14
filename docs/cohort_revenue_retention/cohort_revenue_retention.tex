@@ -50,11 +50,11 @@
 \date{\today}
 
 \begin{abstract}
-We present a bayesian approach to model cohort-level retention rates and revenue over
-time. We use bayesian additive regression trees (BART) to model the retention
+We present a Bayesian approach to model cohort-level retention rates and revenue over
+time. We use Bayesian additive regression trees (BART) to model the retention
 component which we couple with a linear model to model the revenue component.
-This method is flexible enough to allow adding additional covariates to both model
-components. This bayesian model allows us to quantify the uncertainty in the
+This method is flexible enough to allow adding additional covariates to both models
+components. This Bayesian model allows us to quantify the uncertainty in the
 estimation, understand the effect of the covariates on the retention through partial
 dependence plots (PDP), individual conditional expectation (ICE) plots and last but not
 least forecast the future revenue and retention rates.
@@ -67,10 +67,10 @@ least forecast the future revenue and retention rates.
 
 \section{Introduction}
 
-Retention and customer lifetime value estimation are one of the most important aspects
-to understand customer behavior. There are many ways to model retention and revenue 
+Retention and customer lifetime value estimation are among the the most important aspects
+of understanding customer behavior. There are many ways to model retention and revenue 
 by modeling individual-level purchase behavior for both the contractual and the
-non-contractual setting, see for example the work by Fader and Herdie
+non-contractual setting, see for example, the work by Fader and Hardie
 \cite{FaderHardie2007} and \cite{FaderHardie2005} respectively\footnote{Our definition
 of retention is what they call survival curve. See precise definitions below.}. In real
 cases, one is interested in modeling retention and revenue at cohort-level. There are
@@ -88,15 +88,15 @@ limitations of those approaches is that they are not flexible enough to model
 seasonality and add external regressors\footnote{Actually, one can add regressors in
 some cases as described in \cite{FaderHardieNote2007} in the non-contractual case.}.
 One can argue that seasonality is not that important when trying to estimate the
-customer-lifetime-value. Nevertheless, in practice, there are business models on which
-the customer base is very seasonal. \\
+customer-lifetime-value. Nevertheless, there are business models on which the
+customer base is very seasonal. \\
 
-In this work, we present a bayesian approach to model cohort-level retention rates from
+This work presents a Bayesian approach to model cohort-level retention rates from
 a top-down perspective. We do not model the individual-level purchase
 behavior\footnote{This is a clear limitation if one is interested at customer-level
 parameters and predictions.} but rather the retention and revenue at cohort matrices.
 This approach allows for modeling non-linear relationships between cohorts, adding
-seasonality and external regressors. Concretely, we use bayesian additive regression
+seasonality and external regressors. Concretely, we use Bayesian additive regression
 trees (BART, see \cite{quiroga2022bart}) to model the retention component and we couple
 it with a linear model to model the revenue. The following are the main ingredients 
 behind the model:
@@ -119,7 +119,7 @@ relative to the observation period. This cohort was two observation periods
 {\em 2022-10} and {\em 2022-11} with cohort age $1$ and $2$ respectively.\\
 
 Note that all of these features are accessible for out-of-sample predictions.
-As we will see below, in practice we can add more covariates to the model.
+As we will see below, in practice, we can add more covariates to the model.
 The only requirement for out-of-sample predictions is that the covariates are available
 for the new observation period. \\
 
@@ -139,10 +139,10 @@ for the new observation period. \\
     
     \item We model the revenue as a gamma random variable
         $\text{Gamma}(N_{\text{active}}, \lambda)$. We model the latent variable
-        $\lambda$ through a linear model with features cohort age, age and, a
-        multiplicative interaction (to be precise using a $\log$ as a link function).
-        Note that we do not add a seasonality component as we often see most of the
-        seasonality coming from the retention itself. This of course can be added as a
+        $\lambda$ through a linear model with features cohort age, age, and a
+        multiplicative interaction (to be precise, using a $\log$ as a link function).
+        Note that we do not add a seasonality component, as we often see most of the
+        seasonality coming from the retention itself. This can be added as a
         feature (plus any other covariates!) to the model.
     
     \item Here is a summary of how the retention and revenue components are coupled
@@ -174,14 +174,14 @@ intercept) of the linear component simultaneously. Figure
 
 \begin{remark}
 This work is the result of a sequence of blog posts where all the details on the code
-and implementation are presented, see \cite{orduz_retention},
+and implementation are presented; see \cite{orduz_retention},
 \cite{orduz_retention_bart} and \cite{orduz_revenue_retention}.  
 \end{remark}
 
 
 \section{Synthetic Data}
 
-We illustrate the definitions, concepts and model using a synthetic data set (you can
+We illustrate the definitions, concepts, and model using a synthetic data set (you can
 get it as {\em csv} from \cite{orduz_revenue_retention_data}). The code to
 (deterministically!) generate the data set is publicly available in 
 \cite{orduz_revenue_retention_data_code}. \\
@@ -196,7 +196,7 @@ two things to note at first glance:
         see the seasonality pattern more clearly see Figure 
         \ref{fig:retention_seasonal}.
     \item The retention seems to be increasing as the age decreases. You could see this
-    by comparing the retention values when the period month is November and the cohort
+    by comparing the retention values when the period month is November, and the cohort
     age is one.
 \end{enumerate}
 
@@ -236,7 +236,7 @@ hints that the revenue per user does not change dramatically over time. To see t
 we can compute the revenue per user as a function of the age and the period (see Figure
 \ref{fig:revenue_per_user}). We also can compute the revenue per {\em active} user (see
 Figure \ref{fig:revenue_per_active_user}). The main difference between the two is that
-for the former we divide by the cohort size, while for the latter we divide by the
+for the former, we divide by the cohort size, while for the latter we divide by the
 number of active users in the given period. Here are some observations:
 
 \begin{itemize}
@@ -268,8 +268,8 @@ After this exploratory analysis, we can start the modeling phase.
 Now we expand on the model structure described in the introduction. The main idea is to
 model the number of active users as a binomial random variable
 $\text{Binomial}(N_{\text{total}}, p)$, where the parameter $p$ represents the retention.
-We use bayesian additive regression trees (BART) to model the latent variable $p$ using
-as features cohort age, age and (period) month. 
+We use Bayesian additive regression trees (BART) to model the latent variable $p$ using
+as features cohort age, age, and (period) month. 
 
 \begin{align*}
     N_{\text{active}} & \sim \text{Binomial}(N_{\text{total}}, p) \\
@@ -325,7 +325,7 @@ the numerical encoding is more appropriate and results in a simpler model.
 
 As part of the pre-processing step, we standardize the features for the linear models.
 The main benefit of this is to be able to specify priors for the coefficients of the
-regression which could be interpreted as the effect of a one standard deviation change.
+regression which could be interpreted as the effect of a one-standard deviation change.
 That is, we could regularize by taking standard normal priors for the coefficients (see
 \cite{orduz_retention_bart}). \\
 
