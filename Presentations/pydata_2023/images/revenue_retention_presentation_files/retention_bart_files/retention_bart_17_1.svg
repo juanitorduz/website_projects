@@ -41,7 +41,7 @@
 <polygon fill="black" stroke="black" points="161.5,-437.54 158,-427.54 154.5,-437.54 161.5,-437.54"/>
 </g>
 <!-- p -->
-<g id="node4" class="node">
+<g id="node6" class="node">
 <title>p</title>
 <polygon fill="none" stroke="black" points="212.12,-308.82 121.88,-308.82 121.88,-251.32 212.12,-251.32 212.12,-308.82"/>
 <text text-anchor="middle" x="167" y="-291.52" font-family="Times,serif" font-size="14.00">p</text>
@@ -63,7 +63,7 @@
 <text text-anchor="middle" x="114" y="-153.11" font-family="Times,serif" font-size="14.00">Binomial</text>
 </g>
 <!-- n_active_users -->
-<g id="node6" class="node">
+<g id="node5" class="node">
 <title>n_active_users</title>
 <path fill="lightgrey" stroke="black" d="M150.12,-98C150.12,-98 77.88,-98 77.88,-98 71.88,-98 65.88,-92 65.88,-86 65.88,-86 65.88,-52.5 65.88,-52.5 65.88,-46.5 71.88,-40.5 77.88,-40.5 77.88,-40.5 150.12,-40.5 150.12,-40.5 156.12,-40.5 162.12,-46.5 162.12,-52.5 162.12,-52.5 162.12,-86 162.12,-86 162.12,-92 156.12,-98 150.12,-98"/>
 <text text-anchor="middle" x="114" y="-80.7" font-family="Times,serif" font-size="14.00">n_active_users</text>
@@ -76,14 +76,8 @@
 <path fill="none" stroke="black" d="M114,-133.68C114,-125.64 114,-117.21 114,-109.21"/>
 <polygon fill="black" stroke="black" points="117.5,-109.28 114,-99.28 110.5,-109.28 117.5,-109.28"/>
 </g>
-<!-- p&#45;&gt;likelihood -->
-<g id="edge4" class="edge">
-<title>p&#45;&gt;likelihood</title>
-<path fill="none" stroke="black" d="M152.66,-251.08C148.1,-242.2 142.94,-232.13 137.9,-222.3"/>
-<polygon fill="black" stroke="black" points="140.61,-220.91 132.94,-213.6 134.38,-224.1 140.61,-220.91"/>
-</g>
 <!-- n_users -->
-<g id="node5" class="node">
+<g id="node4" class="node">
 <title>n_users</title>
 <path fill="lightgrey" stroke="black" d="M91.62,-308.82C91.62,-308.82 28.38,-308.82 28.38,-308.82 22.38,-308.82 16.38,-302.82 16.38,-296.82 16.38,-296.82 16.38,-263.32 16.38,-263.32 16.38,-257.32 22.38,-251.32 28.38,-251.32 28.38,-251.32 91.62,-251.32 91.62,-251.32 97.62,-251.32 103.62,-257.32 103.62,-263.32 103.62,-263.32 103.62,-296.82 103.62,-296.82 103.62,-302.82 97.62,-308.82 91.62,-308.82"/>
 <text text-anchor="middle" x="60" y="-291.52" font-family="Times,serif" font-size="14.00">n_users</text>
@@ -91,10 +85,16 @@
 <text text-anchor="middle" x="60" y="-258.52" font-family="Times,serif" font-size="14.00">MutableData</text>
 </g>
 <!-- n_users&#45;&gt;likelihood -->
-<g id="edge5" class="edge">
+<g id="edge4" class="edge">
 <title>n_users&#45;&gt;likelihood</title>
 <path fill="none" stroke="black" d="M74.61,-251.08C79.25,-242.2 84.51,-232.13 89.65,-222.3"/>
 <polygon fill="black" stroke="black" points="93.18,-224.09 94.71,-213.6 86.98,-220.85 93.18,-224.09"/>
+</g>
+<!-- p&#45;&gt;likelihood -->
+<g id="edge5" class="edge">
+<title>p&#45;&gt;likelihood</title>
+<path fill="none" stroke="black" d="M152.66,-251.08C148.1,-242.2 142.94,-232.13 137.9,-222.3"/>
+<polygon fill="black" stroke="black" points="140.61,-220.91 132.94,-213.6 134.38,-224.1 140.61,-220.91"/>
 </g>
 </g>
 </svg>
