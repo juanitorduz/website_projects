@@ -25,11 +25,21 @@ format:
 ::: incremental
 
 1. Introduction
+
 2. Bottom-Up Approaches
+
+    2.1 Shifted Beta Geometric (Contractual)
+
+    2.2 BG/NBD Model (Non-Contractual)
+
 3. Simple Cohort Retention Model (GLM)
+
 4. Retention Model with BART
+
 5. Cohort Revenue-Retention Model
-6. Remarks
+
+6. Applications
+
 7. References
 
 :::
@@ -69,11 +79,67 @@ format:
 [A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
 :::
 
-## Bottom-Up Approaches
+## Bottom-Up Approaches {.smaller}
 
-...
+Predict the retention of each user individually and then aggregate the results.
+
+### Example: Shifted Beta Geometric (Contractual)
+
+::: incremental
+
+1. An individual remains a customer of the company with constant retention probability $1 - \theta$. This is equivalent to assuming that the duration of the customer’s relationship with the company, denoted by the
+random variable $T$, is characterized by the (shifted) geometric distribution with probability mass
+function and survivor function given by
+
+    $$f(t) = \theta (1 - \theta)^{t - 1}, \quad t = 1, 2, \ldots$$
+
+    $$S(t) = \sum_{j = t}^{\infty} f(j) = (1 - \theta)^{t - 1}, \quad t = 1, 2, \ldots$$
+
+2. Heterogeneity in $\theta$ follows a beta distribution $\theta \sim \text{Beta}(a, b)$.
+
+:::
 
 ::: footer
+See [How to Project Customer Retention](https://www.brucehardie.com/notes/025/)
+:::
+
+## Shifted Beta Geometric - Survival Function
+
+![](images/revenue_retention_presentation_files/sBG_survival.png){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://www.pymc-marketing.io/en/stable/) example [here](https://www.pymc-marketing.io/en/latest/notebooks/clv/sBG.html).
+:::
+
+## Bottom-Up Approaches {.smaller}
+
+### Example: BG/NBD Model (Non-Contractual)
+
+::: incremental
+
+1. While active, the time between transactions is distributed exponentially with transaction rate, i.e., 
+
+    $$f(t_{j}|t_{j-1}; \lambda) = \lambda \exp(-\lambda (t_{j} - t_{j - 1})), \quad t_{j} \geq t_{j - 1} \geq 0$$ 
+
+2. Heterogeneity in $\lambda$ follows a gamma distribution $\lambda \sim \text{Gamma}(r, \alpha)$.
+
+3. After any transaction, a customer becomes inactive with probability $p$.
+
+4. Heterogeneity in $p$ follows a beta distribution $p \sim \text{Beta}(a, b)$.
+
+5. The transaction rate $\lambda$ and the dropout probability $p$ vary independently across customers.
+:::
+
+::: footer
+See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf)
+:::
+
+## BG/NBD - Probability of Alive 
+
+![](images/revenue_retention_presentation_files/p_alive.png){fig-align="center"}
+
+::: footer
+See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [CLV Quickstart](https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html)
 :::
 
 ## Retention Matrix {.smaller}
@@ -296,7 +362,7 @@ with pm.Model() as model
 
 ## ICE Plot
 
-![](images/revenue_retention_presentation_files/retention_bart_files/retention_bart_32_0.png){fig-align="center"}
+![](images/revenue_retention_presentation_files/retention_bart_files/retention_bart_32_1.png){fig-align="center"}
 
 ::: footer
 [Cohort Retention Analysis with BART](https://juanitorduz.github.io/retention_bart/)
@@ -406,6 +472,29 @@ x = pm.Gamma(
 ::: footer
 :::
 
+## Some Applications in the Industry
+
+::: incremental
+
+- Understand retention and revenue drivers.
+
+    - Factor out seasonality.
+
+    - External covariates (e.g. acquisition channel).
+
+- Forecast revenue and retention (cohort lifetime value).
+
+- Causal Inference
+
+    - Counterfactural analysis.
+    
+    - Geo experiments. 
+
+:::
+
+::: footer
+:::
+
 ## References {.smaller}
 
 ### Blog Posts
@@ -425,6 +514,42 @@ x = pm.Gamma(
 
 - [BART: Bayesian additive regression trees](https://projecteuclid.org/journals/annals-of-applied-statistics/volume-4/issue-1/BART-Bayesian-additive-regression-trees/10.1214/09-AOAS285.full)
 - [Bayesian additive regression trees for probabilistic programming](https://arxiv.org/abs/2206.03619)
+
+::: footer
+:::
+
+## References {.smaller}
+
+### Related Work
+
+- [Probability Models for Customer-Base Analysis](https://www.brucehardie.com/talks/ho_cba_tut_art_09.pdf)
+
+- [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf), see [`pymc-marketing`](https://www.pymc-marketing.io/en/stable/) example [here](https://www.pymc-marketing.io/en/stable/notebooks/clv/bg_nbd.html).
+
+- [BG/NBD Model in PyMC](https://juanitorduz.github.io/bg_nbd_pymc/)
+
+- [How to Project Customer Retention](https://www.brucehardie.com/notes/025/), see [`pymc-marketing`](https://www.pymc-marketing.io/en/stable/) example [here](https://www.pymc-marketing.io/en/latest/notebooks/clv/sBG.html).
+
+- [Fitting the sBG Model to Multi-Cohort Data](http://www.brucehardie.com/notes/017/sBG_estimation.pdf)
+
+- [Beta Survival Models](https://proceedings.mlr.press/v146/hubbard21a.html)
+
+::: footer
+:::
+
+##  Open Source Packages
+
+::: rows
+::: {.row width="50%"}
+![](images/revenue_retention_presentation_files/pymc_bart.png){fig-align="center"}
+:::
+::: {.row width="50%"}
+![](images/revenue_retention_presentation_files/pymc_marketing.png){fig-align="center"}
+:::
+:::
+
+::: footer
+:::
 
 ## Thank you!
 
