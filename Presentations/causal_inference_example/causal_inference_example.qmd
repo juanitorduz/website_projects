@@ -241,7 +241,7 @@ estimand = model.identify_effect()
 # estimate effect
 estimate = model.estimate_effect(
     identified_estimand=estimand,
-    method_name="backdoor.linear_regression",
+    method_name="backdoor.linear_regression",  # <- Estimation Method
     target_units="ate",
     test_significance=True,
     confidence_intervals=True,

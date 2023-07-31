@@ -655,7 +655,7 @@ flowchart LR
 <span id="cb3-18"><a href="#cb3-18"></a><span class="co"># estimate effect</span></span>
 <span id="cb3-19"><a href="#cb3-19"></a>estimate <span class="op">=</span> model.estimate_effect(</span>
 <span id="cb3-20"><a href="#cb3-20"></a>    identified_estimand<span class="op">=</span>estimand,</span>
-<span id="cb3-21"><a href="#cb3-21"></a>    method_name<span class="op">=</span><span class="st">"backdoor.linear_regression"</span>,</span>
+<span id="cb3-21"><a href="#cb3-21"></a>    method_name<span class="op">=</span><span class="st">"backdoor.linear_regression"</span>,  <span class="co"># &lt;- Estimation Method</span></span>
 <span id="cb3-22"><a href="#cb3-22"></a>    target_units<span class="op">=</span><span class="st">"ate"</span>,</span>
 <span id="cb3-23"><a href="#cb3-23"></a>    test_significance<span class="op">=</span><span class="va">True</span>,</span>
 <span id="cb3-24"><a href="#cb3-24"></a>    confidence_intervals<span class="op">=</span><span class="va">True</span>,</span>
