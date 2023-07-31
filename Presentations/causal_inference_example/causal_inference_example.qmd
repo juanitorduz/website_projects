@@ -1,0 +1,276 @@
+---
+title: "Using Data Science for Bad Decision-Making"
+subtitle: "A Case Study"
+author: 
+  - name: Dr. Juan Orduz
+    url: https://juanitorduz.github.io/
+    affiliations:
+      - name: Mathematician & Data Scientist
+format:
+  revealjs:
+    logo: images/juanitorduz_logo.gif
+    transition: none
+    slide-number: true
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    theme:
+        - white
+    highlight-style: github-dark
+    footer: '<a href="https://juanitorduz.github.io/causal_inference_example/">Using Data Science for Bad Decision-Making: A Case Study</a>'
+---
+
+## A story about how data science can be used to make bad decisions
+
+::: {.callout-warning title="Not about bad data or bad algorithms"}
+
+The story I am about to tell won’t be about bad algorithms or bad data. It will be about thinking about data as simply:
+
+```{mermaid}
+%%| fig-height: 2
+%%| fig-width: 10
+%%| fig-align: "center"
+%%{init: {"theme": "white", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart LR
+  data_in["Data In"] --> ml_model["ML Model"] --> data_out["Data Out"] --> decision["Decision"]
+```
+
+:::
+
+## Business Problem
+
+::: incremental
+
+The story begins in a fast-paced startup. The company is growing fast and the marketing team is looking for ways to increase the sales from existing customers by making them buy more.
+
+- The main idea is to unlock the potential of the customer base through incentives, in this case, a discount.
+
+- We of course want to measure the effect of the discount on the customer’s behavior.
+
+- Still, they do not want to waste money giving discounts to users which are not valuable.
+
+:::
+
+## It is  all about ROI {.center}
+
+::: {.callout-important}
+
+Without going into specifics about the nature of the discount, it has been designed to provide a **positive return on investment if the customer buys more than $1\$$ as a result of the discount**.
+
+:::
+
+How can we measure the effect of the discount and make sure our experiment has a positive ROI?
+
+## Campaign Design {.smaller}
+
+::: incremental
+
+- Select a sample of existing customers from the same cohort and a test window of 1 month.
+
+- Look into the historical data of web visits from the last month. The hypothesis is that web visits are a good proxy for the customer’s interest in the product.
+
+- For customers with a high number of web visits, send them a discount.
+
+- There will be a hold-out group that will not receive the discount within the potential valuable customers based on the number of web visits.
+
+- For customers with a low number of web visits, do not send them a discount (the marketing team wants to report a positive ROI, so they do not want to waste money on customers that are not valuable). Still, they want to use them to measure the effect of the discount.
+
+- We also want to use the results of the test to tag loyal customers. These are customers who got a discount (since they showed potential interest in the product) and customers with exceptional sales numbers even if they did not get a discount. The idea is to use this information to target them in the future if the discount strategy is positive.
+
+:::
+
+## The Data
+
+- `visits`: Number of visits to the website during the test window.
+
+- `discount`: Whether the customer received a discount or not.
+
+- `is_loyal`: Whether the customer is loyal or not according to the definition above.
+
+- `sales`: Sales in $\$$ during the test window.
+
+
+##
+
+![](images/causal_inference_example_files/causal_inference_example_19_2.png){fig-align="center" width="950"}
+
+##
+
+![](images/causal_inference_example_files/causal_inference_example_22_2.png){fig-align="center" width="650"}
+
+``` {.python .input}
+(
+    data.query("discount == 1")["sales"].mean()
+    - data.query("discount == 0")["sales"].mean()
+)
+
+> 4.8
+```
+
+##
+
+![](images/causal_inference_example_files/causal_inference_example_27_2.png){fig-align="center" width="1050"}
+
+##
+
+🤔 ...
+
+![](images/causal_inference_example_files/causal_inference_example_35_2.png){fig-align="center" width="800"}
+
+## ATE Estimation: Linear Regression
+
+![](images/causal_inference_example_files/causal_inference_example_44_0.svg){fig-align="center" width="800"}
+
+## ATE Estimation: Posterior Distribution
+
+![](images/causal_inference_example_files/causal_inference_example_55_1.png){fig-align="center" width="1000"}
+
+## ATE Estimation: ML Model 🤖
+
+You folks are trying to make sense of complex relationships by looking at simple plots and summary statistics!
+
+::: {.callout-tip title="ML Approach"}
+
+ Why don’t you try to fit a machine learning model to the data and see what happens? This way **we can simply let the data and the model figure out the relationships between the variables**. We can do a post-processing on the predictions using, for example, partial dependency plots: which show the marginal effect one or two features have on the predicted outcome of a machine learning model.
+
+:::
+
+``` {.python .input}
+ml_model = RandomizedSearchCV(
+    estimator=GradientBoostingRegressor(),
+    param_distributions= ... ,
+    ...
+)
+```
+
+##
+
+::: {.callout-note title="Results"}
+
+According to the machine learning model, the discount does have a positive effect on sales. The relative partial dependency plot hint that the additional sales driven by the discount are around $0.35\$$. This is less than the limit $1\$$ set by the marketing team to obtain a positive ROI.
+
+:::
+
+![](images/causal_inference_example_files/causal_inference_example_66_1.png){fig-align="center" width="600"}
+
+::: footer  
+:::
+
+## Conclusions and Recommendations
+
+Based on the results from the linear model and the machine learning model, the data scientist decided to recommend the following:
+
+
+::: {.callout-tip title="Recommendations 🤓"}
+
+**Stop the discount strategy as on average it provides less than 
+$1\$$ additional sales, which implies a negative ROI.**
+
+:::
+
+::: {.callout-important title="Wrong!"}
+
+The data simulation process is based on a true ATE of $2\$$.
+
+:::
+
+## Draw the causal DAG
+
+::: columns
+
+::: {.column width="30%"}
+
+![](images/causal_inference_example_files/causal_inference_example_70_0.svg){fig-align="center" width="300"}
+
+:::
+
+::: {.column width="70%"}
+
+::: incremental
+
+- Both the `discount` (treatment) and `sales` (target) are affected by the number of web `visits` (proxy for customer’s interest in the product). This means that the number of web visits is a **confounder variable**.
+
+- However, the loyalty of the customer is defined by both the discounts and the sales. This means that `is_loyal` is a **collider variable**.
+
+:::
+
+:::
+
+:::
+
+## Causal Linear Regression Model
+
+![](images/causal_inference_example_files/causal_inference_example_75_0.svg){fig-align="center" width="400"}
+
+::: columns
+
+::: {.column width="50%"}
+
+![](images/causal_inference_example_files/causal_inference_example_85_1.png){fig-align="center" width="550"}
+
+:::
+
+::: {.column width="50%"}
+
+![](images/causal_inference_example_files/causal_inference_example_92_1.png){fig-align="center" width="550"}
+
+:::
+
+:::
+
+## Automating The Model Specification
+
+``` {.python  code-line-numbers="|1|3-9|11-13|15-25|27-32"}
+from dowhy import CausalModel
+
+# define the causal model
+model = CausalModel(
+    data=data,
+    graph=gml_graph,  # <- Input Causal Graph
+    treatment="discount",
+    outcome="sales",
+)
+
+# get backdoor paths (what we need to control for)
+model._graph.get_backdoor_paths(nodes1=["discount"], nodes2=["sales"])
+> [['discount', 'visits', 'sales']]
+
+# get estimand
+estimand = model.identify_effect()
+
+# estimate effect
+estimate = model.estimate_effect(
+    identified_estimand=estimand,
+    method_name="backdoor.linear_regression",  # <- Estimation Method
+    target_units="ate",
+    test_significance=True,
+    confidence_intervals=True,
+)
+
+print(
+    f"Estimate of causal effect (linear regression): {estimate.value}"
+)
+print(f"confidence interval: {estimate.get_confidence_intervals()}")
+> Estimate of causal effect (linear regression): 1.855502783142704
+> confidence interval: [[1.51720297 2.1938026 ]]
+```
+
+
+## References {.smaller}
+
+### Case Study
+
+- [Using Data Science for Bad Decision-Making: A Case Study](https://juanitorduz.github.io/causal_inference_example/)
+
+### Causal Inference
+
+- [Be Careful When Interpreting Predictive Models in Search of Causal Insights](https://towardsdatascience.com/be-careful-when-interpreting-predictive-models-in-search-of-causal-insights-e68626e664b6)
+- [Causal Inference and Discovery in Python: Unlock the secrets of modern causal machine learning with DoWhy, EconML, PyTorch and more](https://www.amazon.de/dp/1804612987?utm_term=2023_06&utm_campaign=causalpython_links&utm_medium=button&ref_=as_li_ss_tl&language=en_US&utm_source=webpage&linkCode=gg2&linkId=842a3ff0187e800a338f20d3ce81352b&tag=alxndrmlk00-20)
+- [Causal Inference in Statistics: A Primer](https://www.wiley.com/en-us/Causal+Inference+in+Statistics%3A+A+Primer-p-9781119186847)
+- [Causal Inference for The Brave and True](https://matheusfacure.github.io/python-causality-handbook/landing-page.html)
+- [Causal Inference: The Mixtape](https://mixtape.scunning.com/index.html)
+- [Statistical Rethinking: A Bayesian Course with Examples in R and Stan](https://xcelab.net/rm/statistical-rethinking/)
+- [The Effect: An Introduction to Research Design and Causality](https://theeffectbook.net/)
+
+::: footer
+:::
