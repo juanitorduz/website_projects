@@ -117,6 +117,18 @@ How can we measure the effect of the discount and make sure our experiment has a
 
 ![](images/causal_inference_example_files/causal_inference_example_35_2.png){fig-align="center" width="800"}
 
+##
+
+![](images/causal_inference_example_files/causal_inference_example_35_2.png){fig-align="center" width="200"}
+
+::: incremental
+
+-  For the loyal customers the sales are much (much!) higher for the non-discounted group!
+
+- The `loyal` tag depends on the discount, so maybe this is implicitly providing an uplift ($12\$$)?
+
+:::
+
 ## ATE Estimation: Linear Regression
 
 ![](images/causal_inference_example_files/causal_inference_example_44_0.svg){fig-align="center" width="800"}
