@@ -536,53 +536,59 @@ N_{\text{active}} \sim &amp; \: \text{Binomial}(N_{\text{total}}, p) \\
 </section>
 <section id="retention---glm-in-pymc-1" class="slide level2">
 <h2>Retention - GLM in PyMC</h2>
-<div class="sourceCode" id="cb1" data-code-line-numbers="|1|2-14|16-25|27-38|40-47"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>coords) <span class="im">as</span> model:</span>
+<div class="sourceCode" id="cb1" data-code-line-numbers="|1|2-18|20-31|33-44|46-53"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>coords) <span class="im">as</span> model:</span>
 <span id="cb1-2"><a href="#cb1-2"></a>    <span class="co"># --- Data ---</span></span>
 <span id="cb1-3"><a href="#cb1-3"></a>    model.add_coord(name<span class="op">=</span><span class="st">"obs"</span>, values<span class="op">=</span>train_obs_idx, mutable<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb1-4"><a href="#cb1-4"></a>    age_scaled <span class="op">=</span> pm.MutableData(name<span class="op">=</span><span class="st">"age_scaled"</span>, value<span class="op">=</span>train_age_scaled, dims<span class="op">=</span><span class="st">"obs"</span>)</span>
-<span id="cb1-5"><a href="#cb1-5"></a>    cohort_age_scaled <span class="op">=</span> pm.MutableData(</span>
-<span id="cb1-6"><a href="#cb1-6"></a>        name<span class="op">=</span><span class="st">"cohort_age_scaled"</span>, value<span class="op">=</span>train_cohort_age_scaled, dims<span class="op">=</span><span class="st">"obs"</span></span>
-<span id="cb1-7"><a href="#cb1-7"></a>    )</span>
-<span id="cb1-8"><a href="#cb1-8"></a>    period_month_idx <span class="op">=</span> pm.MutableData(</span>
-<span id="cb1-9"><a href="#cb1-9"></a>        name<span class="op">=</span><span class="st">"period_month_idx"</span>, value<span class="op">=</span>train_period_month_idx, dims<span class="op">=</span><span class="st">"obs"</span></span>
-<span id="cb1-10"><a href="#cb1-10"></a>    )</span>
-<span id="cb1-11"><a href="#cb1-11"></a>    n_users <span class="op">=</span> pm.MutableData(name<span class="op">=</span><span class="st">"n_users"</span>, value<span class="op">=</span>train_n_users, dims<span class="op">=</span><span class="st">"obs"</span>)</span>
-<span id="cb1-12"><a href="#cb1-12"></a>    n_active_users <span class="op">=</span> pm.MutableData(</span>
-<span id="cb1-13"><a href="#cb1-13"></a>        name<span class="op">=</span><span class="st">"n_active_users"</span>, value<span class="op">=</span>train_n_active_users, dims<span class="op">=</span><span class="st">"obs"</span></span>
-<span id="cb1-14"><a href="#cb1-14"></a>    )</span>
-<span id="cb1-15"><a href="#cb1-15"></a></span>
-<span id="cb1-16"><a href="#cb1-16"></a>    <span class="co"># --- Priors ---</span></span>
-<span id="cb1-17"><a href="#cb1-17"></a>    intercept <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"intercept"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb1-18"><a href="#cb1-18"></a>    b_age_scaled <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"b_age_scaled"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb1-19"><a href="#cb1-19"></a>    b_cohort_age_scaled <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"b_cohort_age_scaled"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb1-20"><a href="#cb1-20"></a>    b_period_month <span class="op">=</span> pm.ZeroSumNormal(</span>
-<span id="cb1-21"><a href="#cb1-21"></a>        name<span class="op">=</span><span class="st">"b_period_month"</span>, sigma<span class="op">=</span><span class="dv">1</span>, dims<span class="op">=</span><span class="st">"period_month"</span></span>
-<span id="cb1-22"><a href="#cb1-22"></a>    )</span>
-<span id="cb1-23"><a href="#cb1-23"></a>    b_age_cohort_age_interaction <span class="op">=</span> pm.Normal(</span>
-<span id="cb1-24"><a href="#cb1-24"></a>        name<span class="op">=</span><span class="st">"b_age_cohort_age_interaction"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a>    age_scaled <span class="op">=</span> pm.MutableData(</span>
+<span id="cb1-5"><a href="#cb1-5"></a>        name<span class="op">=</span><span class="st">"age_scaled"</span>, value<span class="op">=</span>train_age_scaled, dims<span class="op">=</span><span class="st">"obs"</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a>    )</span>
+<span id="cb1-7"><a href="#cb1-7"></a>    cohort_age_scaled <span class="op">=</span> pm.MutableData(</span>
+<span id="cb1-8"><a href="#cb1-8"></a>        name<span class="op">=</span><span class="st">"cohort_age_scaled"</span>, value<span class="op">=</span>train_cohort_age_scaled, dims<span class="op">=</span><span class="st">"obs"</span></span>
+<span id="cb1-9"><a href="#cb1-9"></a>    )</span>
+<span id="cb1-10"><a href="#cb1-10"></a>    period_month_idx <span class="op">=</span> pm.MutableData(</span>
+<span id="cb1-11"><a href="#cb1-11"></a>        name<span class="op">=</span><span class="st">"period_month_idx"</span>, value<span class="op">=</span>train_period_month_idx, dims<span class="op">=</span><span class="st">"obs"</span></span>
+<span id="cb1-12"><a href="#cb1-12"></a>    )</span>
+<span id="cb1-13"><a href="#cb1-13"></a>    n_users <span class="op">=</span> pm.MutableData(</span>
+<span id="cb1-14"><a href="#cb1-14"></a>        name<span class="op">=</span><span class="st">"n_users"</span>, value<span class="op">=</span>train_n_users, dims<span class="op">=</span><span class="st">"obs"</span></span>
+<span id="cb1-15"><a href="#cb1-15"></a>    )</span>
+<span id="cb1-16"><a href="#cb1-16"></a>    n_active_users <span class="op">=</span> pm.MutableData(</span>
+<span id="cb1-17"><a href="#cb1-17"></a>        name<span class="op">=</span><span class="st">"n_active_users"</span>, value<span class="op">=</span>train_n_active_users, dims<span class="op">=</span><span class="st">"obs"</span></span>
+<span id="cb1-18"><a href="#cb1-18"></a>    )</span>
+<span id="cb1-19"><a href="#cb1-19"></a></span>
+<span id="cb1-20"><a href="#cb1-20"></a>    <span class="co"># --- Priors ---</span></span>
+<span id="cb1-21"><a href="#cb1-21"></a>    intercept <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"intercept"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb1-22"><a href="#cb1-22"></a>    b_age_scaled <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"b_age_scaled"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb1-23"><a href="#cb1-23"></a>    b_cohort_age_scaled <span class="op">=</span> pm.Normal(</span>
+<span id="cb1-24"><a href="#cb1-24"></a>        name<span class="op">=</span><span class="st">"b_cohort_age_scaled"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span></span>
 <span id="cb1-25"><a href="#cb1-25"></a>    )</span>
-<span id="cb1-26"><a href="#cb1-26"></a></span>
-<span id="cb1-27"><a href="#cb1-27"></a>    <span class="co"># --- Parametrization ---</span></span>
-<span id="cb1-28"><a href="#cb1-28"></a>    mu <span class="op">=</span> pm.Deterministic(</span>
-<span id="cb1-29"><a href="#cb1-29"></a>        name<span class="op">=</span><span class="st">"mu"</span>,</span>
-<span id="cb1-30"><a href="#cb1-30"></a>        var<span class="op">=</span>intercept</span>
-<span id="cb1-31"><a href="#cb1-31"></a>        <span class="op">+</span> b_age_scaled <span class="op">*</span> age_scaled</span>
-<span id="cb1-32"><a href="#cb1-32"></a>        <span class="op">+</span> b_cohort_age_scaled <span class="op">*</span> cohort_age_scaled</span>
-<span id="cb1-33"><a href="#cb1-33"></a>        <span class="op">+</span> b_age_cohort_age_interaction <span class="op">*</span> age_scaled <span class="op">*</span> cohort_age_scaled</span>
-<span id="cb1-34"><a href="#cb1-34"></a>        <span class="op">+</span> b_period_month[period_month_idx],</span>
-<span id="cb1-35"><a href="#cb1-35"></a>        dims<span class="op">=</span><span class="st">"obs"</span>,</span>
-<span id="cb1-36"><a href="#cb1-36"></a>    )</span>
-<span id="cb1-37"><a href="#cb1-37"></a></span>
-<span id="cb1-38"><a href="#cb1-38"></a>    p <span class="op">=</span> pm.Deterministic(name<span class="op">=</span><span class="st">"p"</span>, var<span class="op">=</span>pm.math.invlogit(mu), dims<span class="op">=</span><span class="st">"obs"</span>)</span>
-<span id="cb1-39"><a href="#cb1-39"></a></span>
-<span id="cb1-40"><a href="#cb1-40"></a>    <span class="co"># --- Likelihood ---</span></span>
-<span id="cb1-41"><a href="#cb1-41"></a>    pm.Binomial(</span>
-<span id="cb1-42"><a href="#cb1-42"></a>        name<span class="op">=</span><span class="st">"likelihood"</span>,</span>
-<span id="cb1-43"><a href="#cb1-43"></a>        n<span class="op">=</span>n_users,</span>
-<span id="cb1-44"><a href="#cb1-44"></a>        p<span class="op">=</span>p,</span>
-<span id="cb1-45"><a href="#cb1-45"></a>        observed<span class="op">=</span>n_active_users,</span>
-<span id="cb1-46"><a href="#cb1-46"></a>        dims<span class="op">=</span><span class="st">"obs"</span>,</span>
-<span id="cb1-47"><a href="#cb1-47"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-26"><a href="#cb1-26"></a>    b_period_month <span class="op">=</span> pm.ZeroSumNormal(</span>
+<span id="cb1-27"><a href="#cb1-27"></a>        name<span class="op">=</span><span class="st">"b_period_month"</span>, sigma<span class="op">=</span><span class="dv">1</span>, dims<span class="op">=</span><span class="st">"period_month"</span></span>
+<span id="cb1-28"><a href="#cb1-28"></a>    )</span>
+<span id="cb1-29"><a href="#cb1-29"></a>    b_age_cohort_age_interaction <span class="op">=</span> pm.Normal(</span>
+<span id="cb1-30"><a href="#cb1-30"></a>        name<span class="op">=</span><span class="st">"b_age_cohort_age_interaction"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb1-31"><a href="#cb1-31"></a>    )</span>
+<span id="cb1-32"><a href="#cb1-32"></a></span>
+<span id="cb1-33"><a href="#cb1-33"></a>    <span class="co"># --- Parametrization ---</span></span>
+<span id="cb1-34"><a href="#cb1-34"></a>    mu <span class="op">=</span> pm.Deterministic(</span>
+<span id="cb1-35"><a href="#cb1-35"></a>        name<span class="op">=</span><span class="st">"mu"</span>,</span>
+<span id="cb1-36"><a href="#cb1-36"></a>        var<span class="op">=</span>intercept</span>
+<span id="cb1-37"><a href="#cb1-37"></a>        <span class="op">+</span> b_age_scaled <span class="op">*</span> age_scaled</span>
+<span id="cb1-38"><a href="#cb1-38"></a>        <span class="op">+</span> b_cohort_age_scaled <span class="op">*</span> cohort_age_scaled</span>
+<span id="cb1-39"><a href="#cb1-39"></a>        <span class="op">+</span> b_age_cohort_age_interaction <span class="op">*</span> age_scaled <span class="op">*</span> cohort_age_scaled</span>
+<span id="cb1-40"><a href="#cb1-40"></a>        <span class="op">+</span> b_period_month[period_month_idx],</span>
+<span id="cb1-41"><a href="#cb1-41"></a>        dims<span class="op">=</span><span class="st">"obs"</span>,</span>
+<span id="cb1-42"><a href="#cb1-42"></a>    )</span>
+<span id="cb1-43"><a href="#cb1-43"></a></span>
+<span id="cb1-44"><a href="#cb1-44"></a>    p <span class="op">=</span> pm.Deterministic(name<span class="op">=</span><span class="st">"p"</span>, var<span class="op">=</span>pm.math.invlogit(mu), dims<span class="op">=</span><span class="st">"obs"</span>)</span>
+<span id="cb1-45"><a href="#cb1-45"></a></span>
+<span id="cb1-46"><a href="#cb1-46"></a>    <span class="co"># --- Likelihood ---</span></span>
+<span id="cb1-47"><a href="#cb1-47"></a>    pm.Binomial(</span>
+<span id="cb1-48"><a href="#cb1-48"></a>        name<span class="op">=</span><span class="st">"likelihood"</span>,</span>
+<span id="cb1-49"><a href="#cb1-49"></a>        n<span class="op">=</span>n_users,</span>
+<span id="cb1-50"><a href="#cb1-50"></a>        p<span class="op">=</span>p,</span>
+<span id="cb1-51"><a href="#cb1-51"></a>        observed<span class="op">=</span>n_active_users,</span>
+<span id="cb1-52"><a href="#cb1-52"></a>        dims<span class="op">=</span><span class="st">"obs"</span>,</span>
+<span id="cb1-53"><a href="#cb1-53"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/retention/">A Simple Cohort Retention Analysis in PyMC</a></p>
 </div>
@@ -619,8 +625,7 @@ N_{\text{active}} \sim &amp; \: \text{Binomial}(N_{\text{total}}, p) \\
 <h2>More Complex Models - Requirements</h2>
 <div>
 <ul>
-<li class="fragment"><p>In many real-world scenarios, the <strong>data is more complex</strong> and the linear model is not enough (still, we could work out useful features).</p></li>
-<li class="fragment"><p>We need a more flexible model that can capture <strong>non-linearities and interactions</strong>.</p></li>
+<li class="fragment"><p>In many real-world scenarios, the <strong>data is more complex</strong> and the linear model is not enough. We need a more flexible model that can capture <strong>non-linearities and interactions</strong>.</p></li>
 <li class="fragment"><p>We care about <strong>uncertainty</strong>.</p></li>
 <li class="fragment"><p>We want to be able to <strong>iterate fast</strong>.</p></li>
 <li class="fragment"><p>Interested in <strong>out-of-sample predictions</strong>.</p></li>
@@ -692,15 +697,14 @@ N_{\text{active}} &amp; \sim \text{Binomial}(N_{\text{total}}, p) \\
 <section id="revenue" class="slide level2">
 <h2>Revenue</h2>
 
+<!-- ## Revenue per User (cohort)
+
+![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_27_1.png){fig-align="center"}
+
+## Revenue per Active User
+
+![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_25_1.png){fig-align="center"} -->
 <img data-src="images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_23_1.png" class="r-stretch quarto-figure-center"></section>
-<section id="revenue-per-user-cohort" class="slide level2">
-<h2>Revenue per User (cohort)</h2>
-
-<img data-src="images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_27_1.png" class="r-stretch quarto-figure-center"></section>
-<section id="revenue-per-active-user" class="slide level2">
-<h2>Revenue per Active User</h2>
-
-<img data-src="images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_25_1.png" class="r-stretch quarto-figure-center"></section>
 <section id="cohort-revenue-retention-model" class="slide level2">
 <h2>Cohort Revenue-Retention Model</h2>
 <div class="cell" data-reveal="true" data-fig-height="6" data-fig-width="10" data-layout-align="center">
@@ -855,14 +859,14 @@ flowchart TD
 <section id="open-source-packages" class="slide level2">
 <h2>Open Source Packages</h2>
 <div class="rows">
-<div class="row" width="50%">
+<div class="row" width="30%">
 <div class="quarto-figure quarto-figure-center">
 <figure>
 <p><img data-src="images/revenue_retention_presentation_files/pymc_bart.png"></p>
 </figure>
 </div>
 </div>
-<div class="row" width="50%">
+<div class="row" width="70%">
 <div class="quarto-figure quarto-figure-center">
 <figure>
 <p><img data-src="images/revenue_retention_presentation_files/pymc_marketing.png"></p>

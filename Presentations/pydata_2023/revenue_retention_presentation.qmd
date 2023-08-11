@@ -87,15 +87,16 @@ Predict the retention of each user individually and then aggregate the results.
 
 ::: incremental
 
-1. An individual remains a customer of the company with constant retention probability $1 - \theta$. This is equivalent to assuming that the duration of the customer’s relationship with the company, denoted by the
-random variable $T$, is characterized by the (shifted) geometric distribution with probability mass
-function and survivor function given by
+1. An individual remains a customer of the company with constant retention probability $1 - \theta$.
+This is equivalent to assuming that the duration of the customer’s relationship with the company, denoted by the random
+variable $T$, is characterized by the (shifted) geometric distribution with probability mass function and survivor
+function given by
 
     $$f(t) = \theta (1 - \theta)^{t - 1}, \quad t = 1, 2, \ldots$$
 
     $$S(t) = \sum_{j = t}^{\infty} f(j) = (1 - \theta)^{t - 1}, \quad t = 1, 2, \ldots$$
 
-2. Heterogeneity in $\theta$ follows a beta distribution $\theta \sim \text{Beta}(a, b)$.
+1. Heterogeneity in $\theta$ follows a beta distribution $\theta \sim \text{Beta}(a, b)$.
 
 :::
 
@@ -184,18 +185,22 @@ where $p$ represents the **retention** and $\text{logit}: (0, 1) \longrightarrow
 
 ## Retention - GLM in PyMC
 
-``` {.python code-line-numbers="|1|2-14|16-25|27-38|40-47"}
+``` {.python code-line-numbers="|1|2-18|20-31|33-44|46-53"}
 with pm.Model(coords=coords) as model:
     # --- Data ---
     model.add_coord(name="obs", values=train_obs_idx, mutable=True)
-    age_scaled = pm.MutableData(name="age_scaled", value=train_age_scaled, dims="obs")
+    age_scaled = pm.MutableData(
+        name="age_scaled", value=train_age_scaled, dims="obs"
+    )
     cohort_age_scaled = pm.MutableData(
         name="cohort_age_scaled", value=train_cohort_age_scaled, dims="obs"
     )
     period_month_idx = pm.MutableData(
         name="period_month_idx", value=train_period_month_idx, dims="obs"
     )
-    n_users = pm.MutableData(name="n_users", value=train_n_users, dims="obs")
+    n_users = pm.MutableData(
+        name="n_users", value=train_n_users, dims="obs"
+    )
     n_active_users = pm.MutableData(
         name="n_active_users", value=train_n_active_users, dims="obs"
     )
@@ -203,7 +208,9 @@ with pm.Model(coords=coords) as model:
     # --- Priors ---
     intercept = pm.Normal(name="intercept", mu=0, sigma=1)
     b_age_scaled = pm.Normal(name="b_age_scaled", mu=0, sigma=1)
-    b_cohort_age_scaled = pm.Normal(name="b_cohort_age_scaled", mu=0, sigma=1)
+    b_cohort_age_scaled = pm.Normal(
+        name="b_cohort_age_scaled", mu=0, sigma=1
+    )
     b_period_month = pm.ZeroSumNormal(
         name="b_period_month", sigma=1, dims="period_month"
     )
@@ -280,9 +287,8 @@ with pm.Model(coords=coords) as model:
 
 ::: incremental
 
-- In many real-world scenarios, the **data is more complex** and the linear model is not enough (still, we could work out useful features).
-
-- We need a more flexible model that can capture **non-linearities and interactions**.
+- In many real-world scenarios, the **data is more complex** and the linear model is not enough.
+We need a more flexible model that can capture **non-linearities and interactions**.
 
 - We care about **uncertainty**.
 
@@ -374,13 +380,13 @@ with pm.Model() as model
 
 ![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_23_1.png){fig-align="center"}
 
-## Revenue per User (cohort)
+<!-- ## Revenue per User (cohort)
 
 ![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_27_1.png){fig-align="center"}
 
 ## Revenue per Active User
 
-![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_25_1.png){fig-align="center"}
+![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_25_1.png){fig-align="center"} -->
 
 
 ## Cohort Revenue-Retention Model
@@ -540,10 +546,10 @@ x = pm.Gamma(
 ##  Open Source Packages
 
 ::: rows
-::: {.row width="50%"}
+::: {.row width="30%"}
 ![](images/revenue_retention_presentation_files/pymc_bart.png){fig-align="center"}
 :::
-::: {.row width="50%"}
+::: {.row width="70%"}
 ![](images/revenue_retention_presentation_files/pymc_marketing.png){fig-align="center"}
 :::
 :::
