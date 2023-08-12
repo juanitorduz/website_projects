@@ -8,7 +8,7 @@ author:
       - name: Mathematician & Data Scientist
 format:
   revealjs:
-    logo: images/revenue_retention_presentation_files/juanitorduz_logo.gif
+    logo: revenue_retention_presentation_files/images/revenue_retention_presentation_files/juanitorduz_logo.gif
     transition: none
     slide-number: true
     chalkboard: 
@@ -65,7 +65,7 @@ format:
 
 ## Number of Active Users
 
-![](images/revenue_retention_presentation_files/retention_files/retention_11_1.png){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/retention_files/retention_11_1.png){fig-align="center"}
 
 ::: footer
 [A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
@@ -73,7 +73,7 @@ format:
 
 ## Retention Matrix
 
-![](images/revenue_retention_presentation_files/retention_files/retention_14_1.png){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/retention_files/retention_14_1.png){fig-align="center"}
 
 ::: footer
 [A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
@@ -106,7 +106,7 @@ See [How to Project Customer Retention](https://www.brucehardie.com/notes/025/)
 
 ## Shifted Beta Geometric - Survival Function
 
-![](images/revenue_retention_presentation_files/sBG_survival.png){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/sBG_survival.png){fig-align="center"}
 
 ::: footer
 See [`pymc-marketing`](https://www.pymc-marketing.io/en/stable/) example [here](https://www.pymc-marketing.io/en/latest/notebooks/clv/sBG.html).
@@ -137,7 +137,7 @@ See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NB
 
 ## BG/NBD - Probability of Alive 
 
-![](images/revenue_retention_presentation_files/p_alive.png){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/p_alive.png){fig-align="center"}
 
 ::: footer
 See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [CLV Quickstart](https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html)
@@ -145,7 +145,7 @@ See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [CLV Quicks
 
 ## Retention Matrix {.smaller}
 
-![](images/revenue_retention_presentation_files/retention_files/retention_14_1.png){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/retention_files/retention_14_1.png){fig-align="center"}
 
 - **Cohort Age:** Age of the cohort in months.
 - **Age:** Age of the cohort with respect to the observation time.
@@ -153,7 +153,7 @@ See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [CLV Quicks
 
 ## Retention Over Time (period)
 
-![](images/revenue_retention_presentation_files/retention_files/retention_15_1.png){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/retention_files/retention_15_1.png){fig-align="center"}
 
 
 ## Retention - Generalized Linear Model
@@ -176,7 +176,7 @@ where $p$ represents the **retention** and $\text{logit}: (0, 1) \longrightarrow
 
 ## Retention - GLM in PyMC
 
-![](images/revenue_retention_presentation_files/retention_files/retention_27_0.svg){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/retention_files/retention_27_0.svg){fig-align="center"}
 
 
 ::: footer
@@ -247,7 +247,7 @@ with pm.Model(coords=coords) as model:
 
 ## Posterior Distribution
 
-![](images/revenue_retention_presentation_files/retention_files/retention_33_1.png){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/retention_files/retention_33_1.png){fig-align="center"}
 
 
 ::: footer
@@ -256,7 +256,7 @@ with pm.Model(coords=coords) as model:
 
 ## Posterior Predictive Check
 
-![](images/revenue_retention_presentation_files/retention_files/retention_36_1.png){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/retention_files/retention_36_1.png){fig-align="center"}
 
 
 ::: footer
@@ -265,7 +265,7 @@ with pm.Model(coords=coords) as model:
 
 ## In-Sample Predictions
 
-![](images/revenue_retention_presentation_files/retention_files/retention_40_1.png){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/retention_files/retention_40_1.png){fig-align="center"}
 
 
 ::: footer
@@ -274,7 +274,7 @@ with pm.Model(coords=coords) as model:
 
 ## Out-of-Sample Predictions
 
-![](images/revenue_retention_presentation_files/retention_files/retention_50_1.png){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/retention_files/retention_50_1.png){fig-align="center"}
 
 
 ::: footer
@@ -350,7 +350,7 @@ with pm.Model() as model
 
 :::
 ::: {.column width="30%"}
-![](images/revenue_retention_presentation_files/retention_bart_files/retention_bart_17_1.svg){.absolute top=0 right=0 width=300 height=700}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/retention_bart_files/retention_bart_17_1.svg){.absolute top=0 right=0 width=300 height=700}
 :::
 :::
 
@@ -360,7 +360,7 @@ with pm.Model() as model
 
 ## PDP Plot
 
-![](images/revenue_retention_presentation_files/retention_bart_files/retention_bart_31_2.png){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/retention_bart_files/retention_bart_31_2.png){fig-align="center"}
 
 ::: footer
 [Cohort Retention Analysis with BART](https://juanitorduz.github.io/retention_bart/)
@@ -368,7 +368,7 @@ with pm.Model() as model
 
 ## ICE Plot
 
-![](images/revenue_retention_presentation_files/retention_bart_files/retention_bart_32_1.png){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/retention_bart_files/retention_bart_32_1.png){fig-align="center"}
 
 ::: footer
 [Cohort Retention Analysis with BART](https://juanitorduz.github.io/retention_bart/)
@@ -378,7 +378,7 @@ with pm.Model() as model
 
 ## Revenue
 
-![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_23_1.png){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_23_1.png){fig-align="center"}
 
 <!-- ## Revenue per User (cohort)
 
@@ -461,17 +461,17 @@ x = pm.Gamma(
 
 ## Cohort Revenue-Retention Model
 
-![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_33_1.svg){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_33_1.svg){fig-align="center"}
 
 
 ##  Revenue-Retention - Predictions
 
 ::: columns
 ::: {.column width="50%"}
-![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_66_1.png){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_66_1.png){fig-align="center"}
 :::
 ::: {.column width="50%"}
-![](images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_68_1.png){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/revenue_retention_files/revenue_retention_68_1.png){fig-align="center"}
 :::
 :::
 
@@ -547,10 +547,10 @@ x = pm.Gamma(
 
 ::: rows
 ::: {.row width="30%"}
-![](images/revenue_retention_presentation_files/pymc_bart.png){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/pymc_bart.png){fig-align="center"}
 :::
 ::: {.row width="70%"}
-![](images/revenue_retention_presentation_files/pymc_marketing.png){fig-align="center"}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/pymc_marketing.png){fig-align="center"}
 :::
 :::
 
@@ -561,4 +561,4 @@ x = pm.Gamma(
 
 [juanitorduz.github.io](https://juanitorduz.github.io/)
 
-![](images/revenue_retention_presentation_files/juanitorduz.png){.absolute top=0 right=0 width=600 height=600}
+![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/juanitorduz.png){.absolute top=0 right=0 width=600 height=600}
