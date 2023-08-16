@@ -8,7 +8,7 @@
 <link href="revenue_retention_presentation_files/libs/quarto-html/light-border.css" rel="stylesheet">
 <link href="revenue_retention_presentation_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
 <link href="revenue_retention_presentation_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.3.353">
+  <meta name="generator" content="quarto-1.3.433">
 
   <meta name="author" content="Dr.&nbsp;Juan Orduz">
   <title>Cohort Revenue &amp; Retention Analysis: A Bayesian Approach</title>
@@ -459,8 +459,8 @@
 <div>
 <ol type="1">
 <li class="fragment"><p>An individual remains a customer of the company with constant retention probability <span class="math inline">\(1 - \theta\)</span>. This is equivalent to assuming that the duration of the customer’s relationship with the company, denoted by the random variable <span class="math inline">\(T\)</span>, is characterized by the (shifted) geometric distribution with probability mass function and survivor function given by</p>
-<p><span class="math display">\[f(t) = \theta (1 - \theta)^{t - 1}, \quad t = 1, 2, \ldots\]</span></p>
-<p><span class="math display">\[S(t) = \sum_{j = t}^{\infty} f(j) = (1 - \theta)^{t - 1}, \quad t = 1, 2, \ldots\]</span></p></li>
+<p><span class="math display">\[f(T=t|\theta) = \theta (1 - \theta)^{t - 1}, \quad t = 1, 2, \ldots\]</span></p>
+<p><span class="math display">\[S(t) = \sum_{j = t}^{\infty} f(T=j|\theta) = (1 - \theta)^{t}, \quad t = 1, 2, \ldots\]</span></p></li>
 <li class="fragment"><p>Heterogeneity in <span class="math inline">\(\theta\)</span> follows a beta distribution <span class="math inline">\(\theta \sim \text{Beta}(a, b)\)</span>.</p></li>
 </ol>
 </div>

@@ -92,9 +92,9 @@ This is equivalent to assuming that the duration of the customer’s relationshi
 variable $T$, is characterized by the (shifted) geometric distribution with probability mass function and survivor
 function given by
 
-    $$f(t) = \theta (1 - \theta)^{t - 1}, \quad t = 1, 2, \ldots$$
+    $$f(T=t|\theta) = \theta (1 - \theta)^{t - 1}, \quad t = 1, 2, \ldots$$
 
-    $$S(t) = \sum_{j = t}^{\infty} f(j) = (1 - \theta)^{t - 1}, \quad t = 1, 2, \ldots$$
+    $$S(t) = \sum_{j = t}^{\infty} f(T=j|\theta) = (1 - \theta)^{t}, \quad t = 1, 2, \ldots$$
 
 1. Heterogeneity in $\theta$ follows a beta distribution $\theta \sim \text{Beta}(a, b)$.
 
