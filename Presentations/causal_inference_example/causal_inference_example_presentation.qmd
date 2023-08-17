@@ -210,6 +210,9 @@ The data simulation process is based on a true ATE of $2\$$.
 
 ![](https://media.giphy.com/media/HteV6g0QTNxp6/giphy.gif)
 
+::: footer
+:::
+
 ## Draw the causal DAG
 
 ::: columns
@@ -233,6 +236,30 @@ The data simulation process is based on a true ATE of $2\$$.
 :::
 
 :::
+
+## do-calculus ([Judea Pearl](https://en.wikipedia.org/wiki/Judea_Pearl))
+
+::: columns
+
+::: {.column width="65%"}
+
+- The framework allows us to transform interventional queries into purely statistical expressions, **given a graphical description of a system of interest.**
+
+- Under certain circumstances allows us to identify causal quantities from observational or mixed observational-interventional data.
+
+:::
+
+::: {.column width="35%"}
+
+![](causal_inference_example_presentation_files/images/causality_book.jpg){fig-align="center" width="400"}
+
+:::
+
+:::
+
+::: footer
+:::
+
 
 ## Causal Linear Regression Model
 
@@ -291,9 +318,21 @@ print(f"confidence interval: {estimate.get_confidence_intervals()}")
 > confidence interval: [[1.51720297 2.1938026 ]]
 ```
 
+##
+
+![](causal_inference_example_presentation_files/images/causal_hierarchy.jpeg){fig-align="center" width="400"}
+
+::: footer
+:::
+
+
 ## Please draw the DAG !
 
 ![](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNGFubnRnMG0wdDY3OHBmbGt2N2tnYzNicnNhaHZ1eml0emNwYnFxcCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/pzuye8RSBJFgk/giphy.gif)
+
+
+::: footer
+:::
 
 ## References {.smaller}
 
