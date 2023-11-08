@@ -1,5 +1,8 @@
 ---
 title: "Cohort Revenue & Retention Analysis: A Bayesian Approach"
+title-slide-attributes:
+  data-background-image: revenue_retention_presentation_files/images/revenue_retention_presentation_files/juanitorduz_logo_small.png
+  data-background-opacity: "0.2"
 subtitle: PyData Berlin - July 2023
 author: 
   - name: Dr. Juan Orduz
@@ -8,7 +11,7 @@ author:
       - name: Mathematician & Data Scientist
 format:
   revealjs:
-    logo: revenue_retention_presentation_files/images/revenue_retention_presentation_files/juanitorduz_logo.gif
+    logo: revenue_retention_presentation_files/images/revenue_retention_presentation_files/juanitorduz_logo_small.png
     transition: none
     slide-number: true
     chalkboard: 
@@ -309,7 +312,7 @@ We need a more flexible model that can capture **non-linearities and interaction
 
 - Bayesian **"sum-of-trees”** model where each tree is constrained by a regularization prior to be a weak learner.
 
-- To fit the sum-of-trees model, BART uses a tailored version of Bayesian backfitting MCMC that **iteratively constructs and fits successive residuals**.
+- To fit the sum-of-trees model, BART uses **PGBART**, an inference algorithm based on the particle Gibbs method.
 
 - BART depends on the **number of trees** $m\in \mathbb{N}$ and **prior parameters** $\alpha \in (0, 1)$ and $\beta \in [0, \infty)$ so that the probability that a node at depth $d \in \mathbb{N}_{0}$ is nonterminal is 
 $\alpha(1 + d)^{-\beta}$.
@@ -318,7 +321,7 @@ $\alpha(1 + d)^{-\beta}$.
 :::
 
 ::: footer
-[BART: Bayesian additive regression trees](https://projecteuclid.org/journals/annals-of-applied-statistics/volume-4/issue-1/BART-Bayesian-additive-regression-trees/10.1214/09-AOAS285.full)
+See [BART: Bayesian additive regression trees](https://projecteuclid.org/journals/annals-of-applied-statistics/volume-4/issue-1/BART-Bayesian-additive-regression-trees/10.1214/09-AOAS285.full) and [Bayesian additive regression trees for probabilistic programming](https://arxiv.org/abs/2206.03619)
 :::
 
 ## BART Retention Model
