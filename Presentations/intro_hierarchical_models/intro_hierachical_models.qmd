@@ -43,7 +43,10 @@ format:
 
 ## Price Elasticity
 
-The elasticity of a variable $y(x, z)$ with respect to another variable $x$ is defined as the percentage change in $y$ for a one percent change in $x$.  Mathematically, this is written as 
+The elasticity of a variable $y(x, z)$ with respect to another variable $x$ is defined
+as the percentage change in $y$ for a one percent change in $x$.  Mathematically, this
+is written as
+
 $$
 \eta = \frac{\partial \log(y(x, z))}{\partial \log(x)}
 $$
@@ -86,10 +89,10 @@ Median income has an effect on price.
 
 ![](intro_hierachical_models_files/images/unpooled_model.png){fig-align="center"}
 
-We fit a linear model for each region separately:
+We fit a linear model for each region $j \in \{ 0,\cdots, 8 \}$ separately:
 
 $$
-\log(q_{r}) = \beta_{r} \log(p_{r}) + \varepsilon_{r}
+\log(q_{j}) = \alpha_{j} + \beta_{j} \log(p_{j}) + \varepsilon_{j}
 $$
 
 ::: footer
@@ -136,6 +139,49 @@ with pm.Model(coords=coords) as base_model:
 [Plate Notation](https://en.wikipedia.org/wiki/Plate_notation)
 :::
 
+## Sampling Engine
+
+``` {.python}
+rng: np.random.Generator = np.random.default_rng(seed=seed)
+
+with base_model:
+
+    idata_base = pm.sample(
+        target_accept=0.9,
+        draws=6_000,  # <- Total number of samples (per chain)
+        chains=5,  # <- Independent chains to sample in parallel
+        nuts_sampler="numpyro",  # <- Numpyro (JAX) NUTS sampler
+        random_seed=rng,  # <- Make results reproducible
+        idata_kwargs={"log_likelihood": True},
+    )
+
+    posterior_predictive_base = pm.sample_posterior_predictive(
+        trace=idata_base, random_seed=rng
+    )
+```
+
+::: {style="font-size: 60%;"}
+
+> Hamiltonian Monte Carlo is a type of MCMC method that makes use of gradients to
+> generate new proposed states. The gradients of the log-probability of the posterior
+> evaluated at some state provide information on the geometry of the posterior density
+> function.
+
+:::
+
+::: footer
+See [Bayesian Modeling and Computation in Python, Chapter 11.9: Inference Methods](https://bayesiancomputationbook.com/markdown/chp_11.html#inference-methods)
+:::
+
+## Model Diagnostics
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_43_1.png){fig-align="center" height="600"}
+
+::: footer
+See [Bayesian Modeling and Computation in Python, Chapter 9: End-to-End Bayesian Workflows](https://bayesiancomputationbook.com/markdown/chp_09.html#end-to-end-bayesian-workflows)
+:::
+
+
 ## Base Model - Elasticities
 
 ![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_45_1.png){fig-align="center" height="600"}
@@ -143,3 +189,137 @@ with pm.Model(coords=coords) as base_model:
 ## Base Model - Posterior Predictive
 
 ![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_47_2.png){fig-align="center" height="620"}
+
+## Hierarchical Model
+
+![](intro_hierachical_models_files/images/partial_pooled_model.png){fig-align="center" height="250"}
+
+$$
+\begin{align*}
+\log(q_{i}) & ~ \text{Normal}(\mu_{i}, \sigma) \\
+\mu_{i}& \sim \text{Normal}(\alpha_{j} + \beta_{j} \log(p_{j}), \sigma_{j}) \\
+\alpha_{j} & \sim \text{Normal}(\mu_{\alpha}, \sigma_{\alpha}) \\
+\beta_{j} & \sim \text{Normal}(\mu_{\beta}, \sigma_{\beta})
+\end{align*}
+$$
+
+::: footer
+See [Bayesian Modeling and Computation in Python, Chapter 4.6: Hierarchical Models](https://bayesiancomputationbook.com/markdown/chp_04.html#hierarchical-models)
+:::
+
+## Hierarchical Model - Pooled (PyMC)
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_50_0.svg)
+
+## Posterior Geometry Matters
+
+![Certain posterior geometries are challenging for samplers, a common example is Neal’s Funnel. In complex geometries, in the inference algorithm a step size that works well in one area, fails miserably in another.](intro_hierachical_models_files/images/neals_funnel.png){fig-align="center"}
+
+::: footer
+See [Bayesian Modeling and Computation in Python, Chapter 4.6.1: Posterior Geometry Matters](https://bayesiancomputationbook.com/markdown/chp_04.html#posterior-geometry-matters)
+:::
+
+## Non-Ceneter Parametrization {.smaller}
+
+### Ceneterd Parametrization
+
+$$
+\begin{align*}
+\beta \sim \text{Normal}(\mu_{\beta}, \sigma_{\beta})
+\end{align*}
+$$
+
+### Non-Ceneter Parametrization
+
+$$
+\begin{align*}
+z \sim \text{Normal}(0, 1) \\
+\beta_{j} = \mu_{\beta} + z\sigma_{\beta}
+\end{align*}
+$$
+
+> The key difference is that instead of estimating parameters of the slope directly, it
+> is instead modeled as a common term shared between all groups and a term for each
+> group that captures the deviation from the common term. This modifies the posterior
+> geometry in a manner that allows the sampler to more easily explore all possible
+> values of the parameters.
+
+::: footer
+See [Bayesian Modeling and Computation in Python, Chapter 4.6.1: Posterior Geometry Matters](https://bayesiancomputationbook.com/markdown/chp_04.html#posterior-geometry-matters)
+:::
+
+## Shrinkage Effect
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_63_1.png){fig-align="center"}
+
+## Posterior Predictive
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_65_2.png){fig-align="center" height="620"}
+
+## Hierarchical Model with Correlated Random Effects
+
+::: columns
+
+::: {.column width="50%"}
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_67_0.svg){fig-align="center" height="550"}
+
+:::
+
+::: {.column width="50%"}
+
+- We model the correlation between the intercepts and the slopes as they are not independent.
+
+- The sampler runs $5x$ faster than the non-correlated model.
+
+:::
+
+:::
+
+## Sampling Covariances
+
+``` {.python code-line-numbers="|7-10|12-17|19-22"}
+import pymc as pm
+import pytensor.tensor as pt
+
+
+with pm.Model(coords=coords) as model_cov:
+    ...
+    sd_dist = pm.HalfNormal.dist(sigma=0.02, shape=2)
+    chol, corr, sigmas = pm.LKJCholeskyCov(
+        name="chol_cov", eta=2, n=2, sd_dist=sd_dist
+    )
+
+    z_slopes = pm.Normal(
+        name="z_slopes",
+        mu=0,
+        sigma=1,
+        dims=("effect", "region")
+    )
+    
+    slopes = pm.Deterministic(
+        name="slopes",
+        var=pt.dot(chol, z_slopes).T,
+        dims=("region", "effect")
+    )
+```
+
+## Model Comparison
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_80_1.png){fig-align="center" height="620"}
+
+## Intercepts Comparison
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_84_1.png){fig-align="center" height="620"}
+
+## Slopes (Elasticities) Comparison
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_86_1.png){fig-align="center" height="620"}
+
+## Thank you!
+
+[juanitorduz.github.io](https://juanitorduz.github.io/)
+
+All data and code are available on the blog post [**Multilevel Elasticities for a Single SKU**](https://juanitorduz.github.io/multilevel_elasticities_single_sku/)
+
+![](intro_hierachical_models_files/images/juanitorduz.png){.absolute bottom=0 left=0 height=400}
