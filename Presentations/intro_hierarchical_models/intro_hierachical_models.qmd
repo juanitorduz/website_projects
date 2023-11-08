@@ -1,0 +1,145 @@
+---
+title: "Introduction to Hierarchical Models"
+title-slide-attributes:
+  data-background-image: intro_hierachical_models_files/images/trace.png
+  data-background-opacity: "0.15"
+subtitle: Multilevel Elasticities for a Single SKU
+author: 
+  - name: Dr. Juan Orduz
+    url: https://juanitorduz.github.io/
+    affiliations:
+      - name: Mathematician & Data Scientist
+format:
+  revealjs:
+    css: style.css
+    logo: intro_hierachical_models_files/images/wolt_logo.png
+    transition: none
+    slide-number: true
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    theme:
+        - white
+    highlight-style: github-dark
+---
+
+## Resources {.smaller}
+
+### Blogs
+
+- [Introduction to Bayesian Modeling with PyMC](https://juanitorduz.github.io/intro_pymc3/)
+
+- [PyMC Examples Galery](https://www.pymc.io/projects/examples/en/latest/gallery.html)
+  - [A Primer on Bayesian Methods for Multilevel Modeling](https://www.pymc.io/projects/examples/en/latest/case_studies/multilevel_modeling.html)
+
+### Videos
+
+- [Developing Hierarchical Models for Sports Analytics](https://www.youtube.com/watch?v=Fa64ApS0qig)
+
+### Books
+
+- [Bayesian Modeling and Computation in Python](https://bayesiancomputationbook.com/welcome.html)
+- [Statistical Rethinking](https://xcelab.net/rm/statistical-rethinking/)
+
+## Price Elasticity
+
+The elasticity of a variable $y(x, z)$ with respect to another variable $x$ is defined as the percentage change in $y$ for a one percent change in $x$.  Mathematically, this is written as 
+$$
+\eta = \frac{\partial \log(y(x, z))}{\partial \log(x)}
+$$
+
+::: incremental
+
+ - **Example (log-log model):**
+If f $y(x) = ax^{b}$, then $\log(y(x)) = \log(a) + b\log(x)$ then $\eta = b$.
+
+- **Example (linear model):**
+If  $y = a + bx$, by the chain rule: $\eta = \frac{\partial \log(y(x))}{\partial \log(x)} = \frac{1}{y(x)}\frac{\partial y(x)}{\partial \log(x)} = \frac{1}{y(x)}x\frac{\partial y(x)}{\partial x} = \frac{xb}{y(x)}$
+
+:::
+
+## Case Study: Single SKU
+
+Price and quantities for a single SKU across stores in $9$ regions.
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_20_1.png){fig-align="center" height="520"}
+
+::: footer
+[Multilevel Elasticities for a Single SKU](https://juanitorduz.github.io/multilevel_elasticities_single_sku/)
+:::
+
+## Price vs Quantities
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_23_2.png){fig-align="center" height="620"}
+
+## Region Median Income
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_27_1.png){fig-align="center" height="620"}
+
+## Region Elasticities
+
+Median income has an effect on price.
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_25_2.png){fig-align="center" height="550"}
+
+## Beline Model - Unpooled
+
+![](intro_hierachical_models_files/images/unpooled_model.png){fig-align="center"}
+
+We fit a linear model for each region separately:
+
+$$
+\log(q_{r}) = \beta_{r} \log(p_{r}) + \varepsilon_{r}
+$$
+
+::: footer
+See [Bayesian Modeling and Computation in Python, Chapter 4.5.1: Unpooled Parameters](https://bayesiancomputationbook.com/markdown/chp_04.html#unpooled-parameters)
+:::
+
+## Beline Model - Pooled (PyMC)
+
+``` {.python code-line-numbers="|1|3|4-7|9-18|20-27"}
+coords = {"region": region, "obs": obs}
+
+with pm.Model(coords=coords) as base_model:
+    # --- Priors ---
+    alpha_j = pm.Normal(name="alpha_j", mu=0, sigma=1.5, dims="region")
+    beta_j = pm.Normal(name="beta_j", mu=0, sigma=1.5, dims="region")
+    sigma = pm.Exponential(name="sigma", lam=1 / 0.5)
+    
+    # --- Parametrization ---
+    alpha = pm.Deterministic(
+        name="alpha", var=alpha_j[region_idx], dims="obs"
+    )
+    beta = pm.Deterministic(
+        name="beta", var=beta_j[region_idx], dims="obs"
+    )
+    mu = pm.Deterministic(
+        name="mu", var=alpha + beta * log_price, dims="obs"
+    )
+    
+    # --- Likelihood ---
+    pm.Normal(
+        name="likelihood",
+        mu=mu,
+        sigma=sigma,
+        observed=log_quantities,
+        dims="obs"
+    )
+```
+
+## Beline Model - Pooled (Plate Notation)
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_33_0.svg){fig-align="center" height="600"}
+
+::: footer
+[Plate Notation](https://en.wikipedia.org/wiki/Plate_notation)
+:::
+
+## Base Model - Elasticities
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_45_1.png){fig-align="center" height="600"}
+
+## Base Model - Posterior Predictive
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_47_2.png){fig-align="center" height="620"}
