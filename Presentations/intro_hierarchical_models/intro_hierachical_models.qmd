@@ -196,8 +196,8 @@ See [Bayesian Modeling and Computation in Python, Chapter 9: End-to-End Bayesian
 
 $$
 \begin{align*}
-\log(q_{i}) & ~ \text{Normal}(\mu_{i}, \sigma) \\
-\mu_{i}& \sim \text{Normal}(\alpha_{j} + \beta_{j} \log(p_{j}), \sigma_{j}) \\
+\log(q_{j}) & ~ \text{Normal}(\mu_{j}, \sigma) \\
+\mu_{j}& \sim \text{Normal}(\alpha_{j} + \beta_{j} \log(p_{j}), \sigma_{j}) \\
 \alpha_{j} & \sim \text{Normal}(\mu_{\alpha}, \sigma_{\alpha}) \\
 \beta_{j} & \sim \text{Normal}(\mu_{\beta}, \sigma_{\beta})
 \end{align*}
@@ -213,7 +213,7 @@ See [Bayesian Modeling and Computation in Python, Chapter 4.6: Hierarchical Mode
 
 ## Posterior Geometry Matters
 
-![Certain posterior geometries are challenging for samplers, a common example is Neal’s Funnel. In complex geometries, in the inference algorithm a step size that works well in one area, fails miserably in another.](intro_hierachical_models_files/images/neals_funnel.png){fig-align="center"}
+![Certain posterior geometries are challenging for samplers, a common example is Neal’sFunnel. In complex geometries, in the inference algorithm a step size that works well in one area, fails miserably in another.](intro_hierachical_models_files/images/neals_funnel.png){fig-align="center"}
 
 ::: footer
 See [Bayesian Modeling and Computation in Python, Chapter 4.6.1: Posterior Geometry Matters](https://bayesiancomputationbook.com/markdown/chp_04.html#posterior-geometry-matters)
