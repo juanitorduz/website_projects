@@ -3,7 +3,7 @@
 [![Open in Visual Studio Code](https://img.shields.io/static/v1?logo=visualstudiocode&label=&message=Open%20in%20Visual%20Studio%20Code&labelColor=2c2c32&color=007acc&logoColor=007acc)](https://open.vscode.dev/juanitorduz/website_projects) [![GitHub stars](https://img.shields.io/github/stars/juanitorduz/website_projects.svg)](https://github.com/juanitorduz/website_projects/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/juanitorduz/website_projects.svg?color=blue)](https://github.com/juanitorduz/website_projects/network)
 
-![Build](https://github.com/juanitorduz/website_projects/workflows/pipenv/badge.svg)
+![Build](https://github.com/juanitorduz/website_projects/workflows/ci/badge.svg)
 
 
 This repository contains the code of the projects presented in my personal website [https://juanitorduz.github.io](https://juanitorduz.github.io).
