@@ -1,0 +1,325 @@
+---
+title: "Introduction to Hierarchical Models"
+title-slide-attributes:
+  data-background-image: intro_hierachical_models_files/images/trace.png
+  data-background-opacity: "0.15"
+subtitle: Multilevel Elasticities for a Single SKU
+author: 
+  - name: Dr. Juan Orduz
+    url: https://juanitorduz.github.io/
+    affiliations:
+      - name: Mathematician & Data Scientist
+format:
+  revealjs:
+    css: style.css
+    logo: intro_hierachical_models_files/images/wolt_logo.png
+    transition: none
+    slide-number: true
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    theme:
+        - white
+    highlight-style: github-dark
+---
+
+## Resources {.smaller}
+
+### Blogs
+
+- [Introduction to Bayesian Modeling with PyMC](https://juanitorduz.github.io/intro_pymc3/)
+
+- [PyMC Examples Galery](https://www.pymc.io/projects/examples/en/latest/gallery.html)
+  - [A Primer on Bayesian Methods for Multilevel Modeling](https://www.pymc.io/projects/examples/en/latest/case_studies/multilevel_modeling.html)
+
+### Videos
+
+- [Developing Hierarchical Models for Sports Analytics](https://www.youtube.com/watch?v=Fa64ApS0qig)
+
+### Books
+
+- [Bayesian Modeling and Computation in Python](https://bayesiancomputationbook.com/welcome.html)
+- [Statistical Rethinking](https://xcelab.net/rm/statistical-rethinking/)
+
+## Price Elasticity
+
+The elasticity of a variable $y(x, z)$ with respect to another variable $x$ is defined
+as the percentage change in $y$ for a one percent change in $x$.  Mathematically, this
+is written as
+
+$$
+\eta = \frac{\partial \log(y(x, z))}{\partial \log(x)}
+$$
+
+::: incremental
+
+ - **Example (log-log model):**
+If f $y(x) = ax^{b}$, then $\log(y(x)) = \log(a) + b\log(x)$ then $\eta = b$.
+
+- **Example (linear model):**
+If  $y = a + bx$, by the chain rule: $\eta = \frac{\partial \log(y(x))}{\partial \log(x)} = \frac{1}{y(x)}\frac{\partial y(x)}{\partial \log(x)} = \frac{1}{y(x)}x\frac{\partial y(x)}{\partial x} = \frac{xb}{y(x)}$
+
+:::
+
+## Case Study: Single SKU
+
+Price and quantities for a single SKU across stores in $9$ regions.
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_20_1.png){fig-align="center" height="520"}
+
+::: footer
+[Multilevel Elasticities for a Single SKU](https://juanitorduz.github.io/multilevel_elasticities_single_sku/)
+:::
+
+## Price vs Quantities
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_23_2.png){fig-align="center" height="620"}
+
+## Region Median Income
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_27_1.png){fig-align="center" height="620"}
+
+## Region Elasticities
+
+Median income has an effect on price.
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_25_2.png){fig-align="center" height="550"}
+
+## Beline Model - Unpooled
+
+![](intro_hierachical_models_files/images/unpooled_model.png){fig-align="center"}
+
+We fit a linear model for each region $j \in \{ 0,\cdots, 8 \}$ separately:
+
+$$
+\log(q_{j}) = \alpha_{j} + \beta_{j} \log(p_{j}) + \varepsilon_{j}
+$$
+
+::: footer
+See [Bayesian Modeling and Computation in Python, Chapter 4.5.1: Unpooled Parameters](https://bayesiancomputationbook.com/markdown/chp_04.html#unpooled-parameters)
+:::
+
+## Beline Model - Pooled (PyMC)
+
+``` {.python code-line-numbers="|1|3|4-7|9-18|20-27"}
+coords = {"region": region, "obs": obs}
+
+with pm.Model(coords=coords) as base_model:
+    # --- Priors ---
+    alpha_j = pm.Normal(name="alpha_j", mu=0, sigma=1.5, dims="region")
+    beta_j = pm.Normal(name="beta_j", mu=0, sigma=1.5, dims="region")
+    sigma = pm.Exponential(name="sigma", lam=1 / 0.5)
+    
+    # --- Parametrization ---
+    alpha = pm.Deterministic(
+        name="alpha", var=alpha_j[region_idx], dims="obs"
+    )
+    beta = pm.Deterministic(
+        name="beta", var=beta_j[region_idx], dims="obs"
+    )
+    mu = pm.Deterministic(
+        name="mu", var=alpha + beta * log_price, dims="obs"
+    )
+    
+    # --- Likelihood ---
+    pm.Normal(
+        name="likelihood",
+        mu=mu,
+        sigma=sigma,
+        observed=log_quantities,
+        dims="obs"
+    )
+```
+
+## Beline Model - Pooled (Plate Notation)
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_33_0.svg){fig-align="center" height="600"}
+
+::: footer
+[Plate Notation](https://en.wikipedia.org/wiki/Plate_notation)
+:::
+
+## Sampling Engine
+
+``` {.python}
+rng: np.random.Generator = np.random.default_rng(seed=seed)
+
+with base_model:
+
+    idata_base = pm.sample(
+        target_accept=0.9,
+        draws=6_000,  # <- Total number of samples (per chain)
+        chains=5,  # <- Independent chains to sample in parallel
+        nuts_sampler="numpyro",  # <- Numpyro (JAX) NUTS sampler
+        random_seed=rng,  # <- Make results reproducible
+        idata_kwargs={"log_likelihood": True},
+    )
+
+    posterior_predictive_base = pm.sample_posterior_predictive(
+        trace=idata_base, random_seed=rng
+    )
+```
+
+::: {style="font-size: 60%;"}
+
+> Hamiltonian Monte Carlo is a type of MCMC method that makes use of gradients to
+> generate new proposed states. The gradients of the log-probability of the posterior
+> evaluated at some state provide information on the geometry of the posterior density
+> function.
+
+:::
+
+::: footer
+See [Bayesian Modeling and Computation in Python, Chapter 11.9: Inference Methods](https://bayesiancomputationbook.com/markdown/chp_11.html#inference-methods)
+:::
+
+## Model Diagnostics
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_43_1.png){fig-align="center" height="600"}
+
+::: footer
+See [Bayesian Modeling and Computation in Python, Chapter 9: End-to-End Bayesian Workflows](https://bayesiancomputationbook.com/markdown/chp_09.html#end-to-end-bayesian-workflows)
+:::
+
+
+## Base Model - Elasticities
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_45_1.png){fig-align="center" height="600"}
+
+## Base Model - Posterior Predictive
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_47_2.png){fig-align="center" height="620"}
+
+## Hierarchical Model
+
+![](intro_hierachical_models_files/images/partial_pooled_model.png){fig-align="center" height="250"}
+
+$$
+\begin{align*}
+\log(q_{i}) & ~ \text{Normal}(\mu_{i}, \sigma) \\
+\mu_{i}& \sim \text{Normal}(\alpha_{j} + \beta_{j} \log(p_{j}), \sigma_{j}) \\
+\alpha_{j} & \sim \text{Normal}(\mu_{\alpha}, \sigma_{\alpha}) \\
+\beta_{j} & \sim \text{Normal}(\mu_{\beta}, \sigma_{\beta})
+\end{align*}
+$$
+
+::: footer
+See [Bayesian Modeling and Computation in Python, Chapter 4.6: Hierarchical Models](https://bayesiancomputationbook.com/markdown/chp_04.html#hierarchical-models)
+:::
+
+## Hierarchical Model - Pooled (PyMC)
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_50_0.svg)
+
+## Posterior Geometry Matters
+
+![Certain posterior geometries are challenging for samplers, a common example is Neal’s Funnel. In complex geometries, in the inference algorithm a step size that works well in one area, fails miserably in another.](intro_hierachical_models_files/images/neals_funnel.png){fig-align="center"}
+
+::: footer
+See [Bayesian Modeling and Computation in Python, Chapter 4.6.1: Posterior Geometry Matters](https://bayesiancomputationbook.com/markdown/chp_04.html#posterior-geometry-matters)
+:::
+
+## Non-Ceneter Parametrization {.smaller}
+
+### Ceneterd Parametrization
+
+$$
+\begin{align*}
+\beta \sim \text{Normal}(\mu_{\beta}, \sigma_{\beta})
+\end{align*}
+$$
+
+### Non-Ceneter Parametrization
+
+$$
+\begin{align*}
+z \sim \text{Normal}(0, 1) \\
+\beta_{j} = \mu_{\beta} + z\sigma_{\beta}
+\end{align*}
+$$
+
+> The key difference is that instead of estimating parameters of the slope directly, it
+> is instead modeled as a common term shared between all groups and a term for each
+> group that captures the deviation from the common term. This modifies the posterior
+> geometry in a manner that allows the sampler to more easily explore all possible
+> values of the parameters.
+
+::: footer
+See [Bayesian Modeling and Computation in Python, Chapter 4.6.1: Posterior Geometry Matters](https://bayesiancomputationbook.com/markdown/chp_04.html#posterior-geometry-matters)
+:::
+
+## Shrinkage Effect
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_63_1.png){fig-align="center"}
+
+## Posterior Predictive
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_65_2.png){fig-align="center" height="620"}
+
+## Hierarchical Model with Correlated Random Effects
+
+::: columns
+
+::: {.column width="50%"}
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_67_0.svg){fig-align="center" height="550"}
+
+:::
+
+::: {.column width="50%"}
+
+- We model the correlation between the intercepts and the slopes as they are not independent.
+
+- The sampler runs $5x$ faster than the non-correlated model.
+
+:::
+
+:::
+
+## Sampling Covariances
+
+``` {.python code-line-numbers="|7-10|12-17|19-22"}
+import pymc as pm
+import pytensor.tensor as pt
+
+
+with pm.Model(coords=coords) as model_cov:
+    ...
+    sd_dist = pm.HalfNormal.dist(sigma=0.02, shape=2)
+    chol, corr, sigmas = pm.LKJCholeskyCov(
+        name="chol_cov", eta=2, n=2, sd_dist=sd_dist
+    )
+
+    z_slopes = pm.Normal(
+        name="z_slopes",
+        mu=0,
+        sigma=1,
+        dims=("effect", "region")
+    )
+    
+    slopes = pm.Deterministic(
+        name="slopes",
+        var=pt.dot(chol, z_slopes).T,
+        dims=("region", "effect")
+    )
+```
+
+## Model Comparison
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_80_1.png){fig-align="center" height="620"}
+
+## Intercepts Comparison
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_84_1.png){fig-align="center" height="620"}
+
+## Slopes (Elasticities) Comparison
+
+![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_86_1.png){fig-align="center" height="620"}
+
+## Thank you!
+
+[juanitorduz.github.io](https://juanitorduz.github.io/)
+
+All data and code are available on the blog post [**Multilevel Elasticities for a Single SKU**](https://juanitorduz.github.io/multilevel_elasticities_single_sku/)
+
+![](intro_hierachical_models_files/images/juanitorduz.png){.absolute bottom=0 left=0 height=400}
