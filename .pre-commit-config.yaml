@@ -3,6 +3,7 @@ repos:
     rev: v0.1.5
     hooks:
       - id: ruff
+        args: [--fix]
       - id: ruff-format
 
   - repo: https://github.com/nbQA-dev/nbQA
