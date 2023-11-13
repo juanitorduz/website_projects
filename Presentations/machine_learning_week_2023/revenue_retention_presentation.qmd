@@ -183,67 +183,6 @@ where $p$ represents the **retention** and $\text{logit}: (0, 1) \longrightarrow
 [A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
 :::
 
-## Retention - GLM in PyMC
-
-``` {.python code-line-numbers="|1|2-18|20-31|33-44|46-53"}
-with pm.Model(coords=coords) as model:
-    # --- Data ---
-    model.add_coord(name="obs", values=train_obs_idx, mutable=True)
-    age_scaled = pm.MutableData(
-        name="age_scaled", value=train_age_scaled, dims="obs"
-    )
-    cohort_age_scaled = pm.MutableData(
-        name="cohort_age_scaled", value=train_cohort_age_scaled, dims="obs"
-    )
-    period_month_idx = pm.MutableData(
-        name="period_month_idx", value=train_period_month_idx, dims="obs"
-    )
-    n_users = pm.MutableData(
-        name="n_users", value=train_n_users, dims="obs"
-    )
-    n_active_users = pm.MutableData(
-        name="n_active_users", value=train_n_active_users, dims="obs"
-    )
-
-    # --- Priors ---
-    intercept = pm.Normal(name="intercept", mu=0, sigma=1)
-    b_age_scaled = pm.Normal(name="b_age_scaled", mu=0, sigma=1)
-    b_cohort_age_scaled = pm.Normal(
-        name="b_cohort_age_scaled", mu=0, sigma=1
-    )
-    b_period_month = pm.ZeroSumNormal(
-        name="b_period_month", sigma=1, dims="period_month"
-    )
-    b_age_cohort_age_interaction = pm.Normal(
-        name="b_age_cohort_age_interaction", mu=0, sigma=1
-    )
-
-    # --- Parametrization ---
-    mu = pm.Deterministic(
-        name="mu",
-        var=intercept
-        + b_age_scaled * age_scaled
-        + b_cohort_age_scaled * cohort_age_scaled
-        + b_age_cohort_age_interaction * age_scaled * cohort_age_scaled
-        + b_period_month[period_month_idx],
-        dims="obs",
-    )
-
-    p = pm.Deterministic(name="p", var=pm.math.invlogit(mu), dims="obs")
-
-    # --- Likelihood ---
-    pm.Binomial(
-        name="likelihood",
-        n=n_users,
-        p=p,
-        observed=n_active_users,
-        dims="obs",
-    )
-```
-
-::: footer
-[A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
-:::
 
 ## Posterior Distribution
 
