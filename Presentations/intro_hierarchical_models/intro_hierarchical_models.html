@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en"><head>
-<script src="intro_hierachical_models_files/libs/clipboard/clipboard.min.js"></script>
-<script src="intro_hierachical_models_files/libs/quarto-html/tabby.min.js"></script>
-<script src="intro_hierachical_models_files/libs/quarto-html/popper.min.js"></script>
-<script src="intro_hierachical_models_files/libs/quarto-html/tippy.umd.min.js"></script>
-<link href="intro_hierachical_models_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="intro_hierachical_models_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<link href="intro_hierachical_models_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
-<link href="intro_hierachical_models_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+<script src="intro_hierarchical_models_files/libs/clipboard/clipboard.min.js"></script>
+<script src="intro_hierarchical_models_files/libs/quarto-html/tabby.min.js"></script>
+<script src="intro_hierarchical_models_files/libs/quarto-html/popper.min.js"></script>
+<script src="intro_hierarchical_models_files/libs/quarto-html/tippy.umd.min.js"></script>
+<link href="intro_hierarchical_models_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="intro_hierarchical_models_files/libs/quarto-html/light-border.css" rel="stylesheet">
+<link href="intro_hierarchical_models_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
+<link href="intro_hierarchical_models_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.3.450">
 
   <meta name="author" content="Dr.&nbsp;Juan Orduz">
@@ -15,8 +15,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
-  <link rel="stylesheet" href="intro_hierachical_models_files/libs/revealjs/dist/reset.css">
-  <link rel="stylesheet" href="intro_hierachical_models_files/libs/revealjs/dist/reveal.css">
+  <link rel="stylesheet" href="intro_hierarchical_models_files/libs/revealjs/dist/reset.css">
+  <link rel="stylesheet" href="intro_hierarchical_models_files/libs/revealjs/dist/reveal.css">
   <style>
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
@@ -95,14 +95,14 @@
     code span.vs { color: #9ecbff; } /* VerbatimString */
     code span.wa { color: #ff5555; } /* Warning */
   </style>
-  <link rel="stylesheet" href="intro_hierachical_models_files/libs/revealjs/dist/theme/quarto.css">
+  <link rel="stylesheet" href="intro_hierarchical_models_files/libs/revealjs/dist/theme/quarto.css">
   <link rel="stylesheet" href="style.css">
-  <link href="intro_hierachical_models_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
-  <link href="intro_hierachical_models_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
-  <link href="intro_hierachical_models_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
-  <link href="intro_hierachical_models_files/libs/revealjs/plugin/reveal-chalkboard/font-awesome/css/all.css" rel="stylesheet">
-  <link href="intro_hierachical_models_files/libs/revealjs/plugin/reveal-chalkboard/style.css" rel="stylesheet">
-  <link href="intro_hierachical_models_files/libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
+  <link href="intro_hierarchical_models_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
+  <link href="intro_hierarchical_models_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
+  <link href="intro_hierarchical_models_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="intro_hierarchical_models_files/libs/revealjs/plugin/reveal-chalkboard/font-awesome/css/all.css" rel="stylesheet">
+  <link href="intro_hierarchical_models_files/libs/revealjs/plugin/reveal-chalkboard/style.css" rel="stylesheet">
+  <link href="intro_hierarchical_models_files/libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
   <style type="text/css">
 
   .callout {
@@ -392,7 +392,7 @@
   <div class="reveal">
     <div class="slides">
 
-<section id="title-slide" data-background-image="intro_hierachical_models_files/images/trace.png" data-background-opacity="0.15" class="quarto-title-block center">
+<section id="title-slide" data-background-image="intro_hierarchical_models_files/images/trace.png" data-background-opacity="0.15" class="quarto-title-block center">
   <h1 class="title">Introduction to Hierarchical Models</h1>
   <p class="subtitle">Multilevel Elasticities for a Single SKU</p>
 
@@ -407,6 +407,40 @@
     </div>
 </div>
 
+</section>
+<section id="outline" class="slide level2 smaller">
+<h2>Outline</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div>
+<ul>
+<li class="fragment">Resources</li>
+<li class="fragment">Business Case: Price Elasticity</li>
+<li class="fragment">Data: EDA</li>
+<li class="fragment">Models
+<ul>
+<li class="fragment">Pooled</li>
+<li class="fragment">Hierarchical
+<ul>
+<li class="fragment">Non-Ceneter Parametrization</li>
+<li class="fragment">Shrinkage Effect</li>
+</ul></li>
+<li class="fragment">Hierarchical with Correlated Random Effects</li>
+</ul></li>
+<li class="fragment">Predictions for a New Region</li>
+</ul>
+</div>
+</div><div class="column" style="width:50%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="intro_hierarchical_models_files/images/pymc.svg" height="500"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/html/intro_hierarchical_models">https://juanitorduz.github.io/html/intro_hierarchical_models</a></p>
+</div>
 </section>
 <section id="resources" class="slide level2 smaller">
 <h2>Resources</h2>
@@ -446,18 +480,18 @@
 <p>Price and quantities for a single SKU across stores in <span class="math inline">\(9\)</span> regions.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_20_1.png" height="520"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_20_1.png" height="520"></p>
 </figure>
 </div>
 <div class="footer">
-<p><a href="https://juanitorduz.github.io/multilevel_elasticities_single_sku/">Multilevel Elasticities for a Single SKU</a></p>
+<p><a href="https://juanitorduz.github.io/multilevel_elasticities_single_sku/">Multilevel Elasticities for a Single SKU - Part I.</a></p>
 </div>
 </section>
 <section id="price-vs-quantities" class="slide level2">
 <h2>Price vs Quantities</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_23_2.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_23_2.png" height="620"></p>
 </figure>
 </div>
 </section>
@@ -465,7 +499,7 @@
 <h2>Region Median Income</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_27_1.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_27_1.png" height="620"></p>
 </figure>
 </div>
 </section>
@@ -474,14 +508,14 @@
 <p>Median income has an effect on price.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_25_2.png" height="550"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_25_2.png" height="550"></p>
 </figure>
 </div>
 </section>
 <section id="beline-model---unpooled" class="slide level2">
 <h2>Beline Model - Unpooled</h2>
 
-<img data-src="intro_hierachical_models_files/images/unpooled_model.png" class="r-stretch quarto-figure-center"><p>We fit a linear model for each region <span class="math inline">\(j \in \{ 0,\cdots, 8 \}\)</span> separately:</p>
+<img data-src="intro_hierarchical_models_files/images/unpooled_model.png" class="r-stretch quarto-figure-center"><p>We fit a linear model for each region <span class="math inline">\(j \in \{ 0,\cdots, 8 \}\)</span> separately:</p>
 <p><span class="math display">\[
 \log(q_{j}) = \alpha_{j} + \beta_{j} \log(p_{j}) + \varepsilon_{j}
 \]</span></p>
@@ -523,7 +557,7 @@
 <h2>Beline Model - Pooled (Plate Notation)</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_33_0.svg" height="600"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_33_0.svg" height="600"></p>
 </figure>
 </div>
 <div class="footer">
@@ -561,7 +595,7 @@
 <h2>Model Diagnostics</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_43_1.png" height="600"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_43_1.png" height="600"></p>
 </figure>
 </div>
 <div class="footer">
@@ -572,7 +606,7 @@
 <h2>Base Model - Elasticities</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_45_1.png" height="600"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_45_1.png" height="600"></p>
 </figure>
 </div>
 </section>
@@ -580,7 +614,7 @@
 <h2>Base Model - Posterior Predictive</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_47_2.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_47_2.png" height="620"></p>
 </figure>
 </div>
 </section>
@@ -588,7 +622,7 @@
 <h2>Hierarchical Model</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierachical_models_files/images/partial_pooled_model.png" height="250"></p>
+<p><img data-src="intro_hierarchical_models_files/images/partial_pooled_model.png" height="250"></p>
 </figure>
 </div>
 <p><span class="math display">\[
@@ -603,14 +637,14 @@
 <p>See <a href="https://bayesiancomputationbook.com/markdown/chp_04.html#hierarchical-models">Bayesian Modeling and Computation in Python, Chapter 4.6: Hierarchical Models</a></p>
 </div>
 </section>
-<section id="hierarchical-model---pooled-pymc" class="slide level2">
-<h2>Hierarchical Model - Pooled (PyMC)</h2>
+<section id="hierarchical-model-pymc" class="slide level2">
+<h2>Hierarchical Model (PyMC)</h2>
 
-<img data-src="intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_50_0.svg" class="r-stretch"></section>
+<img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_50_0.svg" class="r-stretch"></section>
 <section id="posterior-geometry-matters" class="slide level2">
 <h2>Posterior Geometry Matters</h2>
 
-<img data-src="intro_hierachical_models_files/images/neals_funnel.png" class="r-stretch quarto-figure-center"><p class="caption">Certain posterior geometries are challenging for samplers, a common example is Neal’sFunnel. In complex geometries, in the inference algorithm a step size that works well in one area, fails miserably in another.</p><div class="footer">
+<img data-src="intro_hierarchical_models_files/images/neals_funnel.png" class="r-stretch quarto-figure-center"><p class="caption">Certain posterior geometries are challenging for samplers, a common example is Neal’sFunnel. In complex geometries, in the inference algorithm a step size that works well in one area, fails miserably in another.</p><div class="footer">
 <p>See <a href="https://bayesiancomputationbook.com/markdown/chp_04.html#posterior-geometry-matters">Bayesian Modeling and Computation in Python, Chapter 4.6.1: Posterior Geometry Matters</a></p>
 </div>
 </section>
@@ -639,12 +673,12 @@ z \sim \text{Normal}(0, 1) \\
 <section id="shrinkage-effect" class="slide level2">
 <h2>Shrinkage Effect</h2>
 
-<img data-src="intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_63_1.png" class="r-stretch quarto-figure-center"></section>
+<img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_63_1.png" class="r-stretch quarto-figure-center"></section>
 <section id="posterior-predictive" class="slide level2">
 <h2>Posterior Predictive</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_65_2.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_65_2.png" height="620"></p>
 </figure>
 </div>
 </section>
@@ -652,7 +686,7 @@ z \sim \text{Normal}(0, 1) \\
 <h2>Intercepts and Slopes are Correlated</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_25_2.png" height="600"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_25_2.png" height="600"></p>
 </figure>
 </div>
 </section>
@@ -662,7 +696,7 @@ z \sim \text{Normal}(0, 1) \\
 <div class="column" style="width:50%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_67_0.svg" height="550"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_67_0.svg" height="550"></p>
 </figure>
 </div>
 </div><div class="column" style="width:50%;">
@@ -673,7 +707,7 @@ z \sim \text{Normal}(0, 1) \\
 </div>
 </div>
 <div class="footer">
-<p>See <a href="https://tomicapretto.github.io/posts/2022-06-12_lkj-prior/#model-4-correlated-priors-with-lkjcorr.-replicate-rstanarm-prior">Hierarchical modeling with the LKJ prior in PyMC</a></p>
+<p>See <a href="https://tomicapretto.github.io/posts/2022-06-12_lkj-prior/">Hierarchical modeling with the LKJ prior in PyMC</a></p>
 </div>
 </section>
 <section id="sampling-covariances" class="slide level2">
@@ -706,7 +740,7 @@ z \sim \text{Normal}(0, 1) \\
 <h2>Model Comparison</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_80_1.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_80_1.png" height="620"></p>
 </figure>
 </div>
 </section>
@@ -714,7 +748,7 @@ z \sim \text{Normal}(0, 1) \\
 <h2>Intercepts Comparison</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_84_1.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_84_1.png" height="620"></p>
 </figure>
 </div>
 </section>
@@ -722,16 +756,80 @@ z \sim \text{Normal}(0, 1) \\
 <h2>Slopes (Elasticities) Comparison</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_86_1.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_86_1.png" height="620"></p>
+</figure>
+</div>
+</section>
+<section id="predictions-for-a-new-region" class="slide level2">
+<h2>Predictions for a New Region</h2>
+<p>We will use the last region as a holdout set.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_24_1.png" height="500"></p>
+</figure>
+</div>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/multilevel_elasticities_single_sku_2/">Multilevel Elasticities for a Single SKU - Part II.</a></p>
+</div>
+</section>
+<section id="intercepts-and-slopes" class="slide level2">
+<h2>Intercepts and Slopes</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_27_1.png" height="620"></p>
+</figure>
+</div>
+</section>
+<section id="posterior-predictive-log-log-scale" class="slide level2">
+<h2>Posterior Predictive Log-Log Scale</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_30_1.png" height="620"></p>
+</figure>
+</div>
+</section>
+<section id="intercept-and-slope---new-region" class="slide level2">
+<h2>Intercept and Slope - New Region</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_36_1.png" height="620"></p>
+</figure>
+</div>
+</section>
+<section id="posterior-predictive---new-region" class="slide level2">
+<h2>Posterior Predictive - New Region</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_37_1.png" height="620"></p>
+</figure>
+</div>
+</section>
+<section id="elasticities---new-region" class="slide level2">
+<h2>Elasticities - New Region</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_40_1.png" height="620"></p>
+</figure>
+</div>
+</section>
+<section id="posterior-predictive---new-region-1" class="slide level2">
+<h2>Posterior Predictive - New Region</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_43_2.png" height="620"></p>
 </figure>
 </div>
 </section>
 <section id="thank-you" class="slide level2">
 <h2>Thank you!</h2>
 <p><a href="https://juanitorduz.github.io/">juanitorduz.github.io</a></p>
-<p>All data and code are available on the blog post <a href="https://juanitorduz.github.io/multilevel_elasticities_single_sku/"><strong>Multilevel Elasticities for a Single SKU</strong></a></p>
-<p><img data-src="intro_hierachical_models_files/images/juanitorduz.png" class="absolute" style="left: 0px; bottom: 0px; height: 400px; "></p>
-<p><img src="intro_hierachical_models_files/images/wolt_logo.png" class="slide-logo"></p>
+<p>All data and code are available on the blog posts:</p>
+<ul>
+<li><p><a href="https://juanitorduz.github.io/multilevel_elasticities_single_sku/"><strong>Multilevel Elasticities for a Single SKU (Part I)</strong></a></p></li>
+<li><p><a href="https://juanitorduz.github.io/multilevel_elasticities_single_sku_2/"><strong>Multilevel Elasticities for a Single SKU (Part II)</strong></a></p></li>
+</ul>
+<p><img data-src="intro_hierarchical_models_files/images/juanitorduz.png" class="absolute" style="left: 0px; bottom: 0px; height: 300px; "></p>
+<p><img src="intro_hierarchical_models_files/images/wolt_logo.png" class="slide-logo"></p>
 <div class="footer footer-default">
 
 </div>
@@ -740,20 +838,20 @@ z \sim \text{Normal}(0, 1) \\
   </div>
 
   <script>window.backupDefine = window.define; window.define = undefined;</script>
-  <script src="intro_hierachical_models_files/libs/revealjs/dist/reveal.js"></script>
+  <script src="intro_hierarchical_models_files/libs/revealjs/dist/reveal.js"></script>
   <!-- reveal.js plugins -->
-  <script src="intro_hierachical_models_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
-  <script src="intro_hierachical_models_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
-  <script src="intro_hierachical_models_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
-  <script src="intro_hierachical_models_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
-  <script src="intro_hierachical_models_files/libs/revealjs/plugin/reveal-chalkboard/plugin.js"></script>
-  <script src="intro_hierachical_models_files/libs/revealjs/plugin/quarto-support/support.js"></script>
+  <script src="intro_hierarchical_models_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
+  <script src="intro_hierarchical_models_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
+  <script src="intro_hierarchical_models_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
+  <script src="intro_hierarchical_models_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="intro_hierarchical_models_files/libs/revealjs/plugin/reveal-chalkboard/plugin.js"></script>
+  <script src="intro_hierarchical_models_files/libs/revealjs/plugin/quarto-support/support.js"></script>
   
 
-  <script src="intro_hierachical_models_files/libs/revealjs/plugin/notes/notes.js"></script>
-  <script src="intro_hierachical_models_files/libs/revealjs/plugin/search/search.js"></script>
-  <script src="intro_hierachical_models_files/libs/revealjs/plugin/zoom/zoom.js"></script>
-  <script src="intro_hierachical_models_files/libs/revealjs/plugin/math/math.js"></script>
+  <script src="intro_hierarchical_models_files/libs/revealjs/plugin/notes/notes.js"></script>
+  <script src="intro_hierarchical_models_files/libs/revealjs/plugin/search/search.js"></script>
+  <script src="intro_hierarchical_models_files/libs/revealjs/plugin/zoom/zoom.js"></script>
+  <script src="intro_hierarchical_models_files/libs/revealjs/plugin/math/math.js"></script>
   <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
 
   <script>

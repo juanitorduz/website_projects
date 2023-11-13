@@ -1,7 +1,7 @@
 ---
 title: "Introduction to Hierarchical Models"
 title-slide-attributes:
-  data-background-image: intro_hierachical_models_files/images/trace.png
+  data-background-image: intro_hierarchical_models_files/images/trace.png
   data-background-opacity: "0.15"
 subtitle: Multilevel Elasticities for a Single SKU
 author: 
@@ -12,7 +12,7 @@ author:
 format:
   revealjs:
     css: style.css
-    logo: intro_hierachical_models_files/images/wolt_logo.png
+    logo: intro_hierarchical_models_files/images/wolt_logo.png
     transition: none
     slide-number: true
     chalkboard: 
@@ -22,6 +22,42 @@ format:
         - white
     highlight-style: github-dark
 ---
+
+## Outline {.smaller}
+
+::: columns
+
+::: {.column width="50%"}
+
+::: incremental
+
+- Resources
+- Business Case: Price Elasticity
+- Data: EDA
+- Models
+    - Pooled
+    - Hierarchical
+        - Non-Ceneter Parametrization
+        - Shrinkage Effect 
+    - Hierarchical with Correlated Random Effects
+- Predictions for a New Region
+
+:::
+
+:::
+
+::: {.column width="50%"}
+
+![](intro_hierarchical_models_files/images/pymc.svg){fig-align="center" height="500"}
+
+:::
+
+:::
+
+::: footer
+[https://juanitorduz.github.io/html/intro_hierarchical_models](https://juanitorduz.github.io/html/intro_hierarchical_models)
+:::
+
 
 ## Resources {.smaller}
 
@@ -65,29 +101,29 @@ If  $y = a + bx$, by the chain rule: $\eta = \frac{\partial \log(y(x))}{\partial
 
 Price and quantities for a single SKU across stores in $9$ regions.
 
-![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_20_1.png){fig-align="center" height="520"}
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_20_1.png){fig-align="center" height="520"}
 
 ::: footer
-[Multilevel Elasticities for a Single SKU](https://juanitorduz.github.io/multilevel_elasticities_single_sku/)
+[Multilevel Elasticities for a Single SKU - Part I.](https://juanitorduz.github.io/multilevel_elasticities_single_sku/)
 :::
 
 ## Price vs Quantities
 
-![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_23_2.png){fig-align="center" height="620"}
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_23_2.png){fig-align="center" height="620"}
 
 ## Region Median Income
 
-![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_27_1.png){fig-align="center" height="620"}
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_27_1.png){fig-align="center" height="620"}
 
 ## Region Elasticities
 
 Median income has an effect on price.
 
-![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_25_2.png){fig-align="center" height="550"}
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_25_2.png){fig-align="center" height="550"}
 
 ## Beline Model - Unpooled
 
-![](intro_hierachical_models_files/images/unpooled_model.png){fig-align="center"}
+![](intro_hierarchical_models_files/images/unpooled_model.png){fig-align="center"}
 
 We fit a linear model for each region $j \in \{ 0,\cdots, 8 \}$ separately:
 
@@ -133,7 +169,7 @@ with pm.Model(coords=coords) as base_model:
 
 ## Beline Model - Pooled (Plate Notation)
 
-![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_33_0.svg){fig-align="center" height="600"}
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_33_0.svg){fig-align="center" height="600"}
 
 ::: footer
 [Plate Notation](https://en.wikipedia.org/wiki/Plate_notation)
@@ -175,7 +211,7 @@ See [Bayesian Modeling and Computation in Python, Chapter 11.9: Inference Method
 
 ## Model Diagnostics
 
-![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_43_1.png){fig-align="center" height="600"}
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_43_1.png){fig-align="center" height="600"}
 
 ::: footer
 See [Bayesian Modeling and Computation in Python, Chapter 9: End-to-End Bayesian Workflows](https://bayesiancomputationbook.com/markdown/chp_09.html#end-to-end-bayesian-workflows)
@@ -184,15 +220,15 @@ See [Bayesian Modeling and Computation in Python, Chapter 9: End-to-End Bayesian
 
 ## Base Model - Elasticities
 
-![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_45_1.png){fig-align="center" height="600"}
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_45_1.png){fig-align="center" height="600"}
 
 ## Base Model - Posterior Predictive
 
-![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_47_2.png){fig-align="center" height="620"}
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_47_2.png){fig-align="center" height="620"}
 
 ## Hierarchical Model
 
-![](intro_hierachical_models_files/images/partial_pooled_model.png){fig-align="center" height="250"}
+![](intro_hierarchical_models_files/images/partial_pooled_model.png){fig-align="center" height="250"}
 
 $$
 \begin{align*}
@@ -207,13 +243,13 @@ $$
 See [Bayesian Modeling and Computation in Python, Chapter 4.6: Hierarchical Models](https://bayesiancomputationbook.com/markdown/chp_04.html#hierarchical-models)
 :::
 
-## Hierarchical Model - Pooled (PyMC)
+## Hierarchical Model (PyMC)
 
-![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_50_0.svg)
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_50_0.svg)
 
 ## Posterior Geometry Matters
 
-![Certain posterior geometries are challenging for samplers, a common example is Neal’sFunnel. In complex geometries, in the inference algorithm a step size that works well in one area, fails miserably in another.](intro_hierachical_models_files/images/neals_funnel.png){fig-align="center"}
+![Certain posterior geometries are challenging for samplers, a common example is Neal’sFunnel. In complex geometries, in the inference algorithm a step size that works well in one area, fails miserably in another.](intro_hierarchical_models_files/images/neals_funnel.png){fig-align="center"}
 
 ::: footer
 See [Bayesian Modeling and Computation in Python, Chapter 4.6.1: Posterior Geometry Matters](https://bayesiancomputationbook.com/markdown/chp_04.html#posterior-geometry-matters)
@@ -250,15 +286,15 @@ See [Bayesian Modeling and Computation in Python, Chapter 4.6.1: Posterior Geome
 
 ## Shrinkage Effect
 
-![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_63_1.png){fig-align="center"}
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_63_1.png){fig-align="center"}
 
 ## Posterior Predictive
 
-![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_65_2.png){fig-align="center" height="620"}
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_65_2.png){fig-align="center" height="620"}
 
 ## Intercepts and Slopes are Correlated
 
-![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_25_2.png){fig-align="center" height="600"}
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_25_2.png){fig-align="center" height="600"}
 
 ## Hierarchical Model with Correlated Random Effects
 
@@ -266,7 +302,7 @@ See [Bayesian Modeling and Computation in Python, Chapter 4.6.1: Posterior Geome
 
 ::: {.column width="50%"}
 
-![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_67_0.svg){fig-align="center" height="550"}
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_67_0.svg){fig-align="center" height="550"}
 
 :::
 
@@ -281,7 +317,7 @@ See [Bayesian Modeling and Computation in Python, Chapter 4.6.1: Posterior Geome
 :::
 
 ::: footer
-See [Hierarchical modeling with the LKJ prior in PyMC](https://tomicapretto.github.io/posts/2022-06-12_lkj-prior/#model-4-correlated-priors-with-lkjcorr.-replicate-rstanarm-prior)
+See [Hierarchical modeling with the LKJ prior in PyMC](https://tomicapretto.github.io/posts/2022-06-12_lkj-prior/)
 :::
 
 ## Sampling Covariances
@@ -314,20 +350,58 @@ with pm.Model(coords=coords) as model_cov:
 
 ## Model Comparison
 
-![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_80_1.png){fig-align="center" height="620"}
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_80_1.png){fig-align="center" height="620"}
 
 ## Intercepts Comparison
 
-![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_84_1.png){fig-align="center" height="620"}
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_84_1.png){fig-align="center" height="620"}
 
 ## Slopes (Elasticities) Comparison
 
-![](intro_hierachical_models_files/images/blog/multilevel_elasticities_single_sku_86_1.png){fig-align="center" height="620"}
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_86_1.png){fig-align="center" height="620"}
+
+## Predictions for a New Region
+
+We will use the last region as a holdout set.
+
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_24_1.png){fig-align="center" height="500"}
+
+::: footer
+[Multilevel Elasticities for a Single SKU - Part II.](https://juanitorduz.github.io/multilevel_elasticities_single_sku_2/)
+:::
+
+## Intercepts and Slopes
+
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_27_1.png){fig-align="center" height="620"}
+
+## Posterior Predictive Log-Log Scale
+
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_30_1.png){fig-align="center" height="620"}
+
+## Intercept and Slope - New Region
+
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_36_1.png){fig-align="center" height="620"}
+
+## Posterior Predictive - New Region
+
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_37_1.png){fig-align="center" height="620"}
+
+## Elasticities - New Region
+
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_40_1.png){fig-align="center" height="620"}
+
+## Posterior Predictive - New Region
+
+![](intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_43_2.png){fig-align="center" height="620"}
 
 ## Thank you!
 
 [juanitorduz.github.io](https://juanitorduz.github.io/)
 
-All data and code are available on the blog post [**Multilevel Elasticities for a Single SKU**](https://juanitorduz.github.io/multilevel_elasticities_single_sku/)
+All data and code are available on the blog posts: 
 
-![](intro_hierachical_models_files/images/juanitorduz.png){.absolute bottom=0 left=0 height=400}
+- [**Multilevel Elasticities for a Single SKU (Part I)**](https://juanitorduz.github.io/multilevel_elasticities_single_sku/)
+
+- [**Multilevel Elasticities for a Single SKU (Part II)**](https://juanitorduz.github.io/multilevel_elasticities_single_sku_2/)
+
+![](intro_hierarchical_models_files/images/juanitorduz.png){.absolute bottom=0 left=0 height=300}
