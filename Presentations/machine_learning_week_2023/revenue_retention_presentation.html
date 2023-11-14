@@ -414,10 +414,8 @@
 <h2>Outline</h2>
 <div>
 <ol type="1">
-<li class="fragment"><p>Introduction</p></li>
-<li class="fragment"><p>Bottom-Up Approaches</p>
-<p>2.1 Shifted Beta Geometric (Contractual)</p>
-<p>2.2 BG/NBD Model (Non-Contractual)</p></li>
+<li class="fragment"><p>Introduction: Business Problem (retention)</p></li>
+<li class="fragment"><p>Some Bottom-Up Approaches</p></li>
 <li class="fragment"><p>Simple Cohort Retention Model (GLM)</p></li>
 <li class="fragment"><p>Retention Model with BART</p></li>
 <li class="fragment"><p>Cohort Revenue-Retention Model</p></li>
@@ -452,55 +450,39 @@
 <p><a href="https://juanitorduz.github.io/retention/">A Simple Cohort Retention Analysis in PyMC</a></p>
 </div>
 </section>
-<section id="bottom-up-approaches" class="slide level2 smaller">
-<h2>Bottom-Up Approaches</h2>
-<p>Predict the retention of each user individually and then aggregate the results.</p>
-<h3 id="example-shifted-beta-geometric-contractual">Example: Shifted Beta Geometric (Contractual)</h3>
-<div>
-<ol type="1">
-<li class="fragment"><p>An individual remains a customer of the company with constant retention probability <span class="math inline">\(1 - \theta\)</span>. This is equivalent to assuming that the duration of the customer’s relationship with the company, denoted by the random variable <span class="math inline">\(T\)</span>, is characterized by the (shifted) geometric distribution with probability mass function and survivor function given by</p>
-<p><span class="math display">\[f(T=t|\theta) = \theta (1 - \theta)^{t - 1}, \quad t = 1, 2, \ldots\]</span></p>
-<p><span class="math display">\[S(t) = \sum_{j = t}^{\infty} f(T=j|\theta) = (1 - \theta)^{t}, \quad t = 1, 2, \ldots\]</span></p></li>
-<li class="fragment"><p>Heterogeneity in <span class="math inline">\(\theta\)</span> follows a beta distribution <span class="math inline">\(\theta \sim \text{Beta}(a, b)\)</span>.</p></li>
-</ol>
+<section id="some-bottom-up-approaches" class="slide level2 smaller">
+<h2>Some Bottom-Up Approaches</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p><strong>Shifted Beta Geometric (Contractual)</strong></p>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="revenue_retention_presentation_files/images/revenue_retention_presentation_files/sBG_survival.png"></p>
+</figure>
+</div>
+<ul>
+<li><p>An individual remains a customer of the company with constant retention probability <span class="math inline">\(1 - \theta\)</span>.</p></li>
+<li><p>Heterogeneity: <span class="math inline">\(\theta \sim \text{Beta}(a, b)\)</span>.</p></li>
+</ul>
+</div><div class="column" style="width:50%;">
+<p><strong>BG/NBD Model (Non-Contractual)</strong></p>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="revenue_retention_presentation_files/images/revenue_retention_presentation_files/p_alive.png"></p>
+</figure>
+</div>
+<ul>
+<li>Transacation process: <span class="math inline">\(\lambda \sim \text{Gamma}(r, \alpha)\)</span>.</li>
+<li>Dropout probability: <span class="math inline">\(p \sim \text{Beta}(a, b)\)</span>.</li>
+</ul>
+</div>
 </div>
 <div class="footer">
-<p>See <a href="https://faculty.wharton.upenn.edu/wp-content/uploads/2012/04/Fader_hardie_jim_07.pdf">How to Project Customer Retention</a></p>
+<p>See <a href="https://www.pymc-marketing.io/en/stable/"><code>pymc-marketing</code></a></p>
 </div>
 </section>
-<section id="shifted-beta-geometric---survival-function" class="slide level2">
-<h2>Shifted Beta Geometric - Survival Function</h2>
-
-<img data-src="revenue_retention_presentation_files/images/revenue_retention_presentation_files/sBG_survival.png" class="r-stretch quarto-figure-center"><div class="footer">
-<p>See <a href="https://www.pymc-marketing.io/en/stable/"><code>pymc-marketing</code></a> example <a href="https://www.pymc-marketing.io/en/latest/notebooks/clv/sBG.html">here</a>.</p>
-</div>
-</section>
-<section id="bottom-up-approaches-1" class="slide level2 smaller">
-<h2>Bottom-Up Approaches</h2>
-<h3 id="example-bgnbd-model-non-contractual">Example: BG/NBD Model (Non-Contractual)</h3>
-<div>
-<ol type="1">
-<li class="fragment"><p>While active, the time between transactions is distributed exponentially with transaction rate, i.e.,</p>
-<p><span class="math display">\[f(t_{j}|t_{j-1}; \lambda) = \lambda \exp(-\lambda (t_{j} - t_{j - 1})), \quad t_{j} \geq t_{j - 1} \geq 0\]</span></p></li>
-<li class="fragment"><p>Heterogeneity in <span class="math inline">\(\lambda\)</span> follows a gamma distribution <span class="math inline">\(\lambda \sim \text{Gamma}(r, \alpha)\)</span>.</p></li>
-<li class="fragment"><p>After any transaction, a customer becomes inactive with probability <span class="math inline">\(p\)</span>.</p></li>
-<li class="fragment"><p>Heterogeneity in <span class="math inline">\(p\)</span> follows a beta distribution <span class="math inline">\(p \sim \text{Beta}(a, b)\)</span>.</p></li>
-<li class="fragment"><p>The transaction rate <span class="math inline">\(\lambda\)</span> and the dropout probability <span class="math inline">\(p\)</span> vary independently across customers.</p></li>
-</ol>
-</div>
-<div class="footer">
-<p>See <a href="http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf">“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model</a></p>
-</div>
-</section>
-<section id="bgnbd---probability-of-alive" class="slide level2">
-<h2>BG/NBD - Probability of Alive</h2>
-
-<img data-src="revenue_retention_presentation_files/images/revenue_retention_presentation_files/p_alive.png" class="r-stretch quarto-figure-center"><div class="footer">
-<p>See <a href="https://github.com/pymc-labs/pymc-marketing"><code>pymc-marketing</code></a>: <a href="https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html">CLV Quickstart</a></p>
-</div>
-</section>
-<section id="retention-matrix-1" class="slide level2 smaller">
-<h2>Retention Matrix</h2>
+<section id="model-the-retention-matrix" class="slide level2 smaller">
+<h2>Model the Retention Matrix 💡</h2>
 
 <img data-src="revenue_retention_presentation_files/images/revenue_retention_presentation_files/retention_files/retention_14_1.png" class="r-stretch quarto-figure-center"><ul>
 <li><strong>Cohort Age:</strong> Age of the cohort in months.</li>
@@ -511,7 +493,8 @@
 <section id="retention-over-time-period" class="slide level2">
 <h2>Retention Over Time (period)</h2>
 
-<img data-src="revenue_retention_presentation_files/images/revenue_retention_presentation_files/retention_files/retention_15_1.png" class="r-stretch quarto-figure-center"></section>
+<img data-src="revenue_retention_presentation_files/images/revenue_retention_presentation_files/retention_files/retention_15_1.png" class="r-stretch quarto-figure-center"><p><strong>Modeling Strategy:</strong> Close cohorts behave similarly.</p>
+</section>
 <section id="retention---generalized-linear-model" class="slide level2">
 <h2>Retention - Generalized Linear Model</h2>
 <p><span class="math display">\[\begin{align*}

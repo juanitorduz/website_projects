@@ -24,13 +24,9 @@ format:
 
 ::: incremental
 
-1. Introduction
+1. Introduction: Business Problem (retention)
 
-2. Bottom-Up Approaches
-
-    2.1 Shifted Beta Geometric (Contractual)
-
-    2.2 BG/NBD Model (Non-Contractual)
+2. Some Bottom-Up Approaches
 
 3. Simple Cohort Retention Model (GLM)
 
@@ -71,6 +67,7 @@ format:
 [A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
 :::
 
+
 ## Retention Matrix
 
 ![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/retention_files/retention_14_1.png){fig-align="center"}
@@ -79,71 +76,42 @@ format:
 [A Simple Cohort Retention Analysis in PyMC](https://juanitorduz.github.io/retention/)
 :::
 
-## Bottom-Up Approaches {.smaller}
 
-Predict the retention of each user individually and then aggregate the results.
+## Some Bottom-Up Approaches {.smaller}
 
-### Example: Shifted Beta Geometric (Contractual)
+::: columns
 
-::: incremental
+::: {.column width="50%"}
 
-1. An individual remains a customer of the company with constant retention probability $1 - \theta$.
-This is equivalent to assuming that the duration of the customer’s relationship with the company, denoted by the random
-variable $T$, is characterized by the (shifted) geometric distribution with probability mass function and survivor
-function given by
-
-    $$f(T=t|\theta) = \theta (1 - \theta)^{t - 1}, \quad t = 1, 2, \ldots$$
-
-    $$S(t) = \sum_{j = t}^{\infty} f(T=j|\theta) = (1 - \theta)^{t}, \quad t = 1, 2, \ldots$$
-
-1. Heterogeneity in $\theta$ follows a beta distribution $\theta \sim \text{Beta}(a, b)$.
-
-:::
-
-::: footer
-See [How to Project Customer Retention](https://faculty.wharton.upenn.edu/wp-content/uploads/2012/04/Fader_hardie_jim_07.pdf)
-:::
-
-## Shifted Beta Geometric - Survival Function
+**Shifted Beta Geometric (Contractual)**
 
 ![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/sBG_survival.png){fig-align="center"}
 
-::: footer
-See [`pymc-marketing`](https://www.pymc-marketing.io/en/stable/) example [here](https://www.pymc-marketing.io/en/latest/notebooks/clv/sBG.html).
+- An individual remains a customer of the company with constant retention probability $1 - \theta$.
+
+- Heterogeneity: $\theta \sim \text{Beta}(a, b)$.
+
 :::
 
-## Bottom-Up Approaches {.smaller}
+::: {.column width="50%"}
 
-### Example: BG/NBD Model (Non-Contractual)
-
-::: incremental
-
-1. While active, the time between transactions is distributed exponentially with transaction rate, i.e., 
-
-    $$f(t_{j}|t_{j-1}; \lambda) = \lambda \exp(-\lambda (t_{j} - t_{j - 1})), \quad t_{j} \geq t_{j - 1} \geq 0$$ 
-
-2. Heterogeneity in $\lambda$ follows a gamma distribution $\lambda \sim \text{Gamma}(r, \alpha)$.
-
-3. After any transaction, a customer becomes inactive with probability $p$.
-
-4. Heterogeneity in $p$ follows a beta distribution $p \sim \text{Beta}(a, b)$.
-
-5. The transaction rate $\lambda$ and the dropout probability $p$ vary independently across customers.
-:::
-
-::: footer
-See [“Counting Your Customers” the Easy Way: An Alternative to the Pareto/NBD Model](http://brucehardie.com/papers/018/fader_et_al_mksc_05.pdf)
-:::
-
-## BG/NBD - Probability of Alive 
+**BG/NBD Model (Non-Contractual)**
 
 ![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/p_alive.png){fig-align="center"}
 
-::: footer
-See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [CLV Quickstart](https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html)
+- Transacation process: $\lambda \sim \text{Gamma}(r, \alpha)$.
+- Dropout probability: $p \sim \text{Beta}(a, b)$. 
+
 :::
 
-## Retention Matrix {.smaller}
+:::
+
+::: footer
+See [`pymc-marketing`](https://www.pymc-marketing.io/en/stable/)
+:::
+
+
+## Model the Retention Matrix 💡 {.smaller}
 
 ![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/retention_files/retention_14_1.png){fig-align="center"}
 
@@ -154,6 +122,8 @@ See [`pymc-marketing`](https://github.com/pymc-labs/pymc-marketing): [CLV Quicks
 ## Retention Over Time (period)
 
 ![](revenue_retention_presentation_files/images/revenue_retention_presentation_files/retention_files/retention_15_1.png){fig-align="center"}
+
+**Modeling Strategy:** Close cohorts behave similarly.
 
 
 ## Retention - Generalized Linear Model
