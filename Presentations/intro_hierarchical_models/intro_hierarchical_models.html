@@ -8,7 +8,7 @@
 <link href="intro_hierarchical_models_files/libs/quarto-html/light-border.css" rel="stylesheet">
 <link href="intro_hierarchical_models_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
 <link href="intro_hierarchical_models_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.3.450">
+  <meta name="generator" content="quarto-1.3.353">
 
   <meta name="author" content="Dr.&nbsp;Juan Orduz">
   <title>Introduction to Hierarchical Models</title>
@@ -422,7 +422,7 @@
 <li class="fragment">Pooled</li>
 <li class="fragment">Hierarchical
 <ul>
-<li class="fragment">Non-Ceneter Parametrization</li>
+<li class="fragment">Non-Centered Parametrization</li>
 <li class="fragment">Shrinkage Effect</li>
 </ul></li>
 <li class="fragment">Hierarchical with Correlated Random Effects</li>
@@ -464,7 +464,7 @@
 </section>
 <section id="price-elasticity" class="slide level2">
 <h2>Price Elasticity</h2>
-<p>The elasticity of a variable <span class="math inline">\(y(x, z)\)</span> with respect to another variable <span class="math inline">\(x\)</span> is defined as the percentage change in <span class="math inline">\(y\)</span> for a one percent change in <span class="math inline">\(x\)</span>. Mathematically, this is written as</p>
+<p>The elasticity of a variable <span class="math inline">\(y(x, z)\)</span> with respect to another variable <span class="math inline">\(x\)</span> is defined as the percentage change in <span class="math inline">\(y\)</span> for a <span class="math inline">\(1\%\)</span> change in <span class="math inline">\(x\)</span>. Mathematically, this is written as</p>
 <p><span class="math display">\[
 \eta = \frac{\partial \log(y(x, z))}{\partial \log(x)}
 \]</span></p>
@@ -512,8 +512,8 @@
 </figure>
 </div>
 </section>
-<section id="beline-model---unpooled" class="slide level2">
-<h2>Beline Model - Unpooled</h2>
+<section id="base-model---unpooled" class="slide level2">
+<h2>Base Model - Unpooled</h2>
 
 <img data-src="intro_hierarchical_models_files/images/unpooled_model.png" class="r-stretch quarto-figure-center"><p>We fit a linear model for each region <span class="math inline">\(j \in \{ 0,\cdots, 8 \}\)</span> separately:</p>
 <p><span class="math display">\[
@@ -523,8 +523,8 @@
 <p>See <a href="https://bayesiancomputationbook.com/markdown/chp_04.html#unpooled-parameters">Bayesian Modeling and Computation in Python, Chapter 4.5.1: Unpooled Parameters</a></p>
 </div>
 </section>
-<section id="beline-model---pooled-pymc" class="slide level2">
-<h2>Beline Model - Pooled (PyMC)</h2>
+<section id="base-model---pooled-pymc" class="slide level2">
+<h2>Base Model - Pooled (PyMC)</h2>
 <div class="sourceCode" id="cb1" data-code-line-numbers="|1|3|4-7|9-18|20-27"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a>coords <span class="op">=</span> {<span class="st">"region"</span>: region, <span class="st">"obs"</span>: obs}</span>
 <span id="cb1-2"><a href="#cb1-2"></a></span>
 <span id="cb1-3"><a href="#cb1-3"></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>coords) <span class="im">as</span> base_model:</span>
@@ -553,8 +553,8 @@
 <span id="cb1-26"><a href="#cb1-26"></a>        dims<span class="op">=</span><span class="st">"obs"</span></span>
 <span id="cb1-27"><a href="#cb1-27"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
-<section id="beline-model---pooled-plate-notation" class="slide level2">
-<h2>Beline Model - Pooled (Plate Notation)</h2>
+<section id="base-model---pooled-plate-notation" class="slide level2">
+<h2>Base Model - Pooled (Plate Notation)</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
 <p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_33_0.svg" height="600"></p>
@@ -648,15 +648,15 @@
 <p>See <a href="https://bayesiancomputationbook.com/markdown/chp_04.html#posterior-geometry-matters">Bayesian Modeling and Computation in Python, Chapter 4.6.1: Posterior Geometry Matters</a></p>
 </div>
 </section>
-<section id="non-ceneter-parametrization" class="slide level2 smaller">
-<h2>Non-Ceneter Parametrization</h2>
-<h3 id="ceneterd-parametrization">Ceneterd Parametrization</h3>
+<section id="non-centered-parametrization" class="slide level2 smaller">
+<h2>Non-Centered Parametrization</h2>
+<h3 id="centered-parametrization">Centered Parametrization</h3>
 <p><span class="math display">\[
 \begin{align*}
 \beta \sim \text{Normal}(\mu_{\beta}, \sigma_{\beta})
 \end{align*}
 \]</span></p>
-<h3 id="non-ceneter-parametrization-1">Non-Ceneter Parametrization</h3>
+<h3 id="non-centered-parametrization-1">Non-Centered Parametrization</h3>
 <p><span class="math display">\[
 \begin{align*}
 z \sim \text{Normal}(0, 1) \\
