@@ -232,7 +232,7 @@ See [Bayesian Modeling and Computation in Python, Chapter 9: End-to-End Bayesian
 
 $$
 \begin{align*}
-\log(q_{j}) & ~ \text{Normal}(\mu_{j}, \sigma) \\
+\log(q_{j}) & \sim \text{Normal}(\mu_{j}, \sigma) \\
 \mu_{j}& \sim \text{Normal}(\alpha_{j} + \beta_{j} \log(p_{j}), \sigma_{j}) \\
 \alpha_{j} & \sim \text{Normal}(\mu_{\alpha}, \sigma_{\alpha}) \\
 \beta_{j} & \sim \text{Normal}(\mu_{\beta}, \sigma_{\beta})
