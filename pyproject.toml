@@ -1,5 +1,29 @@
-[tool.isort]
-profile = "black"
-
-[tool.pylint.format]
-max-line-length = "88"
+[tool.ruff]
+# See https://beta.ruff.rs/docs/rules/ for complete list of rules.
+# Note: please keep this in sorted order
+select = [
+    "ASYNC", # flake8-async (ASYNC)
+    "B",     # flake-bugbear
+    "C",     # ?
+    "C4",    # flake8-comprehensions
+    "C90",   # mccabe
+    "DTZ",   # flake8-datetimez
+    "E",     # pycodestyle
+    "F",     # pyflakes
+    "FIX",   # flake8-fixme
+    "FBT", # flake8-boolean-trap
+    "I",   # isort
+    "ICN", # flake8-import-conventions
+    "N",   # pep8-naming
+    "PD",  # pandas-vet
+    "PIE", # flake8-pie
+    # "PT",  # flake8-pytest-style
+    "RET", # flake8-return
+    "RUF", # Ruff-specific rules
+    "SIM", # flake8-simplify
+    "UP",  # pyupgdrade
+    "W",   # pycodestyle
+]
+# automatically fix all issues ruff is cabable of AND which are enabled via select
+fixable = ["ALL"]
+target-version = "py310"
