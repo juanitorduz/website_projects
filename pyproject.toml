@@ -11,12 +11,12 @@ select = [
     "E",     # pycodestyle
     "F",     # pyflakes
     "FIX",   # flake8-fixme
-    "FBT", # flake8-boolean-trap
-    "I",   # isort
-    "ICN", # flake8-import-conventions
-    "N",   # pep8-naming
-    "PD",  # pandas-vet
-    "PIE", # flake8-pie
+    "FBT",   # flake8-boolean-trap
+    "I",     # isort
+    "ICN",   # flake8-import-conventions
+    "N",     # pep8-naming
+    "PD",    # pandas-vet
+    "PIE",   # flake8-pie
     # "PT",  # flake8-pytest-style
     "RET", # flake8-return
     "RUF", # Ruff-specific rules
@@ -26,4 +26,4 @@ select = [
 ]
 # automatically fix all issues ruff is cabable of AND which are enabled via select
 fixable = ["ALL"]
-target-version = "py310"
+target-version = "py311"
