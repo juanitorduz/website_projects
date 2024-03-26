@@ -69,13 +69,13 @@ f_*
 \end{array}
 \right)
 \sim
-\text{MultivariateNormal}(0, \mathcal{K})
+\text{MultivariateNormal}(0, \boldsymbol{K})
 $$
 
 where 
 
 $$
-\mathcal{K} = 
+\boldsymbol{K} = 
 \left(
 \begin{array}{cc}
 K(X, X) + \sigma^2_n I & K(X, X_*) \\
@@ -162,15 +162,15 @@ with pm.Model() as gp_pymc_model:
 
 ## GP Model - Prior Predictions
 
-![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_32_0.png){fig-align="center" width="950"}
+![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_52_0.png){fig-align="center" width="950"}
 
 ## GP Model - Posterior Distributions
 
-![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_53_0.png){fig-align="center" width="950"}
+![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_56_0.png){fig-align="center" width="950"}
 
 ## GP Model - Posterior Predictive
 
-![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_59_0.png){fig-align="center" width="950"}
+![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_62_0.png){fig-align="center" width="950"}
 
 ## Hilbert Spacc Approximation {.smaller}
 
@@ -407,7 +407,7 @@ Note the similarity between the spectral density and the [Fourier transform](htt
 
 ## $S(\omega)$ Squared Exponential
 
-![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_66_0.png){fig-align="center" width="950"}
+![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_95_0.png){fig-align="center" width="950"}
 
 ## Formal Power Expansion of the Spectral Density
 
@@ -501,6 +501,7 @@ $$
 :::
 
 ## Example - One Dimensional Box
+
 ### $\Omega = [-L, L] \subset \mathbb{R}$
 
 $$
@@ -528,33 +529,87 @@ $$
 We can construct powers of $-\nabla^2$ as
 
 $$
-(- \nabla^2)^{s} f(x) = \int_{\Omega} \overbrace{\left[\sum_{j} \lambda_{j}^{s} \phi_{j}(x) \phi_{j}(x')\right]}^{l^s(x, x')} f(x') dx'.
+(- \nabla^2)^{s} f(x) = \int_{\Omega} \color{red}{\overbrace{\left[\sum_{j} \lambda_{j}^{s} \phi_{j}(x) \phi_{j}(x')\right]}^{l^s(x, x')}} f(x') dx'.
 $$
 
 ## HSGP: Coefficients Identification
 
 Use the formal expansion of $\mathcal{K}$ in terms of powers of $\nabla^2$:
 
+$$
 \begin{align*}
 & \left[ a_{0} + a_{1}(-\nabla^2) + a_{2}(-\nabla^2)^2 + \cdots \right]f(x) = \\
 &\int_{\Omega} \left[a_{0} + a_{1} l(x, x') + a_{2} l^{2}(x, x') + \cdots \right] f(x') dx'
 \end{align*}
+$$
 
 This implies we can approximate the kernel as
 
+$$
 \begin{align*}
 k(x, x') \approx & \: a_{0} + a_{1} l(x, x') + a_{2} l^{2}(x, x') + \cdots \\
-\approx & \sum_{j} \left[ a_{0} + a_{1} \lambda_{j} + a_{2} \lambda_{j}^2 + \cdots \right] \phi_{j}(x) \phi_{j}(x')
+\approx & \sum_{j} \color{red}{\underbrace{\left[ a_{0} + a_{1} \lambda_{j} + a_{2} \lambda_{j}^2 + \cdots \right]}_{S(\sqrt{\lambda_{j}})}} \phi_{j}(x) \phi_{j}(x')
 \end{align*}
+$$
 
 ## HSGP: Final Formula
 
-Finally, recall that the coefficient $a_j$ where defined by the polynomial expansion of the spectral density, so if we take $||\omega||^2 = \lambda_j$ then we arrive at the final expression for the approximation formula:
+In  summary, we have the following approximation formula for the kernel function:
 
 $$
 \boxed{
-k(x, x') \approx \sum_{j} S(\sqrt{\lambda_j})\phi_{j}(x) \phi_{j}(x')
+k(x, x') \approx \sum_{j}^{m} \color{red}{S(\sqrt{\lambda_j})}\color{blue}{\phi_{j}(x) \phi_{j}(x')}
 }
 $$
+
+That is, the model of the Gaussian process $f$ can be written as
+
+$$
+f(x) \sim \text{MultivariateNormal}(\boldsymbol{\mu}, \Phi\mathcal{D}\Phi^{T})
+$$
+
+where $\mathcal{D} = \text{diag}(S(\sqrt{\lambda_1}), S(\sqrt{\lambda_2}), \ldots, S(\sqrt{\lambda_{m}}))$.
+
+## HSGP: Linear Model
+
+$$
+f(x) \approx \sum_{j = 1}^{m} 
+\overbrace{\color{red}{\left(S(\sqrt{\lambda_j})\right)^{1/2}}}^{\text{all hyperparameters are here!}} 
+\times
+\underbrace{\color{blue}{\phi_{j}(x)}}_{\text{easy to compute!}}
+\times
+\overbrace{\color{green}{\beta_{j}}}^{\sim \: \text{Normal}(0,1)}
+$$
+
+::: {.callout-note}
+
+The only dependence on the hyperparameters is through the spectral density.
+
+:::
+
+::: {.callout-tip title="Computational Cost"}
+
+The computational cost of evaluating the log posterior density of univariate HSGPs scales as $\mathcal{O}(nm + m)$.
+
+:::
+
+## Squared Exponential $1$-dim
+
+$$
+\begin{align*}
+k(x, x') \approx
+\sum_{j=1}^{m} & \color{red}{\overbrace{\left(a^2 \sqrt{2 \pi} \ell \exp\left(-2\pi^2\ell^2 \left(\frac{\pi j}{2L}\right)^2 \right)\right)^{1/2}}^{\left(S(\sqrt{\lambda_j})\right)^{1/2}}} \\
+& \times \color{blue}{\overbrace{\left(\sqrt{\frac{1}{L}} \sin\left(\frac{\pi j (x + L)}{2L}\right)\right)}^{\phi_{j}(x)}} \\
+& \times \color{green}{\overbrace{\beta_{j}}^{\sim \: \text{Normal}(0, 1)}}
+\end{align*}
+$$
+
+## Laplace Eigenfunctions
+
+![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_110_0.png){fig-align="center" width="950"}
+
+## Prior Predictive
+
+![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_117_0.png){fig-align="center" width="950"}
 
 ## PyMC Implementations
