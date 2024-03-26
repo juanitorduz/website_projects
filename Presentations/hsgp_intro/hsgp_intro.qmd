@@ -28,6 +28,254 @@ format:
 
 ## Introduction to Gaussian Processes
 
-## Hilbert Spaces Approximations
+## Synthetic Data
+
+### $y \sim \text{Normal}(\sin(4 \pi x) + \sin(7 \pi x), 0.3^2)$
+
+![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_6_0.png){fig-align="center" width="950"}
+
+## Kernel
+
+A way to encode similarity between points
+
+### Example: Squared Exponential Kernel
+
+$$
+k(x, x') = a^ 2 \exp\left(-\frac{(x - x')^2}{2 \ell^2}\right)
+$$
+
+Where $a$ is the amplitude and $\ell$ is the lengthscale.
+
+::: {.callout-note}
+
+Observe that the kernel just depends on the distance between points $r = x - x'$. This is a property of **stationary kernels.**
+
+:::
+
+## Kernel Matrix
+
+![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_16_0.png){fig-align="center" width="950"}
+
+## GP Model - Prior
+
+Let us denote by $(x, y)$ and the training data and by $x_{*}$ the test set for which we want to generate predictions. We define by $f$ and $f_*$ the latent functions for the training and test sets respectively.
+
+$$
+\left(
+\begin{array}{c}
+y \\
+f_*
+\end{array}
+\right)
+\sim
+\text{MultivariateNormal}(0, \mathcal{K})
+$$
+
+where 
+
+$$
+\mathcal{K} = 
+\left(
+\begin{array}{cc}
+K(X, X) + \sigma^2_n I & K(X, X_*) \\
+K(X_*, X) & K(X_*, X_*)
+\end{array}
+\right)
+$$
+
+## GP Model - Conditioning
+
+$$
+f_*|X, y, X_* 
+\sim
+\text{MultivariateNormal}(\bar{f}_*, \text{cov}(f_*))
+$$
+
+where 
+
+$$
+\begin{align*}
+\bar{f}_* &= K(X_*, X){\color{red}{(K(X, X) + \sigma^2_n I)^{-1}}} \\
+\text{cov}(f_*) & = K(X_*, X_*) - K(X_*, X){\color{red}{(K(X, X) + \sigma^2_n I)^{-1}}} K(X, X_*)
+\end{align*}
+$$
+
+::: {.callout-important}
+
+Taking the inverse of the kernel matrix is the most computationally expensive part of the GP model. It is of order $\mathcal{O}(n^3)$.
+
+:::
+
+## Kernel parameter priors
+
+```{.python code-line-numbers="|1-7|8-14|16-20"}
+inverse_gamma_params_1 = pm.find_constrained_prior(
+    distribution=pm.InverseGamma,
+    lower=0.01,
+    upper=0.4,
+    init_guess={"alpha": 5, "beta": 3},
+    mass=0.94,
+)
+inverse_gamma_params_2 = pm.find_constrained_prior(
+    distribution=pm.InverseGamma,
+    lower=0.5,
+    upper=1.5,
+    init_guess={"alpha": 5, "beta": 6},
+    mass=0.94,
+)
+
+fig, ax = plt.subplots()
+pz.InverseGamma(**inverse_gamma_params_1).plot_pdf(color="C0", ax=ax)
+pz.InverseGamma(**inverse_gamma_params_2).plot_pdf(color="C1", ax=ax)
+ax.set(xlim=(0, 2))
+ax.set_title("Prior Distributions", fontsize=18, fontweight="bold");
+```
+
+# Kernel parameter priors
+
+![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_24_0.png){fig-align="center" width="950"}
+
+## GP Model in PyMC
+
+```{.python  code-line-numbers="|2|4-6|8-13|15"}
+with pm.Model() as gp_pymc_model:
+    x_data = pm.MutableData("x_data", value=x_train)
+
+    kernel_amplitude = pm.InverseGamma("kernel_amplitude", ...)
+    kernel_length_scale = pm.InverseGamma("kernel_length_scale", ...)
+    noise = pm.InverseGamma("noise", ...)
+
+    mean = pm.gp.mean.Zero()
+    cov = kernel_amplitude**2 * pm.gp.cov.ExpQuad(
+      input_dim=1, ls=kernel_length_scale
+    )
+    gp = pm.gp.Latent(mean_func=mean, cov_func=cov)
+    f = gp.prior("f", X=x_data[:, None])
+
+    pm.Normal("likelihood", mu=f, sigma=noise, observed=y_train_obs)
+```
+
+## GP Model in PyMC
+
+![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_49_0.svg){fig-align="center" width="950"}
+
+## GP Model - Prior Predictions
+
+![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_32_0.png){fig-align="center" width="950"}
+
+## GP Model - Posterior Distributions
+
+![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_53_0.png){fig-align="center" width="950"}
+
+## GP Model - Posterior Predictive
+
+![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_59_0.png){fig-align="center" width="950"}
+
+## Eigenvalues and Eignevectors
+
+## The Spectral Theorem
+
+## Spectral Densities
+
+In the case a kernel function is **stationary**, we can use the spectral representation of the kernel function ([Bochner’s theorem](https://en.wikipedia.org/wiki/Bochner%27s_theorem)):
+
+$$
+k(r) = \frac{1}{(2 \pi)^{d}}\int_{\mathbb{R}^{d}} e^{i \omega^{T} r} d\mu(\omega)
+$$
+
+where $\mu$ is a positive measure. If this measure has a density, it is called the **spectral density** $S(\omega)$ corresponding to the covariance function, i.e. $d\mu(\omega) = S(\omega) d\omega$.
+
+::: footer
+
+[Gaussian Processes for Machine Learning - Chapter 4: Covariance Functions](https://gaussianprocess.org/gpml/chapters/RW4.pdf).
+
+:::
+
+## Spectral Density - Example
+
+For the *squared exponential kernel*, it can be shown that
+
+$$
+S(\omega) = a^2(2 \pi \ell^2)^{d/2} \exp\left(-2\pi^2\ell^2\omega^2\right)
+$$
+
+For the special case $d=1$ we have
+
+$$
+S(\omega) = a^2 \sqrt{2 \pi} \ell \exp\left(-2\pi^2\ell^2\omega^2\right)
+$$
+
+::: {.callout-tip}
+
+Note the similarity between the spectral density and the [Fourier transform](https://en.wikipedia.org/wiki/Fourier_transform). For Gaussian-like kernels, like the squared exponential, we expect the associated spectral density to also be Gaussian-like.
+
+:::
+
+## $S(\omega)$ Squared Exponential
+
+![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_66_0.png){fig-align="center" width="950"}
+
+## Formal Power Expansion of the Spectral Density
+
+Let us assume the kernel function is **isotropic**, i.e. it just depends on the Euclidean norm $||r||$.
+
+::: incremental
+
+- $S(\omega)$ is also isotropic.
+
+- Write $S(||\omega||) = \psi(||\omega||^2)$ for a suitable function $\psi$. 
+
+- We can expand $\psi$ (Taylor-like expansion)
+
+  
+  $$
+  \begin{align*}
+  \psi(||\omega||^2) = a_0 + a_1 (||\omega||^2) + a_2 (||\omega||^2)^2 +  a_3 (||\omega||^2)^3 +  \cdots
+  \end{align*}
+  $$
+
+:::
+
+## The Laplace Operator
+
+Recall the **Laplace operator** is defined as
+
+$$
+- \nabla^2 f = \sum_{i=1}^{d} \frac{\partial^2 f}{\partial x_i^2}
+$$
+
+::: {.callout-tip}
+
+The Laplacian has many good properties:
+
+- Positive semi-definite
+  
+- Elliptic
+
+- Self-adjoint (appropriate boundary conditions)
+
+:::
+
+## Kernel as a function of $\nabla^2$
+
+One can verify that the Fourier transform of the Laplacian is
+
+$$
+\mathcal{F}[\nabla^2 f](\omega) = - ||\omega||^2 \mathcal{F}[f]
+$$
+
+So we can write the integral operator operator associated to the kernel
+
+$$
+\mathcal{K} := \int_{\mathbb{R}^d} k(\cdot, x')\phi(x') dx'
+$$
+
+as
+
+$$
+\mathcal{K} = a_0  + a_1 (- \nabla^2) + a_2 (-\nabla^2)^2 - a_3 (-\nabla^3)^2 + \cdots
+$$
+
+
 
 ## PyMC Implementations

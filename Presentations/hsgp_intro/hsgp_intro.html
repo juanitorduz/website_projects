@@ -29,6 +29,71 @@
       margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
       vertical-align: middle;
     }
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+      }
+    pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+    div.sourceCode
+      { color: #e1e4e8; background-color: #24292e; }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span { color: #e1e4e8; } /* Normal */
+    code span.al { color: #ff5555; font-weight: bold; } /* Alert */
+    code span.an { color: #6a737d; } /* Annotation */
+    code span.at { color: #f97583; } /* Attribute */
+    code span.bn { color: #79b8ff; } /* BaseN */
+    code span.bu { color: #f97583; } /* BuiltIn */
+    code span.cf { color: #f97583; } /* ControlFlow */
+    code span.ch { color: #9ecbff; } /* Char */
+    code span.cn { color: #79b8ff; } /* Constant */
+    code span.co { color: #6a737d; } /* Comment */
+    code span.cv { color: #6a737d; } /* CommentVar */
+    code span.do { color: #6a737d; } /* Documentation */
+    code span.dt { color: #f97583; } /* DataType */
+    code span.dv { color: #79b8ff; } /* DecVal */
+    code span.er { color: #ff5555; text-decoration: underline; } /* Error */
+    code span.ex { color: #f97583; font-weight: bold; } /* Extension */
+    code span.fl { color: #79b8ff; } /* Float */
+    code span.fu { color: #b392f0; } /* Function */
+    code span.im { color: #9ecbff; } /* Import */
+    code span.in { color: #6a737d; } /* Information */
+    code span.kw { color: #f97583; } /* Keyword */
+    code span.op { color: #e1e4e8; } /* Operator */
+    code span.ot { color: #b392f0; } /* Other */
+    code span.pp { color: #f97583; } /* Preprocessor */
+    code span.re { color: #6a737d; } /* RegionMarker */
+    code span.sc { color: #79b8ff; } /* SpecialChar */
+    code span.ss { color: #9ecbff; } /* SpecialString */
+    code span.st { color: #9ecbff; } /* String */
+    code span.va { color: #ffab70; } /* Variable */
+    code span.vs { color: #9ecbff; } /* VerbatimString */
+    code span.wa { color: #ff5555; } /* Warning */
   </style>
   <link rel="stylesheet" href="hsgp_intro_files/libs/revealjs/dist/theme/quarto.css">
   <link href="hsgp_intro_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
@@ -352,8 +417,251 @@
 <section id="introduction-to-gaussian-processes" class="slide level2">
 <h2>Introduction to Gaussian Processes</h2>
 </section>
-<section id="hilbert-spaces-approximations" class="slide level2">
-<h2>Hilbert Spaces Approximations</h2>
+<section id="synthetic-data" class="slide level2">
+<h2>Synthetic Data</h2>
+<h3 id="y-sim-textnormalsin4-pi-x-sin7-pi-x-0.32"><span class="math inline">\(y \sim \text{Normal}(\sin(4 \pi x) + \sin(7 \pi x), 0.3^2)\)</span></h3>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_6_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="kernel" class="slide level2">
+<h2>Kernel</h2>
+<p>A way to encode similarity between points</p>
+<h3 id="example-squared-exponential-kernel">Example: Squared Exponential Kernel</h3>
+<p><span class="math display">\[
+k(x, x') = a^ 2 \exp\left(-\frac{(x - x')^2}{2 \ell^2}\right)
+\]</span></p>
+<p>Where <span class="math inline">\(a\)</span> is the amplitude and <span class="math inline">\(\ell\)</span> is the lengthscale.</p>
+<div class="callout callout-note callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Note</strong></p>
+</div>
+<div class="callout-content">
+<p>Observe that the kernel just depends on the distance between points <span class="math inline">\(r = x - x'\)</span>. This is a property of <strong>stationary kernels.</strong></p>
+</div>
+</div>
+</div>
+</section>
+<section id="kernel-matrix" class="slide level2">
+<h2>Kernel Matrix</h2>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_16_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="gp-model---prior" class="slide level2">
+<h2>GP Model - Prior</h2>
+<p>Let us denote by <span class="math inline">\((x, y)\)</span> and the training data and by <span class="math inline">\(x_{*}\)</span> the test set for which we want to generate predictions. We define by <span class="math inline">\(f\)</span> and <span class="math inline">\(f_*\)</span> the latent functions for the training and test sets respectively.</p>
+<p><span class="math display">\[
+\left(
+\begin{array}{c}
+y \\
+f_*
+\end{array}
+\right)
+\sim
+\text{MultivariateNormal}(0, \mathcal{K})
+\]</span></p>
+<p>where</p>
+<p><span class="math display">\[
+\mathcal{K} =
+\left(
+\begin{array}{cc}
+K(X, X) + \sigma^2_n I &amp; K(X, X_*) \\
+K(X_*, X) &amp; K(X_*, X_*)
+\end{array}
+\right)
+\]</span></p>
+</section>
+<section id="gp-model---conditioning" class="slide level2">
+<h2>GP Model - Conditioning</h2>
+<p><span class="math display">\[
+f_*|X, y, X_*
+\sim
+\text{MultivariateNormal}(\bar{f}_*, \text{cov}(f_*))
+\]</span></p>
+<p>where</p>
+<p><span class="math display">\[
+\begin{align*}
+\bar{f}_* &amp;= K(X_*, X){\color{red}{(K(X, X) + \sigma^2_n I)^{-1}}} \\
+\text{cov}(f_*) &amp; = K(X_*, X_*) - K(X_*, X){\color{red}{(K(X, X) + \sigma^2_n I)^{-1}}} K(X, X_*)
+\end{align*}
+\]</span></p>
+<div class="callout callout-important callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Important</strong></p>
+</div>
+<div class="callout-content">
+<p>Taking the inverse of the kernel matrix is the most computationally expensive part of the GP model. It is of order <span class="math inline">\(\mathcal{O}(n^3)\)</span>.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="kernel-parameter-priors" class="slide level2">
+<h2>Kernel parameter priors</h2>
+<div class="sourceCode" id="cb1" data-code-line-numbers="|1-7|8-14|16-20"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a>inverse_gamma_params_1 <span class="op">=</span> pm.find_constrained_prior(</span>
+<span id="cb1-2"><a href=""></a>    distribution<span class="op">=</span>pm.InverseGamma,</span>
+<span id="cb1-3"><a href=""></a>    lower<span class="op">=</span><span class="fl">0.01</span>,</span>
+<span id="cb1-4"><a href=""></a>    upper<span class="op">=</span><span class="fl">0.4</span>,</span>
+<span id="cb1-5"><a href=""></a>    init_guess<span class="op">=</span>{<span class="st">"alpha"</span>: <span class="dv">5</span>, <span class="st">"beta"</span>: <span class="dv">3</span>},</span>
+<span id="cb1-6"><a href=""></a>    mass<span class="op">=</span><span class="fl">0.94</span>,</span>
+<span id="cb1-7"><a href=""></a>)</span>
+<span id="cb1-8"><a href=""></a>inverse_gamma_params_2 <span class="op">=</span> pm.find_constrained_prior(</span>
+<span id="cb1-9"><a href=""></a>    distribution<span class="op">=</span>pm.InverseGamma,</span>
+<span id="cb1-10"><a href=""></a>    lower<span class="op">=</span><span class="fl">0.5</span>,</span>
+<span id="cb1-11"><a href=""></a>    upper<span class="op">=</span><span class="fl">1.5</span>,</span>
+<span id="cb1-12"><a href=""></a>    init_guess<span class="op">=</span>{<span class="st">"alpha"</span>: <span class="dv">5</span>, <span class="st">"beta"</span>: <span class="dv">6</span>},</span>
+<span id="cb1-13"><a href=""></a>    mass<span class="op">=</span><span class="fl">0.94</span>,</span>
+<span id="cb1-14"><a href=""></a>)</span>
+<span id="cb1-15"><a href=""></a></span>
+<span id="cb1-16"><a href=""></a>fig, ax <span class="op">=</span> plt.subplots()</span>
+<span id="cb1-17"><a href=""></a>pz.InverseGamma(<span class="op">**</span>inverse_gamma_params_1).plot_pdf(color<span class="op">=</span><span class="st">"C0"</span>, ax<span class="op">=</span>ax)</span>
+<span id="cb1-18"><a href=""></a>pz.InverseGamma(<span class="op">**</span>inverse_gamma_params_2).plot_pdf(color<span class="op">=</span><span class="st">"C1"</span>, ax<span class="op">=</span>ax)</span>
+<span id="cb1-19"><a href=""></a>ax.<span class="bu">set</span>(xlim<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">2</span>))</span>
+<span id="cb1-20"><a href=""></a>ax.set_title(<span class="st">"Prior Distributions"</span>, fontsize<span class="op">=</span><span class="dv">18</span>, fontweight<span class="op">=</span><span class="st">"bold"</span>)<span class="op">;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section>
+<section id="kernel-parameter-priors-1" class="title-slide slide level1 center">
+<h1>Kernel parameter priors</h1>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_24_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="gp-model-in-pymc" class="slide level2">
+<h2>GP Model in PyMC</h2>
+<div class="sourceCode" id="cb2" data-code-line-numbers="|2|4-6|8-13|15"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> gp_pymc_model:</span>
+<span id="cb2-2"><a href=""></a>    x_data <span class="op">=</span> pm.MutableData(<span class="st">"x_data"</span>, value<span class="op">=</span>x_train)</span>
+<span id="cb2-3"><a href=""></a></span>
+<span id="cb2-4"><a href=""></a>    kernel_amplitude <span class="op">=</span> pm.InverseGamma(<span class="st">"kernel_amplitude"</span>, ...)</span>
+<span id="cb2-5"><a href=""></a>    kernel_length_scale <span class="op">=</span> pm.InverseGamma(<span class="st">"kernel_length_scale"</span>, ...)</span>
+<span id="cb2-6"><a href=""></a>    noise <span class="op">=</span> pm.InverseGamma(<span class="st">"noise"</span>, ...)</span>
+<span id="cb2-7"><a href=""></a></span>
+<span id="cb2-8"><a href=""></a>    mean <span class="op">=</span> pm.gp.mean.Zero()</span>
+<span id="cb2-9"><a href=""></a>    cov <span class="op">=</span> kernel_amplitude<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> pm.gp.cov.ExpQuad(</span>
+<span id="cb2-10"><a href=""></a>      input_dim<span class="op">=</span><span class="dv">1</span>, ls<span class="op">=</span>kernel_length_scale</span>
+<span id="cb2-11"><a href=""></a>    )</span>
+<span id="cb2-12"><a href=""></a>    gp <span class="op">=</span> pm.gp.Latent(mean_func<span class="op">=</span>mean, cov_func<span class="op">=</span>cov)</span>
+<span id="cb2-13"><a href=""></a>    f <span class="op">=</span> gp.prior(<span class="st">"f"</span>, X<span class="op">=</span>x_data[:, <span class="va">None</span>])</span>
+<span id="cb2-14"><a href=""></a></span>
+<span id="cb2-15"><a href=""></a>    pm.Normal(<span class="st">"likelihood"</span>, mu<span class="op">=</span>f, sigma<span class="op">=</span>noise, observed<span class="op">=</span>y_train_obs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="gp-model-in-pymc-1" class="slide level2">
+<h2>GP Model in PyMC</h2>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_49_0.svg" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="gp-model---prior-predictions" class="slide level2">
+<h2>GP Model - Prior Predictions</h2>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_32_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="gp-model---posterior-distributions" class="slide level2">
+<h2>GP Model - Posterior Distributions</h2>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_53_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="gp-model---posterior-predictive" class="slide level2">
+<h2>GP Model - Posterior Predictive</h2>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_59_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="eigenvalues-and-eignevectors" class="slide level2">
+<h2>Eigenvalues and Eignevectors</h2>
+</section>
+<section id="the-spectral-theorem" class="slide level2">
+<h2>The Spectral Theorem</h2>
+</section>
+<section id="spectral-densities" class="slide level2">
+<h2>Spectral Densities</h2>
+<p>In the case a kernel function is <strong>stationary</strong>, we can use the spectral representation of the kernel function (<a href="https://en.wikipedia.org/wiki/Bochner%27s_theorem">Bochner’s theorem</a>):</p>
+<p><span class="math display">\[
+k(r) = \frac{1}{(2 \pi)^{d}}\int_{\mathbb{R}^{d}} e^{i \omega^{T} r} d\mu(\omega)
+\]</span></p>
+<p>where <span class="math inline">\(\mu\)</span> is a positive measure. If this measure has a density, it is called the <strong>spectral density</strong> <span class="math inline">\(S(\omega)\)</span> corresponding to the covariance function, i.e.&nbsp;<span class="math inline">\(d\mu(\omega) = S(\omega) d\omega\)</span>.</p>
+<div class="footer">
+<p><a href="https://gaussianprocess.org/gpml/chapters/RW4.pdf">Gaussian Processes for Machine Learning - Chapter 4: Covariance Functions</a>.</p>
+</div>
+</section>
+<section id="spectral-density---example" class="slide level2">
+<h2>Spectral Density - Example</h2>
+<p>For the <em>squared exponential kernel</em>, it can be shown that</p>
+<p><span class="math display">\[
+S(\omega) = a^2(2 \pi \ell^2)^{d/2} \exp\left(-2\pi^2\ell^2\omega^2\right)
+\]</span></p>
+<p>For the special case <span class="math inline">\(d=1\)</span> we have</p>
+<p><span class="math display">\[
+S(\omega) = a^2 \sqrt{2 \pi} \ell \exp\left(-2\pi^2\ell^2\omega^2\right)
+\]</span></p>
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Tip</strong></p>
+</div>
+<div class="callout-content">
+<p>Note the similarity between the spectral density and the <a href="https://en.wikipedia.org/wiki/Fourier_transform">Fourier transform</a>. For Gaussian-like kernels, like the squared exponential, we expect the associated spectral density to also be Gaussian-like.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="somega-squared-exponential" class="slide level2">
+<h2><span class="math inline">\(S(\omega)\)</span> Squared Exponential</h2>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_66_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="formal-power-expansion-of-the-spectral-density" class="slide level2">
+<h2>Formal Power Expansion of the Spectral Density</h2>
+<p>Let us assume the kernel function is <strong>isotropic</strong>, i.e.&nbsp;it just depends on the Euclidean norm <span class="math inline">\(||r||\)</span>.</p>
+<div>
+<ul>
+<li class="fragment"><p><span class="math inline">\(S(\omega)\)</span> is also isotropic.</p></li>
+<li class="fragment"><p>Write <span class="math inline">\(S(||\omega||) = \psi(||\omega||^2)\)</span> for a suitable function <span class="math inline">\(\psi\)</span>.</p></li>
+<li class="fragment"><p>We can expand <span class="math inline">\(\psi\)</span> (Taylor-like expansion)</p>
+<p><span class="math display">\[
+\begin{align*}
+\psi(||\omega||^2) = a_0 + a_1 (||\omega||^2) + a_2 (||\omega||^2)^2 +  a_3 (||\omega||^2)^3 +  \cdots
+\end{align*}
+\]</span></p></li>
+</ul>
+</div>
+</section>
+<section id="the-laplace-operator" class="slide level2">
+<h2>The Laplace Operator</h2>
+<p>Recall the <strong>Laplace operator</strong> is defined as</p>
+<p><span class="math display">\[
+- \nabla^2 f = \sum_{i=1}^{d} \frac{\partial^2 f}{\partial x_i^2}
+\]</span></p>
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Tip</strong></p>
+</div>
+<div class="callout-content">
+<p>The Laplacian has many good properties:</p>
+<ul>
+<li><p>Positive semi-definite</p></li>
+<li><p>Elliptic</p></li>
+<li><p>Self-adjoint (appropriate boundary conditions)</p></li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+<section id="kernel-as-a-function-of-nabla2" class="slide level2">
+<h2>Kernel as a function of <span class="math inline">\(\nabla^2\)</span></h2>
+<p>One can verify that the Fourier transform of the Laplacian is</p>
+<p><span class="math display">\[
+\mathcal{F}[\nabla^2 f](\omega) = - ||\omega||^2 \mathcal{F}[f]
+\]</span></p>
+<p>So we can write the integral operator operator associated to the kernel</p>
+<p><span class="math display">\[
+\mathcal{K} := \int_{\mathbb{R}^d} k(\cdot, x')\phi(x') dx'
+\]</span></p>
+<p>as</p>
+<p><span class="math display">\[
+\mathcal{K} = a_0  + a_1 (- \nabla^2) + a_2 (-\nabla^2)^2 - a_3 (-\nabla^3)^2 + \cdots
+\]</span></p>
 </section>
 <section id="pymc-implementations" class="slide level2">
 <h2>PyMC Implementations</h2>
@@ -363,7 +671,7 @@
 
 </div>
 </div>
-</section>
+</section></section>
     </div>
   </div>
 
