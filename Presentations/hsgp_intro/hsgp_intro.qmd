@@ -519,4 +519,42 @@ $$
 
 for $j = 1, 2, \ldots$.
 
+## HSGP: Functional Calculus
+
+$$
+-\nabla^2 f(x) = \int_{\Omega} \overbrace{\left[\sum_{j} \lambda_{j} \phi_{j}(x) \phi_{j}(x')\right]}^{l(x, x')} f(x') dx'
+$$
+
+We can construct powers of $-\nabla^2$ as
+
+$$
+(- \nabla^2)^{s} f(x) = \int_{\Omega} \overbrace{\left[\sum_{j} \lambda_{j}^{s} \phi_{j}(x) \phi_{j}(x')\right]}^{l^s(x, x')} f(x') dx'.
+$$
+
+## HSGP: Coefficients Identification
+
+Use the formal expansion of $\mathcal{K}$ in terms of powers of $\nabla^2$:
+
+\begin{align*}
+& \left[ a_{0} + a_{1}(-\nabla^2) + a_{2}(-\nabla^2)^2 + \cdots \right]f(x) = \\
+&\int_{\Omega} \left[a_{0} + a_{1} l(x, x') + a_{2} l^{2}(x, x') + \cdots \right] f(x') dx'
+\end{align*}
+
+This implies we can approximate the kernel as
+
+\begin{align*}
+k(x, x') \approx & \: a_{0} + a_{1} l(x, x') + a_{2} l^{2}(x, x') + \cdots \\
+\approx & \sum_{j} \left[ a_{0} + a_{1} \lambda_{j} + a_{2} \lambda_{j}^2 + \cdots \right] \phi_{j}(x) \phi_{j}(x')
+\end{align*}
+
+## HSGP: Final Formula
+
+Finally, recall that the coefficient $a_j$ where defined by the polynomial expansion of the spectral density, so if we take $||\omega||^2 = \lambda_j$ then we arrive at the final expression for the approximation formula:
+
+$$
+\boxed{
+k(x, x') \approx \sum_{j} S(\sqrt{\lambda_j})\phi_{j}(x) \phi_{j}(x')
+}
+$$
+
 ## PyMC Implementations
