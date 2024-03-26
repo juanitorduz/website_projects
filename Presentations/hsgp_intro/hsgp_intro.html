@@ -96,6 +96,7 @@
     code span.wa { color: #ff5555; } /* Warning */
   </style>
   <link rel="stylesheet" href="hsgp_intro_files/libs/revealjs/dist/theme/quarto.css">
+  <link rel="stylesheet" href="hsgp_intro_files/style.css">
   <link href="hsgp_intro_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="hsgp_intro_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
   <link href="hsgp_intro_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
@@ -562,11 +563,187 @@ f_*|X, y, X_*
 <h2>GP Model - Posterior Predictive</h2>
 
 <img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_59_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
-<section id="eigenvalues-and-eignevectors" class="slide level2">
-<h2>Eigenvalues and Eignevectors</h2>
+<section id="hilbert-spacc-approximation" class="slide level2 smaller">
+<h2>Hilbert Spacc Approximation</h2>
+<h3 id="approximation-strategy-steps">Approximation Strategy Steps</h3>
+<div>
+<ol start="0" type="1">
+<li class="fragment">D-Tour: Eigenvalues and Eigenvectors</li>
+<li class="fragment">We recall de definition of the spectral density <span class="math inline">\(S(\omega)\)</span> associated with a stationary kernel function <span class="math inline">\(k\)</span>.</li>
+<li class="fragment">We approximate the spectral density <span class="math inline">\(S(\omega)\)</span> as a polynomial series in <span class="math inline">\(||\omega||^2\)</span>.</li>
+<li class="fragment">We can interpret these polynomial terms as powers of the Laplacian operator. The key observation is that the Fourier transform of the Laplacian operator is <span class="math inline">\(||\omega||^2\)</span>.</li>
+<li class="fragment">Next, we impose Dirichlet boundary conditions on the Laplacian operator which makes it self-adjoint and with discrete spectrum.</li>
+<li class="fragment">We identify the expansion in (2) with the sum of powers of the Laplacian operator in the eigenbasis of (4).</li>
+<li class="fragment">We arrive at the final approximation formula and explicitly compute the terms for the squared exponential kernel in the one-dimensional case.</li>
+</ol>
+</div>
+</section>
+<section id="eigenvalues-and-eigenvectors" class="slide level2">
+<h2>Eigenvalues and Eigenvectors</h2>
+<p>Recall that given a matrix <span class="math inline">\(A\)</span> (or a linear operator) the <strong>eigenvalues and eigenvectors</strong> are the solutions to the equation</p>
+<p><span class="math display">\[A v = \lambda v\]</span></p>
+<p>where <span class="math inline">\(v\)</span> is the eigenvector and <span class="math inline">\(\lambda \neq 0\)</span> is the eigenvalue. The <strong>spectrum</strong> of a matrix is the set of its eigenvalues.</p>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/the-spectral-theorem-for-matrices/">The Spectral Theorem for Matrices</a></p>
+</div>
+</section>
+<section id="example---2-times-2-matrix" class="slide level2">
+<h2>Example - <span class="math inline">\(2 \times 2\)</span> Matrix</h2>
+<p><span class="math display">\[
+A = \begin{pmatrix}
+1 &amp; 2 \\
+2 &amp; 1
+\end{pmatrix}
+\]</span></p>
+<p>The eigenvalues are <span class="math inline">\(\lambda_1 = 3\)</span> and <span class="math inline">\(\lambda_2 = -1\)</span> with eigenvectors:</p>
+<p><span class="math display">\[
+v_1 = \frac{1}{\sqrt{2}} \begin{pmatrix}
+1 \\
+1
+\end{pmatrix} \quad \text{and} \quad
+v_2 = \frac{1}{\sqrt{2}} \begin{pmatrix}
+-1 \\
+1
+\end{pmatrix}
+\]</span></p>
+<div title="Properties">
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Properties</strong></p>
+</div>
+<div class="callout-content">
+<p><span class="math display">\[
+v_1^{T} v_2 = 0 \quad \text{and} \quad v_1^{T} v_1 = v_2^{T} v_2 = 1
+\]</span></p>
+</div>
+</div>
+</div>
+</div>
 </section>
 <section id="the-spectral-theorem" class="slide level2">
 <h2>The Spectral Theorem</h2>
+<p>The <strong>spectral theorem</strong> states that we can always find such orthonormal basis of eigenvectors for a symmetric matrix.</p>
+<p>Observe that if we consider the change-of-basis matrix</p>
+<p><span class="math display">\[
+Q = \begin{pmatrix}
+v_1 &amp; v_2
+\end{pmatrix}
+\]</span></p>
+<p>then we can write the matrix <span class="math inline">\(A\)</span> in the new basis as</p>
+<p><span class="math display">\[
+D = Q^{T} A Q = \begin{pmatrix}
+3 &amp; 0 \\
+0 &amp; -1
+\end{pmatrix}
+\]</span></p>
+</section>
+<section id="code-example" class="slide level2">
+<h2>Code Example</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href=""></a><span class="im">import</span> jax.numpy <span class="im">as</span> jnp</span>
+<span id="cb3-2"><a href=""></a></span>
+<span id="cb3-3"><a href=""></a>A <span class="op">=</span> jnp.array([[<span class="fl">1.0</span>, <span class="fl">2.0</span>], [<span class="fl">2.0</span>, <span class="fl">1.0</span>]])</span>
+<span id="cb3-4"><a href=""></a></span>
+<span id="cb3-5"><a href=""></a><span class="co"># Compute eigenvalues and eigenvectors</span></span>
+<span id="cb3-6"><a href=""></a>eigenvalues, eigenvectors <span class="op">=</span> jnp.linalg.eig(A)</span>
+<span id="cb3-7"><a href=""></a></span>
+<span id="cb3-8"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Eigenvalues: </span><span class="sc">{</span>eigenvalues<span class="sc">}</span><span class="ch">\n</span><span class="ss">Eigenvectors:</span><span class="ch">\n</span><span class="sc">{</span>eigenvectors<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb3-9"><a href=""></a></span>
+<span id="cb3-10"><a href=""></a><span class="op">&gt;&gt;</span> Eigenvalues: [ <span class="fl">3.</span><span class="op">+</span><span class="ot">0.j</span> <span class="op">-</span><span class="fl">1.</span><span class="op">+</span><span class="ot">0.j</span>]</span>
+<span id="cb3-11"><a href=""></a><span class="op">&gt;&gt;</span> Eigenvectors:</span>
+<span id="cb3-12"><a href=""></a><span class="op">&gt;&gt;</span> [[ <span class="fl">0.70710678</span><span class="op">+</span><span class="ot">0.j</span> <span class="op">-</span><span class="fl">0.70710678</span><span class="op">+</span><span class="ot">0.j</span>]</span>
+<span id="cb3-13"><a href=""></a><span class="op">&gt;&gt;</span> [ <span class="fl">0.70710678</span><span class="op">+</span><span class="ot">0.j</span>  <span class="fl">0.70710678</span><span class="op">+</span><span class="ot">0.j</span>]]</span>
+<span id="cb3-14"><a href=""></a></span>
+<span id="cb3-15"><a href=""></a></span>
+<span id="cb3-16"><a href=""></a><span class="co"># Change of basis matrix</span></span>
+<span id="cb3-17"><a href=""></a>Q <span class="op">=</span> eigenvectors</span>
+<span id="cb3-18"><a href=""></a>Q.T <span class="op">@</span> A <span class="op">@</span> Q</span>
+<span id="cb3-19"><a href=""></a></span>
+<span id="cb3-20"><a href=""></a><span class="op">&gt;&gt;</span> Array([[ <span class="fl">3.00000000e+00</span><span class="op">+</span><span class="ot">0.j</span>,  <span class="fl">4.44089210e-16</span><span class="op">+</span><span class="ot">0.j</span>],</span>
+<span id="cb3-21"><a href=""></a>       [ <span class="fl">6.10622664e-16</span><span class="op">+</span><span class="ot">0.j</span>, <span class="op">-</span><span class="fl">1.00000000e+00</span><span class="op">+</span><span class="ot">0.j</span>]], dtype<span class="op">=</span>complex128)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/the-spectral-theorem-for-matrices/">The Spectral Theorem for Matrices</a></p>
+</div>
+</section>
+<section id="spectral-projections" class="slide level2">
+<h2>Spectral Projections</h2>
+<p>Another important consequence of the spectral theorem is that we can decompose the matrix <span class="math inline">\(A\)</span> as a <strong>sum of projections onto its eigenspaces</strong>. That is, we can write is as</p>
+<p><span class="math display">\[
+A = \sum_{j=1}^{2} \lambda_i v_j v_j^{T}
+\]</span></p>
+<div title="Projections">
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Projections</strong></p>
+</div>
+<div class="callout-content">
+<p>Observe that the operator <span class="math inline">\(P_{j} = v_j v_j ^{T}\)</span> is indeed a projection operator, that is <span class="math inline">\(P^2 = P\)</span> and <span class="math inline">\(P^T = P\)</span>, since the <span class="math inline">\(v_j\)</span> constitute an orthonormal basis.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="code-example-1" class="slide level2">
+<h2>Code Example</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="kw">def</span> proj(v, x):</span>
+<span id="cb4-2"><a href=""></a>    <span class="cf">return</span> jnp.dot(v, x) <span class="op">*</span> v</span>
+<span id="cb4-3"><a href=""></a></span>
+<span id="cb4-4"><a href=""></a><span class="kw">def</span> matrix_proj(x):</span>
+<span id="cb4-5"><a href=""></a>    <span class="cf">return</span> eigenvalues[<span class="dv">0</span>] <span class="op">*</span> proj(Q[:, <span class="dv">0</span>], x) <span class="op">+</span> eigenvalues[<span class="dv">1</span>] <span class="op">*</span> proj(Q[:, <span class="dv">1</span>], x)</span>
+<span id="cb4-6"><a href=""></a></span>
+<span id="cb4-7"><a href=""></a><span class="co"># First eigenvector</span></span>
+<span id="cb4-8"><a href=""></a>matrix_proj(Q[:, <span class="dv">0</span>])  <span class="op">/</span> eigenvalues[<span class="dv">0</span>]</span>
+<span id="cb4-9"><a href=""></a><span class="op">&gt;&gt;</span> Array([<span class="fl">0.70710678</span><span class="op">+</span><span class="ot">0.j</span>, <span class="fl">0.70710678</span><span class="op">+</span><span class="ot">0.j</span>], dtype<span class="op">=</span>complex128)</span>
+<span id="cb4-10"><a href=""></a></span>
+<span id="cb4-11"><a href=""></a><span class="co"># Second eigenvector</span></span>
+<span id="cb4-12"><a href=""></a>matrix_proj(Q[:, <span class="dv">1</span>])  <span class="op">/</span> eigenvalues[<span class="dv">1</span>]</span>
+<span id="cb4-13"><a href=""></a><span class="op">&gt;&gt;</span> Array([<span class="op">-</span><span class="fl">0.70710678</span><span class="op">-</span><span class="ot">0.j</span>,  <span class="fl">0.70710678</span><span class="op">-</span><span class="ot">0.j</span>], dtype<span class="op">=</span>complex128)</span>
+<span id="cb4-14"><a href=""></a></span>
+<span id="cb4-15"><a href=""></a><span class="co"># Arbitrary vector</span></span>
+<span id="cb4-16"><a href=""></a>v <span class="op">=</span> jnp.array([<span class="fl">1.0</span>, <span class="fl">2.0</span>])</span>
+<span id="cb4-17"><a href=""></a>jnp.allclose(jnp.dot(A, v), matrix_proj(v))</span>
+<span id="cb4-18"><a href=""></a><span class="op">&gt;&gt;</span> Array(<span class="va">True</span>, dtype<span class="op">=</span><span class="bu">bool</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="functional-calculus" class="slide level2">
+<h2>Functional Calculus</h2>
+<p>The <a href="https://en.wikipedia.org/wiki/Spectral_theorem#Functional_calculus">functional calculus</a> is a generalization of the Taylor series for functions to operators.</p>
+<p>Given a function <span class="math inline">\(f\)</span> we can define the operator <span class="math inline">\(f(A)\)</span> as</p>
+<p><span class="math display">\[
+f(A) = \sum_{j=1}^{2} f(\lambda_j) v_j v_j^{T}
+\]</span></p>
+<p>Observe that the particular cases:</p>
+<ul>
+<li><span class="math inline">\(f(z) = z\)</span> we recover the operator <span class="math inline">\(A\)</span>.</li>
+<li><span class="math inline">\(f(z) = 1\)</span> we recover the identity operator <span class="math inline">\(I\)</span>.</li>
+</ul>
+</section>
+<section id="example-exponential-of-a-matrix" class="slide level2">
+<h2>Example: Exponential of a Matrix</h2>
+<p>Consider the exponential of the matrix <span class="math inline">\(A\)</span> defined as</p>
+<p><span class="math display">\[
+\exp(A) = \sum_{j=0}^{\infty} \frac{A^j}{j!}
+\]</span></p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href=""></a>scipy.linalg.expm(A)</span>
+<span id="cb5-2"><a href=""></a><span class="op">&gt;&gt;</span> Array([[<span class="fl">10.22670818</span>,  <span class="fl">9.85882874</span>],</span>
+<span id="cb5-3"><a href=""></a>       [ <span class="fl">9.85882874</span>, <span class="fl">10.22670818</span>]], dtype<span class="op">=</span>float64)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="example-exponential-of-a-matrix-1" class="slide level2">
+<h2>Example: Exponential of a Matrix</h2>
+<p>On the other hand, we can use the fact that <span class="math inline">\(A = Q D Q^{T}\)</span> and that <span class="math inline">\(Q\)</span> is an orthogonal matrix to write</p>
+<p><span class="math display">\[
+\exp(A) = \sum_{j=0}^{\infty} \frac{(Q D Q^{T})^j}{j!} = Q \left(\sum_{j=0}^{\infty} \frac{D^j}{j!}\right) Q^{T} = Q \exp(D) Q^{T}
+\]</span></p>
+<p>and observe that <span class="math inline">\(\exp(D)\)</span> is a diagonal matrix with the exponential of the diagonal elements:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a>Q <span class="op">@</span> jnp.diag(jnp.exp(eigenvalues)) <span class="op">@</span> Q.T</span>
+<span id="cb6-2"><a href=""></a><span class="op">&gt;&gt;</span> Array([[<span class="fl">10.22670818</span><span class="op">+</span><span class="ot">0.j</span>,  <span class="fl">9.85882874</span><span class="op">+</span><span class="ot">0.j</span>],</span>
+<span id="cb6-3"><a href=""></a>       [ <span class="fl">9.85882874</span><span class="op">+</span><span class="ot">0.j</span>, <span class="fl">10.22670818</span><span class="op">+</span><span class="ot">0.j</span>]], dtype<span class="op">=</span>complex128)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="spectral-densities" class="slide level2">
 <h2>Spectral Densities</h2>
@@ -654,14 +831,55 @@ S(\omega) = a^2 \sqrt{2 \pi} \ell \exp\left(-2\pi^2\ell^2\omega^2\right)
 <p><span class="math display">\[
 \mathcal{F}[\nabla^2 f](\omega) = - ||\omega||^2 \mathcal{F}[f]
 \]</span></p>
-<p>So we can write the integral operator operator associated to the kernel</p>
+<p>So we can write the integral operator operator associated with the kernel</p>
 <p><span class="math display">\[
 \mathcal{K} := \int_{\mathbb{R}^d} k(\cdot, x')\phi(x') dx'
 \]</span></p>
 <p>as</p>
 <p><span class="math display">\[
-\mathcal{K} = a_0  + a_1 (- \nabla^2) + a_2 (-\nabla^2)^2 - a_3 (-\nabla^3)^2 + \cdots
+\mathcal{K} = a_0  + a_1 (- \nabla^2) + a_2 (-\nabla^2)^2 - a_3 (-\nabla^2)^3 + \cdots
 \]</span></p>
+</section>
+<section id="dirichlets-laplacian" class="slide level2">
+<h2>Dirichlet’s Laplacian</h2>
+<h3 id="boundary-conditions">Boundary Conditions?</h3>
+<p>The most common boundary conditions are the <a href="https://en.wikipedia.org/wiki/Dirichlet_eigenvalue">Dirichlet boundary conditions</a>, which are defined by <strong>requiring that the function vanishes on the boundary of the domain</strong>.</p>
+<p><span class="math display">\[
+\begin{align*}
+-\nabla^2 f &amp;= 0 \quad \text{in} \quad \Omega \\
+f &amp;= 0 \quad \text{on} \quad \partial \Omega
+\end{align*}
+\]</span></p>
+</section>
+<section id="dirichlets-laplacian---spectrum" class="slide level2">
+<h2>Dirichlet’s Laplacian - Spectrum</h2>
+<div>
+<ul>
+<li class="fragment"><p>It is is a <strong>self-adjoint</strong> operator defined on the Hilbert space <span class="math inline">\(L^{2}(\Omega)\)</span> equipped with the Lebesgue measure. That is,</p>
+<p><span class="math display">\[
+\int_{\Omega} (-\nabla^2 f(x)) g(x) dx = \int_{\Omega} f(x) (-\nabla^2 g(x)) dx
+\]</span></p></li>
+<li class="fragment"><p>It has discrete spectrum with eigenvalues <span class="math inline">\(\lambda_j \rightarrow \infty\)</span> and eigenfunctions <span class="math inline">\(\phi_j\)</span> that form an orthonormal basis of <span class="math inline">\(L^2(\Omega)\)</span>, so that <span class="math display">\[
+\int_{\Omega} \phi_{j}(x) \phi_{k}(x) dx = \delta_{jk}
+\]</span></p></li>
+</ul>
+</div>
+</section>
+<section id="example---one-dimensional-box" class="slide level2">
+<h2>Example - One Dimensional Box</h2>
+<h3 id="omega--l-l-subset-mathbbr"><span class="math inline">\(\Omega = [-L, L] \subset \mathbb{R}\)</span></h3>
+<p><span class="math display">\[
+\frac{d^2 \phi}{dx^2} = - \lambda \phi \quad \text{with} \quad \phi(-L) = \phi(L) = 0
+\]</span></p>
+<h3 id="spectrum">Spectrum?</h3>
+<p><span class="math display">\[
+\phi_j(x) = \sqrt{\frac{1}{L}} \sin\left(\frac{\pi j (x + L)}{2L}\right)
+\quad
+\text{and}
+\quad
+\lambda_j = \left(\frac{j \pi}{2L}\right)^2
+\]</span></p>
+<p>for <span class="math inline">\(j = 1, 2, \ldots\)</span>.</p>
 </section>
 <section id="pymc-implementations" class="slide level2">
 <h2>PyMC Implementations</h2>
