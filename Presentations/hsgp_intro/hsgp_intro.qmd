@@ -23,11 +23,58 @@ format:
     highlight-style: github-dark
 ---
 
-## Gaussian Processes in the Real World
-
 ## Outline
 
-## Introduction to Gaussian Processes
+::: incremental
+
+1. Motivation: Some Applications
+
+2. Reminder: Gaussian Processes
+
+3. Hilbert Space Approximation Deep Dive
+
+4. Example: Birthdays Dataset
+
+5. Reference
+
+:::
+
+## Some Applications
+
+### Case Study: How popular is the President?
+
+![](hsgp_intro_files/static/images/presidents.png){fig-align="center" width="950"}
+
+::: footer
+
+[How popular is the President?](https://alexandorra.github.io/pollsposition_blog/popularity/macron/gaussian%20processes/polls/2021/01/18/gp-popularity.html)
+
+:::
+
+## Some Applications
+
+### Time-Varying Regression Coefficients
+
+![](hsgp_intro_files/static/images/bikes_gp_51_2.png){fig-align="center" width="950"}
+
+
+::: footer
+
+[Time-Varying Regression Coefficients via Hilbert Space Gaussian Process Approximation](https://juanitorduz.github.io/bikes_gp/)
+
+:::
+
+## Some Applications
+
+### Changes in marketing effectiveness over time
+
+![](hsgp_intro_files/static/images/hierarchical-gaussian-process.png){fig-align="center" width="950"}
+
+::: footer
+
+[Bayesian Media Mix Models: Modelling changes in marketing effectiveness over time](https://www.pymc-labs.com/blog-posts/modelling-changes-marketing-effectiveness-over-time/)
+
+:::
 
 ## Synthetic Data
 
@@ -148,7 +195,7 @@ with pm.Model() as gp_pymc_model:
 
     mean = pm.gp.mean.Zero()
     cov = kernel_amplitude**2 * pm.gp.cov.ExpQuad(
-      input_dim=1, ls=kernel_length_scale
+        input_dim=1, ls=kernel_length_scale
     )
     gp = pm.gp.Latent(mean_func=mean, cov_func=cov)
     f = gp.prior("f", X=x_data[:, None])
@@ -167,6 +214,25 @@ with pm.Model() as gp_pymc_model:
 ## GP Model - Posterior Distributions
 
 ![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_56_0.png){fig-align="center" width="950"}
+
+## Out-of-Sample Predictions
+
+### `conditional` method
+
+```{.python code-line-numbers="|3|4"}
+with gp_pymc_model:
+    x_star_data = pm.MutableData("x_star_data", x_test)
+    f_star = gp.conditional("f_star", x_star_data[:, None])
+    pm.Normal("likelihood_test", mu=f_star, sigma=noise)
+
+    gp_pymc_idata.extend(
+        pm.sample_posterior_predictive(
+            trace=gp_pymc_idata,
+            var_names=["f_star", "likelihood_test"],
+            random_seed=rng_subkey[1].item(),
+        )
+    )
+```
 
 ## GP Model - Posterior Predictive
 
@@ -612,4 +678,89 @@ $$
 
 ![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_117_0.png){fig-align="center" width="950"}
 
-## PyMC Implementations
+## PyMC Implementation
+
+### [`HSGP` Class](https://www.pymc.io/projects/docs/en/stable/api/gp/generated/pymc.gp.HSGP.html)
+
+```{.python code-line-numbers="|13"}
+with pm.Model() as hsgp_pymc_model:
+    x_data = pm.MutableData("x_data", value=x_train)
+    y_data = pm.MutableData("y_data", y_train_obs)
+
+    kernel_amplitude = pm.InverseGamma("kernel_amplitude", ...)
+    kernel_length_scale = pm.InverseGamma("kernel_length_scale", ...)
+    noise = pm.InverseGamma("noise", ...)
+
+    mean = pm.gp.mean.Zero()
+    cov = kernel_amplitude**2 * pm.gp.cov.ExpQuad(
+        input_dim=1, ls=kernel_length_scale
+    )
+    gp = pm.gp.HSGP(m=[20], L=[1.3], mean_func=mean, cov_func=cov)
+    f = gp.prior("f", X=x_data[:, None])
+
+    pm.Normal("likelihood", mu=f, sigma=noise, observed=y_data)
+```
+
+## Out-of-Sample Predictions
+
+### `conditional` method
+
+```{.python code-line-numbers="|3"}
+with hsgp_pymc_model:
+    x_star_data = pm.MutableData("x_star_data", x_test)
+    f_star = gp.conditional("f_star", x_star_data[:, None])
+    pm.set_data({"x_data": x_test, "y_data": np.ones_like(x_test)})
+    hsgp_pymc_idata.extend(
+        pm.sample_posterior_predictive(
+            trace=hsgp_pymc_idata,
+            var_names=["f_star", "likelihood"],
+            random_seed=rng_subkey[1].item(),
+        )
+    )
+```
+
+## HSGP Model - Posterior Predictive
+
+![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_155_0.png){fig-align="center" width="950"}
+
+## PyMC Implementation
+### [`HSGP.prior_linearized`](https://www.pymc.io/projects/docs/en/stable/api/gp/generated/classmethods/pymc.gp.HSGP.prior_linearized.html#pymc.gp.HSGP.prior_linearized)
+
+```{.python code-line-numbers="|11|12|14-15"}
+with pm.Model() as hsgp_linearized_pymc_model:
+    x_data = pm.MutableData("x_data", value=x_train)
+    y_data = pm.MutableData("y_data", y_train_obs)
+
+    kernel_amplitude = pm.InverseGamma("kernel_amplitude", ...)
+    kernel_length_scale = pm.InverseGamma("kernel_length_scale", ...)
+    noise = pm.InverseGamma("noise", ...)
+
+    mean = pm.gp.mean.Zero()
+    cov = kernel_amplitude**2 * pm.gp.cov.ExpQuad(input_dim=1, ls=kernel_length_scale)
+    gp = pm.gp.HSGP(m=[20], L=[1.3], mean_func=mean, cov_func=cov)
+    phi, sqrt_psd = gp.prior_linearized(Xs=x_data_centered[:, None])
+
+    beta = pm.Normal("beta", mu=0, sigma=1, size=gp._m_star)
+    f = f = pm.Deterministic("f", phi @ (beta * sqrt_psd))
+
+    pm.Normal("likelihood", mu=f, sigma=noise, observed=y_data)
+```
+
+## Out-of-Sample Predictions
+
+### `pm.set_data` method
+
+```{.python code-line-numbers="|2"}
+with hsgp_pymc_model:
+    pm.set_data({"x_data": x_test, "y_data": np.ones_like(x_test)})
+    hsgp_linearized_pymc_idata.extend(
+        pm.sample_posterior_predictive(
+            trace=hsgp_pymc_idata,
+            var_names=[
+                "f",
+                "likelihood",
+            ],
+            random_seed=rng_subkey[1].item(),
+        )
+    )
+```
