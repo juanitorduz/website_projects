@@ -29,15 +29,17 @@ format:
 
 1. Motivation: Some Applications
 
-2. Reminder: Gaussian Processes
+2. Gaussian Processes
 
-3. Hilbert Space Approximation Deep Dive
+3. **Hilbert Space Approximation Deep Dive**
 
 4. Example: Birthdays Dataset
 
 5. Reference
 
 :::
+
+## Motivation: Some Applications {.center}
 
 ## Some Applications
 
@@ -76,6 +78,8 @@ format:
 
 :::
 
+## Gaussian Processes {.center}
+
 ## Synthetic Data
 
 ### $y \sim \text{Normal}(\sin(4 \pi x) + \sin(7 \pi x), 0.3^2)$
@@ -92,7 +96,7 @@ $$
 k(x, x') = a^ 2 \exp\left(-\frac{(x - x')^2}{2 \ell^2}\right)
 $$
 
-Where $a$ is the amplitude and $\ell$ is the lengthscale.
+Where $a$ is the amplitude and $\ell$ is the length-scale.
 
 ::: {.callout-note}
 
@@ -237,6 +241,8 @@ with gp_pymc_model:
 ## GP Model - Posterior Predictive
 
 ![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_62_0.png){fig-align="center" width="950"}
+
+## Hilbert Space Approximation Deep Div {.center}
 
 ## Hilbert Spacc Approximation {.smaller}
 
@@ -764,3 +770,60 @@ with hsgp_pymc_model:
         )
     )
 ```
+
+## Example: Birthdays Dataset {.center}
+
+## The Birthdays Dataset
+
+![](hsgp_intro_files/static/images/birthdays_files/birthdays_14_1.png){fig-align="center" width="950"}
+
+::: footer
+
+[Time Series Modeling with HSGP: Baby Births Example](https://juanitorduz.github.io/birthdays/)
+
+:::
+
+## Seasonal Patterns - Day of Year
+
+![](hsgp_intro_files/static/images/birthdays_files/birthdays_19_1.png){fig-align="center" width="950"}
+
+## Seasonal Patterns - Day of Week
+
+![](hsgp_intro_files/static/images/birthdays_files/birthdays_24_1.png){fig-align="center" width="950"}
+
+## Seasonal Patterns - Day of Week
+
+![](hsgp_intro_files/static/images/birthdays_files/birthdays_26_1.png){fig-align="center" width="950"}
+
+## HSGP Model - Trend
+
+![](hsgp_intro_files/static/images/birthdays_files/birthdays_66_1.png){fig-align="center" width="950"}
+
+## HSGP Model - Yearly Seasonality
+
+![](hsgp_intro_files/static/images/birthdays_files/birthdays_68_1.png){fig-align="center" width="950"}
+
+## HSGP Model - Day of Week Amplitude
+
+![](hsgp_intro_files/static/images/birthdays_files/birthdays_73_1.png){fig-align="center" width="950"}
+
+## HSGP Model - Special Days
+
+![](hsgp_intro_files/static/images/birthdays_files/birthdays_76_1.png){fig-align="center" width="950"}
+
+## References {.smaller}
+
+#### Gaussian Processes
+
+- [Gaussian Processes for Machine Learning](https://www.gaussianprocess.org/gpml/)
+- [PyMC Examples: Mean and Covariance Functions](Mean and Covariance Functions)
+- [Bayesian Regression as a Gaussian Process](https://juanitorduz.github.io/reg_bayesian_regression/)
+- [An Introduction to Gaussian Process Regression](https://juanitorduz.github.io/gaussian_process_reg/)
+
+#### HSGP Approximation
+
+- [Hilbert space methods for reduced-rank Gaussian process regression](https://link.springer.com/article/10.1007/s11222-019-09886-w)
+- [Practical Hilbert space approximate Bayesian Gaussian processes for probabilistic programming](https://link.springer.com/article/10.1007/s11222-022-10167-2 )
+- [NumPyro Example: Hilbert space approximation for Gaussian processes](https://num.pyro.ai/en/stable/examples/hsgp.html)
+- [PyMCon Web Series - Introduction to Hilbert Space GPs in PyMC - Bill Engels](https://www.youtube.com/watch?v=ri5sJAdcYHk )
+- [PyMC Examples: `pm.gp.HSGP` Reference and Example Usage](https://github.com/pymc-devs/pymc-examples/pull/647) [WIP]

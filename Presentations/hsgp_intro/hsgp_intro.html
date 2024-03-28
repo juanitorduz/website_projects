@@ -414,12 +414,15 @@
 <div>
 <ol type="1">
 <li class="fragment"><p>Motivation: Some Applications</p></li>
-<li class="fragment"><p>Reminder: Gaussian Processes</p></li>
-<li class="fragment"><p>Hilbert Space Approximation Deep Dive</p></li>
+<li class="fragment"><p>Gaussian Processes</p></li>
+<li class="fragment"><p><strong>Hilbert Space Approximation Deep Dive</strong></p></li>
 <li class="fragment"><p>Example: Birthdays Dataset</p></li>
 <li class="fragment"><p>Reference</p></li>
 </ol>
 </div>
+</section>
+<section id="motivation-some-applications" class="slide level2 center">
+<h2>Motivation: Some Applications</h2>
 </section>
 <section id="some-applications" class="slide level2">
 <h2>Some Applications</h2>
@@ -445,6 +448,9 @@
 <p><a href="https://www.pymc-labs.com/blog-posts/modelling-changes-marketing-effectiveness-over-time/">Bayesian Media Mix Models: Modelling changes in marketing effectiveness over time</a></p>
 </div>
 </section>
+<section id="gaussian-processes" class="slide level2 center">
+<h2>Gaussian Processes</h2>
+</section>
 <section id="synthetic-data" class="slide level2">
 <h2>Synthetic Data</h2>
 <h3 id="y-sim-textnormalsin4-pi-x-sin7-pi-x-0.32"><span class="math inline">\(y \sim \text{Normal}(\sin(4 \pi x) + \sin(7 \pi x), 0.3^2)\)</span></h3>
@@ -457,7 +463,7 @@
 <p><span class="math display">\[
 k(x, x') = a^ 2 \exp\left(-\frac{(x - x')^2}{2 \ell^2}\right)
 \]</span></p>
-<p>Where <span class="math inline">\(a\)</span> is the amplitude and <span class="math inline">\(\ell\)</span> is the lengthscale.</p>
+<p>Where <span class="math inline">\(a\)</span> is the amplitude and <span class="math inline">\(\ell\)</span> is the length-scale.</p>
 <div class="callout callout-note callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
@@ -606,6 +612,9 @@ f_*|X, y, X_*
 <h2>GP Model - Posterior Predictive</h2>
 
 <img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_62_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="hilbert-space-approximation-deep-div" class="slide level2 center">
+<h2>Hilbert Space Approximation Deep Div</h2>
+</section>
 <section id="hilbert-spacc-approximation" class="slide level2 smaller">
 <h2>Hilbert Spacc Approximation</h2>
 <h3 id="approximation-strategy-steps">Approximation Strategy Steps</h3>
@@ -1098,6 +1107,62 @@ k(x, x') \approx
 <span id="cb11-10"><a href=""></a>            random_seed<span class="op">=</span>rng_subkey[<span class="dv">1</span>].item(),</span>
 <span id="cb11-11"><a href=""></a>        )</span>
 <span id="cb11-12"><a href=""></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="example-birthdays-dataset" class="slide level2 center">
+<h2>Example: Birthdays Dataset</h2>
+</section>
+<section id="the-birthdays-dataset" class="slide level2">
+<h2>The Birthdays Dataset</h2>
+
+<img data-src="hsgp_intro_files/static/images/birthdays_files/birthdays_14_1.png" class="quarto-figure quarto-figure-center r-stretch" width="950"><div class="footer">
+<p><a href="https://juanitorduz.github.io/birthdays/">Time Series Modeling with HSGP: Baby Births Example</a></p>
+</div>
+</section>
+<section id="seasonal-patterns---day-of-year" class="slide level2">
+<h2>Seasonal Patterns - Day of Year</h2>
+
+<img data-src="hsgp_intro_files/static/images/birthdays_files/birthdays_19_1.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="seasonal-patterns---day-of-week" class="slide level2">
+<h2>Seasonal Patterns - Day of Week</h2>
+
+<img data-src="hsgp_intro_files/static/images/birthdays_files/birthdays_24_1.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="seasonal-patterns---day-of-week-1" class="slide level2">
+<h2>Seasonal Patterns - Day of Week</h2>
+
+<img data-src="hsgp_intro_files/static/images/birthdays_files/birthdays_26_1.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="hsgp-model---trend" class="slide level2">
+<h2>HSGP Model - Trend</h2>
+
+<img data-src="hsgp_intro_files/static/images/birthdays_files/birthdays_66_1.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="hsgp-model---yearly-seasonality" class="slide level2">
+<h2>HSGP Model - Yearly Seasonality</h2>
+
+<img data-src="hsgp_intro_files/static/images/birthdays_files/birthdays_68_1.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="hsgp-model---day-of-week-amplitude" class="slide level2">
+<h2>HSGP Model - Day of Week Amplitude</h2>
+
+<img data-src="hsgp_intro_files/static/images/birthdays_files/birthdays_73_1.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="hsgp-model---special-days" class="slide level2">
+<h2>HSGP Model - Special Days</h2>
+
+<img data-src="hsgp_intro_files/static/images/birthdays_files/birthdays_76_1.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="references" class="slide level2 smaller">
+<h2>References</h2>
+<h4 id="gaussian-processes-1">Gaussian Processes</h4>
+<ul>
+<li><a href="https://www.gaussianprocess.org/gpml/">Gaussian Processes for Machine Learning</a></li>
+<li><a href="Mean%20and%20Covariance%20Functions">PyMC Examples: Mean and Covariance Functions</a></li>
+<li><a href="https://juanitorduz.github.io/reg_bayesian_regression/">Bayesian Regression as a Gaussian Process</a></li>
+<li><a href="https://juanitorduz.github.io/gaussian_process_reg/">An Introduction to Gaussian Process Regression</a></li>
+</ul>
+<h4 id="hsgp-approximation">HSGP Approximation</h4>
+<ul>
+<li><a href="https://link.springer.com/article/10.1007/s11222-019-09886-w">Hilbert space methods for reduced-rank Gaussian process regression</a></li>
+<li><a href="https://link.springer.com/article/10.1007/s11222-022-10167-2">Practical Hilbert space approximate Bayesian Gaussian processes for probabilistic programming</a></li>
+<li><a href="https://num.pyro.ai/en/stable/examples/hsgp.html">NumPyro Example: Hilbert space approximation for Gaussian processes</a></li>
+<li><a href="https://www.youtube.com/watch?v=ri5sJAdcYHk">PyMCon Web Series - Introduction to Hilbert Space GPs in PyMC - Bill Engels</a></li>
+<li><a href="https://github.com/pymc-devs/pymc-examples/pull/647">PyMC Examples: <code>pm.gp.HSGP</code> Reference and Example Usage</a> [WIP]</li>
+</ul>
 <div class="quarto-auto-generated-content">
 <p><img src="hsgp_intro_files/static/images/juanitorduz_logo_small.png" class="slide-logo"></p>
 <div class="footer footer-default">
