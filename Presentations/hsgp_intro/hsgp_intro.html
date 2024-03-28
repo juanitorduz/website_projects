@@ -393,7 +393,7 @@
   <div class="reveal">
     <div class="slides">
 
-<section id="title-slide" data-background-image="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_160_0.png" data-background-opacity="0.15" class="quarto-title-block center">
+<section id="title-slide" data-background-image="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_155_0.png" data-background-opacity="0.20" data-background-size="cover" class="quarto-title-block center">
   <h1 class="title">Introduction to Hilbert Spaces Approximations Gaussian Processes</h1>
   <p class="subtitle">A conceptual and practical viewpoint</p>
 
@@ -876,6 +876,9 @@ S(\omega) = a^2 \sqrt{2 \pi} \ell \exp\left(-2\pi^2\ell^2\omega^2\right)
 </div>
 </div>
 </div>
+<div class="footer">
+<p><a href="https://link.springer.com/book/10.1007/978-94-007-4753-1">Unbounded Self-adjoint Operators on Hilbert Space</a></p>
+</div>
 </section>
 <section id="kernel-as-a-function-of-nabla2" class="slide level2">
 <h2>Kernel as a function of <span class="math inline">\(\nabla^2\)</span></h2>
@@ -902,6 +905,9 @@ S(\omega) = a^2 \sqrt{2 \pi} \ell \exp\left(-2\pi^2\ell^2\omega^2\right)
 f &amp;= 0 \quad \text{on} \quad \partial \Omega
 \end{align*}
 \]</span></p>
+<div class="footer">
+<p><a href="https://link.springer.com/book/10.1007/978-94-007-4753-1">Unbounded Self-adjoint Operators on Hilbert Space</a></p>
+</div>
 </section>
 <section id="dirichlets-laplacian---spectrum" class="slide level2">
 <h2>Dirichlet’s Laplacian - Spectrum</h2>
@@ -1133,19 +1139,23 @@ k(x, x') \approx
 <section id="hsgp-model---trend" class="slide level2">
 <h2>HSGP Model - Trend</h2>
 
-<img data-src="hsgp_intro_files/static/images/birthdays_files/birthdays_66_1.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<img data-src="hsgp_intro_files/static/images/birthdays_files/birthdays_66_1.png" class="quarto-figure quarto-figure-center r-stretch" width="950"><p>We use a Gaussian process with a squared exponential kernel.</p>
+</section>
 <section id="hsgp-model---yearly-seasonality" class="slide level2">
 <h2>HSGP Model - Yearly Seasonality</h2>
 
-<img data-src="hsgp_intro_files/static/images/birthdays_files/birthdays_68_1.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
-<section id="hsgp-model---day-of-week-amplitude" class="slide level2">
-<h2>HSGP Model - Day of Week Amplitude</h2>
+<img data-src="hsgp_intro_files/static/images/birthdays_files/birthdays_68_1.png" class="quarto-figure quarto-figure-center r-stretch" width="950"><p>We use a Gaussian process with a periodic kernel*.</p>
+</section>
+<section id="hsgp-model---weekly-seasonality" class="slide level2">
+<h2>HSGP Model - Weekly Seasonality</h2>
 
-<img data-src="hsgp_intro_files/static/images/birthdays_files/birthdays_73_1.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<img data-src="hsgp_intro_files/static/images/birthdays_files/birthdays_73_1.png" class="quarto-figure quarto-figure-center r-stretch" width="950"><p>We use a <a href="https://www.pymc.io/projects/docs/en/stable/api/distributions/generated/pymc.ZeroSumNormal.html"><code>ZeroSumNormal</code></a> distribution to capture the relative difference across weekdays. We couple it with a multiplicative factor parametrized by a Gaussian process.</p>
+</section>
 <section id="hsgp-model---special-days" class="slide level2">
 <h2>HSGP Model - Special Days</h2>
 
-<img data-src="hsgp_intro_files/static/images/birthdays_files/birthdays_76_1.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<img data-src="hsgp_intro_files/static/images/birthdays_files/birthdays_76_1.png" class="quarto-figure quarto-figure-center r-stretch" width="950"><p>We use a <a href="https://www.pymc.io/projects/docs/en/stable/api/distributions/generated/pymc.StudentT.html"><code>StudentT</code></a> distribution over the <code>day_of_year2</code>.</p>
+</section>
 <section id="references" class="slide level2 smaller">
 <h2>References</h2>
 <h4 id="gaussian-processes-1">Gaussian Processes</h4>
@@ -1159,10 +1169,27 @@ k(x, x') \approx
 <ul>
 <li><a href="https://link.springer.com/article/10.1007/s11222-019-09886-w">Hilbert space methods for reduced-rank Gaussian process regression</a></li>
 <li><a href="https://link.springer.com/article/10.1007/s11222-022-10167-2">Practical Hilbert space approximate Bayesian Gaussian processes for probabilistic programming</a></li>
-<li><a href="https://num.pyro.ai/en/stable/examples/hsgp.html">NumPyro Example: Hilbert space approximation for Gaussian processes</a></li>
 <li><a href="https://www.youtube.com/watch?v=ri5sJAdcYHk">PyMCon Web Series - Introduction to Hilbert Space GPs in PyMC - Bill Engels</a></li>
 <li><a href="https://github.com/pymc-devs/pymc-examples/pull/647">PyMC Examples: <code>pm.gp.HSGP</code> Reference and Example Usage</a> [WIP]</li>
 </ul>
+</section>
+<section id="references-1" class="slide level2 smaller">
+<h2>References</h2>
+<h4 id="birthdays-dataset">Birthdays Dataset</h4>
+<ul>
+<li><a href="https://avehtari.github.io/casestudies/Birthdays/birthdays.html">Bayesian workflow book - Birthdays</a></li>
+<li><a href="https://num.pyro.ai/en/stable/examples/hsgp.html">NumPyro Example: Hilbert space approximation for Gaussian processes</a></li>
+<li><a href="https://juanitorduz.github.io/birthdays/">Time Series Modeling with HSGP: Baby Births Example</a></li>
+</ul>
+<h4 id="spectral-theory">Spectral Theory</h4>
+<ul>
+<li><a href="https://link.springer.com/book/10.1007/978-94-007-4753-1">Unbounded Self-adjoint Operators on Hilbert Space</a></li>
+</ul>
+</section>
+<section id="thank-you" class="slide level2">
+<h2>Thank you!</h2>
+<p><a href="https://juanitorduz.github.io/">juanitorduz.github.io</a></p>
+<p><img data-src="hsgp_intro_files/static/images/juanitorduz.png" class="absolute" style="top: 0px; right: 0px; width: 600px; height: 600px; "></p>
 <div class="quarto-auto-generated-content">
 <p><img src="hsgp_intro_files/static/images/juanitorduz_logo_small.png" class="slide-logo"></p>
 <div class="footer footer-default">

@@ -1,8 +1,9 @@
 ---
 title: "Introduction to Hilbert Spaces Approximations Gaussian Processes"
 title-slide-attributes:
-  data-background-image: hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_160_0.png
-  data-background-opacity: "0.15"
+  data-background-image: hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_155_0.png
+  data-background-size: cover
+  data-background-opacity: "0.20"
 subtitle: "A conceptual and practical viewpoint"
 author: 
   - name: Dr. Juan Orduz
@@ -515,10 +516,16 @@ $$
 The Laplacian has many good properties:
 
 - Positive semi-definite
-  
+
 - Elliptic
 
 - Self-adjoint (appropriate boundary conditions)
+
+:::
+
+:::footer
+
+[Unbounded Self-adjoint Operators on Hilbert Space](https://link.springer.com/book/10.1007/978-94-007-4753-1)
 
 :::
 
@@ -554,6 +561,12 @@ $$
 f &= 0 \quad \text{on} \quad \partial \Omega
 \end{align*}
 $$
+
+:::footer
+
+[Unbounded Self-adjoint Operators on Hilbert Space](https://link.springer.com/book/10.1007/978-94-007-4753-1)
+
+:::
 
 ## Dirichlet's Laplacian - Spectrum
 
@@ -799,17 +812,25 @@ with hsgp_pymc_model:
 
 ![](hsgp_intro_files/static/images/birthdays_files/birthdays_66_1.png){fig-align="center" width="950"}
 
+We use a Gaussian process with a squared exponential kernel.
+
 ## HSGP Model - Yearly Seasonality
 
 ![](hsgp_intro_files/static/images/birthdays_files/birthdays_68_1.png){fig-align="center" width="950"}
 
-## HSGP Model - Day of Week Amplitude
+We use a Gaussian process with a periodic kernel*.
+
+## HSGP Model - Weekly Seasonality
 
 ![](hsgp_intro_files/static/images/birthdays_files/birthdays_73_1.png){fig-align="center" width="950"}
+
+We use a [`ZeroSumNormal`](https://www.pymc.io/projects/docs/en/stable/api/distributions/generated/pymc.ZeroSumNormal.html) distribution to capture the relative difference across weekdays. We couple it with a multiplicative factor parametrized by a Gaussian process.
 
 ## HSGP Model - Special Days
 
 ![](hsgp_intro_files/static/images/birthdays_files/birthdays_76_1.png){fig-align="center" width="950"}
+
+We use a [`StudentT`](https://www.pymc.io/projects/docs/en/stable/api/distributions/generated/pymc.StudentT.html) distribution over the `day_of_year2`.
 
 ## References {.smaller}
 
@@ -824,6 +845,23 @@ with hsgp_pymc_model:
 
 - [Hilbert space methods for reduced-rank Gaussian process regression](https://link.springer.com/article/10.1007/s11222-019-09886-w)
 - [Practical Hilbert space approximate Bayesian Gaussian processes for probabilistic programming](https://link.springer.com/article/10.1007/s11222-022-10167-2 )
-- [NumPyro Example: Hilbert space approximation for Gaussian processes](https://num.pyro.ai/en/stable/examples/hsgp.html)
 - [PyMCon Web Series - Introduction to Hilbert Space GPs in PyMC - Bill Engels](https://www.youtube.com/watch?v=ri5sJAdcYHk )
 - [PyMC Examples: `pm.gp.HSGP` Reference and Example Usage](https://github.com/pymc-devs/pymc-examples/pull/647) [WIP]
+
+## References {.smaller}
+
+#### Birthdays Dataset
+
+- [Bayesian workflow book - Birthdays](https://avehtari.github.io/casestudies/Birthdays/birthdays.html)
+- [NumPyro Example: Hilbert space approximation for Gaussian processes](https://num.pyro.ai/en/stable/examples/hsgp.html)
+- [Time Series Modeling with HSGP: Baby Births Example](https://juanitorduz.github.io/birthdays/)
+
+#### Spectral Theory
+
+- [Unbounded Self-adjoint Operators on Hilbert Space](https://link.springer.com/book/10.1007/978-94-007-4753-1)
+
+## Thank you!
+
+[juanitorduz.github.io](https://juanitorduz.github.io/)
+
+![](hsgp_intro_files/static/images/juanitorduz.png){.absolute top=0 right=0 width=600 height=600}
