@@ -409,7 +409,7 @@
 </div>
 
 </section>
-<section id="outline" class="slide level2">
+<section id="outline" class="slide level2" data-background-image="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_110_0.png" data-background-opacity="0.10">
 <h2>Outline</h2>
 <div>
 <ol type="1">
@@ -417,7 +417,7 @@
 <li class="fragment"><p>Gaussian Processes</p></li>
 <li class="fragment"><p><strong>Hilbert Space Approximation Deep Dive</strong></p></li>
 <li class="fragment"><p>Example: Birthdays Dataset</p></li>
-<li class="fragment"><p>Reference</p></li>
+<li class="fragment"><p>References</p></li>
 </ol>
 </div>
 </section>
@@ -612,8 +612,8 @@ f_*|X, y, X_*
 <h2>GP Model - Posterior Predictive</h2>
 
 <img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_62_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
-<section id="hilbert-space-approximation-deep-dive" class="slide level2 center">
-<h2>Hilbert Space Approximation Deep Dive</h2>
+<section id="hsgp-deep-dive" class="slide level2 center">
+<h2>HSGP Deep Dive</h2>
 </section>
 <section id="hilbert-space-approximation" class="slide level2 smaller">
 <h2>Hilbert Space Approximation</h2>
@@ -695,7 +695,7 @@ D = Q^{T} A Q = \begin{pmatrix}
 </section>
 <section id="code-example" class="slide level2">
 <h2>Code Example</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="im">import</span> jax.numpy <span class="im">as</span> jnp</span>
+<div class="sourceCode" id="cb4" data-code-line-numbers="|3|5-13|16-21"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="im">import</span> jax.numpy <span class="im">as</span> jnp</span>
 <span id="cb4-2"><a href=""></a></span>
 <span id="cb4-3"><a href=""></a>A <span class="op">=</span> jnp.array([[<span class="fl">1.0</span>, <span class="fl">2.0</span>], [<span class="fl">2.0</span>, <span class="fl">1.0</span>]])</span>
 <span id="cb4-4"><a href=""></a></span>
@@ -722,7 +722,7 @@ D = Q^{T} A Q = \begin{pmatrix}
 </section>
 <section id="spectral-projections" class="slide level2">
 <h2>Spectral Projections</h2>
-<p>Another important consequence of the spectral theorem is that we can decompose the matrix <span class="math inline">\(A\)</span> as a <strong>sum of projections onto its eigenspaces</strong>. That is, we can write is as</p>
+<p>Another important consequence of the spectral theorem is that we can decompose the matrix <span class="math inline">\(A\)</span> as a <strong>sum of projections onto its eigenspaces</strong>. That is, we can write re-write <span class="math inline">\(A\)</span> as</p>
 <p><span class="math display">\[
 A = \sum_{j=1}^{2} \lambda_i v_j v_j^{T}
 \]</span></p>
@@ -736,7 +736,7 @@ A = \sum_{j=1}^{2} \lambda_i v_j v_j^{T}
 <p><strong>Projections</strong></p>
 </div>
 <div class="callout-content">
-<p>Observe that the operator <span class="math inline">\(P_{j} = v_j v_j ^{T}\)</span> is indeed a projection operator, that is <span class="math inline">\(P^2 = P\)</span> and <span class="math inline">\(P^T = P\)</span>, since the <span class="math inline">\(v_j\)</span> constitute an orthonormal basis.</p>
+<p>Observe that the operator <span class="math inline">\(P_{j} = v_j v_j ^{T}\)</span> is indeed a projection operator, that is <span class="math inline">\(P^2 = P\)</span> and <span class="math inline">\(P^T = P\)</span>, since the <span class="math inline">\(v_j\)</span> constitutes an orthonormal basis.</p>
 </div>
 </div>
 </div>
@@ -744,7 +744,7 @@ A = \sum_{j=1}^{2} \lambda_i v_j v_j^{T}
 </section>
 <section id="code-example-1" class="slide level2">
 <h2>Code Example</h2>
-<div class="sourceCode" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href=""></a><span class="kw">def</span> proj(v, x):</span>
+<div class="sourceCode" id="cb5" data-code-line-numbers="|1-2|4-5|7-9|11-13|15-18"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href=""></a><span class="kw">def</span> proj(v, x):</span>
 <span id="cb5-2"><a href=""></a>    <span class="cf">return</span> jnp.dot(v, x) <span class="op">*</span> v</span>
 <span id="cb5-3"><a href=""></a></span>
 <span id="cb5-4"><a href=""></a><span class="kw">def</span> matrix_proj(x):</span>

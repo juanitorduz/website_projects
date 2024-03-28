@@ -24,7 +24,7 @@ format:
     highlight-style: github-dark
 ---
 
-## Outline
+## Outline {background-image="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_110_0.png" background-opacity="0.10"}
 
 ::: incremental
 
@@ -36,7 +36,7 @@ format:
 
 4. Example: Birthdays Dataset
 
-5. Reference
+5. References
 
 :::
 
@@ -111,7 +111,8 @@ Observe that the kernel just depends on the distance between points $r = x - x'$
 
 ## GP Model - Prior
 
-Let us denote by $(x, y)$ and the training data and by $x_{*}$ the test set for which we want to generate predictions. We define by $f$ and $f_*$ the latent functions for the training and test sets respectively.
+Let us denote by $(x, y)$ and the training data and by $x_{*}$ the test set for which we want to generate predictions.
+We define by $f$ and $f_*$ the latent functions for the training and test sets respectively.
 
 $$
 \left(
@@ -243,7 +244,7 @@ with gp_pymc_model:
 
 ![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_62_0.png){fig-align="center" width="950"}
 
-## Hilbert Space Approximation Deep Dive {.center}
+## HSGP Deep Dive {.center}
 
 ## Hilbert Space Approximation {.smaller}
 
@@ -254,10 +255,13 @@ with gp_pymc_model:
 0. D-Tour: Eigenvalues and Eigenvectors
 1. We recall de definition of the spectral density $S(\omega)$ associated with a stationary kernel function $k$.
 2. We approximate the spectral density $S(\omega)$ as a polynomial series in $||\omega||^2$.
-3. We can interpret these polynomial terms as powers of the Laplacian operator. The key observation is that the Fourier transform of the Laplacian operator is $||\omega||^2$.
-4. Next, we impose Dirichlet boundary conditions on the Laplacian operator which makes it self-adjoint and with discrete spectrum.
+3. We can interpret these polynomial terms as powers of the Laplacian operator. The key observation is that the Fourier
+transform of the Laplacian operator is $||\omega||^2$.
+4. Next, we impose Dirichlet boundary conditions on the Laplacian operator which makes it self-adjoint and with
+discrete spectrum.
 5. We identify the expansion in (2) with the sum of powers of the Laplacian operator in the eigenbasis of (4).
-6. We arrive at the final approximation formula and explicitly compute the terms for the squared exponential kernel in the one-dimensional case.
+6. We arrive at the final approximation formula and explicitly compute the terms for the squared exponential kernel in
+the one-dimensional case.
 
 :::
 
@@ -328,7 +332,7 @@ $$
 
 ## Code Example
 
-```{.python}
+```{.python code-line-numbers="|3|5-13|16-21"}
 import jax.numpy as jnp
 
 A = jnp.array([[1.0, 2.0], [2.0, 1.0]])
@@ -360,8 +364,8 @@ Q.T @ A @ Q
 
 ## Spectral Projections
 
-Another important consequence of the spectral theorem is that we can decompose the matrix $A$ as a **sum of projections onto its eigenspaces**. That is, we can write
-is as 
+Another important consequence of the spectral theorem is that we can decompose the matrix $A$ as a **sum of projections
+onto its eigenspaces**. That is, we can write re-write $A$ as 
 
 $$
 A = \sum_{j=1}^{2} \lambda_i v_j v_j^{T}
@@ -369,13 +373,14 @@ $$
 
 ::: {.callout-tip title="Projections"}
 
-Observe that the operator $P_{j} = v_j v_j ^{T}$ is indeed a projection operator, that is $P^2 = P$ and $P^T = P$, since the $v_j$ constitute an orthonormal basis.
+Observe that the operator $P_{j} = v_j v_j ^{T}$ is indeed a projection operator, that is $P^2 = P$ and $P^T = P$,
+since the $v_j$ constitutes an orthonormal basis.
 
 :::
 
 ## Code Example
 
-```{.python}
+```{.python code-line-numbers="|1-2|4-5|7-9|11-13|15-18"}
 def proj(v, x):
     return jnp.dot(v, x) * v
 
@@ -398,7 +403,8 @@ jnp.allclose(jnp.dot(A, v), matrix_proj(v))
 
 ## Functional Calculus
 
-The [functional calculus](https://en.wikipedia.org/wiki/Spectral_theorem#Functional_calculus) is a generalization of the Taylor series for functions to operators. 
+The [functional calculus](https://en.wikipedia.org/wiki/Spectral_theorem#Functional_calculus) is a generalization of
+the Taylor series for functions to operators. 
 
 Given a function $f$ we can define the operator $f(A)$ as
 
@@ -444,13 +450,15 @@ Q @ jnp.diag(jnp.exp(eigenvalues)) @ Q.T
 
 ## Spectral Densities
 
-In the case a kernel function is **stationary**, we can use the spectral representation of the kernel function ([Bochner’s theorem](https://en.wikipedia.org/wiki/Bochner%27s_theorem)):
+In the case a kernel function is **stationary**, we can use the spectral representation of the kernel
+function ([Bochner’s theorem](https://en.wikipedia.org/wiki/Bochner%27s_theorem)):
 
 $$
 k(r) = \frac{1}{(2 \pi)^{d}}\int_{\mathbb{R}^{d}} e^{i \omega^{T} r} d\mu(\omega)
 $$
 
-where $\mu$ is a positive measure. If this measure has a density, it is called the **spectral density** $S(\omega)$ corresponding to the covariance function, i.e. $d\mu(\omega) = S(\omega) d\omega$.
+where $\mu$ is a positive measure. If this measure has a density, it is called the **spectral density** $S(\omega)$
+corresponding to the covariance function, i.e. $d\mu(\omega) = S(\omega) d\omega$.
 
 ::: footer
 
@@ -474,7 +482,8 @@ $$
 
 ::: {.callout-tip}
 
-Note the similarity between the spectral density and the [Fourier transform](https://en.wikipedia.org/wiki/Fourier_transform). For Gaussian-like kernels, like the squared exponential, we expect the associated spectral density to also be Gaussian-like.
+Note the similarity between the spectral density and the [Fourier transform](https://en.wikipedia.org/wiki/Fourier_transform).
+For Gaussian-like kernels, like the squared exponential, we expect the associated spectral density to also be Gaussian-like.
 
 :::
 
@@ -553,7 +562,8 @@ $$
 
 ### Boundary Conditions?
 
-The most common boundary conditions are the [Dirichlet boundary conditions](https://en.wikipedia.org/wiki/Dirichlet_eigenvalue), which are defined by **requiring that the function vanishes on the boundary of the domain**. 
+The most common boundary conditions are the [Dirichlet boundary conditions](https://en.wikipedia.org/wiki/Dirichlet_eigenvalue),
+which are defined by **requiring that the function vanishes on the boundary of the domain**. 
 
 $$
 \begin{align*}
@@ -572,13 +582,15 @@ $$
 
 ::: incremental
 
-- It is is a **self-adjoint** operator defined on the Hilbert space $L^{2}(\Omega)$ equipped with the Lebesgue measure. That is,
+- It is is a **self-adjoint** operator defined on the Hilbert space $L^{2}(\Omega)$ equipped with the Lebesgue measure.
+That is,
 
   $$
   \int_{\Omega} (-\nabla^2 f(x)) g(x) dx = \int_{\Omega} f(x) (-\nabla^2 g(x)) dx
   $$
 
-- It has discrete spectrum with eigenvalues $\lambda_j \rightarrow \infty$ and eigenfunctions $\phi_j$ that form an orthonormal basis of $L^2(\Omega)$, so that
+- It has discrete spectrum with eigenvalues $\lambda_j \rightarrow \infty$ and eigenfunctions $\phi_j$ that form an
+orthonormal basis of $L^2(\Omega)$, so that
   $$
   \int_{\Omega} \phi_{j}(x) \phi_{k}(x) dx = \delta_{jk}
   $$
@@ -824,13 +836,16 @@ We use a Gaussian process with a periodic kernel*.
 
 ![](hsgp_intro_files/static/images/birthdays_files/birthdays_73_1.png){fig-align="center" width="950"}
 
-We use a [`ZeroSumNormal`](https://www.pymc.io/projects/docs/en/stable/api/distributions/generated/pymc.ZeroSumNormal.html) distribution to capture the relative difference across weekdays. We couple it with a multiplicative factor parametrized by a Gaussian process.
+We use a [`ZeroSumNormal`](https://www.pymc.io/projects/docs/en/stable/api/distributions/generated/pymc.ZeroSumNormal.html)
+distribution to capture the relative difference across weekdays. We couple it with a multiplicative factor parametrized
+by a Gaussian process.
 
 ## HSGP Model - Special Days
 
 ![](hsgp_intro_files/static/images/birthdays_files/birthdays_76_1.png){fig-align="center" width="950"}
 
-We use a [`StudentT`](https://www.pymc.io/projects/docs/en/stable/api/distributions/generated/pymc.StudentT.html) distribution over the `day_of_year2`.
+We use a [`StudentT`](https://www.pymc.io/projects/docs/en/stable/api/distributions/generated/pymc.StudentT.html)
+distribution over the `day_of_year2`.
 
 ## References {.smaller}
 
