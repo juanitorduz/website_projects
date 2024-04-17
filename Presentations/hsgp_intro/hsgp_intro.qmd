@@ -253,17 +253,37 @@ with gp_pymc_model:
 ::: incremental
 
 0. D-Tour: Eigenvalues and Eigenvectors
-1. We recall de definition of the spectral density $S(\omega)$ associated with a stationary kernel function $k$.
+1. We recall the spectral density $S(\omega)$ associated with a stationary kernel function $k$.
 2. We approximate the spectral density $S(\omega)$ as a polynomial series in $||\omega||^2$.
 3. We can interpret these polynomial terms as powers of the Laplacian operator. The key observation is that the Fourier
 transform of the Laplacian operator is $||\omega||^2$.
 4. Next, we impose Dirichlet boundary conditions on the Laplacian operator which makes it self-adjoint and with
-discrete spectrum.
+a discrete spectrum.
 5. We identify the expansion in (2) with the sum of powers of the Laplacian operator in the eigenbasis of (4).
 6. We arrive at the final approximation formula and explicitly compute the terms for the squared exponential kernel in
 the one-dimensional case.
 
 :::
+
+## Hilbert Space Approximation
+
+```{mermaid}
+%%| fig-height: 2
+%%| fig-width: 10
+%%| fig-align: "center"
+%%{init: {"theme": "white", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart TD
+  kernel["kernel"] --> spectral_sensity["Spectral Density"]
+  spectral_sensity --> polynomial["Polynomial Expansion"]
+  laplacian["Laplacian"] --> fourier["Fourier Transform"]
+  laplacian --> dirichlet["Dirichlet's BC"]
+  dirichlet --> spectral_decomposition["Spectral Decomposition"]
+  spectral_decomposition["Spectral Decomposition"] --> functional["Functional Calculus"]
+  polynomial --> identify_coefficients["Identify Coefficients"]
+  fourier --> identify_coefficients
+  functional --> identify_coefficients
+  identify_coefficients --> approximation["Approximation Formula"]
+```
 
 ## Eigenvalues and Eigenvectors
 
@@ -701,7 +721,29 @@ k(x, x') \approx
 \end{align*}
 $$
 
+## Hilbert Space Approximation (Recap)
+
+```{mermaid}
+%%| fig-height: 2
+%%| fig-width: 10
+%%| fig-align: "center"
+%%{init: {"theme": "white", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart TD
+  kernel["kernel"] --> spectral_sensity["Spectral Density"]
+  spectral_sensity --> polynomial["Polynomial Expansion"]
+  laplacian["Laplacian"] --> fourier["Fourier Transform"]
+  laplacian --> dirichlet["Dirichlet's BC"]
+  dirichlet --> spectral_decomposition["Spectral Decomposition"]
+  spectral_decomposition["Spectral Decomposition"] --> functional["Functional Calculus"]
+  polynomial --> identify_coefficients["Identify Coefficients"]
+  fourier --> identify_coefficients
+  functional --> identify_coefficients
+  identify_coefficients --> approximation["Approximation Formula"]
+```
+
 ## Laplace Eigenfunctions
+
+### Back to the example ...
 
 ![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_110_0.png){fig-align="center" width="950"}
 
@@ -855,6 +897,7 @@ distribution over the `day_of_year2`.
 - [PyMC Examples: Mean and Covariance Functions](Mean and Covariance Functions)
 - [Bayesian Regression as a Gaussian Process](https://juanitorduz.github.io/reg_bayesian_regression/)
 - [An Introduction to Gaussian Process Regression](https://juanitorduz.github.io/gaussian_process_reg/)
+- [Dan Simpson's Blog](https://dansblog.netlify.app/), many posts on GPs and prior selection.
 
 #### HSGP Approximation
 

@@ -388,6 +388,9 @@
       margin-right: 0; 
     }
   </style>
+  <script src="hsgp_intro_files/libs/quarto-diagram/mermaid.min.js"></script>
+  <script src="hsgp_intro_files/libs/quarto-diagram/mermaid-init.js"></script>
+  <link href="hsgp_intro_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
 </head>
 <body class="quarto-light">
   <div class="reveal">
@@ -621,13 +624,39 @@ f_*|X, y, X_*
 <div>
 <ol start="0" type="1">
 <li class="fragment">D-Tour: Eigenvalues and Eigenvectors</li>
-<li class="fragment">We recall de definition of the spectral density <span class="math inline">\(S(\omega)\)</span> associated with a stationary kernel function <span class="math inline">\(k\)</span>.</li>
+<li class="fragment">We recall the spectral density <span class="math inline">\(S(\omega)\)</span> associated with a stationary kernel function <span class="math inline">\(k\)</span>.</li>
 <li class="fragment">We approximate the spectral density <span class="math inline">\(S(\omega)\)</span> as a polynomial series in <span class="math inline">\(||\omega||^2\)</span>.</li>
 <li class="fragment">We can interpret these polynomial terms as powers of the Laplacian operator. The key observation is that the Fourier transform of the Laplacian operator is <span class="math inline">\(||\omega||^2\)</span>.</li>
-<li class="fragment">Next, we impose Dirichlet boundary conditions on the Laplacian operator which makes it self-adjoint and with discrete spectrum.</li>
+<li class="fragment">Next, we impose Dirichlet boundary conditions on the Laplacian operator which makes it self-adjoint and with a discrete spectrum.</li>
 <li class="fragment">We identify the expansion in (2) with the sum of powers of the Laplacian operator in the eigenbasis of (4).</li>
 <li class="fragment">We arrive at the final approximation formula and explicitly compute the terms for the squared exponential kernel in the one-dimensional case.</li>
 </ol>
+</div>
+</section>
+<section id="hilbert-space-approximation-1" class="slide level2">
+<h2>Hilbert Space Approximation</h2>
+<div class="cell" data-reveal="true" data-fig-height="2" data-fig-width="10" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class=""><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {"theme": "white", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart TD
+  kernel["kernel"] --&gt; spectral_sensity["Spectral Density"]
+  spectral_sensity --&gt; polynomial["Polynomial Expansion"]
+  laplacian["Laplacian"] --&gt; fourier["Fourier Transform"]
+  laplacian --&gt; dirichlet["Dirichlet's BC"]
+  dirichlet --&gt; spectral_decomposition["Spectral Decomposition"]
+  spectral_decomposition["Spectral Decomposition"] --&gt; functional["Functional Calculus"]
+  polynomial --&gt; identify_coefficients["Identify Coefficients"]
+  fourier --&gt; identify_coefficients
+  functional --&gt; identify_coefficients
+  identify_coefficients --&gt; approximation["Approximation Formula"]
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
 </div>
 </section>
 <section id="eigenvalues-and-eigenvectors" class="slide level2">
@@ -1030,8 +1059,35 @@ k(x, x') \approx
 \end{align*}
 \]</span></p>
 </section>
+<section id="hilbert-space-approximation-recap" class="slide level2">
+<h2>Hilbert Space Approximation (Recap)</h2>
+<div class="cell" data-reveal="true" data-fig-height="2" data-fig-width="10" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class=""><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {"theme": "white", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart TD
+  kernel["kernel"] --&gt; spectral_sensity["Spectral Density"]
+  spectral_sensity --&gt; polynomial["Polynomial Expansion"]
+  laplacian["Laplacian"] --&gt; fourier["Fourier Transform"]
+  laplacian --&gt; dirichlet["Dirichlet's BC"]
+  dirichlet --&gt; spectral_decomposition["Spectral Decomposition"]
+  spectral_decomposition["Spectral Decomposition"] --&gt; functional["Functional Calculus"]
+  polynomial --&gt; identify_coefficients["Identify Coefficients"]
+  fourier --&gt; identify_coefficients
+  functional --&gt; identify_coefficients
+  identify_coefficients --&gt; approximation["Approximation Formula"]
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</section>
 <section id="laplace-eigenfunctions" class="slide level2">
 <h2>Laplace Eigenfunctions</h2>
+<h3 id="back-to-the-example">Back to the example …</h3>
 
 <img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_110_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
 <section id="prior-predictive" class="slide level2">
@@ -1164,6 +1220,7 @@ k(x, x') \approx
 <li><a href="Mean%20and%20Covariance%20Functions">PyMC Examples: Mean and Covariance Functions</a></li>
 <li><a href="https://juanitorduz.github.io/reg_bayesian_regression/">Bayesian Regression as a Gaussian Process</a></li>
 <li><a href="https://juanitorduz.github.io/gaussian_process_reg/">An Introduction to Gaussian Process Regression</a></li>
+<li><a href="https://dansblog.netlify.app/">Dan Simpson’s Blog</a>, many posts on GPs and prior selection.</li>
 </ul>
 <h4 id="hsgp-approximation">HSGP Approximation</h4>
 <ul>

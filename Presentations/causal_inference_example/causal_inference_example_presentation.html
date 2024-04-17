@@ -8,7 +8,7 @@
 <link href="causal_inference_example_presentation_files/libs/quarto-html/light-border.css" rel="stylesheet">
 <link href="causal_inference_example_presentation_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
 <link href="causal_inference_example_presentation_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.3.353">
+  <meta name="generator" content="quarto-1.4.552">
 
   <meta name="author" content="Dr.&nbsp;Juan Orduz">
   <title>Using Data Science for Bad Decision-Making</title>
@@ -31,7 +31,7 @@
     }
     /* CSS for syntax highlighting */
     pre > code.sourceCode { white-space: pre; position: relative; }
-    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span { line-height: 1.25; }
     pre > code.sourceCode > span:empty { height: 1.2em; }
     .sourceCode { overflow: visible; }
     code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -223,7 +223,8 @@
   }
 
   .callout.callout-titled .callout-body > .callout-content > :last-child {
-    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0;
   }
 
   .callout.callout-titled .callout-icon::before {
@@ -412,6 +413,7 @@
 </section>
 <section id="a-story-about-how-data-science-can-be-used-to-make-bad-decisions" class="slide level2">
 <h2>A story about how data science can be used to make bad decisions</h2>
+<div title="Not about bad data or bad algorithms">
 <div class="callout callout-warning callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
@@ -425,11 +427,14 @@
 <div class="cell" data-reveal="true" data-fig-height="2" data-fig-width="10" data-layout-align="center">
 <div class="cell-output-display">
 <div>
+<p></p><figure class=""><p></p>
 <div>
 <pre class="mermaid mermaid-js">%%{init: {"theme": "white", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels":false}}}%%
 flowchart LR
   data_in["Data In"] --&gt; ml_model["ML Model"] --&gt; data_out["Data Out"] --&gt; decision["Decision"]
 </pre>
+</div>
+<p></p></figure><p></p>
 </div>
 </div>
 </div>
@@ -481,6 +486,7 @@ flowchart LR
 <section id="campaign-design---part-2" class="slide level2">
 <h2>Campaign Design - Part 2</h2>
 <p>We also want to use the results of the test to target <strong>loyal customers</strong>.</p>
+<div title="Loyal Customers">
 <div class="callout callout-tip callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
@@ -491,6 +497,7 @@ flowchart LR
 </div>
 <div class="callout-content">
 <p>Customers who got a discount (since they showed potential interest in the product) and customers with exceptional sales numbers even if they did not get a discount.</p>
+</div>
 </div>
 </div>
 </div>
@@ -508,30 +515,30 @@ flowchart LR
 <section id="section" class="slide level2">
 <h2></h2>
 
-<img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_19_2.png" width="950" class="r-stretch quarto-figure-center"></section>
+<img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_19_2.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
 <section id="section-1" class="slide level2">
 <h2></h2>
 
-<img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_22_2.png" width="650" class="r-stretch quarto-figure-center"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource python input number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a>(</span>
-<span id="cb1-2"><a href="#cb1-2"></a>    data.query(<span class="st">"discount == 1"</span>)[<span class="st">"sales"</span>].mean()</span>
-<span id="cb1-3"><a href="#cb1-3"></a>    <span class="op">-</span> data.query(<span class="st">"discount == 0"</span>)[<span class="st">"sales"</span>].mean()</span>
-<span id="cb1-4"><a href="#cb1-4"></a>)</span>
-<span id="cb1-5"><a href="#cb1-5"></a></span>
-<span id="cb1-6"><a href="#cb1-6"></a><span class="op">&gt;</span> <span class="fl">4.8</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_22_2.png" class="quarto-figure quarto-figure-center r-stretch" width="650"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource python input number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a>(</span>
+<span id="cb1-2"><a href=""></a>    data.query(<span class="st">"discount == 1"</span>)[<span class="st">"sales"</span>].mean()</span>
+<span id="cb1-3"><a href=""></a>    <span class="op">-</span> data.query(<span class="st">"discount == 0"</span>)[<span class="st">"sales"</span>].mean()</span>
+<span id="cb1-4"><a href=""></a>)</span>
+<span id="cb1-5"><a href=""></a></span>
+<span id="cb1-6"><a href=""></a><span class="op">&gt;</span> <span class="fl">4.8</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="section-2" class="slide level2">
 <h2></h2>
 
-<img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_27_2.png" width="1050" class="r-stretch quarto-figure-center"></section>
+<img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_27_2.png" class="quarto-figure quarto-figure-center r-stretch" width="1050"></section>
 <section id="section-3" class="slide level2">
 <h2></h2>
 <p>🤔 …</p>
 
-<img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_35_2.png" width="800" class="r-stretch quarto-figure-center"></section>
+<img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_35_2.png" class="quarto-figure quarto-figure-center r-stretch" width="800"></section>
 <section id="section-4" class="slide level2">
 <h2></h2>
 
-<img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_35_2.png" width="200" class="r-stretch quarto-figure-center"><div>
+<img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_35_2.png" class="quarto-figure quarto-figure-center r-stretch" width="200"><div>
 <ul>
 <li class="fragment"><p>For the loyal customers the sales are much (much!) higher for the non-discounted group!</p></li>
 <li class="fragment"><p>The <code>loyal</code> tag depends on the discount, so maybe this is implicitly providing an uplift (<span class="math inline">\(12\$\)</span>)?</p></li>
@@ -541,14 +548,15 @@ flowchart LR
 <section id="ate-estimation-linear-regression" class="slide level2">
 <h2>ATE Estimation: Linear Regression</h2>
 
-<img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_44_0.svg" width="800" class="r-stretch quarto-figure-center"></section>
+<img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_44_0.svg" class="quarto-figure quarto-figure-center r-stretch" width="800"></section>
 <section id="ate-estimation-posterior-distribution" class="slide level2">
 <h2>ATE Estimation: Posterior Distribution</h2>
 
-<img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_55_1.png" width="1000" class="r-stretch quarto-figure-center"></section>
+<img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_55_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
 <section id="ate-estimation-ml-model" class="slide level2">
 <h2>ATE Estimation: ML Model 🤖</h2>
 <p>You folks are trying to make sense of complex relationships by looking at simple plots and summary statistics!</p>
+<div title="ML Approach">
 <div class="callout callout-tip callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
@@ -562,14 +570,16 @@ flowchart LR
 </div>
 </div>
 </div>
-<div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python input number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1"></a>ml_model <span class="op">=</span> RandomizedSearchCV(</span>
-<span id="cb2-2"><a href="#cb2-2"></a>    estimator<span class="op">=</span>GradientBoostingRegressor(),</span>
-<span id="cb2-3"><a href="#cb2-3"></a>    param_distributions<span class="op">=</span> ... ,</span>
-<span id="cb2-4"><a href="#cb2-4"></a>    ...</span>
-<span id="cb2-5"><a href="#cb2-5"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python input number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href=""></a>ml_model <span class="op">=</span> RandomizedSearchCV(</span>
+<span id="cb2-2"><a href=""></a>    estimator<span class="op">=</span>GradientBoostingRegressor(),</span>
+<span id="cb2-3"><a href=""></a>    param_distributions<span class="op">=</span> ... ,</span>
+<span id="cb2-4"><a href=""></a>    ...</span>
+<span id="cb2-5"><a href=""></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="section-5" class="slide level2">
 <h2></h2>
+<div title="Results">
 <div class="callout callout-note callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
@@ -579,18 +589,20 @@ flowchart LR
 <p><strong>Results</strong></p>
 </div>
 <div class="callout-content">
-<p>According to the machine learning model, the discount does have a positive effect on sales. The relative partial dependency plot hint that the additional sales driven by the discount are around <span class="math inline">\(0.35\$\)</span>. This is less than the limit <span class="math inline">\(1\$\)</span> set by the marketing team to obtain a positive ROI.</p>
+<p>According to the machine learning model, the discount does have a positive effect on sales. The relative partial dependency plot hints that the additional sales driven by the discount are around <span class="math inline">\(0.35\$\)</span>. This is less than the limit <span class="math inline">\(1\$\)</span> set by the marketing team to obtain a positive ROI.</p>
+</div>
 </div>
 </div>
 </div>
 
-<img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_66_1.png" width="600" class="r-stretch quarto-figure-center"><div class="footer">
+<img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_66_1.png" class="quarto-figure quarto-figure-center r-stretch" width="600"><div class="footer">
 
 </div>
 </section>
 <section id="conclusions-and-recommendations" class="slide level2">
 <h2>Conclusions and Recommendations</h2>
 <p>Based on the results from the linear model and the machine learning model, the data scientist decided to recommend the following:</p>
+<div title="Recommendations 🤓">
 <div class="callout callout-tip callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
@@ -604,6 +616,8 @@ flowchart LR
 </div>
 </div>
 </div>
+</div>
+<div title="Wrong!">
 <div class="callout callout-important callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
@@ -614,6 +628,7 @@ flowchart LR
 </div>
 <div class="callout-content">
 <p>The data simulation process is based on a true ATE of <span class="math inline">\(2\$\)</span>.</p>
+</div>
 </div>
 </div>
 </div>
@@ -631,7 +646,7 @@ flowchart LR
 <div class="column" style="width:30%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_70_0.svg" width="300"></p>
+<p><img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_70_0.svg" class="quarto-figure quarto-figure-center" width="300"></p>
 </figure>
 </div>
 </div><div class="column" style="width:70%;">
@@ -655,7 +670,7 @@ flowchart LR
 </div><div class="column" style="width:35%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="causal_inference_example_presentation_files/images/causality_book.jpg" width="400"></p>
+<p><img data-src="causal_inference_example_presentation_files/images/causality_book.jpg" class="quarto-figure quarto-figure-center" width="400"></p>
 </figure>
 </div>
 </div>
@@ -668,20 +683,20 @@ flowchart LR
 <h2>Causal Linear Regression Model</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_75_0.svg" width="400"></p>
+<p><img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_75_0.svg" class="quarto-figure quarto-figure-center" width="400"></p>
 </figure>
 </div>
 <div class="columns">
 <div class="column" style="width:50%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_85_1.png" width="550"></p>
+<p><img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_85_1.png" class="quarto-figure quarto-figure-center" width="550"></p>
 </figure>
 </div>
 </div><div class="column" style="width:50%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_92_1.png" width="550"></p>
+<p><img data-src="causal_inference_example_presentation_files/images/causal_inference_example_files/causal_inference_example_92_1.png" class="quarto-figure quarto-figure-center" width="550"></p>
 </figure>
 </div>
 </div>
@@ -689,43 +704,43 @@ flowchart LR
 </section>
 <section id="automating-the-model-specification" class="slide level2">
 <h2>Automating The Model Specification</h2>
-<div class="sourceCode" id="cb3" data-code-line-numbers="|1|3-9|11-13|15-25|27-32"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1"></a><span class="im">from</span> dowhy <span class="im">import</span> CausalModel</span>
-<span id="cb3-2"><a href="#cb3-2"></a></span>
-<span id="cb3-3"><a href="#cb3-3"></a><span class="co"># define the causal model</span></span>
-<span id="cb3-4"><a href="#cb3-4"></a>model <span class="op">=</span> CausalModel(</span>
-<span id="cb3-5"><a href="#cb3-5"></a>    data<span class="op">=</span>data,</span>
-<span id="cb3-6"><a href="#cb3-6"></a>    graph<span class="op">=</span>gml_graph,  <span class="co"># &lt;- Input Causal Graph</span></span>
-<span id="cb3-7"><a href="#cb3-7"></a>    treatment<span class="op">=</span><span class="st">"discount"</span>,</span>
-<span id="cb3-8"><a href="#cb3-8"></a>    outcome<span class="op">=</span><span class="st">"sales"</span>,</span>
-<span id="cb3-9"><a href="#cb3-9"></a>)</span>
-<span id="cb3-10"><a href="#cb3-10"></a></span>
-<span id="cb3-11"><a href="#cb3-11"></a><span class="co"># get backdoor paths (what we need to control for)</span></span>
-<span id="cb3-12"><a href="#cb3-12"></a>model._graph.get_backdoor_paths(nodes1<span class="op">=</span>[<span class="st">"discount"</span>], nodes2<span class="op">=</span>[<span class="st">"sales"</span>])</span>
-<span id="cb3-13"><a href="#cb3-13"></a><span class="op">&gt;</span> [[<span class="st">'discount'</span>, <span class="st">'visits'</span>, <span class="st">'sales'</span>]]</span>
-<span id="cb3-14"><a href="#cb3-14"></a></span>
-<span id="cb3-15"><a href="#cb3-15"></a><span class="co"># get estimand</span></span>
-<span id="cb3-16"><a href="#cb3-16"></a>estimand <span class="op">=</span> model.identify_effect()</span>
-<span id="cb3-17"><a href="#cb3-17"></a></span>
-<span id="cb3-18"><a href="#cb3-18"></a><span class="co"># estimate effect</span></span>
-<span id="cb3-19"><a href="#cb3-19"></a>estimate <span class="op">=</span> model.estimate_effect(</span>
-<span id="cb3-20"><a href="#cb3-20"></a>    identified_estimand<span class="op">=</span>estimand,</span>
-<span id="cb3-21"><a href="#cb3-21"></a>    method_name<span class="op">=</span><span class="st">"backdoor.linear_regression"</span>,  <span class="co"># &lt;- Estimation Method</span></span>
-<span id="cb3-22"><a href="#cb3-22"></a>    target_units<span class="op">=</span><span class="st">"ate"</span>,</span>
-<span id="cb3-23"><a href="#cb3-23"></a>    test_significance<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb3-24"><a href="#cb3-24"></a>    confidence_intervals<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb3-25"><a href="#cb3-25"></a>)</span>
-<span id="cb3-26"><a href="#cb3-26"></a></span>
-<span id="cb3-27"><a href="#cb3-27"></a><span class="bu">print</span>(</span>
-<span id="cb3-28"><a href="#cb3-28"></a>    <span class="ss">f"Estimate of causal effect (linear regression): </span><span class="sc">{</span>estimate<span class="sc">.</span>value<span class="sc">}</span><span class="ss">"</span></span>
-<span id="cb3-29"><a href="#cb3-29"></a>)</span>
-<span id="cb3-30"><a href="#cb3-30"></a><span class="bu">print</span>(<span class="ss">f"confidence interval: </span><span class="sc">{</span>estimate<span class="sc">.</span>get_confidence_intervals()<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb3-31"><a href="#cb3-31"></a><span class="op">&gt;</span> Estimate of causal effect (linear regression): <span class="fl">1.855502783142704</span></span>
-<span id="cb3-32"><a href="#cb3-32"></a><span class="op">&gt;</span> confidence interval: [[<span class="fl">1.51720297</span> <span class="fl">2.1938026</span> ]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb3" data-code-line-numbers="|1|3-9|11-13|15-25|27-32"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href=""></a><span class="im">from</span> dowhy <span class="im">import</span> CausalModel</span>
+<span id="cb3-2"><a href=""></a></span>
+<span id="cb3-3"><a href=""></a><span class="co"># define the causal model</span></span>
+<span id="cb3-4"><a href=""></a>model <span class="op">=</span> CausalModel(</span>
+<span id="cb3-5"><a href=""></a>    data<span class="op">=</span>data,</span>
+<span id="cb3-6"><a href=""></a>    graph<span class="op">=</span>gml_graph,  <span class="co"># &lt;- Input Causal Graph</span></span>
+<span id="cb3-7"><a href=""></a>    treatment<span class="op">=</span><span class="st">"discount"</span>,</span>
+<span id="cb3-8"><a href=""></a>    outcome<span class="op">=</span><span class="st">"sales"</span>,</span>
+<span id="cb3-9"><a href=""></a>)</span>
+<span id="cb3-10"><a href=""></a></span>
+<span id="cb3-11"><a href=""></a><span class="co"># get backdoor paths (what we need to control for)</span></span>
+<span id="cb3-12"><a href=""></a>model._graph.get_backdoor_paths(nodes1<span class="op">=</span>[<span class="st">"discount"</span>], nodes2<span class="op">=</span>[<span class="st">"sales"</span>])</span>
+<span id="cb3-13"><a href=""></a><span class="op">&gt;</span> [[<span class="st">'discount'</span>, <span class="st">'visits'</span>, <span class="st">'sales'</span>]]</span>
+<span id="cb3-14"><a href=""></a></span>
+<span id="cb3-15"><a href=""></a><span class="co"># get estimand</span></span>
+<span id="cb3-16"><a href=""></a>estimand <span class="op">=</span> model.identify_effect()</span>
+<span id="cb3-17"><a href=""></a></span>
+<span id="cb3-18"><a href=""></a><span class="co"># estimate effect</span></span>
+<span id="cb3-19"><a href=""></a>estimate <span class="op">=</span> model.estimate_effect(</span>
+<span id="cb3-20"><a href=""></a>    identified_estimand<span class="op">=</span>estimand,</span>
+<span id="cb3-21"><a href=""></a>    method_name<span class="op">=</span><span class="st">"backdoor.linear_regression"</span>,  <span class="co"># &lt;- Estimation Method</span></span>
+<span id="cb3-22"><a href=""></a>    target_units<span class="op">=</span><span class="st">"ate"</span>,</span>
+<span id="cb3-23"><a href=""></a>    test_significance<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb3-24"><a href=""></a>    confidence_intervals<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb3-25"><a href=""></a>)</span>
+<span id="cb3-26"><a href=""></a></span>
+<span id="cb3-27"><a href=""></a><span class="bu">print</span>(</span>
+<span id="cb3-28"><a href=""></a>    <span class="ss">f"Estimate of causal effect (linear regression): </span><span class="sc">{</span>estimate<span class="sc">.</span>value<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb3-29"><a href=""></a>)</span>
+<span id="cb3-30"><a href=""></a><span class="bu">print</span>(<span class="ss">f"confidence interval: </span><span class="sc">{</span>estimate<span class="sc">.</span>get_confidence_intervals()<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb3-31"><a href=""></a><span class="op">&gt;</span> Estimate of causal effect (linear regression): <span class="fl">1.855502783142704</span></span>
+<span id="cb3-32"><a href=""></a><span class="op">&gt;</span> confidence interval: [[<span class="fl">1.51720297</span> <span class="fl">2.1938026</span> ]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="section-7" class="slide level2">
 <h2></h2>
 
-<img data-src="causal_inference_example_presentation_files/images/causal_hierarchy.jpeg" width="400" class="r-stretch quarto-figure-center"><div class="footer">
+<img data-src="causal_inference_example_presentation_files/images/causal_hierarchy.jpeg" class="quarto-figure quarto-figure-center r-stretch" width="400"><div class="footer">
 
 </div>
 </section>
@@ -755,9 +770,11 @@ flowchart LR
 <div class="footer">
 
 </div>
-
-<img src="causal_inference_example_presentation_files/images/juanitorduz_logo_small.png" class="slide-logo r-stretch"><div class="footer footer-default">
+<div class="quarto-auto-generated-content">
+<p><img src="causal_inference_example_presentation_files/images/juanitorduz_logo_small.png" class="slide-logo"></p>
+<div class="footer footer-default">
 <p><a href="https://juanitorduz.github.io/causal_inference_example/">Using Data Science for Bad Decision-Making: A Case Study</a></p>
+</div>
 </div>
 </section>
     </div>
@@ -787,7 +804,6 @@ flowchart LR
       Reveal.initialize({
 'controlsAuto': true,
 'previewLinksAuto': true,
-'smaller': false,
 'pdfSeparateFragments': false,
 'autoAnimateEasing': "ease",
 'autoAnimateDuration': 1,
@@ -1049,10 +1065,27 @@ flowchart LR
         // clear code selection
         e.clearSelection();
       });
-      function tippyHover(el, contentFn) {
+        var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+        var mailtoRegex = new RegExp(/^mailto:/);
+          var filterRegex = new RegExp('/' + window.location.host + '/');
+        var isInternal = (href) => {
+            return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+        }
+        // Inspect non-navigation links and adorn them if external
+     	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+        for (var i=0; i<links.length; i++) {
+          const link = links[i];
+          if (!isInternal(link.href)) {
+            // undo the damage that might have been done by quarto-nav.js in the case of
+            // links that we want to consider external
+            if (link.dataset.originalHref !== undefined) {
+              link.href = link.dataset.originalHref;
+            }
+          }
+        }
+      function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
         const config = {
           allowHTML: true,
-          content: contentFn,
           maxWidth: 500,
           delay: 100,
           arrow: false,
@@ -1062,8 +1095,17 @@ flowchart LR
           interactive: true,
           interactiveBorder: 10,
           theme: 'light-border',
-          placement: 'bottom-start'
+          placement: 'bottom-start',
         };
+        if (contentFn) {
+          config.content = contentFn;
+        }
+        if (onTriggerFn) {
+          config.onTrigger = onTriggerFn;
+        }
+        if (onUntriggerFn) {
+          config.onUntrigger = onUntriggerFn;
+        }
           config['offset'] = [0,0];
           config['maxWidth'] = 700;
         window.tippy(el, config); 
@@ -1077,7 +1119,11 @@ flowchart LR
           try { href = new URL(href).hash; } catch {}
           const id = href.replace(/^#\/?/, "");
           const note = window.document.getElementById(id);
-          return note.innerHTML;
+          if (note) {
+            return note.innerHTML;
+          } else {
+            return "";
+          }
         });
       }
       const findCites = (el) => {
