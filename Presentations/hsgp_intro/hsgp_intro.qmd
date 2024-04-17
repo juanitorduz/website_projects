@@ -271,7 +271,7 @@ the one-dimensional case.
 %%| fig-height: 2
 %%| fig-width: 10
 %%| fig-align: "center"
-%%{init: {"theme": "white", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels":false}}}%%
+%%{init: {"theme": "white", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels": false}}}%%
 flowchart TD
   kernel["kernel"] --> spectral_sensity["Spectral Density"]
   spectral_sensity --> polynomial["Polynomial Expansion"]
@@ -893,10 +893,11 @@ distribution over the `day_of_year2`.
 
 #### Gaussian Processes
 
-- [Gaussian Processes for Machine Learning](https://www.gaussianprocess.org/gpml/)
+- [Gaussian Processes for Machine Learning](https://www.gaussianprocess.org/gpml/), classic book on GPs.
 - [PyMC Examples: Mean and Covariance Functions](Mean and Covariance Functions)
 - [Bayesian Regression as a Gaussian Process](https://juanitorduz.github.io/reg_bayesian_regression/)
 - [An Introduction to Gaussian Process Regression](https://juanitorduz.github.io/gaussian_process_reg/)
+- [Robust Gaussian Process Modeling](https://betanalpha.github.io/assets/case_studies/gaussian_processes.html#42_High-Dimensional_Covariate_Spaces), very complete introduction to GPs.
 - [Dan Simpson's Blog](https://dansblog.netlify.app/), many posts on GPs and prior selection.
 
 #### HSGP Approximation
