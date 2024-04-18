@@ -311,11 +311,13 @@ flowchart TD
 
 ## Eigenvalues and Eigenvectors
 
-Recall that given a matrix $A$ (or a linear operator) the **eigenvalues and eigenvectors** are the solutions to the equation 
+Recall that given a matrix $A$ (or a linear operator) the **eigenvalues and eigenvectors** are the solutions to the equation
 
 $$A v = \lambda v$$
 
-where $v$ is the eigenvector and $\lambda \neq 0$ is the eigenvalue. The **spectrum** of a matrix is the set of its eigenvalues.
+where $v \neq \vec{0}$ is the eigenvector and $\lambda$ is the eigenvalue.
+
+The **spectrum** of a matrix is the set of its eigenvalues.
 
 ::: footer
 
@@ -838,7 +840,7 @@ with pm.Model() as hsgp_linearized_pymc_model:
     phi, sqrt_psd = gp.prior_linearized(Xs=x_data_centered[:, None])
 
     beta = pm.Normal("beta", mu=0, sigma=1, size=gp._m_star)
-    f = f = pm.Deterministic("f", phi @ (beta * sqrt_psd))
+    f = pm.Deterministic("f", phi @ (beta * sqrt_psd))
 
     pm.Normal("likelihood", mu=f, sigma=noise, observed=y_data)
 ```

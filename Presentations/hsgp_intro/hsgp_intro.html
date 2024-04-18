@@ -685,7 +685,8 @@ flowchart TD
 <h2>Eigenvalues and Eigenvectors</h2>
 <p>Recall that given a matrix <span class="math inline">\(A\)</span> (or a linear operator) the <strong>eigenvalues and eigenvectors</strong> are the solutions to the equation</p>
 <p><span class="math display">\[A v = \lambda v\]</span></p>
-<p>where <span class="math inline">\(v\)</span> is the eigenvector and <span class="math inline">\(\lambda \neq 0\)</span> is the eigenvalue. The <strong>spectrum</strong> of a matrix is the set of its eigenvalues.</p>
+<p>where <span class="math inline">\(v \neq \vec{0}\)</span> is the eigenvector and <span class="math inline">\(\lambda\)</span> is the eigenvalue.</p>
+<p>The <strong>spectrum</strong> of a matrix is the set of its eigenvalues.</p>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/the-spectral-theorem-for-matrices/">The Spectral Theorem for Matrices</a></p>
 </div>
@@ -1172,7 +1173,7 @@ flowchart TD
 <span id="cb10-12"><a href=""></a>    phi, sqrt_psd <span class="op">=</span> gp.prior_linearized(Xs<span class="op">=</span>x_data_centered[:, <span class="va">None</span>])</span>
 <span id="cb10-13"><a href=""></a></span>
 <span id="cb10-14"><a href=""></a>    beta <span class="op">=</span> pm.Normal(<span class="st">"beta"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>, size<span class="op">=</span>gp._m_star)</span>
-<span id="cb10-15"><a href=""></a>    f <span class="op">=</span> f <span class="op">=</span> pm.Deterministic(<span class="st">"f"</span>, phi <span class="op">@</span> (beta <span class="op">*</span> sqrt_psd))</span>
+<span id="cb10-15"><a href=""></a>    f <span class="op">=</span> pm.Deterministic(<span class="st">"f"</span>, phi <span class="op">@</span> (beta <span class="op">*</span> sqrt_psd))</span>
 <span id="cb10-16"><a href=""></a></span>
 <span id="cb10-17"><a href=""></a>    pm.Normal(<span class="st">"likelihood"</span>, mu<span class="op">=</span>f, sigma<span class="op">=</span>noise, observed<span class="op">=</span>y_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
