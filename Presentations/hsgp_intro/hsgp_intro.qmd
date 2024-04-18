@@ -246,6 +246,30 @@ with gp_pymc_model:
 
 ## HSGP Deep Dive {.center}
 
+::: {.callout-tip}
+
+## Approach Summary 🤓
+
+::: incremental
+
+- **Strategy:** Approximate the Gram matrix $K$ with a matrix $\tilde{K}$ with a smaller rank $m < n$.
+
+- **Key Idea:** Interpret the covariance function as the kernel of a pseudo-differential operator and approximate it using Hilbert space methods.
+
+- **Result:** A reduced-rank approximation for the covariance function, where the basis functions are independent of the covariance functions and its parameters (plus asymptotic convergence).
+
+:::
+
+:::
+
+::: footer
+
+[Hilbert space methods for reduced-rank Gaussian process regression](https://link.springer.com/article/10.1007/s11222-019-09886-w)
+
+:::
+
+
+
 ## Hilbert Space Approximation {.smaller}
 
 ### Approximation Strategy Steps
