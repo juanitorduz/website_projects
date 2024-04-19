@@ -8,8 +8,6 @@ subtitle: "A conceptual and practical viewpoint"
 author: 
   - name: Dr. Juan Orduz
     url: https://juanitorduz.github.io/
-    affiliations:
-      - name: Mathematician & Data Scientist
 
 format:
   revealjs:
@@ -101,7 +99,9 @@ format:
 
 ## Kernel
 
-A way to encode similarity between points
+👉 A way to encode similarity between points.
+
+. . .
 
 ### Example: Squared Exponential Kernel
 
@@ -212,7 +212,7 @@ with pm.Model() as gp_pymc_model:
 
 ### `conditional` method
 
-```{.python code-line-numbers="|3|4"}
+```{.python code-line-numbers="|2|3|4|6-12"}
 with gp_pymc_model:
     x_star_data = pm.MutableData("x_star_data", x_test)
     f_star = gp.conditional("f_star", x_star_data[:, None])
@@ -236,17 +236,27 @@ with gp_pymc_model:
 
 ## HSGP Deep Dive 
 
+::: {.callout-important}
+
+## Problem with scaling Gaussian processes?
+
+👉 Inverting the **kernel matrix** is computationally expensive!
+
+:::
+
+. . .
+
 ::: {.callout-tip}
 
 ## Approach Summary 🤓
 
 ::: incremental
 
-- **Strategy:** Approximate the Gram matrix $K$ with a matrix $\tilde{K}$ with a smaller rank $m < n$.
+- **Strategy:** Approximate the kernel matrix $K$ with a a matrix with a smaller rank.
 
 - **Key Idea:** Interpret the covariance function as the kernel of a pseudo-differential operator and approximate it using Hilbert space methods.
 
-- **Result:** A reduced-rank approximation for the covariance function, where the basis functions are independent of the covariance functions and their parameters (plus asymptotic convergence).
+- **Result:** A reduced-rank approximation where the basis functions are independent of the covariance functions and their parameters (plus asymptotic convergence).
 
 :::
 
@@ -335,7 +345,7 @@ v_2 = \frac{1}{\sqrt{2}} \begin{pmatrix}
 \end{pmatrix}
 $$
 
-::: {.callout-tip title="Properties"}
+::: {.callout-note title="Orthonormal Basis"}
 
 $$
 v_1^{T} v_2 = 0 \quad \text{and} \quad v_1^{T} v_1 = v_2^{T} v_2 = 1
@@ -345,7 +355,9 @@ $$
 
 ## The Spectral Theorem
 
-The **spectral theorem** states that we can always find such orthonormal basis of eigenvectors for a symmetric matrix. 
+The **spectral theorem** states that we can always find such orthonormal basis of eigenvectors for a **symmetric matrix**.
+
+::: {.callout-tip title="Change of Basis"}
 
 Observe that if we consider the change-of-basis matrix
 
@@ -363,6 +375,8 @@ D = Q^{T} A Q = \begin{pmatrix}
 0 & -1
 \end{pmatrix}
 $$
+
+:::
 
 ## Code Example
 
@@ -402,7 +416,7 @@ Another important consequence of the spectral theorem is that we can decompose t
 onto its eigenspaces**. That is, we can write re-write $A$ as 
 
 $$
-A = \sum_{j=1}^{2} \lambda_i v_j v_j^{T}
+A = \sum_{j=1}^{2} \color{red}{\lambda_i} \color{blue}{v_j v_j^{T}}
 $$
 
 ::: {.callout-tip title="Projections"}
@@ -443,13 +457,16 @@ the Taylor series for functions to operators.
 Given a function $f$ we can define the operator $f(A)$ as
 
 $$
-f(A) = \sum_{j=1}^{2} f(\lambda_j) v_j v_j^{T}
+f(A) = \sum_{j=1}^{2} \color{red}{f(\lambda_j)} \color{blue}{v_j v_j^{T}}
 $$
 
-Observe that the particular cases:
+
+::: {.callout-note title="Exampels"}
 
 - $f(z) = z$ we recover the operator $A$.
 - $f(z) = 1$ we recover the identity operator $I$.
+- $f(z) = z^2$ we recover the operator $A^2$.
+:::
 
 
 ## Example: Exponential of a Matrix
@@ -554,7 +571,7 @@ $$
 - \nabla^2 f = \sum_{i=1}^{d} \frac{\partial^2 f}{\partial x_i^2}
 $$
 
-::: {.callout-tip}
+::: {.callout-tip title="Properties"}
 
 The Laplacian has many good properties:
 
@@ -562,7 +579,7 @@ The Laplacian has many good properties:
 
 - Elliptic
 
-- Self-adjoint (appropriate boundary conditions)
+- Self-adjoint (appropriate boundary conditions)*
 
 :::
 
@@ -580,7 +597,7 @@ $$
 \mathcal{F}[\nabla^2 f](\omega) = - ||\omega||^2 \mathcal{F}[f]
 $$
 
-So we can write the integral operator operator associated with the kernel
+We can write the integral operator associated with the kernel
 
 $$
 \mathcal{K} := \int_{\mathbb{R}^d} k(\cdot, x')\phi(x') dx'
@@ -599,12 +616,16 @@ $$
 The most common boundary conditions are the [Dirichlet boundary conditions](https://en.wikipedia.org/wiki/Dirichlet_eigenvalue),
 which are defined by **requiring that the function vanishes on the boundary of the domain**. 
 
+::: {.callout-note title="Eigenvalue Problem"}
+
 $$
 \begin{align*}
 -\nabla^2 f &= \lambda f \quad \text{in} \quad \Omega \\
 f &= 0 \quad \text{on} \quad \partial \Omega
 \end{align*}
 $$
+
+:::
 
 :::footer
 
@@ -620,7 +641,7 @@ $$
 That is,
 
   $$
-  \int_{\Omega} (-\nabla^2 f(x)) g(x) dx = \int_{\Omega} f(x) (-\nabla^2 g(x)) dx
+  \int_{\Omega} {\color{blue}{(-\nabla^2 f(x))}} g(x) dx = \int_{\Omega} f(x) {\color{blue}{(-\nabla^2 g(x))}} dx
   $$
 
 - It has discrete spectrum with eigenvalues $\lambda_j \rightarrow \infty$ and eigenfunctions $\phi_j$ that form an
