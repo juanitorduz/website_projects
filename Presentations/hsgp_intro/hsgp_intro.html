@@ -414,6 +414,23 @@
 </section>
 <section id="outline" class="slide level2" data-background-image="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_110_0.png" data-background-opacity="0.10">
 <h2>Outline</h2>
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Reference Notebook 📓</strong></p>
+</div>
+<div class="callout-content">
+<p><a href="https://juanitorduz.github.io/hsgp_intro/">https://juanitorduz.github.io/hsgp_intro/</a></p>
+<ul>
+<li>🐍 Reproducible Python Code (<a href="https://github.com/pymc-devs/pymc">PyMC</a>, <a href="https://github.com/google/jax">Jax</a> and <a href="https://github.com/pyro-ppl/numpyro">NumPyro</a>)</li>
+<li>✏️ Math and Code Examples</li>
+</ul>
+</div>
+</div>
+</div>
 <div>
 <ol type="1">
 <li class="fragment"><p>Motivation: Some Applications</p></li>
@@ -615,6 +632,9 @@ f_*|X, y, X_*
 <h2>GP Model - Posterior Predictive</h2>
 
 <img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_62_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="hilbert-space-gaussian-process-hsgp-approximation" class="slide level2 center">
+<h2>Hilbert Space Gaussian Process (HSGP) Approximation</h2>
+</section>
 <section id="hsgp-deep-dive" class="slide level2 center">
 <h2>HSGP Deep Dive</h2>
 <div class="callout callout-tip callout-titled callout-style-default">
@@ -640,22 +660,7 @@ f_*|X, y, X_*
 <p><a href="https://link.springer.com/article/10.1007/s11222-019-09886-w">Hilbert space methods for reduced-rank Gaussian process regression</a></p>
 </div>
 </section>
-<section id="hilbert-space-approximation" class="slide level2 smaller">
-<h2>Hilbert Space Approximation</h2>
-<h3 id="approximation-strategy-steps">Approximation Strategy Steps</h3>
-<div>
-<ol start="0" type="1">
-<li class="fragment">D-Tour: Eigenvalues and Eigenvectors</li>
-<li class="fragment">We recall the spectral density <span class="math inline">\(S(\omega)\)</span> associated with a stationary kernel function <span class="math inline">\(k\)</span>.</li>
-<li class="fragment">We approximate the spectral density <span class="math inline">\(S(\omega)\)</span> as a polynomial series in <span class="math inline">\(||\omega||^2\)</span>.</li>
-<li class="fragment">We can interpret these polynomial terms as powers of the Laplacian operator. The key observation is that the Fourier transform of the Laplacian operator is <span class="math inline">\(||\omega||^2\)</span>.</li>
-<li class="fragment">Next, we impose Dirichlet boundary conditions on the Laplacian operator which makes it self-adjoint and with a discrete spectrum.</li>
-<li class="fragment">We identify the expansion in (2) with the sum of powers of the Laplacian operator in the eigenbasis of (4).</li>
-<li class="fragment">We arrive at the final approximation formula and explicitly compute the terms for the squared exponential kernel in the one-dimensional case.</li>
-</ol>
-</div>
-</section>
-<section id="hilbert-space-approximation-1" class="slide level2">
+<section id="hilbert-space-approximation" class="slide level2">
 <h2>Hilbert Space Approximation</h2>
 <div class="cell" data-reveal="true" data-fig-height="2" data-fig-width="10" data-layout-align="center">
 <div class="cell-output-display">
@@ -679,6 +684,21 @@ flowchart TD
 <p></p></figure><p></p>
 </div>
 </div>
+</div>
+</section>
+<section id="hilbert-space-approximation-1" class="slide level2 smaller">
+<h2>Hilbert Space Approximation</h2>
+<h3 id="approximation-strategy-steps">Approximation Strategy Steps</h3>
+<div>
+<ol start="0" type="1">
+<li class="fragment">D-Tour: Eigenvalues and Eigenvectors</li>
+<li class="fragment">We recall the spectral density <span class="math inline">\(S(\omega)\)</span> associated with a stationary kernel function <span class="math inline">\(k\)</span>.</li>
+<li class="fragment">We approximate the spectral density <span class="math inline">\(S(\omega)\)</span> as a polynomial series in <span class="math inline">\(||\omega||^2\)</span>.</li>
+<li class="fragment">We can interpret these polynomial terms as powers of the Laplacian operator. The key observation is that the Fourier transform of the Laplacian operator is <span class="math inline">\(||\omega||^2\)</span>.</li>
+<li class="fragment">Next, we impose Dirichlet boundary conditions on the Laplacian operator which makes it self-adjoint and with a discrete spectrum.</li>
+<li class="fragment">We identify the expansion in (2) with the sum of powers of the Laplacian operator in the eigenbasis of (4).</li>
+<li class="fragment">We arrive at the final approximation formula and explicitly compute the terms for the squared exponential kernel in the one-dimensional case.</li>
+</ol>
 </div>
 </section>
 <section id="eigenvalues-and-eigenvectors" class="slide level2">

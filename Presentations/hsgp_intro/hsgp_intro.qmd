@@ -26,6 +26,17 @@ format:
 
 ## Outline {background-image="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_110_0.png" background-opacity="0.10"}
 
+::: {.callout-tip}
+
+## Reference Notebook 📓
+
+[https://juanitorduz.github.io/hsgp_intro/](https://juanitorduz.github.io/hsgp_intro/)
+
+- 🐍 Reproducible Python Code ([PyMC](https://github.com/pymc-devs/pymc), [Jax](https://github.com/google/jax) and [NumPyro](https://github.com/pyro-ppl/numpyro))
+- ✏️ Math and Code Examples
+
+:::
+
 ::: incremental
 
 1. Motivation: Some Applications
@@ -244,6 +255,8 @@ with gp_pymc_model:
 
 ![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_62_0.png){fig-align="center" width="950"}
 
+## Hilbert Space Gaussian Process (HSGP) Approximation {.center}
+
 ## HSGP Deep Dive {.center}
 
 ::: {.callout-tip}
@@ -268,27 +281,6 @@ with gp_pymc_model:
 
 :::
 
-
-
-## Hilbert Space Approximation {.smaller}
-
-### Approximation Strategy Steps
-
-::: incremental
-
-0. D-Tour: Eigenvalues and Eigenvectors
-1. We recall the spectral density $S(\omega)$ associated with a stationary kernel function $k$.
-2. We approximate the spectral density $S(\omega)$ as a polynomial series in $||\omega||^2$.
-3. We can interpret these polynomial terms as powers of the Laplacian operator. The key observation is that the Fourier
-transform of the Laplacian operator is $||\omega||^2$.
-4. Next, we impose Dirichlet boundary conditions on the Laplacian operator which makes it self-adjoint and with
-a discrete spectrum.
-5. We identify the expansion in (2) with the sum of powers of the Laplacian operator in the eigenbasis of (4).
-6. We arrive at the final approximation formula and explicitly compute the terms for the squared exponential kernel in
-the one-dimensional case.
-
-:::
-
 ## Hilbert Space Approximation
 
 ```{mermaid}
@@ -308,6 +300,25 @@ flowchart TD
   functional --> identify_coefficients
   identify_coefficients --> approximation["Approximation Formula"]
 ```
+
+## Hilbert Space Approximation {.smaller}
+
+### Approximation Strategy Steps
+
+::: incremental
+
+0. D-Tour: Eigenvalues and Eigenvectors
+1. We recall the spectral density $S(\omega)$ associated with a stationary kernel function $k$.
+2. We approximate the spectral density $S(\omega)$ as a polynomial series in $||\omega||^2$.
+3. We can interpret these polynomial terms as powers of the Laplacian operator. The key observation is that the Fourier
+transform of the Laplacian operator is $||\omega||^2$.
+4. Next, we impose Dirichlet boundary conditions on the Laplacian operator which makes it self-adjoint and with
+a discrete spectrum.
+5. We identify the expansion in (2) with the sum of powers of the Laplacian operator in the eigenbasis of (4).
+6. We arrive at the final approximation formula and explicitly compute the terms for the squared exponential kernel in
+the one-dimensional case.
+
+:::
 
 ## Eigenvalues and Eigenvectors
 
