@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<script src="hsgp_intro_files/libs/clipboard/clipboard.min.js"></script>
+<script src="hsgp_intro_files/libs/quarto-html/tabby.min.js"></script>
+<script src="hsgp_intro_files/libs/quarto-html/popper.min.js"></script>
+<script src="hsgp_intro_files/libs/quarto-html/tippy.umd.min.js"></script>
+<link href="hsgp_intro_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="hsgp_intro_files/libs/quarto-html/light-border.css" rel="stylesheet">
+<link href="hsgp_intro_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
+<link href="hsgp_intro_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.4.552">
+
+  <meta name="author" content="Dr.&nbsp;Juan Orduz">
+  <title>Introduction to Hilbert Spaces Approximations Gaussian Processes</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="hsgp_intro_files/libs/revealjs/dist/reset.css">
+  <link rel="stylesheet" href="hsgp_intro_files/libs/revealjs/dist/reveal.css">
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+      vertical-align: middle;
+    }
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+      }
+    pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+    div.sourceCode
+      { color: #e1e4e8; background-color: #24292e; }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span { color: #e1e4e8; } /* Normal */
+    code span.al { color: #ff5555; font-weight: bold; } /* Alert */
+    code span.an { color: #6a737d; } /* Annotation */
+    code span.at { color: #f97583; } /* Attribute */
+    code span.bn { color: #79b8ff; } /* BaseN */
+    code span.bu { color: #f97583; } /* BuiltIn */
+    code span.cf { color: #f97583; } /* ControlFlow */
+    code span.ch { color: #9ecbff; } /* Char */
+    code span.cn { color: #79b8ff; } /* Constant */
+    code span.co { color: #6a737d; } /* Comment */
+    code span.cv { color: #6a737d; } /* CommentVar */
+    code span.do { color: #6a737d; } /* Documentation */
+    code span.dt { color: #f97583; } /* DataType */
+    code span.dv { color: #79b8ff; } /* DecVal */
+    code span.er { color: #ff5555; text-decoration: underline; } /* Error */
+    code span.ex { color: #f97583; font-weight: bold; } /* Extension */
+    code span.fl { color: #79b8ff; } /* Float */
+    code span.fu { color: #b392f0; } /* Function */
+    code span.im { color: #9ecbff; } /* Import */
+    code span.in { color: #6a737d; } /* Information */
+    code span.kw { color: #f97583; } /* Keyword */
+    code span.op { color: #e1e4e8; } /* Operator */
+    code span.ot { color: #b392f0; } /* Other */
+    code span.pp { color: #f97583; } /* Preprocessor */
+    code span.re { color: #6a737d; } /* RegionMarker */
+    code span.sc { color: #79b8ff; } /* SpecialChar */
+    code span.ss { color: #9ecbff; } /* SpecialString */
+    code span.st { color: #9ecbff; } /* String */
+    code span.va { color: #ffab70; } /* Variable */
+    code span.vs { color: #9ecbff; } /* VerbatimString */
+    code span.wa { color: #ff5555; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="hsgp_intro_files/libs/revealjs/dist/theme/quarto.css">
+  <link rel="stylesheet" href="hsgp_intro_files/style.css">
+  <link href="hsgp_intro_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
+  <link href="hsgp_intro_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
+  <link href="hsgp_intro_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="hsgp_intro_files/libs/revealjs/plugin/reveal-chalkboard/font-awesome/css/all.css" rel="stylesheet">
+  <link href="hsgp_intro_files/libs/revealjs/plugin/reveal-chalkboard/style.css" rel="stylesheet">
+  <link href="hsgp_intro_files/libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
+  <style type="text/css">
+
+  .callout {
+    margin-top: 1em;
+    margin-bottom: 1em;  
+    border-radius: .25rem;
+  }
+
+  .callout.callout-style-simple { 
+    padding: 0em 0.5em;
+    border-left: solid #acacac .3rem;
+    border-right: solid 1px silver;
+    border-top: solid 1px silver;
+    border-bottom: solid 1px silver;
+    display: flex;
+  }
+
+  .callout.callout-style-default {
+    border-left: solid #acacac .3rem;
+    border-right: solid 1px silver;
+    border-top: solid 1px silver;
+    border-bottom: solid 1px silver;
+  }
+
+  .callout .callout-body-container {
+    flex-grow: 1;
+  }
+
+  .callout.callout-style-simple .callout-body {
+    font-size: 1rem;
+    font-weight: 400;
+  }
+
+  .callout.callout-style-default .callout-body {
+    font-size: 0.9rem;
+    font-weight: 400;
+  }
+
+  .callout.callout-titled.callout-style-simple .callout-body {
+    margin-top: 0.2em;
+  }
+
+  .callout:not(.callout-titled) .callout-body {
+      display: flex;
+  }
+
+  .callout:not(.no-icon).callout-titled.callout-style-simple .callout-content {
+    padding-left: 1.6em;
+  }
+
+  .callout.callout-titled .callout-header {
+    padding-top: 0.2em;
+    margin-bottom: -0.2em;
+  }
+
+  .callout.callout-titled .callout-title  p {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
+    
+  .callout.callout-titled.callout-style-simple .callout-content  p {
+    margin-top: 0;
+  }
+
+  .callout.callout-titled.callout-style-default .callout-content  p {
+    margin-top: 0.7em;
+  }
+
+  .callout.callout-style-simple div.callout-title {
+    border-bottom: none;
+    font-size: .9rem;
+    font-weight: 600;
+    opacity: 75%;
+  }
+
+  .callout.callout-style-default  div.callout-title {
+    border-bottom: none;
+    font-weight: 600;
+    opacity: 85%;
+    font-size: 0.9rem;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+  }
+
+  .callout.callout-style-default div.callout-content {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+  }
+
+  .callout.callout-style-simple .callout-icon::before {
+    height: 1rem;
+    width: 1rem;
+    display: inline-block;
+    content: "";
+    background-repeat: no-repeat;
+    background-size: 1rem 1rem;
+  }
+
+  .callout.callout-style-default .callout-icon::before {
+    height: 0.9rem;
+    width: 0.9rem;
+    display: inline-block;
+    content: "";
+    background-repeat: no-repeat;
+    background-size: 0.9rem 0.9rem;
+  }
+
+  .callout-title {
+    display: flex
+  }
+    
+  .callout-icon::before {
+    margin-top: 1rem;
+    padding-right: .5rem;
+  }
+
+  .callout.no-icon::before {
+    display: none !important;
+  }
+
+  .callout.callout-titled .callout-body > .callout-content > :last-child {
+    padding-bottom: 0.5rem;
+    margin-bottom: 0;
+  }
+
+  .callout.callout-titled .callout-icon::before {
+    margin-top: .5rem;
+    padding-right: .5rem;
+  }
+
+  .callout:not(.callout-titled) .callout-icon::before {
+    margin-top: 1rem;
+    padding-right: .5rem;
+  }
+
+  /* Callout Types */
+
+  div.callout-note {
+    border-left-color: #4582ec !important;
+  }
+
+  div.callout-note .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAEU0lEQVRYCcVXTWhcVRQ+586kSUMMxkyaElstCto2SIhitS5Ek8xUKV2poatCcVHtUlFQk8mbaaziwpWgglJwVaquitBOfhQXFlqlzSJpFSpIYyXNjBNiTCck7x2/8/LeNDOZxDuEkgOXe++553zfefee+/OYLOXFk3+1LLrRdiO81yNqZ6K9cG0P3MeFaMIQjXssE8Z1JzLO9ls20MBZX7oG8w9GxB0goaPrW5aNMp1yOZIa7Wv6o2ykpLtmAPs/vrG14Z+6d4jpbSKuhdcSyq9wGMPXjonwmESXrriLzFGOdDBLB8Y6MNYBu0dRokSygMA/mrun8MGFN3behm6VVAwg4WR3i6FvYK1T7MHo9BK7ydH+1uurECoouk5MPRyVSBrBHMYwVobG2aOXM07sWrn5qgB60rc6mcwIDJtQrnrEr44kmy+UO9r0u9O5/YbkS9juQckLed3DyW2XV/qWBBB3ptvI8EUY3I9p/67OW+g967TNr3Sotn3IuVlfMLVnsBwH4fsnebJvyGm5GeIUA3jljERmrv49SizPYuq+z7c2H/jlGC+Ghhupn/hcapqmcudB9jwJ/3jvnvu6vu5lVzF1fXyZuZZ7U8nRmVzytvT+H3kilYvH09mLWrQdwFSsFEsxFVs5fK7A0g8gMZjbif4ACpKbjv7gNGaD8bUrlk8x+KRflttr22JEMRUbTUwwDQScyzPgedQHZT0xnx7ujw2jfVfExwYHwOsDTjLdJ2ebmeQIlJ7neo41s/DrsL3kl+W2lWvAga0tR3zueGr6GL78M3ifH0rGXrBC2aAR8uYcIA5gwV8zIE8onoh8u0Fca/ciF7j1uOzEnqcIm59sEXoGc0+z6+H45V1CvAvHcD7THztu669cnp+L0okAeIc6zjbM/24LgGM1gZk7jnRu1aQWoU9sfUOuhrmtaPIO3YY1KLLWZaEO5TKUbMY5zx8W9UJ6elpLwKXbsaZ4EFl7B4bMtDv0iRipKoDQT2sNQI9b1utXFdYisi+wzZ/ri/1m7QfDgEuvgUUEIJPq3DhX/5DWNqIXDOweC2wvIR90Oq3lDpdMIgD2r0dXvGdsEW5H6x6HLRJYU7C69VefO1x8Gde1ZFSJLfWS1jbCnhtOPxmpfv2LXOA2Xk2tvnwKKPFuZ/oRmwBwqRQDcKNeVQkYcOjtWVBuM/JuYw5b6isojIkYxyYAFn5K7ZBF10fea52y8QltAg6jnMqNHFBmGkQ1j+U43HMi2xMar1Nv0zGsf1s8nUsmUtPOOrbFIR8bHFDMB5zL13Gmr/kGlCkUzedTzzmzsaJXhYawnA3UmARpiYj5ooJZiUoxFRtK3X6pgNPv+IZVPcnwbOl6f+aBaO1CNvPW9n9LmCp01nuSaTRF2YxHqZ8DYQT6WsXT+RD6eUztwYLZ8rM+rcPxamv1VQzFUkzFXvkiVrySGQgJNvXHJAxiU3/NwiC03rSf05VBaPtu/Z7/B8Yn/w7eguloAAAAAElFTkSuQmCC');
+  }
+
+  div.callout-note.callout-style-default .callout-title {
+    background-color: #dae6fb
+  }
+
+  div.callout-important {
+    border-left-color: #d9534f !important;
+  }
+
+  div.callout-important .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAEKklEQVRYCcVXTWhcVRS+575MJym48A+hSRFr00ySRQhURRfd2HYjk2SSTokuBCkU2o0LoSKKraKIBTcuFCoidGFD08nkBzdREbpQ1EDNIv8qSGMFUboImMSZd4/f9zJv8ibJMC8xJQfO3HPPPef7zrvvvnvviIkpC9nsw0UttFunbUhpFzFtarSd6WJkStVMw5xyVqYTvkwfzuf/5FgtkVoB0729j1rjXwThS7Vio+Mo6DNnvLfahoZ+i/o32lULuJ3NNiz7q6+pyAUkJaFF6JwaM2lUJlV0MlnQn5aTRbEu0SEqHUa0A4AdiGuB1kFXRfVyg5d87+Dg4DL6m2TLAub60ilj7A1Ec4odSAc8X95sHh7+ZRPCFo6Fnp7HfU/fBng/hi10CjCnWnJjsxvDNxWw0NfV6Rv5GgP3I3jGWXumdTD/3cbEOP2ZbOZp69yniG3FQ9z1jD7bnBu9Fc2tKGC2q+uAJOQHBDRiZX1x36o7fWBs7J9ownbtO+n0/qWkvW7UPIfc37WgT6ZGR++EOJyeQDSb9UB+DZ1G6DdLDzyS+b/kBCYGsYgJbSQHuThGKRcw5xdeQf8YdNHsc6ePXrlSYMBuSIAFTGAtQo+VuALo4BX83N190NWZWbynBjhOHsmNfFWLeL6v+ynsA58zDvvAC8j5PkbOcXCMg2PZFk3q8MjI7WAG/Dp9AwP7jdGBOOQkAvlFUB+irtm16I1Zw9YBcpGTGXYmk3kQIC/Cds55l+iMI3jqhjAuaoe+am2Jw5GT3Nbz3CkE12NavmzN5+erJW7046n/CH1RO/RVa8lBLozXk9uqykkGAyRXLWlLv5jyp4RFsG5vGVzpDLnIjTWgnRy2Rr+tDKvRc7Y8AyZq10jj8DqXdnIRNtFZb+t/ZRtXcDiVnzpqx8mPcDWxgARUqx0W1QB9MeUZiNrV4qP+Ehc+BpNgATsTX8ozYKL2NtFYAHc84fG7ndxUPr+AR/iQSns7uSUufAymwDOb2+NjK27lEFocm/EE2WpyIy/Hi66MWuMKJn8RvxIcj87IM5Vh9663ziW36kR0HNenXuxmfaD8JC7tfKbrhFr7LiZCrMjrzTeGx+PmkosrkNzW94ObzwocJ7A1HokLolY+AvkTiD/q1H0cN48c5EL8Crkttsa/AXQVDmutfyku0E7jShx49XqV3MFK8IryDhYVbj7Sj2P2eBxwcXoe8T8idsKKPRcnZw1b+slFTubwUwhktrfnAt7J++jwQtLZcm3sr9LQrjRzz6cfMv9aLvgmnAGvpoaGLxM4mAEaLV7iAzQ3oU0IvD5x9ix3yF2RAAuYAOO2f7PEFWCXZ4C9Pb2UsgDeVnFSpbFK7/IWu7TPTvBqzbGdCHOJQSxiEjt6IyZmxQyEJHv6xyQsYk//moVFsN2zP6fRImjfq7/n/wFDguUQFNEwugAAAABJRU5ErkJggg==');
+  }
+
+  div.callout-important.callout-style-default .callout-title {
+    background-color: #f7dddc
+  }
+
+  div.callout-warning {
+    border-left-color: #f0ad4e !important;
+  }
+
+  div.callout-warning .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAETklEQVRYCeVWW2gcVRg+58yaTUnizqbipZeX4uWhBEniBaoUX1Ioze52t7sRq6APio9V9MEaoWlVsFasRq0gltaAPuxms8lu0gcviE/FFOstVbSIxgcv6SU7EZqmdc7v9+9mJtNks51NTUH84ed889/PP+cmxP+d5FIbMJmNbpREu4WUkiTtCicKny0l1pIKmBzovF2S+hIJHX8iEu3hZJ5lNZGqyRrGSIQpq15AzF28jgpeY6yk6GVdrfFqdrD6Iw+QlB8g0YS2g7dyQmXM/IDhBhT0UCiRf59lfqmmDvzRt6kByV/m4JjtzuaujMUM2c5Z2d6JdKrRb3K2q6mA+oYVz8JnDdKPmmNthzkAk/lN63sYPgevrguc72aZX/L9C6x09GYyxBgCX4NlvyGUHOKELlm5rXeR1kchuChJt4SSwyddZRXgvwMGvYo4QSlk3/zkHD8UHxwVJA6zjZZqP8v8kK8OWLnIZtLyCAJagYC4rTGW/9Pqj92N/c+LUaAj27movwbi19tk/whRCIE7Q9vyI6yvRpftAKVTdUjOW40X3h5OXsKCdmFcx0xlLJoSuQngnrJe7Kcjm4OMq9FlC7CMmScQANuNvjfP3PjGXDBaUQmbp296S5L4DrpbrHN1T87ZVEZVCzg1FF0Ft+dKrlLukI+/c9ENo+TvlTDbYFvuKPtQ9+l052rXrgKoWkDAFnvh0wTOmYn8R5f4k/jN/fZiCM1tQx9jQQ4ANhqG4hiL0qIFTGViG9DKB7GYzgubnpofgYRwO+DFjh0Zin2m4b/97EDkXkc+f6xYAPX0KK2I/7fUQuwzuwo/L3AkcjugPNixC8cHf0FyPjWlItmLxWw4Ou9YsQCr5fijMGoD/zpdRy95HRysyXA74MWOnscpO4j2y3HAVisw85hX5+AFBRSHt4ShfLFkIMXTqyKFc46xdzQM6XbAi702a7sy04J0+feReMFKp5q9esYLCqAZYw/k14E/xcLLsFElaornTuJB0svMuJINy8xkIYuL+xPAlWRceH6+HX7THJ0djLUom46zREu7tTkxwmf/FdOZ/sh6Q8qvEAiHpm4PJ4a/doJe0gH1t+aHRgCzOvBvJedEK5OFE5jpm4AGP2a8Dxe3gGJ/pAutug9Gp6he92CsSsWBaEcxGx0FHytmIpuqGkOpldqNYQK8cSoXvd+xLxXADw0kf6UkJNFtdo5MOgaLjiQOQHcn+A6h5NuL2s0qsC2LOM75PcF3yr5STuBSAcGG+meA14K/CI21HcS4LBT6tv0QAh8Dr5l93AhZzG5ZJ4VxAqdZUEl9z7WJ4aN+svMvwHHL21UKTd1mqvChH7/Za5xzXBBKrUcB0TQ+Ulgkfbi/H/YT5EptrGzsEK7tR1B7ln9BBwckYfMiuSqklSznIuoIIOM42MQO+QnduCoFCI0bpkzjCjddHPN/F+2Yu+sd9bKNpVwHhbS3LluK/0zgfwD0xYI5dXuzlQAAAABJRU5ErkJggg==');
+  }
+
+  div.callout-warning.callout-style-default .callout-title {
+    background-color: #fcefdc
+  }
+
+  div.callout-tip {
+    border-left-color: #02b875 !important;
+  }
+
+  div.callout-tip .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAADr0lEQVRYCe1XTWgTQRj9ZjZV8a9SPIkKgj8I1bMHsUWrqYLVg4Ue6v9BwZOxSYsIerFao7UiUryIqJcqgtpimhbBXoSCVxUFe9CTiogUrUp2Pt+3aUI2u5vdNh4dmMzOzHvvezuz8xNFM0mjnbXaNu1MvFWRXkXEyE6aYOYJpdW4IXuA4r0fo8qqSMDBU0v1HJUgVieAXxzCsdE/YJTdFcVIZQNMyhruOMJKXYFoLfIfIvVIMWdsrd+Rpd86ZmyzzjJmLStqRn0v8lzkb4rVIXvnpScOJuAn2ACC65FkPzEdEy4TPWRLJ2h7z4cArXzzaOdKlbOvKKX25Wl00jSnrwVxAg3o4dRxhO13RBSdNvH0xSARv3adTXbBdTf64IWO2vH0LT+cv4GR1DJt+DUItaQogeBX/chhbTBxEiZ6gftlDNXTrvT7co4ub5A6gp9HIcHvzTa46OS5fBeP87Qm0fQkr4FsYgVQ7Qg+ZayaDg9jhg1GkWj8RG6lkeSacrrHgDaxdoBiZPg+NXV/KifMuB6//JmYH4CntVEHy/keA6x4h4CU5oFy8GzrBS18cLJMXcljAKB6INjWsRcuZBWVaS3GDrqB7rdapVIeA+isQ57Eev9eCqzqOa81CY05VLd6SamW2wA2H3SiTbnbSxmzfp7WtKZkqy4mdyAlGx7ennghYf8voqp9cLSgKdqNfa6RdRsAAkPwRuJZNbpByn+RrJi1RXTwdi8RQF6ymDwGMAtZ6TVE+4uoKh+MYkcLsT0Hk8eAienbiGdjJHZTpmNjlbFJNKDVAp2fJlYju6IreQxQ08UJDNYdoLSl6AadO+fFuCQqVMB1NJwPm69T04Wv5WhfcWyfXQB+wXRs1pt+nCknRa0LVzSA/2B+a9+zQJadb7IyyV24YAxKp2Jqs3emZTuNnKxsah+uabKbMk7CbTgJx/zIgQYErIeTKRQ9yD9wxVof5YolPHqaWo7TD6tJlh7jQnK5z2n3+fGdggIOx2kaa2YI9QWarc5Ce1ipNWMKeSG4DysFF52KBmTNMmn5HqCFkwy34rDg05gDwgH3bBi+sgFhN/e8QvRn8kbamCOhgrZ9GJhFDgfcMHzFb6BAtjKpFhzTjwv1KCVuxHvCbsSiEz4CANnj84cwHdFXAbAOJ4LTSAawGWFn5tDhLMYz6nWeU2wJfIhmIJBefcd/A5FWQWGgrWzyORZ3Q6HuV+Jf0Bj+BTX69fm1zWgK7By1YTXchFDORywnfQ7GpzOo6S+qECrsx2ifVQAAAABJRU5ErkJggg==');
+  }
+
+  div.callout-tip.callout-style-default .callout-title {
+    background-color: #ccf1e3
+  }
+
+  div.callout-caution {
+    border-left-color: #fd7e14 !important;
+  }
+
+  div.callout-caution .callout-icon::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAACV0lEQVRYCdVWzWoUQRCuqp2ICBLJXgITZL1EfQDBW/bkzUMUD7klD+ATSHBEfAIfQO+iXsWDxJsHL96EHAwhgzlkg8nBg25XWb0zIb0zs9muYYWkoKeru+vn664fBqElyZNuyh167NXJ8Ut8McjbmEraKHkd7uAnAFku+VWdb3reSmRV8PKSLfZ0Gjn3a6Xlcq9YGb6tADjn+lUfTXtVmaZ1KwBIvFI11rRXlWlatwIAAv2asaa9mlB9wwygiDX26qaw1yYPzFXg2N1GgG0FMF8Oj+VIx7E/03lHx8UhvYyNZLN7BwSPgekXXLribw7w5/c8EF+DBK5idvDVYtEEwMeYefjjLAdEyQ3M9nfOkgnPTEkYU+sxMq0BxNR6jExrAI31H1rzvLEfRIdgcv1XEdj6QTQAS2wtstEALLG1yEZ3QhH6oDX7ExBSFEkFINXH98NTrme5IOaaA7kIfiu2L8A3qhH9zRbukdCqdsA98TdElyeMe5BI8Rs2xHRIsoTSSVFfCFCWGPn9XHb4cdobRIWABNf0add9jakDjQJpJ1bTXOJXnnRXHRf+dNL1ZV1MBRCXhMbaHqGI1JkKIL7+i8uffuP6wVQAzO7+qVEbF6NbS0LJureYcWXUUhH66nLR5rYmva+2tjRFtojkM2aD76HEGAD3tPtKM309FJg5j/K682ywcWJ3PASCcycH/22u+Bh7Aa0ehM2Fu4z0SAE81HF9RkB21c5bEn4Dzw+/qNOyXr3DCTQDMBOdhi4nAgiFDGCinIa2owCEChUwD8qzd03PG+qdW/4fDzjUMcE1ZpIAAAAASUVORK5CYII=');
+  }
+
+  div.callout-caution.callout-style-default .callout-title {
+    background-color: #ffe5d0
+  }
+
+  </style>
+  <style type="text/css">
+    .reveal div.sourceCode {
+      margin: 0;
+      overflow: auto;
+    }
+    .reveal div.hanging-indent {
+      margin-left: 1em;
+      text-indent: -1em;
+    }
+    .reveal .slide:not(.center) {
+      height: 100%;
+    }
+    .reveal .slide.scrollable {
+      overflow-y: auto;
+    }
+    .reveal .footnotes {
+      height: 100%;
+      overflow-y: auto;
+    }
+    .reveal .slide .absolute {
+      position: absolute;
+      display: block;
+    }
+    .reveal .footnotes ol {
+      counter-reset: ol;
+      list-style-type: none; 
+      margin-left: 0;
+    }
+    .reveal .footnotes ol li:before {
+      counter-increment: ol;
+      content: counter(ol) ". "; 
+    }
+    .reveal .footnotes ol li > p:first-child {
+      display: inline-block;
+    }
+    .reveal .slide ul,
+    .reveal .slide ol {
+      margin-bottom: 0.5em;
+    }
+    .reveal .slide ul li,
+    .reveal .slide ol li {
+      margin-top: 0.4em;
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide ul[role="tablist"] li {
+      margin-bottom: 0;
+    }
+    .reveal .slide ul li > *:first-child,
+    .reveal .slide ol li > *:first-child {
+      margin-block-start: 0;
+    }
+    .reveal .slide ul li > *:last-child,
+    .reveal .slide ol li > *:last-child {
+      margin-block-end: 0;
+    }
+    .reveal .slide .columns:nth-child(3) {
+      margin-block-start: 0.8em;
+    }
+    .reveal blockquote {
+      box-shadow: none;
+    }
+    .reveal .tippy-content>* {
+      margin-top: 0.2em;
+      margin-bottom: 0.7em;
+    }
+    .reveal .tippy-content>*:last-child {
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide > img.stretch.quarto-figure-center,
+    .reveal .slide > img.r-stretch.quarto-figure-center {
+      display: block;
+      margin-left: auto;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-left,
+    .reveal .slide > img.r-stretch.quarto-figure-left  {
+      display: block;
+      margin-left: 0;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-right,
+    .reveal .slide > img.r-stretch.quarto-figure-right  {
+      display: block;
+      margin-left: auto;
+      margin-right: 0; 
+    }
+  </style>
+  <script src="hsgp_intro_files/libs/quarto-diagram/mermaid.min.js"></script>
+  <script src="hsgp_intro_files/libs/quarto-diagram/mermaid-init.js"></script>
+  <link href="hsgp_intro_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
+</head>
+<body class="quarto-light">
+  <div class="reveal">
+    <div class="slides">
+
+<section id="title-slide" data-background-image="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_155_0.png" data-background-opacity="0.20" data-background-size="cover" class="quarto-title-block center">
+  <h1 class="title">Introduction to Hilbert Spaces Approximations Gaussian Processes</h1>
+  <p class="subtitle">A conceptual and practical viewpoint</p>
+
+<div class="quarto-title-authors">
+<div class="quarto-title-author">
+<div class="quarto-title-author-name">
+<a href="https://juanitorduz.github.io/">Dr.&nbsp;Juan Orduz</a> 
+</div>
+        <p class="quarto-title-affiliation">
+            Mathematician &amp; Data Scientist
+          </p>
+    </div>
+</div>
+
+</section>
+<section id="outline" class="slide level2" data-background-image="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_110_0.png" data-background-opacity="0.10">
+<h2>Outline</h2>
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Reference Notebook 📓</strong></p>
+</div>
+<div class="callout-content">
+<p><a href="https://juanitorduz.github.io/hsgp_intro/">https://juanitorduz.github.io/hsgp_intro/</a></p>
+<ul>
+<li>🐍 Reproducible Python Code (<a href="https://github.com/pymc-devs/pymc">PyMC</a>, <a href="https://github.com/google/jax">Jax</a> and <a href="https://github.com/pyro-ppl/numpyro">NumPyro</a>)</li>
+<li>✏️ Math and Code Examples</li>
+</ul>
+</div>
+</div>
+</div>
+<div>
+<ol type="1">
+<li class="fragment"><p>Motivation: Some Applications</p></li>
+<li class="fragment"><p>Gaussian Processes</p></li>
+<li class="fragment"><p><strong>Hilbert Space Approximation Deep Dive</strong></p></li>
+<li class="fragment"><p>References</p></li>
+</ol>
+</div>
+</section>
+<section id="motivation-some-applications" class="slide level2 center">
+<h2>Motivation: Some Applications</h2>
+</section>
+<section id="some-applications" class="slide level2">
+<h2>Some Applications</h2>
+<h3 id="case-study-how-popular-is-the-president">Case Study: How popular is the President?</h3>
+
+<img data-src="hsgp_intro_files/static/images/presidents.png" class="quarto-figure quarto-figure-center r-stretch" width="950"><div class="footer">
+<p><a href="https://alexandorra.github.io/pollsposition_blog/popularity/macron/gaussian%20processes/polls/2021/01/18/gp-popularity.html">How popular is the President?</a></p>
+</div>
+</section>
+<section id="some-applications-1" class="slide level2">
+<h2>Some Applications</h2>
+<h3 id="time-varying-regression-coefficients">Time-Varying Regression Coefficients</h3>
+
+<img data-src="hsgp_intro_files/static/images/bikes_gp_51_2.png" class="quarto-figure quarto-figure-center r-stretch" width="950"><div class="footer">
+<p><a href="https://juanitorduz.github.io/bikes_gp/">Time-Varying Regression Coefficients via Hilbert Space Gaussian Process Approximation</a></p>
+</div>
+</section>
+<section id="some-applications-2" class="slide level2">
+<h2>Some Applications</h2>
+<h3 id="changes-in-marketing-effectiveness-over-time">Changes in marketing effectiveness over time</h3>
+
+<img data-src="hsgp_intro_files/static/images/hierarchical-gaussian-process.png" class="quarto-figure quarto-figure-center r-stretch" width="950"><div class="footer">
+<p><a href="https://www.pymc-labs.com/blog-posts/modelling-changes-marketing-effectiveness-over-time/">Bayesian Media Mix Models: Modelling changes in marketing effectiveness over time</a></p>
+</div>
+</section>
+<section id="gaussian-processes" class="slide level2 center">
+<h2>Gaussian Processes</h2>
+</section>
+<section id="synthetic-data" class="slide level2">
+<h2>Synthetic Data</h2>
+<h3 id="y-sim-textnormalsin4-pi-x-sin7-pi-x-0.32"><span class="math inline">\(y \sim \text{Normal}(\sin(4 \pi x) + \sin(7 \pi x), 0.3^2)\)</span></h3>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_6_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="kernel" class="slide level2">
+<h2>Kernel</h2>
+<p>A way to encode similarity between points</p>
+<h3 id="example-squared-exponential-kernel">Example: Squared Exponential Kernel</h3>
+<p><span class="math display">\[
+k(x, x') = a^ 2 \exp\left(-\frac{(x - x')^2}{2 \ell^2}\right)
+\]</span></p>
+<p>Where <span class="math inline">\(a\)</span> is the amplitude and <span class="math inline">\(\ell\)</span> is the length-scale.</p>
+<div class="callout callout-note callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Note</strong></p>
+</div>
+<div class="callout-content">
+<p>Observe that the kernel just depends on the distance between points <span class="math inline">\(r = x - x'\)</span>. This is a property of <strong>stationary kernels.</strong></p>
+</div>
+</div>
+</div>
+</section>
+<section id="kernel-matrix" class="slide level2">
+<h2>Kernel Matrix</h2>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_16_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="gp-model---prior" class="slide level2">
+<h2>GP Model - Prior</h2>
+<p>Let us denote by <span class="math inline">\((x, y)\)</span> and the training data and by <span class="math inline">\(x_{*}\)</span> the test set for which we want to generate predictions. We define by <span class="math inline">\(f\)</span> and <span class="math inline">\(f_*\)</span> the latent functions for the training and test sets respectively.</p>
+<p><span class="math display">\[
+\left(
+\begin{array}{c}
+y \\
+f_*
+\end{array}
+\right)
+\sim
+\text{MultivariateNormal}(0, \boldsymbol{K})
+\]</span></p>
+<p>where</p>
+<p><span class="math display">\[
+\boldsymbol{K} =
+\left(
+\begin{array}{cc}
+K(X, X) + \sigma^2_n I &amp; K(X, X_*) \\
+K(X_*, X) &amp; K(X_*, X_*)
+\end{array}
+\right)
+\]</span></p>
+</section>
+<section id="gp-model---conditioning" class="slide level2">
+<h2>GP Model - Conditioning</h2>
+<p><span class="math display">\[
+f_*|X, y, X_*
+\sim
+\text{MultivariateNormal}(\bar{f}_*, \text{cov}(f_*))
+\]</span></p>
+<p>where</p>
+<p><span class="math display">\[
+\begin{align*}
+\bar{f}_* &amp;= K(X_*, X){\color{red}{(K(X, X) + \sigma^2_n I)^{-1}}} \\
+\text{cov}(f_*) &amp; = K(X_*, X_*) - K(X_*, X){\color{red}{(K(X, X) + \sigma^2_n I)^{-1}}} K(X, X_*)
+\end{align*}
+\]</span></p>
+<div class="callout callout-important callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Important</strong></p>
+</div>
+<div class="callout-content">
+<p>Taking the inverse of the kernel matrix is the most computationally expensive part of the GP model. It is of order <span class="math inline">\(\mathcal{O}(n^3)\)</span>.</p>
+</div>
+</div>
+</div>
+</section>
+<section>
+<section id="kernel-parameter-priors" class="title-slide slide level1 center">
+<h1>Kernel parameter priors</h1>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_24_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="gp-model-in-pymc" class="slide level2">
+<h2>GP Model in PyMC</h2>
+<div class="sourceCode" id="cb1" data-code-line-numbers="|2|4-6|8-13|15"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> gp_pymc_model:</span>
+<span id="cb1-2"><a href=""></a>    x_data <span class="op">=</span> pm.MutableData(<span class="st">"x_data"</span>, value<span class="op">=</span>x_train)</span>
+<span id="cb1-3"><a href=""></a></span>
+<span id="cb1-4"><a href=""></a>    kernel_amplitude <span class="op">=</span> pm.InverseGamma(<span class="st">"kernel_amplitude"</span>, ...)</span>
+<span id="cb1-5"><a href=""></a>    kernel_length_scale <span class="op">=</span> pm.InverseGamma(<span class="st">"kernel_length_scale"</span>, ...)</span>
+<span id="cb1-6"><a href=""></a>    noise <span class="op">=</span> pm.InverseGamma(<span class="st">"noise"</span>, ...)</span>
+<span id="cb1-7"><a href=""></a></span>
+<span id="cb1-8"><a href=""></a>    mean <span class="op">=</span> pm.gp.mean.Zero()</span>
+<span id="cb1-9"><a href=""></a>    cov <span class="op">=</span> kernel_amplitude<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> pm.gp.cov.ExpQuad(</span>
+<span id="cb1-10"><a href=""></a>        input_dim<span class="op">=</span><span class="dv">1</span>, ls<span class="op">=</span>kernel_length_scale</span>
+<span id="cb1-11"><a href=""></a>    )</span>
+<span id="cb1-12"><a href=""></a>    gp <span class="op">=</span> pm.gp.Latent(mean_func<span class="op">=</span>mean, cov_func<span class="op">=</span>cov)</span>
+<span id="cb1-13"><a href=""></a>    f <span class="op">=</span> gp.prior(<span class="st">"f"</span>, X<span class="op">=</span>x_data[:, <span class="va">None</span>])</span>
+<span id="cb1-14"><a href=""></a></span>
+<span id="cb1-15"><a href=""></a>    pm.Normal(<span class="st">"likelihood"</span>, mu<span class="op">=</span>f, sigma<span class="op">=</span>noise, observed<span class="op">=</span>y_train_obs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="gp-model-in-pymc-1" class="slide level2">
+<h2>GP Model in PyMC</h2>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_49_0.svg" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="gp-model---prior-predictions" class="slide level2">
+<h2>GP Model - Prior Predictions</h2>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_52_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="gp-model---posterior-distributions" class="slide level2">
+<h2>GP Model - Posterior Distributions</h2>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_56_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="out-of-sample-predictions" class="slide level2">
+<h2>Out-of-Sample Predictions</h2>
+<h3 id="conditional-method"><code>conditional</code> method</h3>
+<div class="sourceCode" id="cb2" data-code-line-numbers="|3|4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href=""></a><span class="cf">with</span> gp_pymc_model:</span>
+<span id="cb2-2"><a href=""></a>    x_star_data <span class="op">=</span> pm.MutableData(<span class="st">"x_star_data"</span>, x_test)</span>
+<span id="cb2-3"><a href=""></a>    f_star <span class="op">=</span> gp.conditional(<span class="st">"f_star"</span>, x_star_data[:, <span class="va">None</span>])</span>
+<span id="cb2-4"><a href=""></a>    pm.Normal(<span class="st">"likelihood_test"</span>, mu<span class="op">=</span>f_star, sigma<span class="op">=</span>noise)</span>
+<span id="cb2-5"><a href=""></a></span>
+<span id="cb2-6"><a href=""></a>    gp_pymc_idata.extend(</span>
+<span id="cb2-7"><a href=""></a>        pm.sample_posterior_predictive(</span>
+<span id="cb2-8"><a href=""></a>            trace<span class="op">=</span>gp_pymc_idata,</span>
+<span id="cb2-9"><a href=""></a>            var_names<span class="op">=</span>[<span class="st">"f_star"</span>, <span class="st">"likelihood_test"</span>],</span>
+<span id="cb2-10"><a href=""></a>            random_seed<span class="op">=</span>rng_subkey[<span class="dv">1</span>].item(),</span>
+<span id="cb2-11"><a href=""></a>        )</span>
+<span id="cb2-12"><a href=""></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="gp-model---posterior-predictive" class="slide level2">
+<h2>GP Model - Posterior Predictive</h2>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_62_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="hilbert-space-gaussian-process-hsgp-approximation" class="slide level2 center">
+<h2>Hilbert Space Gaussian Process (HSGP) Approximation</h2>
+</section>
+<section id="hsgp-deep-dive" class="slide level2">
+<h2>HSGP Deep Dive</h2>
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Approach Summary 🤓</strong></p>
+</div>
+<div class="callout-content">
+<div>
+<ul>
+<li class="fragment"><p><strong>Strategy:</strong> Approximate the Gram matrix <span class="math inline">\(K\)</span> with a matrix <span class="math inline">\(\tilde{K}\)</span> with a smaller rank <span class="math inline">\(m &lt; n\)</span>.</p></li>
+<li class="fragment"><p><strong>Key Idea:</strong> Interpret the covariance function as the kernel of a pseudo-differential operator and approximate it using Hilbert space methods.</p></li>
+<li class="fragment"><p><strong>Result:</strong> A reduced-rank approximation for the covariance function, where the basis functions are independent of the covariance functions and their parameters (plus asymptotic convergence).</p></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="footer">
+<p><a href="https://link.springer.com/article/10.1007/s11222-019-09886-w">Hilbert space methods for reduced-rank Gaussian process regression</a></p>
+</div>
+</section>
+<section id="hilbert-space-approximation" class="slide level2">
+<h2>Hilbert Space Approximation</h2>
+<div class="cell" data-reveal="true" data-fig-height="2" data-fig-width="10" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class=""><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {"theme": "white", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels": false}}}%%
+flowchart TD
+  kernel["kernel"] --&gt; spectral_sensity["Spectral Density"]
+  spectral_sensity --&gt; polynomial["Polynomial Expansion"]
+  laplacian["Laplacian"] --&gt; fourier["Fourier Transform"]
+  laplacian --&gt; dirichlet["Dirichlet's BC"]
+  dirichlet --&gt; spectral_decomposition["Spectral Decomposition"]
+  spectral_decomposition["Spectral Decomposition"] --&gt; functional["Functional Calculus"]
+  polynomial --&gt; identify_coefficients["Identify Coefficients"]
+  fourier --&gt; identify_coefficients
+  functional --&gt; identify_coefficients
+  identify_coefficients --&gt; approximation["Approximation Formula"]
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</section>
+<section id="hilbert-space-approximation-1" class="slide level2 smaller">
+<h2>Hilbert Space Approximation</h2>
+<h3 id="approximation-strategy-steps">Approximation Strategy Steps</h3>
+<div>
+<ol start="0" type="1">
+<li class="fragment">D-Tour: Eigenvalues and Eigenvectors</li>
+<li class="fragment">We recall the spectral density <span class="math inline">\(S(\omega)\)</span> associated with a stationary kernel function <span class="math inline">\(k\)</span>.</li>
+<li class="fragment">We approximate the spectral density <span class="math inline">\(S(\omega)\)</span> as a polynomial series in <span class="math inline">\(||\omega||^2\)</span>.</li>
+<li class="fragment">We can interpret these polynomial terms as powers of the Laplacian operator. The key observation is that the Fourier transform of the Laplacian operator is <span class="math inline">\(||\omega||^2\)</span>.</li>
+<li class="fragment">Next, we impose Dirichlet boundary conditions on the Laplacian operator which makes it self-adjoint and with a discrete spectrum.</li>
+<li class="fragment">We identify the expansion in (2) with the sum of powers of the Laplacian operator in the eigenbasis of (4).</li>
+<li class="fragment">We arrive at the final approximation formula and explicitly compute the terms for the squared exponential kernel in the one-dimensional case.</li>
+</ol>
+</div>
+</section>
+<section id="eigenvalues-and-eigenvectors" class="slide level2">
+<h2>Eigenvalues and Eigenvectors</h2>
+<p>Recall that given a matrix <span class="math inline">\(A\)</span> (or a linear operator) the <strong>eigenvalues and eigenvectors</strong> are the solutions to the equation</p>
+<p><span class="math display">\[A v = \lambda v\]</span></p>
+<p>where <span class="math inline">\(v \neq \vec{0}\)</span> is the eigenvector and <span class="math inline">\(\lambda\)</span> is the eigenvalue.</p>
+<p>The <strong>spectrum</strong> of a matrix is the set of its eigenvalues.</p>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/the-spectral-theorem-for-matrices/">The Spectral Theorem for Matrices</a></p>
+</div>
+</section>
+<section id="example---2-times-2-matrix" class="slide level2">
+<h2>Example - <span class="math inline">\(2 \times 2\)</span> Matrix</h2>
+<p><span class="math display">\[
+A = \begin{pmatrix}
+1 &amp; 2 \\
+2 &amp; 1
+\end{pmatrix}
+\]</span></p>
+<p>The eigenvalues are <span class="math inline">\(\lambda_1 = 3\)</span> and <span class="math inline">\(\lambda_2 = -1\)</span> with eigenvectors:</p>
+<p><span class="math display">\[
+v_1 = \frac{1}{\sqrt{2}} \begin{pmatrix}
+1 \\
+1
+\end{pmatrix} \quad \text{and} \quad
+v_2 = \frac{1}{\sqrt{2}} \begin{pmatrix}
+-1 \\
+1
+\end{pmatrix}
+\]</span></p>
+<div title="Properties">
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Properties</strong></p>
+</div>
+<div class="callout-content">
+<p><span class="math display">\[
+v_1^{T} v_2 = 0 \quad \text{and} \quad v_1^{T} v_1 = v_2^{T} v_2 = 1
+\]</span></p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="the-spectral-theorem" class="slide level2">
+<h2>The Spectral Theorem</h2>
+<p>The <strong>spectral theorem</strong> states that we can always find such orthonormal basis of eigenvectors for a symmetric matrix.</p>
+<p>Observe that if we consider the change-of-basis matrix</p>
+<p><span class="math display">\[
+Q = \begin{pmatrix}
+v_1 &amp; v_2
+\end{pmatrix}
+\]</span></p>
+<p>then we can write the matrix <span class="math inline">\(A\)</span> in the new basis as</p>
+<p><span class="math display">\[
+D = Q^{T} A Q = \begin{pmatrix}
+3 &amp; 0 \\
+0 &amp; -1
+\end{pmatrix}
+\]</span></p>
+</section>
+<section id="code-example" class="slide level2">
+<h2>Code Example</h2>
+<div class="sourceCode" id="cb3" data-code-line-numbers="|3|5-13|16-21"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href=""></a><span class="im">import</span> jax.numpy <span class="im">as</span> jnp</span>
+<span id="cb3-2"><a href=""></a></span>
+<span id="cb3-3"><a href=""></a>A <span class="op">=</span> jnp.array([[<span class="fl">1.0</span>, <span class="fl">2.0</span>], [<span class="fl">2.0</span>, <span class="fl">1.0</span>]])</span>
+<span id="cb3-4"><a href=""></a></span>
+<span id="cb3-5"><a href=""></a><span class="co"># Compute eigenvalues and eigenvectors</span></span>
+<span id="cb3-6"><a href=""></a>eigenvalues, eigenvectors <span class="op">=</span> jnp.linalg.eig(A)</span>
+<span id="cb3-7"><a href=""></a></span>
+<span id="cb3-8"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Eigenvalues: </span><span class="sc">{</span>eigenvalues<span class="sc">}</span><span class="ch">\n</span><span class="ss">Eigenvectors:</span><span class="ch">\n</span><span class="sc">{</span>eigenvectors<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb3-9"><a href=""></a></span>
+<span id="cb3-10"><a href=""></a><span class="op">&gt;&gt;</span> Eigenvalues: [ <span class="fl">3.</span><span class="op">+</span><span class="ot">0.j</span> <span class="op">-</span><span class="fl">1.</span><span class="op">+</span><span class="ot">0.j</span>]</span>
+<span id="cb3-11"><a href=""></a><span class="op">&gt;&gt;</span> Eigenvectors:</span>
+<span id="cb3-12"><a href=""></a><span class="op">&gt;&gt;</span> [[ <span class="fl">0.70710678</span><span class="op">+</span><span class="ot">0.j</span> <span class="op">-</span><span class="fl">0.70710678</span><span class="op">+</span><span class="ot">0.j</span>]</span>
+<span id="cb3-13"><a href=""></a><span class="op">&gt;&gt;</span> [ <span class="fl">0.70710678</span><span class="op">+</span><span class="ot">0.j</span>  <span class="fl">0.70710678</span><span class="op">+</span><span class="ot">0.j</span>]]</span>
+<span id="cb3-14"><a href=""></a></span>
+<span id="cb3-15"><a href=""></a></span>
+<span id="cb3-16"><a href=""></a><span class="co"># Change of basis matrix</span></span>
+<span id="cb3-17"><a href=""></a>Q <span class="op">=</span> eigenvectors</span>
+<span id="cb3-18"><a href=""></a>Q.T <span class="op">@</span> A <span class="op">@</span> Q</span>
+<span id="cb3-19"><a href=""></a></span>
+<span id="cb3-20"><a href=""></a><span class="op">&gt;&gt;</span> Array([[ <span class="fl">3.00000000e+00</span><span class="op">+</span><span class="ot">0.j</span>,  <span class="fl">4.44089210e-16</span><span class="op">+</span><span class="ot">0.j</span>],</span>
+<span id="cb3-21"><a href=""></a>       [ <span class="fl">6.10622664e-16</span><span class="op">+</span><span class="ot">0.j</span>, <span class="op">-</span><span class="fl">1.00000000e+00</span><span class="op">+</span><span class="ot">0.j</span>]], dtype<span class="op">=</span>complex128)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/the-spectral-theorem-for-matrices/">The Spectral Theorem for Matrices</a></p>
+</div>
+</section>
+<section id="spectral-projections" class="slide level2">
+<h2>Spectral Projections</h2>
+<p>Another important consequence of the spectral theorem is that we can decompose the matrix <span class="math inline">\(A\)</span> as a <strong>sum of projections onto its eigenspaces</strong>. That is, we can write re-write <span class="math inline">\(A\)</span> as</p>
+<p><span class="math display">\[
+A = \sum_{j=1}^{2} \lambda_i v_j v_j^{T}
+\]</span></p>
+<div title="Projections">
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Projections</strong></p>
+</div>
+<div class="callout-content">
+<p>Observe that the operator <span class="math inline">\(P_{j} = v_j v_j ^{T}\)</span> is indeed a projection operator, that is <span class="math inline">\(P^2 = P\)</span> and <span class="math inline">\(P^T = P\)</span>, since the <span class="math inline">\(v_j\)</span> constitutes an orthonormal basis.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="code-example-1" class="slide level2">
+<h2>Code Example</h2>
+<div class="sourceCode" id="cb4" data-code-line-numbers="|1-2|4-5|7-9|11-13|15-18"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="kw">def</span> proj(v, x):</span>
+<span id="cb4-2"><a href=""></a>    <span class="cf">return</span> jnp.dot(v, x) <span class="op">*</span> v</span>
+<span id="cb4-3"><a href=""></a></span>
+<span id="cb4-4"><a href=""></a><span class="kw">def</span> matrix_proj(x):</span>
+<span id="cb4-5"><a href=""></a>    <span class="cf">return</span> eigenvalues[<span class="dv">0</span>] <span class="op">*</span> proj(Q[:, <span class="dv">0</span>], x) <span class="op">+</span> eigenvalues[<span class="dv">1</span>] <span class="op">*</span> proj(Q[:, <span class="dv">1</span>], x)</span>
+<span id="cb4-6"><a href=""></a></span>
+<span id="cb4-7"><a href=""></a><span class="co"># First eigenvector</span></span>
+<span id="cb4-8"><a href=""></a>matrix_proj(Q[:, <span class="dv">0</span>])  <span class="op">/</span> eigenvalues[<span class="dv">0</span>]</span>
+<span id="cb4-9"><a href=""></a><span class="op">&gt;&gt;</span> Array([<span class="fl">0.70710678</span><span class="op">+</span><span class="ot">0.j</span>, <span class="fl">0.70710678</span><span class="op">+</span><span class="ot">0.j</span>], dtype<span class="op">=</span>complex128)</span>
+<span id="cb4-10"><a href=""></a></span>
+<span id="cb4-11"><a href=""></a><span class="co"># Second eigenvector</span></span>
+<span id="cb4-12"><a href=""></a>matrix_proj(Q[:, <span class="dv">1</span>])  <span class="op">/</span> eigenvalues[<span class="dv">1</span>]</span>
+<span id="cb4-13"><a href=""></a><span class="op">&gt;&gt;</span> Array([<span class="op">-</span><span class="fl">0.70710678</span><span class="op">-</span><span class="ot">0.j</span>,  <span class="fl">0.70710678</span><span class="op">-</span><span class="ot">0.j</span>], dtype<span class="op">=</span>complex128)</span>
+<span id="cb4-14"><a href=""></a></span>
+<span id="cb4-15"><a href=""></a><span class="co"># Arbitrary vector</span></span>
+<span id="cb4-16"><a href=""></a>v <span class="op">=</span> jnp.array([<span class="fl">1.0</span>, <span class="fl">2.0</span>])</span>
+<span id="cb4-17"><a href=""></a>jnp.allclose(jnp.dot(A, v), matrix_proj(v))</span>
+<span id="cb4-18"><a href=""></a><span class="op">&gt;&gt;</span> Array(<span class="va">True</span>, dtype<span class="op">=</span><span class="bu">bool</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="functional-calculus" class="slide level2">
+<h2>Functional Calculus</h2>
+<p>The <a href="https://en.wikipedia.org/wiki/Spectral_theorem#Functional_calculus">functional calculus</a> is a generalization of the Taylor series for functions to operators.</p>
+<p>Given a function <span class="math inline">\(f\)</span> we can define the operator <span class="math inline">\(f(A)\)</span> as</p>
+<p><span class="math display">\[
+f(A) = \sum_{j=1}^{2} f(\lambda_j) v_j v_j^{T}
+\]</span></p>
+<p>Observe that the particular cases:</p>
+<ul>
+<li><span class="math inline">\(f(z) = z\)</span> we recover the operator <span class="math inline">\(A\)</span>.</li>
+<li><span class="math inline">\(f(z) = 1\)</span> we recover the identity operator <span class="math inline">\(I\)</span>.</li>
+</ul>
+</section>
+<section id="example-exponential-of-a-matrix" class="slide level2">
+<h2>Example: Exponential of a Matrix</h2>
+<p>Consider the exponential of the matrix <span class="math inline">\(A\)</span> defined as</p>
+<p><span class="math display">\[
+\exp(A) = \sum_{j=0}^{\infty} \frac{A^j}{j!}
+\]</span></p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href=""></a>scipy.linalg.expm(A)</span>
+<span id="cb5-2"><a href=""></a><span class="op">&gt;&gt;</span> Array([[<span class="fl">10.22670818</span>,  <span class="fl">9.85882874</span>],</span>
+<span id="cb5-3"><a href=""></a>       [ <span class="fl">9.85882874</span>, <span class="fl">10.22670818</span>]], dtype<span class="op">=</span>float64)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="example-exponential-of-a-matrix-1" class="slide level2">
+<h2>Example: Exponential of a Matrix</h2>
+<p>On the other hand, we can use the fact that <span class="math inline">\(A = Q D Q^{T}\)</span> and that <span class="math inline">\(Q\)</span> is an orthogonal matrix to write</p>
+<p><span class="math display">\[
+\exp(A) = \sum_{j=0}^{\infty} \frac{(Q D Q^{T})^j}{j!} = Q \left(\sum_{j=0}^{\infty} \frac{D^j}{j!}\right) Q^{T} = Q \exp(D) Q^{T}
+\]</span></p>
+<p>and observe that <span class="math inline">\(\exp(D)\)</span> is a diagonal matrix with the exponential of the diagonal elements:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a>Q <span class="op">@</span> jnp.diag(jnp.exp(eigenvalues)) <span class="op">@</span> Q.T</span>
+<span id="cb6-2"><a href=""></a><span class="op">&gt;&gt;</span> Array([[<span class="fl">10.22670818</span><span class="op">+</span><span class="ot">0.j</span>,  <span class="fl">9.85882874</span><span class="op">+</span><span class="ot">0.j</span>],</span>
+<span id="cb6-3"><a href=""></a>       [ <span class="fl">9.85882874</span><span class="op">+</span><span class="ot">0.j</span>, <span class="fl">10.22670818</span><span class="op">+</span><span class="ot">0.j</span>]], dtype<span class="op">=</span>complex128)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="spectral-densities" class="slide level2">
+<h2>Spectral Densities</h2>
+<p>In the case a kernel function is <strong>stationary</strong>, we can use the spectral representation of the kernel function (<a href="https://en.wikipedia.org/wiki/Bochner%27s_theorem">Bochner’s theorem</a>):</p>
+<p><span class="math display">\[
+k(r) = \frac{1}{(2 \pi)^{d}}\int_{\mathbb{R}^{d}} e^{i \omega^{T} r} d\mu(\omega)
+\]</span></p>
+<p>where <span class="math inline">\(\mu\)</span> is a positive measure. If this measure has a density, it is called the <strong>spectral density</strong> <span class="math inline">\(S(\omega)\)</span> corresponding to the covariance function, i.e.&nbsp;<span class="math inline">\(d\mu(\omega) = S(\omega) d\omega\)</span>.</p>
+<div class="footer">
+<p><a href="https://gaussianprocess.org/gpml/chapters/RW4.pdf">Gaussian Processes for Machine Learning - Chapter 4: Covariance Functions</a>.</p>
+</div>
+</section>
+<section id="spectral-density---example" class="slide level2">
+<h2>Spectral Density - Example</h2>
+<p>For the <em>squared exponential kernel</em>, it can be shown that</p>
+<p><span class="math display">\[
+S(\omega) = a^2(2 \pi \ell^2)^{d/2} \exp\left(-2\pi^2\ell^2\omega^2\right)
+\]</span></p>
+<p>For the special case <span class="math inline">\(d=1\)</span> we have</p>
+<p><span class="math display">\[
+S(\omega) = a^2 \sqrt{2 \pi} \ell \exp\left(-2\pi^2\ell^2\omega^2\right)
+\]</span></p>
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Tip</strong></p>
+</div>
+<div class="callout-content">
+<p>Note the similarity between the spectral density and the <a href="https://en.wikipedia.org/wiki/Fourier_transform">Fourier transform</a>. For Gaussian-like kernels, like the squared exponential, we expect the associated spectral density to also be Gaussian-like.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="somega-squared-exponential" class="slide level2">
+<h2><span class="math inline">\(S(\omega)\)</span> Squared Exponential</h2>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_95_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="formal-power-expansion-of-the-spectral-density" class="slide level2">
+<h2>Formal Power Expansion of the Spectral Density</h2>
+<p>Let us assume the kernel function is <strong>isotropic</strong>, i.e.&nbsp;it just depends on the Euclidean norm <span class="math inline">\(||r||\)</span>.</p>
+<div>
+<ul>
+<li class="fragment"><p><span class="math inline">\(S(\omega)\)</span> is also isotropic.</p></li>
+<li class="fragment"><p>Write <span class="math inline">\(S(||\omega||) = \psi(||\omega||^2)\)</span> for a suitable function <span class="math inline">\(\psi\)</span>.</p></li>
+<li class="fragment"><p>We can expand <span class="math inline">\(\psi\)</span> (Taylor-like expansion)</p>
+<p><span class="math display">\[
+\begin{align*}
+\psi(||\omega||^2) = a_0 + a_1 (||\omega||^2) + a_2 (||\omega||^2)^2 +  a_3 (||\omega||^2)^3 +  \cdots
+\end{align*}
+\]</span></p></li>
+</ul>
+</div>
+</section>
+<section id="the-laplace-operator" class="slide level2">
+<h2>The Laplace Operator</h2>
+<p>Recall the <strong>Laplace operator</strong> is defined as</p>
+<p><span class="math display">\[
+- \nabla^2 f = \sum_{i=1}^{d} \frac{\partial^2 f}{\partial x_i^2}
+\]</span></p>
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Tip</strong></p>
+</div>
+<div class="callout-content">
+<p>The Laplacian has many good properties:</p>
+<ul>
+<li><p>Positive semi-definite</p></li>
+<li><p>Elliptic</p></li>
+<li><p>Self-adjoint (appropriate boundary conditions)</p></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="footer">
+<p><a href="https://link.springer.com/book/10.1007/978-94-007-4753-1">Unbounded Self-adjoint Operators on Hilbert Space</a></p>
+</div>
+</section>
+<section id="kernel-as-a-function-of-nabla2" class="slide level2">
+<h2>Kernel as a function of <span class="math inline">\(\nabla^2\)</span></h2>
+<p>One can verify that the Fourier transform of the Laplacian is</p>
+<p><span class="math display">\[
+\mathcal{F}[\nabla^2 f](\omega) = - ||\omega||^2 \mathcal{F}[f]
+\]</span></p>
+<p>So we can write the integral operator operator associated with the kernel</p>
+<p><span class="math display">\[
+\mathcal{K} := \int_{\mathbb{R}^d} k(\cdot, x')\phi(x') dx'
+\]</span></p>
+<p>as</p>
+<p><span class="math display">\[
+\mathcal{K} = a_0  + a_1 (- \nabla^2) + a_2 (-\nabla^2)^2 - a_3 (-\nabla^2)^3 + \cdots
+\]</span></p>
+</section>
+<section id="dirichlets-laplacian" class="slide level2">
+<h2>Dirichlet’s Laplacian</h2>
+<h3 id="boundary-conditions">Boundary Conditions?</h3>
+<p>The most common boundary conditions are the <a href="https://en.wikipedia.org/wiki/Dirichlet_eigenvalue">Dirichlet boundary conditions</a>, which are defined by <strong>requiring that the function vanishes on the boundary of the domain</strong>.</p>
+<p><span class="math display">\[
+\begin{align*}
+-\nabla^2 f &amp;= \lambda f \quad \text{in} \quad \Omega \\
+f &amp;= 0 \quad \text{on} \quad \partial \Omega
+\end{align*}
+\]</span></p>
+<div class="footer">
+<p><a href="https://link.springer.com/book/10.1007/978-94-007-4753-1">Unbounded Self-adjoint Operators on Hilbert Space</a></p>
+</div>
+</section>
+<section id="dirichlets-laplacian---spectrum" class="slide level2">
+<h2>Dirichlet’s Laplacian - Spectrum</h2>
+<div>
+<ul>
+<li class="fragment"><p>It is is a <strong>self-adjoint</strong> operator defined on the Hilbert space <span class="math inline">\(L^{2}(\Omega)\)</span> equipped with the Lebesgue measure. That is,</p>
+<p><span class="math display">\[
+\int_{\Omega} (-\nabla^2 f(x)) g(x) dx = \int_{\Omega} f(x) (-\nabla^2 g(x)) dx
+\]</span></p></li>
+<li class="fragment"><p>It has discrete spectrum with eigenvalues <span class="math inline">\(\lambda_j \rightarrow \infty\)</span> and eigenfunctions <span class="math inline">\(\phi_j\)</span> that form an orthonormal basis of <span class="math inline">\(L^2(\Omega)\)</span>, so that <span class="math display">\[
+\int_{\Omega} \phi_{j}(x) \phi_{k}(x) dx = \delta_{jk}
+\]</span></p></li>
+</ul>
+</div>
+</section>
+<section id="example---one-dimensional-box" class="slide level2">
+<h2>Example - One Dimensional Box</h2>
+<h3 id="omega--l-l-subset-mathbbr"><span class="math inline">\(\Omega = [-L, L] \subset \mathbb{R}\)</span></h3>
+<p><span class="math display">\[
+\frac{d^2 \phi}{dx^2} = - \lambda \phi \quad \text{with} \quad \phi(-L) = \phi(L) = 0
+\]</span></p>
+<h3 id="spectrum">Spectrum?</h3>
+<p><span class="math display">\[
+\phi_j(x) = \sqrt{\frac{1}{L}} \sin\left(\frac{\pi j (x + L)}{2L}\right)
+\quad
+\text{and}
+\quad
+\lambda_j = \left(\frac{j \pi}{2L}\right)^2
+\]</span></p>
+<p>for <span class="math inline">\(j = 1, 2, \ldots\)</span>.</p>
+</section>
+<section id="hsgp-functional-calculus" class="slide level2">
+<h2>HSGP: Functional Calculus</h2>
+<p><span class="math display">\[
+-\nabla^2 f(x) = \int_{\Omega} \overbrace{\left[\sum_{j} \lambda_{j} \phi_{j}(x) \phi_{j}(x')\right]}^{l(x, x')} f(x') dx'
+\]</span></p>
+<p>We can construct powers of <span class="math inline">\(-\nabla^2\)</span> as</p>
+<p><span class="math display">\[
+(- \nabla^2)^{s} f(x) = \int_{\Omega} \color{red}{\overbrace{\left[\sum_{j} \lambda_{j}^{s} \phi_{j}(x) \phi_{j}(x')\right]}^{l^s(x, x')}} f(x') dx'.
+\]</span></p>
+</section>
+<section id="hsgp-coefficients-identification" class="slide level2">
+<h2>HSGP: Coefficients Identification</h2>
+<p>Use the formal expansion of <span class="math inline">\(\mathcal{K}\)</span> in terms of powers of <span class="math inline">\(\nabla^2\)</span>:</p>
+<p><span class="math display">\[
+\begin{align*}
+&amp; \left[ a_{0} + a_{1}(-\nabla^2) + a_{2}(-\nabla^2)^2 + \cdots \right]f(x) = \\
+&amp;\int_{\Omega} \left[a_{0} + a_{1} l(x, x') + a_{2} l^{2}(x, x') + \cdots \right] f(x') dx'
+\end{align*}
+\]</span></p>
+<p>This implies we can approximate the kernel as</p>
+<p><span class="math display">\[
+\begin{align*}
+k(x, x') \approx &amp; \: a_{0} + a_{1} l(x, x') + a_{2} l^{2}(x, x') + \cdots \\
+\approx &amp; \sum_{j} \color{red}{\underbrace{\left[ a_{0} + a_{1} \lambda_{j} + a_{2} \lambda_{j}^2 + \cdots \right]}_{S(\sqrt{\lambda_{j}})}} \phi_{j}(x) \phi_{j}(x')
+\end{align*}
+\]</span></p>
+</section>
+<section id="hsgp-final-formula" class="slide level2">
+<h2>HSGP: Final Formula</h2>
+<p>In summary, we have the following approximation formula for the kernel function:</p>
+<p><span class="math display">\[
+\boxed{
+k(x, x') \approx \sum_{j}^{m} \color{red}{S(\sqrt{\lambda_j})}\color{blue}{\phi_{j}(x) \phi_{j}(x')}
+}
+\]</span></p>
+<p>That is, the model of the Gaussian process <span class="math inline">\(f\)</span> can be written as</p>
+<p><span class="math display">\[
+f(x) \sim \text{MultivariateNormal}(\boldsymbol{\mu}, \Phi\mathcal{D}\Phi^{T})
+\]</span></p>
+<p>where <span class="math inline">\(\mathcal{D} = \text{diag}(S(\sqrt{\lambda_1}), S(\sqrt{\lambda_2}), \ldots, S(\sqrt{\lambda_{m}}))\)</span>.</p>
+</section>
+<section id="hsgp-linear-model" class="slide level2">
+<h2>HSGP: Linear Model</h2>
+<p><span class="math display">\[
+f(x) \approx \sum_{j = 1}^{m}
+\overbrace{\color{red}{\left(S(\sqrt{\lambda_j})\right)^{1/2}}}^{\text{all hyperparameters are here!}}
+\times
+\underbrace{\color{blue}{\phi_{j}(x)}}_{\text{easy to compute!}}
+\times
+\overbrace{\color{green}{\beta_{j}}}^{\sim \: \text{Normal}(0,1)}
+\]</span></p>
+<div class="callout callout-note callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Note</strong></p>
+</div>
+<div class="callout-content">
+<p>The only dependence on the hyperparameters is through the spectral density.</p>
+</div>
+</div>
+</div>
+<div title="Computational Cost">
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Computational Cost</strong></p>
+</div>
+<div class="callout-content">
+<p>The computational cost of evaluating the log posterior density of univariate HSGPs scales as <span class="math inline">\(\mathcal{O}(nm + m)\)</span>.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="squared-exponential-1-dim" class="slide level2">
+<h2>Squared Exponential <span class="math inline">\(1\)</span>-dim</h2>
+<p><span class="math display">\[
+\begin{align*}
+k(x, x') \approx
+\sum_{j=1}^{m} &amp; \color{red}{\overbrace{\left(a^2 \sqrt{2 \pi} \ell \exp\left(-2\pi^2\ell^2 \left(\frac{\pi j}{2L}\right)^2 \right)\right)^{1/2}}^{\left(S(\sqrt{\lambda_j})\right)^{1/2}}} \\
+&amp; \times \color{blue}{\overbrace{\left(\sqrt{\frac{1}{L}} \sin\left(\frac{\pi j (x + L)}{2L}\right)\right)}^{\phi_{j}(x)}} \\
+&amp; \times \color{green}{\overbrace{\beta_{j}}^{\sim \: \text{Normal}(0, 1)}}
+\end{align*}
+\]</span></p>
+</section>
+<section id="hilbert-space-approximation-recap" class="slide level2">
+<h2>Hilbert Space Approximation (Recap)</h2>
+<div class="cell" data-reveal="true" data-fig-height="2" data-fig-width="10" data-layout-align="center">
+<div class="cell-output-display">
+<div>
+<p></p><figure class=""><p></p>
+<div>
+<pre class="mermaid mermaid-js">%%{init: {"theme": "white", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels":false}}}%%
+flowchart TD
+  kernel["kernel"] --&gt; spectral_sensity["Spectral Density"]
+  spectral_sensity --&gt; polynomial["Polynomial Expansion"]
+  laplacian["Laplacian"] --&gt; fourier["Fourier Transform"]
+  laplacian --&gt; dirichlet["Dirichlet's BC"]
+  dirichlet --&gt; spectral_decomposition["Spectral Decomposition"]
+  spectral_decomposition["Spectral Decomposition"] --&gt; functional["Functional Calculus"]
+  polynomial --&gt; identify_coefficients["Identify Coefficients"]
+  fourier --&gt; identify_coefficients
+  functional --&gt; identify_coefficients
+  identify_coefficients --&gt; approximation["Approximation Formula"]
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</section>
+<section id="laplace-eigenfunctions" class="slide level2">
+<h2>Laplace Eigenfunctions</h2>
+<h3 id="back-to-the-example">Back to the example …</h3>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_110_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="prior-predictive" class="slide level2">
+<h2>Prior Predictive</h2>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_117_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="pymc-implementation" class="slide level2">
+<h2>PyMC Implementation</h2>
+<h3 id="hsgp-class"><a href="https://www.pymc.io/projects/docs/en/stable/api/gp/generated/pymc.gp.HSGP.html"><code>HSGP</code> Class</a></h3>
+<div class="sourceCode" id="cb7" data-code-line-numbers="|13"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> hsgp_pymc_model:</span>
+<span id="cb7-2"><a href=""></a>    x_data <span class="op">=</span> pm.MutableData(<span class="st">"x_data"</span>, value<span class="op">=</span>x_train)</span>
+<span id="cb7-3"><a href=""></a>    y_data <span class="op">=</span> pm.MutableData(<span class="st">"y_data"</span>, y_train_obs)</span>
+<span id="cb7-4"><a href=""></a></span>
+<span id="cb7-5"><a href=""></a>    kernel_amplitude <span class="op">=</span> pm.InverseGamma(<span class="st">"kernel_amplitude"</span>, ...)</span>
+<span id="cb7-6"><a href=""></a>    kernel_length_scale <span class="op">=</span> pm.InverseGamma(<span class="st">"kernel_length_scale"</span>, ...)</span>
+<span id="cb7-7"><a href=""></a>    noise <span class="op">=</span> pm.InverseGamma(<span class="st">"noise"</span>, ...)</span>
+<span id="cb7-8"><a href=""></a></span>
+<span id="cb7-9"><a href=""></a>    mean <span class="op">=</span> pm.gp.mean.Zero()</span>
+<span id="cb7-10"><a href=""></a>    cov <span class="op">=</span> kernel_amplitude<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> pm.gp.cov.ExpQuad(</span>
+<span id="cb7-11"><a href=""></a>        input_dim<span class="op">=</span><span class="dv">1</span>, ls<span class="op">=</span>kernel_length_scale</span>
+<span id="cb7-12"><a href=""></a>    )</span>
+<span id="cb7-13"><a href=""></a>    gp <span class="op">=</span> pm.gp.HSGP(m<span class="op">=</span>[<span class="dv">20</span>], L<span class="op">=</span>[<span class="fl">1.3</span>], mean_func<span class="op">=</span>mean, cov_func<span class="op">=</span>cov)</span>
+<span id="cb7-14"><a href=""></a>    f <span class="op">=</span> gp.prior(<span class="st">"f"</span>, X<span class="op">=</span>x_data[:, <span class="va">None</span>])</span>
+<span id="cb7-15"><a href=""></a></span>
+<span id="cb7-16"><a href=""></a>    pm.Normal(<span class="st">"likelihood"</span>, mu<span class="op">=</span>f, sigma<span class="op">=</span>noise, observed<span class="op">=</span>y_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="out-of-sample-predictions-1" class="slide level2">
+<h2>Out-of-Sample Predictions</h2>
+<h3 id="conditional-method-1"><code>conditional</code> method</h3>
+<div class="sourceCode" id="cb8" data-code-line-numbers="|3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href=""></a><span class="cf">with</span> hsgp_pymc_model:</span>
+<span id="cb8-2"><a href=""></a>    x_star_data <span class="op">=</span> pm.MutableData(<span class="st">"x_star_data"</span>, x_test)</span>
+<span id="cb8-3"><a href=""></a>    f_star <span class="op">=</span> gp.conditional(<span class="st">"f_star"</span>, x_star_data[:, <span class="va">None</span>])</span>
+<span id="cb8-4"><a href=""></a>    pm.set_data({<span class="st">"x_data"</span>: x_test, <span class="st">"y_data"</span>: np.ones_like(x_test)})</span>
+<span id="cb8-5"><a href=""></a>    hsgp_pymc_idata.extend(</span>
+<span id="cb8-6"><a href=""></a>        pm.sample_posterior_predictive(</span>
+<span id="cb8-7"><a href=""></a>            trace<span class="op">=</span>hsgp_pymc_idata,</span>
+<span id="cb8-8"><a href=""></a>            var_names<span class="op">=</span>[<span class="st">"f_star"</span>, <span class="st">"likelihood"</span>],</span>
+<span id="cb8-9"><a href=""></a>            random_seed<span class="op">=</span>rng_subkey[<span class="dv">1</span>].item(),</span>
+<span id="cb8-10"><a href=""></a>        )</span>
+<span id="cb8-11"><a href=""></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="hsgp-model---posterior-predictive" class="slide level2">
+<h2>HSGP Model - Posterior Predictive</h2>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_155_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="pymc-implementation-1" class="slide level2">
+<h2>PyMC Implementation</h2>
+<h3 id="hsgp.prior_linearized"><a href="https://www.pymc.io/projects/docs/en/stable/api/gp/generated/classmethods/pymc.gp.HSGP.prior_linearized.html#pymc.gp.HSGP.prior_linearized"><code>HSGP.prior_linearized</code></a></h3>
+<div class="sourceCode" id="cb9" data-code-line-numbers="|11|12|14-15"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> hsgp_linearized_pymc_model:</span>
+<span id="cb9-2"><a href=""></a>    x_data <span class="op">=</span> pm.MutableData(<span class="st">"x_data"</span>, value<span class="op">=</span>x_train)</span>
+<span id="cb9-3"><a href=""></a>    y_data <span class="op">=</span> pm.MutableData(<span class="st">"y_data"</span>, y_train_obs)</span>
+<span id="cb9-4"><a href=""></a></span>
+<span id="cb9-5"><a href=""></a>    kernel_amplitude <span class="op">=</span> pm.InverseGamma(<span class="st">"kernel_amplitude"</span>, ...)</span>
+<span id="cb9-6"><a href=""></a>    kernel_length_scale <span class="op">=</span> pm.InverseGamma(<span class="st">"kernel_length_scale"</span>, ...)</span>
+<span id="cb9-7"><a href=""></a>    noise <span class="op">=</span> pm.InverseGamma(<span class="st">"noise"</span>, ...)</span>
+<span id="cb9-8"><a href=""></a></span>
+<span id="cb9-9"><a href=""></a>    mean <span class="op">=</span> pm.gp.mean.Zero()</span>
+<span id="cb9-10"><a href=""></a>    cov <span class="op">=</span> kernel_amplitude<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> pm.gp.cov.ExpQuad(input_dim<span class="op">=</span><span class="dv">1</span>, ls<span class="op">=</span>kernel_length_scale)</span>
+<span id="cb9-11"><a href=""></a>    gp <span class="op">=</span> pm.gp.HSGP(m<span class="op">=</span>[<span class="dv">20</span>], L<span class="op">=</span>[<span class="fl">1.3</span>], mean_func<span class="op">=</span>mean, cov_func<span class="op">=</span>cov)</span>
+<span id="cb9-12"><a href=""></a>    phi, sqrt_psd <span class="op">=</span> gp.prior_linearized(Xs<span class="op">=</span>x_data_centered[:, <span class="va">None</span>])</span>
+<span id="cb9-13"><a href=""></a></span>
+<span id="cb9-14"><a href=""></a>    beta <span class="op">=</span> pm.Normal(<span class="st">"beta"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>, size<span class="op">=</span>gp._m_star)</span>
+<span id="cb9-15"><a href=""></a>    f <span class="op">=</span> pm.Deterministic(<span class="st">"f"</span>, phi <span class="op">@</span> (beta <span class="op">*</span> sqrt_psd))</span>
+<span id="cb9-16"><a href=""></a></span>
+<span id="cb9-17"><a href=""></a>    pm.Normal(<span class="st">"likelihood"</span>, mu<span class="op">=</span>f, sigma<span class="op">=</span>noise, observed<span class="op">=</span>y_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="out-of-sample-predictions-2" class="slide level2">
+<h2>Out-of-Sample Predictions</h2>
+<h3 id="pm.set_data-method"><code>pm.set_data</code> method</h3>
+<div class="sourceCode" id="cb10" data-code-line-numbers="|2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href=""></a><span class="cf">with</span> hsgp_pymc_model:</span>
+<span id="cb10-2"><a href=""></a>    pm.set_data({<span class="st">"x_data"</span>: x_test, <span class="st">"y_data"</span>: np.ones_like(x_test)})</span>
+<span id="cb10-3"><a href=""></a>    hsgp_linearized_pymc_idata.extend(</span>
+<span id="cb10-4"><a href=""></a>        pm.sample_posterior_predictive(</span>
+<span id="cb10-5"><a href=""></a>            trace<span class="op">=</span>hsgp_pymc_idata,</span>
+<span id="cb10-6"><a href=""></a>            var_names<span class="op">=</span>[</span>
+<span id="cb10-7"><a href=""></a>                <span class="st">"f"</span>,</span>
+<span id="cb10-8"><a href=""></a>                <span class="st">"likelihood"</span>,</span>
+<span id="cb10-9"><a href=""></a>            ],</span>
+<span id="cb10-10"><a href=""></a>            random_seed<span class="op">=</span>rng_subkey[<span class="dv">1</span>].item(),</span>
+<span id="cb10-11"><a href=""></a>        )</span>
+<span id="cb10-12"><a href=""></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="references" class="slide level2 smaller">
+<h2>References</h2>
+<h4 id="gaussian-processes-1">Gaussian Processes</h4>
+<ul>
+<li><a href="https://www.gaussianprocess.org/gpml/">Gaussian Processes for Machine Learning</a>, classic book on GPs.</li>
+<li><a href="Mean%20and%20Covariance%20Functions">PyMC Examples: Mean and Covariance Functions</a></li>
+<li><a href="https://juanitorduz.github.io/reg_bayesian_regression/">Bayesian Regression as a Gaussian Process</a></li>
+<li><a href="https://juanitorduz.github.io/gaussian_process_reg/">An Introduction to Gaussian Process Regression</a></li>
+<li><a href="https://betanalpha.github.io/assets/case_studies/gaussian_processes.html#42_High-Dimensional_Covariate_Spaces">Robust Gaussian Process Modeling</a>, very complete introduction to GPs.</li>
+<li><a href="https://dansblog.netlify.app/">Dan Simpson’s Blog</a>, many posts on GPs and prior selection.</li>
+</ul>
+<h4 id="hsgp-approximation">HSGP Approximation</h4>
+<ul>
+<li><a href="https://link.springer.com/article/10.1007/s11222-019-09886-w">Hilbert space methods for reduced-rank Gaussian process regression</a></li>
+<li><a href="https://link.springer.com/article/10.1007/s11222-022-10167-2">Practical Hilbert space approximate Bayesian Gaussian processes for probabilistic programming</a></li>
+<li><a href="https://www.youtube.com/watch?v=ri5sJAdcYHk">PyMCon Web Series - Introduction to Hilbert Space GPs in PyMC - Bill Engels</a></li>
+<li><a href="https://github.com/pymc-devs/pymc-examples/pull/647">PyMC Examples: <code>pm.gp.HSGP</code> Reference and Example Usage</a> [WIP]</li>
+</ul>
+</section>
+<section id="references-1" class="slide level2 smaller">
+<h2>References</h2>
+<h4 id="birthdays-dataset">Birthdays Dataset</h4>
+<ul>
+<li><a href="https://avehtari.github.io/casestudies/Birthdays/birthdays.html">Bayesian workflow book - Birthdays</a></li>
+<li><a href="https://num.pyro.ai/en/stable/examples/hsgp.html">NumPyro Example: Hilbert space approximation for Gaussian processes</a></li>
+<li><a href="https://juanitorduz.github.io/birthdays/">Time Series Modeling with HSGP: Baby Births Example</a></li>
+</ul>
+<h4 id="spectral-theory">Spectral Theory</h4>
+<ul>
+<li><a href="https://link.springer.com/book/10.1007/978-94-007-4753-1">Unbounded Self-adjoint Operators on Hilbert Space</a></li>
+</ul>
+</section>
+<section id="thank-you" class="slide level2">
+<h2>Thank you!</h2>
+<p><a href="https://juanitorduz.github.io/">juanitorduz.github.io</a></p>
+<p><img data-src="hsgp_intro_files/static/images/juanitorduz.png" class="absolute" style="top: 0px; right: 0px; width: 600px; height: 600px; "></p>
+<div class="quarto-auto-generated-content">
+<p><img src="hsgp_intro_files/static/images/juanitorduz_logo_small.png" class="slide-logo"></p>
+<div class="footer footer-default">
+
+</div>
+</div>
+</section></section>
+    </div>
+  </div>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script>
+  <script src="hsgp_intro_files/libs/revealjs/dist/reveal.js"></script>
+  <!-- reveal.js plugins -->
+  <script src="hsgp_intro_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
+  <script src="hsgp_intro_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
+  <script src="hsgp_intro_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
+  <script src="hsgp_intro_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="hsgp_intro_files/libs/revealjs/plugin/reveal-chalkboard/plugin.js"></script>
+  <script src="hsgp_intro_files/libs/revealjs/plugin/quarto-support/support.js"></script>
+  
+
+  <script src="hsgp_intro_files/libs/revealjs/plugin/notes/notes.js"></script>
+  <script src="hsgp_intro_files/libs/revealjs/plugin/search/search.js"></script>
+  <script src="hsgp_intro_files/libs/revealjs/plugin/zoom/zoom.js"></script>
+  <script src="hsgp_intro_files/libs/revealjs/plugin/math/math.js"></script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://revealjs.com/config/
+      Reveal.initialize({
+'controlsAuto': true,
+'previewLinksAuto': true,
+'pdfSeparateFragments': false,
+'autoAnimateEasing': "ease",
+'autoAnimateDuration': 1,
+'autoAnimateUnmatched': true,
+'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.togglePdfExport(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleChalkboard(event)\"><kbd>b</kbd> Toggle Chalkboard</a></li>\n<li class=\"slide-tool-item\" data-item=\"5\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleNotesCanvas(event)\"><kbd>c</kbd> Toggle Notes Canvas</a></li>\n<li class=\"slide-tool-item\" data-item=\"6\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.downloadDrawings(event)\"><kbd>d</kbd> Download Drawings</a></li>\n<li class=\"slide-tool-item\" data-item=\"7\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'chalkboard': {"buttons":false},
+'smaller': false,
+ 
+        // Display controls in the bottom right corner
+        controls: false,
+
+        // Help the user learn the controls by providing hints, for example by
+        // bouncing the down arrow when they first encounter a vertical slide
+        controlsTutorial: false,
+
+        // Determines where controls appear, "edges" or "bottom-right"
+        controlsLayout: 'edges',
+
+        // Visibility rule for backwards navigation arrows; "faded", "hidden"
+        // or "visible"
+        controlsBackArrows: 'faded',
+
+        // Display a presentation progress bar
+        progress: true,
+
+        // Display the page number of the current slide
+        slideNumber: 'c/t',
+
+        // 'all', 'print', or 'speaker'
+        showSlideNumber: 'all',
+
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
+        hash: true,
+
+        // Start with 1 for the hash rather than 0
+        hashOneBasedIndex: false,
+
+        // Flags if we should monitor the hash and change slides accordingly
+        respondToHashChanges: true,
+
+        // Push each slide change to the browser history
+        history: true,
+
+        // Enable keyboard shortcuts for navigation
+        keyboard: true,
+
+        // Enable the slide overview mode
+        overview: true,
+
+        // Disables the default reveal.js slide layout (scaling and centering)
+        // so that you can use custom CSS layout
+        disableLayout: false,
+
+        // Vertical centering of slides
+        center: false,
+
+        // Enables touch navigation on devices with touch input
+        touch: true,
+
+        // Loop the presentation
+        loop: false,
+
+        // Change the presentation direction to be RTL
+        rtl: false,
+
+        // see https://revealjs.com/vertical-slides/#navigation-mode
+        navigationMode: 'linear',
+
+        // Randomizes the order of slides each time the presentation loads
+        shuffle: false,
+
+        // Turns fragments on and off globally
+        fragments: true,
+
+        // Flags whether to include the current fragment in the URL,
+        // so that reloading brings you to the same fragment position
+        fragmentInURL: false,
+
+        // Flags if the presentation is running in an embedded mode,
+        // i.e. contained within a limited portion of the screen
+        embedded: false,
+
+        // Flags if we should show a help overlay when the questionmark
+        // key is pressed
+        help: true,
+
+        // Flags if it should be possible to pause the presentation (blackout)
+        pause: true,
+
+        // Flags if speaker notes should be visible to all viewers
+        showNotes: false,
+
+        // Global override for autoplaying embedded media (null/true/false)
+        autoPlayMedia: null,
+
+        // Global override for preloading lazy-loaded iframes (null/true/false)
+        preloadIframes: null,
+
+        // Number of milliseconds between automatically proceeding to the
+        // next slide, disabled when set to 0, this value can be overwritten
+        // by using a data-autoslide attribute on your slides
+        autoSlide: 0,
+
+        // Stop auto-sliding after user input
+        autoSlideStoppable: true,
+
+        // Use this method for navigation when auto-sliding
+        autoSlideMethod: null,
+
+        // Specify the average time in seconds that you think you will spend
+        // presenting each slide. This is used to show a pacing timer in the
+        // speaker view
+        defaultTiming: null,
+
+        // Enable slide navigation via mouse wheel
+        mouseWheel: false,
+
+        // The display mode that will be used to show slides
+        display: 'block',
+
+        // Hide cursor if inactive
+        hideInactiveCursor: true,
+
+        // Time before the cursor is hidden (in ms)
+        hideCursorTime: 5000,
+
+        // Opens links in an iframe preview overlay
+        previewLinks: false,
+
+        // Transition style (none/fade/slide/convex/concave/zoom)
+        transition: 'none',
+
+        // Transition speed (default/fast/slow)
+        transitionSpeed: 'default',
+
+        // Transition style for full page slide backgrounds
+        // (none/fade/slide/convex/concave/zoom)
+        backgroundTransition: 'none',
+
+        // Number of slides away from the current that are visible
+        viewDistance: 3,
+
+        // Number of slides away from the current that are visible on mobile
+        // devices. It is advisable to set this to a lower number than
+        // viewDistance in order to save resources.
+        mobileViewDistance: 2,
+
+        // The "normal" size of the presentation, aspect ratio will be preserved
+        // when the presentation is scaled to fit different resolutions. Can be
+        // specified using percentage units.
+        width: 1050,
+
+        height: 700,
+
+        // Factor of the display size that should remain empty around the content
+        margin: 0.1,
+
+        math: {
+          mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js',
+          config: 'TeX-AMS_HTML-full',
+          tex2jax: {
+            inlineMath: [['\\(','\\)']],
+            displayMath: [['\\[','\\]']],
+            balanceBraces: true,
+            processEscapes: false,
+            processRefs: true,
+            processEnvironments: true,
+            preview: 'TeX',
+            skipTags: ['script','noscript','style','textarea','pre','code'],
+            ignoreClass: 'tex2jax_ignore',
+            processClass: 'tex2jax_process'
+          },
+        },
+
+        // reveal.js plugins
+        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, RevealChalkboard, QuartoSupport,
+
+          RevealMath,
+          RevealNotes,
+          RevealSearch,
+          RevealZoom
+        ]
+      });
+    </script>
+    <script id="quarto-html-after-body" type="application/javascript">
+    window.document.addEventListener("DOMContentLoaded", function (event) {
+      const toggleBodyColorMode = (bsSheetEl) => {
+        const mode = bsSheetEl.getAttribute("data-mode");
+        const bodyEl = window.document.querySelector("body");
+        if (mode === "dark") {
+          bodyEl.classList.add("quarto-dark");
+          bodyEl.classList.remove("quarto-light");
+        } else {
+          bodyEl.classList.add("quarto-light");
+          bodyEl.classList.remove("quarto-dark");
+        }
+      }
+      const toggleBodyColorPrimary = () => {
+        const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+        if (bsSheetEl) {
+          toggleBodyColorMode(bsSheetEl);
+        }
+      }
+      toggleBodyColorPrimary();  
+      const tabsets =  window.document.querySelectorAll(".panel-tabset-tabby")
+      tabsets.forEach(function(tabset) {
+        const tabby = new Tabby('#' + tabset.id);
+      });
+      const isCodeAnnotation = (el) => {
+        for (const clz of el.classList) {
+          if (clz.startsWith('code-annotation-')) {                     
+            return true;
+          }
+        }
+        return false;
+      }
+      const clipboard = new window.ClipboardJS('.code-copy-button', {
+        text: function(trigger) {
+          const codeEl = trigger.previousElementSibling.cloneNode(true);
+          for (const childEl of codeEl.children) {
+            if (isCodeAnnotation(childEl)) {
+              childEl.remove();
+            }
+          }
+          return codeEl.innerText;
+        }
+      });
+      clipboard.on('success', function(e) {
+        // button target
+        const button = e.trigger;
+        // don't keep focus
+        button.blur();
+        // flash "checked"
+        button.classList.add('code-copy-button-checked');
+        var currentTitle = button.getAttribute("title");
+        button.setAttribute("title", "Copied!");
+        let tooltip;
+        if (window.bootstrap) {
+          button.setAttribute("data-bs-toggle", "tooltip");
+          button.setAttribute("data-bs-placement", "left");
+          button.setAttribute("data-bs-title", "Copied!");
+          tooltip = new bootstrap.Tooltip(button, 
+            { trigger: "manual", 
+              customClass: "code-copy-button-tooltip",
+              offset: [0, -8]});
+          tooltip.show();    
+        }
+        setTimeout(function() {
+          if (tooltip) {
+            tooltip.hide();
+            button.removeAttribute("data-bs-title");
+            button.removeAttribute("data-bs-toggle");
+            button.removeAttribute("data-bs-placement");
+          }
+          button.setAttribute("title", currentTitle);
+          button.classList.remove('code-copy-button-checked');
+        }, 1000);
+        // clear code selection
+        e.clearSelection();
+      });
+        var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+        var mailtoRegex = new RegExp(/^mailto:/);
+          var filterRegex = new RegExp('/' + window.location.host + '/');
+        var isInternal = (href) => {
+            return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+        }
+        // Inspect non-navigation links and adorn them if external
+     	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+        for (var i=0; i<links.length; i++) {
+          const link = links[i];
+          if (!isInternal(link.href)) {
+            // undo the damage that might have been done by quarto-nav.js in the case of
+            // links that we want to consider external
+            if (link.dataset.originalHref !== undefined) {
+              link.href = link.dataset.originalHref;
+            }
+          }
+        }
+      function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+        const config = {
+          allowHTML: true,
+          maxWidth: 500,
+          delay: 100,
+          arrow: false,
+          appendTo: function(el) {
+              return el.closest('section.slide') || el.parentElement;
+          },
+          interactive: true,
+          interactiveBorder: 10,
+          theme: 'light-border',
+          placement: 'bottom-start',
+        };
+        if (contentFn) {
+          config.content = contentFn;
+        }
+        if (onTriggerFn) {
+          config.onTrigger = onTriggerFn;
+        }
+        if (onUntriggerFn) {
+          config.onUntrigger = onUntriggerFn;
+        }
+          config['offset'] = [0,0];
+          config['maxWidth'] = 700;
+        window.tippy(el, config); 
+      }
+      const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+      for (var i=0; i<noterefs.length; i++) {
+        const ref = noterefs[i];
+        tippyHover(ref, function() {
+          // use id or data attribute instead here
+          let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+          try { href = new URL(href).hash; } catch {}
+          const id = href.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note) {
+            return note.innerHTML;
+          } else {
+            return "";
+          }
+        });
+      }
+      const findCites = (el) => {
+        const parentEl = el.parentElement;
+        if (parentEl) {
+          const cites = parentEl.dataset.cites;
+          if (cites) {
+            return {
+              el,
+              cites: cites.split(' ')
+            };
+          } else {
+            return findCites(el.parentElement)
+          }
+        } else {
+          return undefined;
+        }
+      };
+      var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+      for (var i=0; i<bibliorefs.length; i++) {
+        const ref = bibliorefs[i];
+        const citeInfo = findCites(ref);
+        if (citeInfo) {
+          tippyHover(citeInfo.el, function() {
+            var popup = window.document.createElement('div');
+            citeInfo.cites.forEach(function(cite) {
+              var citeDiv = window.document.createElement('div');
+              citeDiv.classList.add('hanging-indent');
+              citeDiv.classList.add('csl-entry');
+              var biblioDiv = window.document.getElementById('ref-' + cite);
+              if (biblioDiv) {
+                citeDiv.innerHTML = biblioDiv.innerHTML;
+              }
+              popup.appendChild(citeDiv);
+            });
+            return popup.innerHTML;
+          });
+        }
+      }
+    });
+    </script>
+    
+
+</body></html>
