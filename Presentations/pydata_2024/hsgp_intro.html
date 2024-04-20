@@ -1148,7 +1148,7 @@ flowchart TD
 <img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_117_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
 <section id="numpyro-implementation" class="slide level2">
 <h2>NumPyro Implementation</h2>
-<div class="sourceCode" id="cb7" data-code-line-numbers="|1|2|3-5|6-7|8|10|11-14|15-18|19-21"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href=""></a><span class="kw">def</span> hs_approx_squared_exponential_ncp(x, amplitude, length_scale, l_max, m):</span>
+<div class="sourceCode" id="cb7" data-code-line-numbers="|1|2|3-5|6-7|8|11|12-15|16-19|20-22"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href=""></a><span class="kw">def</span> hs_approx_squared_exponential_ncp(x, amplitude, length_scale, l_max, m):</span>
 <span id="cb7-2"><a href=""></a>    phi <span class="op">=</span> laplace_eigenfunctions(x, l_max, m)</span>
 <span id="cb7-3"><a href=""></a>    spd <span class="op">=</span> jnp.sqrt(</span>
 <span id="cb7-4"><a href=""></a>        diag_squared_exponential_spectral_density(amplitude, length_scale, l_max, m)</span>
