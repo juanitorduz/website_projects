@@ -412,36 +412,22 @@ Q.T @ A @ Q
 
 ## Spectral Projections
 
-Another important consequence of the spectral theorem is that we can decompose the matrix $A$ as a **sum of projections
-onto its eigenspaces**. That is, we can write re-write $A$ as 
-
 $$
 A = \sum_{j=1}^{2} \color{red}{\lambda_i} \color{blue}{v_j v_j^{T}}
 $$
 
-::: {.callout-tip title="Projections"}
+::: {.callout-tip appearance="simple"}
 
-Observe that the operator $P_{j} = v_j v_j ^{T}$ is indeed a projection operator, that is $P^2 = P$ and $P^T = P$,
-since the $v_j$ constitutes an orthonormal basis.
+The operator $P_{j} = v_j v_j ^{T}$ satisfies $P^2 = P$ and $P^T = P$.
 
 :::
 
-## Code Example
-
-```{.python code-line-numbers="|1-2|4-5|7-9|11-13|15-18"}
+```{.python code-line-numbers="|1-2|4-5|7-10"}
 def proj(v, x):
     return jnp.dot(v, x) * v
 
 def matrix_proj(x):
     return eigenvalues[0] * proj(Q[:, 0], x) + eigenvalues[1] * proj(Q[:, 1], x)
-
-# First eigenvector
-matrix_proj(Q[:, 0])  / eigenvalues[0]
->> Array([0.70710678+0.j, 0.70710678+0.j], dtype=complex128)
-
-# Second eigenvector
-matrix_proj(Q[:, 1])  / eigenvalues[1]
->> Array([-0.70710678-0.j,  0.70710678-0.j], dtype=complex128)
 
 # Arbitrary vector
 v = jnp.array([1.0, 2.0])
@@ -452,52 +438,31 @@ jnp.allclose(jnp.dot(A, v), matrix_proj(v))
 ## Functional Calculus
 
 The [functional calculus](https://en.wikipedia.org/wiki/Spectral_theorem#Functional_calculus) is a generalization of
-the Taylor series for functions to operators. 
-
-Given a function $f$ we can define the operator $f(A)$ as
+the Taylor series for functions to operators. Given a function $f$ we can define the operator $f(A)$ as
 
 $$
 f(A) = \sum_{j=1}^{2} \color{red}{f(\lambda_j)} \color{blue}{v_j v_j^{T}}
 $$
 
 
-::: {.callout-note title="Exampels"}
+::: {.callout-note title="Examples"}
+
+::: columns
+
+::: {.column width="50%"}
 
 - $f(z) = z$ we recover the operator $A$.
-- $f(z) = 1$ we recover the identity operator $I$.
-- $f(z) = z^2$ we recover the operator $A^2$.
+- $f(z) = 1$ we get the identity operator $I$.
+
 :::
 
+::: {.column width="50%"}
 
-## Example: Exponential of a Matrix
-
-Consider the exponential of the matrix $A$ defined as
-
-$$
-\exp(A) = \sum_{j=0}^{\infty} \frac{A^j}{j!}
-$$
-
-```{.python}
-scipy.linalg.expm(A)
->> Array([[10.22670818,  9.85882874],
-       [ 9.85882874, 10.22670818]], dtype=float64)
-```
-
-## Example: Exponential of a Matrix
-
-On the other hand, we can use the fact that $A = Q D Q^{T}$ and that $Q$ is an orthogonal matrix to write
-
-$$
-\exp(A) = \sum_{j=0}^{\infty} \frac{(Q D Q^{T})^j}{j!} = Q \left(\sum_{j=0}^{\infty} \frac{D^j}{j!}\right) Q^{T} = Q \exp(D) Q^{T}
-$$
-
-and observe that $\exp(D)$ is a diagonal matrix with the exponential of the diagonal elements:
-
-```{.python}
-Q @ jnp.diag(jnp.exp(eigenvalues)) @ Q.T
->> Array([[10.22670818+0.j,  9.85882874+0.j],
-       [ 9.85882874+0.j, 10.22670818+0.j]], dtype=complex128)
-```
+- $f(z) = z^2$ we get the operator $A^2$.
+- $f(z) =e^{z}$ we get the operator $\exp(A)$.
+:::
+:::
+:::
 
 ## Spectral Densities
 
@@ -508,8 +473,7 @@ $$
 k(r) = \frac{1}{(2 \pi)^{d}}\int_{\mathbb{R}^{d}} e^{i \omega^{T} r} d\mu(\omega)
 $$
 
-where $\mu$ is a positive measure. If this measure has a density, it is called the **spectral density** $S(\omega)$
-corresponding to the covariance function, i.e. $d\mu(\omega) = S(\omega) d\omega$.
+where $\mu$ is a positive measure. If this measure has a density, it is called the **spectral density** $S(\omega)$ corresponding to the covariance function, i.e. $d\mu(\omega) = S(\omega) d\omega$.
 
 ::: footer
 
@@ -525,13 +489,16 @@ $$
 S(\omega) = a^2(2 \pi \ell^2)^{d/2} \exp\left(-2\pi^2\ell^2\omega^2\right)
 $$
 
-For the special case $d=1$ we have
 
-$$
-S(\omega) = a^2 \sqrt{2 \pi} \ell \exp\left(-2\pi^2\ell^2\omega^2\right)
-$$
+```{.python}
+# d = 1
+def squared_exponential_spectral_density(w, amplitude, length_scale):
+    c = amplitude**2 * jnp.sqrt(2 * jnp.pi) * length_scale
+    e = jnp.exp(-0.5 * (length_scale**2) * (w**2))
+    return c * e
+```
 
-::: {.callout-tip}
+::: {.callout-tip appearance="simple"}
 
 Note the similarity between the spectral density and the [Fourier transform](https://en.wikipedia.org/wiki/Fourier_transform).
 For Gaussian-like kernels, like the squared exponential, we expect the associated spectral density to also be Gaussian-like.
@@ -591,16 +558,20 @@ The Laplacian has many good properties:
 
 ## Kernel as a function of $\nabla^2$
 
-One can verify that the Fourier transform of the Laplacian is
+One can verify that the [**Fourier transform**](https://en.wikipedia.org/wiki/Fourier_transform) of the Laplacian is
 
 $$
 \mathcal{F}[\nabla^2 f](\omega) = - ||\omega||^2 \mathcal{F}[f]
 $$
 
+. . .
+
+::: {.callout-tip title="Formal expansion as powers of the Laplacian"}
+
 We can write the integral operator associated with the kernel
 
 $$
-\mathcal{K} := \int_{\mathbb{R}^d} k(\cdot, x')\phi(x') dx'
+\mathcal{K} := \int_{\mathbb{R}^d} k(\cdot, x')f(x') dx'
 $$
 
 as
@@ -609,21 +580,21 @@ $$
 \mathcal{K} = a_0  + a_1 (- \nabla^2) + a_2 (-\nabla^2)^2 - a_3 (-\nabla^2)^3 + \cdots
 $$
 
-## Dirichlet's Laplacian
+:::
 
-### Boundary Conditions?
+## Dirichlet's Laplacian - Spectrum
 
-The most common boundary conditions are the [Dirichlet boundary conditions](https://en.wikipedia.org/wiki/Dirichlet_eigenvalue),
-which are defined by **requiring that the function vanishes on the boundary of the domain**. 
+[Dirichlet boundary conditions](https://en.wikipedia.org/wiki/Dirichlet_eigenvalue): Only consider function vanishes on the boundary of the domain $\Omega$. 
 
-::: {.callout-note title="Eigenvalue Problem"}
+::: incremental
 
-$$
-\begin{align*}
--\nabla^2 f &= \lambda f \quad \text{in} \quad \Omega \\
-f &= 0 \quad \text{on} \quad \partial \Omega
-\end{align*}
-$$
+- It is is a **self-adjoint** operator defined on the Hilbert space $L^{2}(\Omega)$ equipped with the Lebesgue measure. That is,
+
+  $$
+  \int_{\Omega} {\color{purple}{(-\nabla^2 f(x))}} g(x) dx = \int_{\Omega} f(x) {\color{purple}{(-\nabla^2 g(x))}} dx
+  $$
+
+- It has **discrete spectrum** with eigenvalues ${\color{red}{\lambda_j}} \rightarrow \infty$ and eigenfunctions $\color{blue}{\phi_j}$ that form an orthonormal basis of $L^2(\Omega)$
 
 :::
 
@@ -633,34 +604,13 @@ $$
 
 :::
 
-## Dirichlet's Laplacian - Spectrum
-
-::: incremental
-
-- It is is a **self-adjoint** operator defined on the Hilbert space $L^{2}(\Omega)$ equipped with the Lebesgue measure.
-That is,
-
-  $$
-  \int_{\Omega} {\color{blue}{(-\nabla^2 f(x))}} g(x) dx = \int_{\Omega} f(x) {\color{blue}{(-\nabla^2 g(x))}} dx
-  $$
-
-- It has discrete spectrum with eigenvalues $\lambda_j \rightarrow \infty$ and eigenfunctions $\phi_j$ that form an
-orthonormal basis of $L^2(\Omega)$, so that
-  $$
-  \int_{\Omega} \phi_{j}(x) \phi_{k}(x) dx = \delta_{jk}
-  $$
-
-:::
-
-## Example - One Dimensional Box
-
-### $\Omega = [-L, L] \subset \mathbb{R}$
+## Example - $\Omega = [-L, L] \subset \mathbb{R}$
 
 $$
 \frac{d^2 \phi}{dx^2} = - \lambda \phi \quad \text{with} \quad \phi(-L) = \phi(L) = 0
 $$
 
-### Spectrum?
+::: {.callout-tip title="Spectrum"}
 
 $$
 \phi_j(x) = \sqrt{\frac{1}{L}} \sin\left(\frac{\pi j (x + L)}{2L}\right)
@@ -668,9 +618,24 @@ $$
 \text{and}
 \quad
 \lambda_j = \left(\frac{j \pi}{2L}\right)^2
+\quad \text{for} \: j = 1, 2, \ldots
 $$
 
-for $j = 1, 2, \ldots$.
+:::
+
+```{.python}
+def laplace_eigenfunctions(x, l_max: float, m: int):
+    sqrt_eigenvalues = laplacian_sqrt_eigenvalues(l_max, m)
+    rep_x = jnp.tile(l_max + x[:, None], reps=m)
+    diag_sqrt_eigenvalues = jnp.diag(sqrt_eigenvalues)
+    num = jnp.sin(rep_x @ diag_sqrt_eigenvalues)
+    den = jnp.sqrt(l_max)
+    return num / den
+```
+
+## Laplace Eigenfunctions
+
+![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_110_0.png){fig-align="center" width="950"}
 
 ## HSGP: Functional Calculus
 
@@ -776,15 +741,44 @@ flowchart TD
   identify_coefficients --> approximation["Approximation Formula"]
 ```
 
-## Laplace Eigenfunctions
-
-### Back to the example ...
-
-![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_110_0.png){fig-align="center" width="950"}
-
 ## Prior Predictive
 
 ![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_117_0.png){fig-align="center" width="950"}
+
+## NumPyro Implementation
+
+```{.python code-line-numbers="|1|2|3-5|6-7|8|10|11-14|15-18|19-21"}
+def hs_approx_squared_exponential_ncp(x, amplitude, length_scale, l_max, m):
+    phi = laplace_eigenfunctions(x, l_max, m)
+    spd = jnp.sqrt(
+        diag_squared_exponential_spectral_density(amplitude, length_scale, l_max, m)
+    )
+    with numpyro.plate("basis", m):
+        beta = numpyro.sample("beta", dist.Normal(0, 1))
+    return numpyro.deterministic("f", phi @ (spd * beta))
+
+
+def hsgp_model(x, l_max, m, y=None) -> None:
+    # --- Priors ---
+    kernel_amplitude = numpyro.sample("kernel_amplitude", ...)
+    kernel_length_scale = numpyro.sample( "kernel_length_scale", ...)
+    noise = numpyro.sample( "noise", ...)
+    # --- Parametrization ---
+    f = hs_approx_squared_exponential_ncp(
+        x, kernel_amplitude, kernel_length_scale, l_max, m
+    )
+    # --- Likelihood ---
+    with numpyro.plate("data", x.shape[0]):
+        numpyro.sample("likelihood", dist.Normal(loc=f, scale=noise), obs=y)
+```
+
+## HSGP Model - Posterior
+
+![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_135_0.png){fig-align="center" width="950"}
+
+## HSGP Model - Posterior Predictive
+
+![](hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_141_0.png){fig-align="center" width="950"}
 
 ## PyMC Implementation
 

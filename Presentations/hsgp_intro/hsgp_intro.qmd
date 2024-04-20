@@ -461,19 +461,21 @@ jnp.allclose(jnp.dot(A, v), matrix_proj(v))
 
 ## Functional Calculus
 
-The [functional calculus](https://en.wikipedia.org/wiki/Spectral_theorem#Functional_calculus) is a generalization of
-the Taylor series for functions to operators. 
-
-Given a function $f$ we can define the operator $f(A)$ as
+The [functional calculus](https://en.wikipedia.org/wiki/Spectral_theorem#Functional_calculus) is a generalization of the Taylor series for functions to operators. Given a function $f$ we can define the operator $f(A)$ as
 
 $$
-f(A) = \sum_{j=1}^{2} f(\lambda_j) v_j v_j^{T}
+f(A) = \sum_{j=1}^{2} \color{red}{f(\lambda_j)} \color{blue}{v_j v_j^{T}}
 $$
 
-Observe that the particular cases:
+
+::: {.callout-note title="Examples"}
 
 - $f(z) = z$ we recover the operator $A$.
-- $f(z) = 1$ we recover the identity operator $I$.
+- $f(z) = 1$ we get the identity operator $I$.
+- $f(z) = z^2$ we get the operator $A^2$.
+- $f(z) =e^{z}$ we get the operator $\exp(A)$.
+
+:::
 
 
 ## Example: Exponential of a Matrix

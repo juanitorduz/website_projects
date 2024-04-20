@@ -837,16 +837,30 @@ A = \sum_{j=1}^{2} \lambda_i v_j v_j^{T}
 </section>
 <section id="functional-calculus" class="slide level2">
 <h2>Functional Calculus</h2>
-<p>The <a href="https://en.wikipedia.org/wiki/Spectral_theorem#Functional_calculus">functional calculus</a> is a generalization of the Taylor series for functions to operators.</p>
-<p>Given a function <span class="math inline">\(f\)</span> we can define the operator <span class="math inline">\(f(A)\)</span> as</p>
+<p>The <a href="https://en.wikipedia.org/wiki/Spectral_theorem#Functional_calculus">functional calculus</a> is a generalization of the Taylor series for functions to operators. Given a function <span class="math inline">\(f\)</span> we can define the operator <span class="math inline">\(f(A)\)</span> as</p>
 <p><span class="math display">\[
-f(A) = \sum_{j=1}^{2} f(\lambda_j) v_j v_j^{T}
+f(A) = \sum_{j=1}^{2} \color{red}{f(\lambda_j)} \color{blue}{v_j v_j^{T}}
 \]</span></p>
-<p>Observe that the particular cases:</p>
+<div title="Examples">
+<div class="callout callout-note callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Examples</strong></p>
+</div>
+<div class="callout-content">
 <ul>
 <li><span class="math inline">\(f(z) = z\)</span> we recover the operator <span class="math inline">\(A\)</span>.</li>
-<li><span class="math inline">\(f(z) = 1\)</span> we recover the identity operator <span class="math inline">\(I\)</span>.</li>
+<li><span class="math inline">\(f(z) = 1\)</span> we get the identity operator <span class="math inline">\(I\)</span>.</li>
+<li><span class="math inline">\(f(z) = z^2\)</span> we get the operator <span class="math inline">\(A^2\)</span>.</li>
+<li><span class="math inline">\(f(z) =e^{z}\)</span> we get the operator <span class="math inline">\(\exp(A)\)</span>.</li>
 </ul>
+</div>
+</div>
+</div>
+</div>
 </section>
 <section id="example-exponential-of-a-matrix" class="slide level2">
 <h2>Example: Exponential of a Matrix</h2>

@@ -798,94 +798,63 @@ D = Q^{T} A Q = \begin{pmatrix}
 </section>
 <section id="spectral-projections" class="slide level2">
 <h2>Spectral Projections</h2>
-<p>Another important consequence of the spectral theorem is that we can decompose the matrix <span class="math inline">\(A\)</span> as a <strong>sum of projections onto its eigenspaces</strong>. That is, we can write re-write <span class="math inline">\(A\)</span> as</p>
 <p><span class="math display">\[
 A = \sum_{j=1}^{2} \color{red}{\lambda_i} \color{blue}{v_j v_j^{T}}
 \]</span></p>
-<div title="Projections">
-<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout callout-tip callout-style-simple">
 <div class="callout-body">
-<div class="callout-title">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<p><strong>Projections</strong></p>
-</div>
 <div class="callout-content">
-<p>Observe that the operator <span class="math inline">\(P_{j} = v_j v_j ^{T}\)</span> is indeed a projection operator, that is <span class="math inline">\(P^2 = P\)</span> and <span class="math inline">\(P^T = P\)</span>, since the <span class="math inline">\(v_j\)</span> constitutes an orthonormal basis.</p>
+<p>The operator <span class="math inline">\(P_{j} = v_j v_j ^{T}\)</span> satisfies <span class="math inline">\(P^2 = P\)</span> and <span class="math inline">\(P^T = P\)</span>.</p>
 </div>
 </div>
 </div>
-</div>
-</section>
-<section id="code-example-1" class="slide level2">
-<h2>Code Example</h2>
-<div class="sourceCode" id="cb4" data-code-line-numbers="|1-2|4-5|7-9|11-13|15-18"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="kw">def</span> proj(v, x):</span>
+<div class="sourceCode" id="cb4" data-code-line-numbers="|1-2|4-5|7-10"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="kw">def</span> proj(v, x):</span>
 <span id="cb4-2"><a href=""></a>    <span class="cf">return</span> jnp.dot(v, x) <span class="op">*</span> v</span>
 <span id="cb4-3"><a href=""></a></span>
 <span id="cb4-4"><a href=""></a><span class="kw">def</span> matrix_proj(x):</span>
 <span id="cb4-5"><a href=""></a>    <span class="cf">return</span> eigenvalues[<span class="dv">0</span>] <span class="op">*</span> proj(Q[:, <span class="dv">0</span>], x) <span class="op">+</span> eigenvalues[<span class="dv">1</span>] <span class="op">*</span> proj(Q[:, <span class="dv">1</span>], x)</span>
 <span id="cb4-6"><a href=""></a></span>
-<span id="cb4-7"><a href=""></a><span class="co"># First eigenvector</span></span>
-<span id="cb4-8"><a href=""></a>matrix_proj(Q[:, <span class="dv">0</span>])  <span class="op">/</span> eigenvalues[<span class="dv">0</span>]</span>
-<span id="cb4-9"><a href=""></a><span class="op">&gt;&gt;</span> Array([<span class="fl">0.70710678</span><span class="op">+</span><span class="ot">0.j</span>, <span class="fl">0.70710678</span><span class="op">+</span><span class="ot">0.j</span>], dtype<span class="op">=</span>complex128)</span>
-<span id="cb4-10"><a href=""></a></span>
-<span id="cb4-11"><a href=""></a><span class="co"># Second eigenvector</span></span>
-<span id="cb4-12"><a href=""></a>matrix_proj(Q[:, <span class="dv">1</span>])  <span class="op">/</span> eigenvalues[<span class="dv">1</span>]</span>
-<span id="cb4-13"><a href=""></a><span class="op">&gt;&gt;</span> Array([<span class="op">-</span><span class="fl">0.70710678</span><span class="op">-</span><span class="ot">0.j</span>,  <span class="fl">0.70710678</span><span class="op">-</span><span class="ot">0.j</span>], dtype<span class="op">=</span>complex128)</span>
-<span id="cb4-14"><a href=""></a></span>
-<span id="cb4-15"><a href=""></a><span class="co"># Arbitrary vector</span></span>
-<span id="cb4-16"><a href=""></a>v <span class="op">=</span> jnp.array([<span class="fl">1.0</span>, <span class="fl">2.0</span>])</span>
-<span id="cb4-17"><a href=""></a>jnp.allclose(jnp.dot(A, v), matrix_proj(v))</span>
-<span id="cb4-18"><a href=""></a><span class="op">&gt;&gt;</span> Array(<span class="va">True</span>, dtype<span class="op">=</span><span class="bu">bool</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-7"><a href=""></a><span class="co"># Arbitrary vector</span></span>
+<span id="cb4-8"><a href=""></a>v <span class="op">=</span> jnp.array([<span class="fl">1.0</span>, <span class="fl">2.0</span>])</span>
+<span id="cb4-9"><a href=""></a>jnp.allclose(jnp.dot(A, v), matrix_proj(v))</span>
+<span id="cb4-10"><a href=""></a><span class="op">&gt;&gt;</span> Array(<span class="va">True</span>, dtype<span class="op">=</span><span class="bu">bool</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="functional-calculus" class="slide level2">
 <h2>Functional Calculus</h2>
-<p>The <a href="https://en.wikipedia.org/wiki/Spectral_theorem#Functional_calculus">functional calculus</a> is a generalization of the Taylor series for functions to operators.</p>
-<p>Given a function <span class="math inline">\(f\)</span> we can define the operator <span class="math inline">\(f(A)\)</span> as</p>
+<p>The <a href="https://en.wikipedia.org/wiki/Spectral_theorem#Functional_calculus">functional calculus</a> is a generalization of the Taylor series for functions to operators. Given a function <span class="math inline">\(f\)</span> we can define the operator <span class="math inline">\(f(A)\)</span> as</p>
 <p><span class="math display">\[
 f(A) = \sum_{j=1}^{2} \color{red}{f(\lambda_j)} \color{blue}{v_j v_j^{T}}
 \]</span></p>
-<div title="Exampels">
+<div title="Examples">
 <div class="callout callout-note callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<p><strong>Exampels</strong></p>
+<p><strong>Examples</strong></p>
 </div>
 <div class="callout-content">
+<div class="columns">
+<div class="column" style="width:50%;">
 <ul>
 <li><span class="math inline">\(f(z) = z\)</span> we recover the operator <span class="math inline">\(A\)</span>.</li>
-<li><span class="math inline">\(f(z) = 1\)</span> we recover the identity operator <span class="math inline">\(I\)</span>.</li>
-<li><span class="math inline">\(f(z) = z^2\)</span> we recover the operator <span class="math inline">\(A^2\)</span>.</li>
+<li><span class="math inline">\(f(z) = 1\)</span> we get the identity operator <span class="math inline">\(I\)</span>.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<ul>
+<li><span class="math inline">\(f(z) = z^2\)</span> we get the operator <span class="math inline">\(A^2\)</span>.</li>
+<li><span class="math inline">\(f(z) =e^{z}\)</span> we get the operator <span class="math inline">\(\exp(A)\)</span>.</li>
 </ul>
 </div>
 </div>
 </div>
 </div>
-</section>
-<section id="example-exponential-of-a-matrix" class="slide level2">
-<h2>Example: Exponential of a Matrix</h2>
-<p>Consider the exponential of the matrix <span class="math inline">\(A\)</span> defined as</p>
-<p><span class="math display">\[
-\exp(A) = \sum_{j=0}^{\infty} \frac{A^j}{j!}
-\]</span></p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href=""></a>scipy.linalg.expm(A)</span>
-<span id="cb5-2"><a href=""></a><span class="op">&gt;&gt;</span> Array([[<span class="fl">10.22670818</span>,  <span class="fl">9.85882874</span>],</span>
-<span id="cb5-3"><a href=""></a>       [ <span class="fl">9.85882874</span>, <span class="fl">10.22670818</span>]], dtype<span class="op">=</span>float64)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</section>
-<section id="example-exponential-of-a-matrix-1" class="slide level2">
-<h2>Example: Exponential of a Matrix</h2>
-<p>On the other hand, we can use the fact that <span class="math inline">\(A = Q D Q^{T}\)</span> and that <span class="math inline">\(Q\)</span> is an orthogonal matrix to write</p>
-<p><span class="math display">\[
-\exp(A) = \sum_{j=0}^{\infty} \frac{(Q D Q^{T})^j}{j!} = Q \left(\sum_{j=0}^{\infty} \frac{D^j}{j!}\right) Q^{T} = Q \exp(D) Q^{T}
-\]</span></p>
-<p>and observe that <span class="math inline">\(\exp(D)\)</span> is a diagonal matrix with the exponential of the diagonal elements:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a>Q <span class="op">@</span> jnp.diag(jnp.exp(eigenvalues)) <span class="op">@</span> Q.T</span>
-<span id="cb6-2"><a href=""></a><span class="op">&gt;&gt;</span> Array([[<span class="fl">10.22670818</span><span class="op">+</span><span class="ot">0.j</span>,  <span class="fl">9.85882874</span><span class="op">+</span><span class="ot">0.j</span>],</span>
-<span id="cb6-3"><a href=""></a>       [ <span class="fl">9.85882874</span><span class="op">+</span><span class="ot">0.j</span>, <span class="fl">10.22670818</span><span class="op">+</span><span class="ot">0.j</span>]], dtype<span class="op">=</span>complex128)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
 </section>
 <section id="spectral-densities" class="slide level2">
 <h2>Spectral Densities</h2>
@@ -904,17 +873,15 @@ k(r) = \frac{1}{(2 \pi)^{d}}\int_{\mathbb{R}^{d}} e^{i \omega^{T} r} d\mu(\omega
 <p><span class="math display">\[
 S(\omega) = a^2(2 \pi \ell^2)^{d/2} \exp\left(-2\pi^2\ell^2\omega^2\right)
 \]</span></p>
-<p>For the special case <span class="math inline">\(d=1\)</span> we have</p>
-<p><span class="math display">\[
-S(\omega) = a^2 \sqrt{2 \pi} \ell \exp\left(-2\pi^2\ell^2\omega^2\right)
-\]</span></p>
-<div class="callout callout-tip callout-titled callout-style-default">
+<div class="sourceCode" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href=""></a><span class="co"># d = 1</span></span>
+<span id="cb5-2"><a href=""></a><span class="kw">def</span> squared_exponential_spectral_density(w, amplitude, length_scale):</span>
+<span id="cb5-3"><a href=""></a>    c <span class="op">=</span> amplitude<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> jnp.sqrt(<span class="dv">2</span> <span class="op">*</span> jnp.pi) <span class="op">*</span> length_scale</span>
+<span id="cb5-4"><a href=""></a>    e <span class="op">=</span> jnp.exp(<span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> (length_scale<span class="op">**</span><span class="dv">2</span>) <span class="op">*</span> (w<span class="op">**</span><span class="dv">2</span>))</span>
+<span id="cb5-5"><a href=""></a>    <span class="cf">return</span> c <span class="op">*</span> e</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="callout callout-tip callout-style-simple">
 <div class="callout-body">
-<div class="callout-title">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
-</div>
-<p><strong>Tip</strong></p>
 </div>
 <div class="callout-content">
 <p>Note the similarity between the spectral density and the <a href="https://en.wikipedia.org/wiki/Fourier_transform">Fourier transform</a>. For Gaussian-like kernels, like the squared exponential, we expect the associated spectral density to also be Gaussian-like.</p>
@@ -974,77 +941,90 @@ S(\omega) = a^2 \sqrt{2 \pi} \ell \exp\left(-2\pi^2\ell^2\omega^2\right)
 </section>
 <section id="kernel-as-a-function-of-nabla2" class="slide level2">
 <h2>Kernel as a function of <span class="math inline">\(\nabla^2\)</span></h2>
-<p>One can verify that the Fourier transform of the Laplacian is</p>
+<p>One can verify that the <a href="https://en.wikipedia.org/wiki/Fourier_transform"><strong>Fourier transform</strong></a> of the Laplacian is</p>
 <p><span class="math display">\[
 \mathcal{F}[\nabla^2 f](\omega) = - ||\omega||^2 \mathcal{F}[f]
 \]</span></p>
-<p>We can write the integral operator associated with the kernel</p>
-<p><span class="math display">\[
-\mathcal{K} := \int_{\mathbb{R}^d} k(\cdot, x')\phi(x') dx'
-\]</span></p>
-<p>as</p>
-<p><span class="math display">\[
-\mathcal{K} = a_0  + a_1 (- \nabla^2) + a_2 (-\nabla^2)^2 - a_3 (-\nabla^2)^3 + \cdots
-\]</span></p>
-</section>
-<section id="dirichlets-laplacian" class="slide level2">
-<h2>Dirichlet’s Laplacian</h2>
-<h3 id="boundary-conditions">Boundary Conditions?</h3>
-<p>The most common boundary conditions are the <a href="https://en.wikipedia.org/wiki/Dirichlet_eigenvalue">Dirichlet boundary conditions</a>, which are defined by <strong>requiring that the function vanishes on the boundary of the domain</strong>.</p>
-<div title="Eigenvalue Problem">
-<div class="callout callout-note callout-titled callout-style-default">
+<div class="fragment">
+<div title="Formal expansion as powers of the Laplacian">
+<div class="callout callout-tip callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<p><strong>Eigenvalue Problem</strong></p>
+<p><strong>Formal expansion as powers of the Laplacian</strong></p>
 </div>
 <div class="callout-content">
+<p>We can write the integral operator associated with the kernel</p>
 <p><span class="math display">\[
-\begin{align*}
--\nabla^2 f &amp;= \lambda f \quad \text{in} \quad \Omega \\
-f &amp;= 0 \quad \text{on} \quad \partial \Omega
-\end{align*}
+\mathcal{K} := \int_{\mathbb{R}^d} k(\cdot, x')f(x') dx'
+\]</span></p>
+<p>as</p>
+<p><span class="math display">\[
+\mathcal{K} = a_0  + a_1 (- \nabla^2) + a_2 (-\nabla^2)^2 - a_3 (-\nabla^2)^3 + \cdots
 \]</span></p>
 </div>
 </div>
 </div>
+</div>
+</div>
+</section>
+<section id="dirichlets-laplacian---spectrum" class="slide level2">
+<h2>Dirichlet’s Laplacian - Spectrum</h2>
+<p><a href="https://en.wikipedia.org/wiki/Dirichlet_eigenvalue">Dirichlet boundary conditions</a>: Only consider function vanishes on the boundary of the domain <span class="math inline">\(\Omega\)</span>.</p>
+<div>
+<ul>
+<li class="fragment"><p>It is is a <strong>self-adjoint</strong> operator defined on the Hilbert space <span class="math inline">\(L^{2}(\Omega)\)</span> equipped with the Lebesgue measure. That is,</p>
+<p><span class="math display">\[
+\int_{\Omega} {\color{purple}{(-\nabla^2 f(x))}} g(x) dx = \int_{\Omega} f(x) {\color{purple}{(-\nabla^2 g(x))}} dx
+\]</span></p></li>
+<li class="fragment"><p>It has <strong>discrete spectrum</strong> with eigenvalues <span class="math inline">\({\color{red}{\lambda_j}} \rightarrow \infty\)</span> and eigenfunctions <span class="math inline">\(\color{blue}{\phi_j}\)</span> that form an orthonormal basis of <span class="math inline">\(L^2(\Omega)\)</span></p></li>
+</ul>
 </div>
 <div class="footer">
 <p><a href="https://link.springer.com/book/10.1007/978-94-007-4753-1">Unbounded Self-adjoint Operators on Hilbert Space</a></p>
 </div>
 </section>
-<section id="dirichlets-laplacian---spectrum" class="slide level2">
-<h2>Dirichlet’s Laplacian - Spectrum</h2>
-<div>
-<ul>
-<li class="fragment"><p>It is is a <strong>self-adjoint</strong> operator defined on the Hilbert space <span class="math inline">\(L^{2}(\Omega)\)</span> equipped with the Lebesgue measure. That is,</p>
-<p><span class="math display">\[
-\int_{\Omega} {\color{blue}{(-\nabla^2 f(x))}} g(x) dx = \int_{\Omega} f(x) {\color{blue}{(-\nabla^2 g(x))}} dx
-\]</span></p></li>
-<li class="fragment"><p>It has discrete spectrum with eigenvalues <span class="math inline">\(\lambda_j \rightarrow \infty\)</span> and eigenfunctions <span class="math inline">\(\phi_j\)</span> that form an orthonormal basis of <span class="math inline">\(L^2(\Omega)\)</span>, so that <span class="math display">\[
-\int_{\Omega} \phi_{j}(x) \phi_{k}(x) dx = \delta_{jk}
-\]</span></p></li>
-</ul>
-</div>
-</section>
-<section id="example---one-dimensional-box" class="slide level2">
-<h2>Example - One Dimensional Box</h2>
-<h3 id="omega--l-l-subset-mathbbr"><span class="math inline">\(\Omega = [-L, L] \subset \mathbb{R}\)</span></h3>
+<section id="example---omega--l-l-subset-mathbbr" class="slide level2">
+<h2>Example - <span class="math inline">\(\Omega = [-L, L] \subset \mathbb{R}\)</span></h2>
 <p><span class="math display">\[
 \frac{d^2 \phi}{dx^2} = - \lambda \phi \quad \text{with} \quad \phi(-L) = \phi(L) = 0
 \]</span></p>
-<h3 id="spectrum">Spectrum?</h3>
+<div title="Spectrum">
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Spectrum</strong></p>
+</div>
+<div class="callout-content">
 <p><span class="math display">\[
 \phi_j(x) = \sqrt{\frac{1}{L}} \sin\left(\frac{\pi j (x + L)}{2L}\right)
 \quad
 \text{and}
 \quad
 \lambda_j = \left(\frac{j \pi}{2L}\right)^2
+\quad \text{for} \: j = 1, 2, \ldots
 \]</span></p>
-<p>for <span class="math inline">\(j = 1, 2, \ldots\)</span>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a><span class="kw">def</span> laplace_eigenfunctions(x, l_max: <span class="bu">float</span>, m: <span class="bu">int</span>):</span>
+<span id="cb6-2"><a href=""></a>    sqrt_eigenvalues <span class="op">=</span> laplacian_sqrt_eigenvalues(l_max, m)</span>
+<span id="cb6-3"><a href=""></a>    rep_x <span class="op">=</span> jnp.tile(l_max <span class="op">+</span> x[:, <span class="va">None</span>], reps<span class="op">=</span>m)</span>
+<span id="cb6-4"><a href=""></a>    diag_sqrt_eigenvalues <span class="op">=</span> jnp.diag(sqrt_eigenvalues)</span>
+<span id="cb6-5"><a href=""></a>    num <span class="op">=</span> jnp.sin(rep_x <span class="op">@</span> diag_sqrt_eigenvalues)</span>
+<span id="cb6-6"><a href=""></a>    den <span class="op">=</span> jnp.sqrt(l_max)</span>
+<span id="cb6-7"><a href=""></a>    <span class="cf">return</span> num <span class="op">/</span> den</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
+<section id="laplace-eigenfunctions" class="slide level2">
+<h2>Laplace Eigenfunctions</h2>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_110_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
 <section id="hsgp-functional-calculus" class="slide level2">
 <h2>HSGP: Functional Calculus</h2>
 <p><span class="math display">\[
@@ -1162,90 +1142,118 @@ flowchart TD
 </div>
 </div>
 </section>
-<section id="laplace-eigenfunctions" class="slide level2">
-<h2>Laplace Eigenfunctions</h2>
-<h3 id="back-to-the-example">Back to the example …</h3>
-
-<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_110_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
 <section id="prior-predictive" class="slide level2">
 <h2>Prior Predictive</h2>
 
 <img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_117_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="numpyro-implementation" class="slide level2">
+<h2>NumPyro Implementation</h2>
+<div class="sourceCode" id="cb7" data-code-line-numbers="|1|2|3-5|6-7|8|10|11-14|15-18|19-21"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href=""></a><span class="kw">def</span> hs_approx_squared_exponential_ncp(x, amplitude, length_scale, l_max, m):</span>
+<span id="cb7-2"><a href=""></a>    phi <span class="op">=</span> laplace_eigenfunctions(x, l_max, m)</span>
+<span id="cb7-3"><a href=""></a>    spd <span class="op">=</span> jnp.sqrt(</span>
+<span id="cb7-4"><a href=""></a>        diag_squared_exponential_spectral_density(amplitude, length_scale, l_max, m)</span>
+<span id="cb7-5"><a href=""></a>    )</span>
+<span id="cb7-6"><a href=""></a>    <span class="cf">with</span> numpyro.plate(<span class="st">"basis"</span>, m):</span>
+<span id="cb7-7"><a href=""></a>        beta <span class="op">=</span> numpyro.sample(<span class="st">"beta"</span>, dist.Normal(<span class="dv">0</span>, <span class="dv">1</span>))</span>
+<span id="cb7-8"><a href=""></a>    <span class="cf">return</span> numpyro.deterministic(<span class="st">"f"</span>, phi <span class="op">@</span> (spd <span class="op">*</span> beta))</span>
+<span id="cb7-9"><a href=""></a></span>
+<span id="cb7-10"><a href=""></a></span>
+<span id="cb7-11"><a href=""></a><span class="kw">def</span> hsgp_model(x, l_max, m, y<span class="op">=</span><span class="va">None</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="cb7-12"><a href=""></a>    <span class="co"># --- Priors ---</span></span>
+<span id="cb7-13"><a href=""></a>    kernel_amplitude <span class="op">=</span> numpyro.sample(<span class="st">"kernel_amplitude"</span>, ...)</span>
+<span id="cb7-14"><a href=""></a>    kernel_length_scale <span class="op">=</span> numpyro.sample( <span class="st">"kernel_length_scale"</span>, ...)</span>
+<span id="cb7-15"><a href=""></a>    noise <span class="op">=</span> numpyro.sample( <span class="st">"noise"</span>, ...)</span>
+<span id="cb7-16"><a href=""></a>    <span class="co"># --- Parametrization ---</span></span>
+<span id="cb7-17"><a href=""></a>    f <span class="op">=</span> hs_approx_squared_exponential_ncp(</span>
+<span id="cb7-18"><a href=""></a>        x, kernel_amplitude, kernel_length_scale, l_max, m</span>
+<span id="cb7-19"><a href=""></a>    )</span>
+<span id="cb7-20"><a href=""></a>    <span class="co"># --- Likelihood ---</span></span>
+<span id="cb7-21"><a href=""></a>    <span class="cf">with</span> numpyro.plate(<span class="st">"data"</span>, x.shape[<span class="dv">0</span>]):</span>
+<span id="cb7-22"><a href=""></a>        numpyro.sample(<span class="st">"likelihood"</span>, dist.Normal(loc<span class="op">=</span>f, scale<span class="op">=</span>noise), obs<span class="op">=</span>y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="hsgp-model---posterior" class="slide level2">
+<h2>HSGP Model - Posterior</h2>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_135_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
+<section id="hsgp-model---posterior-predictive" class="slide level2">
+<h2>HSGP Model - Posterior Predictive</h2>
+
+<img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_141_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
 <section id="pymc-implementation" class="slide level2">
 <h2>PyMC Implementation</h2>
 <h3 id="hsgp-class"><a href="https://www.pymc.io/projects/docs/en/stable/api/gp/generated/pymc.gp.HSGP.html"><code>HSGP</code> Class</a></h3>
-<div class="sourceCode" id="cb7" data-code-line-numbers="|13"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> hsgp_pymc_model:</span>
-<span id="cb7-2"><a href=""></a>    x_data <span class="op">=</span> pm.MutableData(<span class="st">"x_data"</span>, value<span class="op">=</span>x_train)</span>
-<span id="cb7-3"><a href=""></a>    y_data <span class="op">=</span> pm.MutableData(<span class="st">"y_data"</span>, y_train_obs)</span>
-<span id="cb7-4"><a href=""></a></span>
-<span id="cb7-5"><a href=""></a>    kernel_amplitude <span class="op">=</span> pm.InverseGamma(<span class="st">"kernel_amplitude"</span>, ...)</span>
-<span id="cb7-6"><a href=""></a>    kernel_length_scale <span class="op">=</span> pm.InverseGamma(<span class="st">"kernel_length_scale"</span>, ...)</span>
-<span id="cb7-7"><a href=""></a>    noise <span class="op">=</span> pm.InverseGamma(<span class="st">"noise"</span>, ...)</span>
-<span id="cb7-8"><a href=""></a></span>
-<span id="cb7-9"><a href=""></a>    mean <span class="op">=</span> pm.gp.mean.Zero()</span>
-<span id="cb7-10"><a href=""></a>    cov <span class="op">=</span> kernel_amplitude<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> pm.gp.cov.ExpQuad(</span>
-<span id="cb7-11"><a href=""></a>        input_dim<span class="op">=</span><span class="dv">1</span>, ls<span class="op">=</span>kernel_length_scale</span>
-<span id="cb7-12"><a href=""></a>    )</span>
-<span id="cb7-13"><a href=""></a>    gp <span class="op">=</span> pm.gp.HSGP(m<span class="op">=</span>[<span class="dv">20</span>], L<span class="op">=</span>[<span class="fl">1.3</span>], mean_func<span class="op">=</span>mean, cov_func<span class="op">=</span>cov)</span>
-<span id="cb7-14"><a href=""></a>    f <span class="op">=</span> gp.prior(<span class="st">"f"</span>, X<span class="op">=</span>x_data[:, <span class="va">None</span>])</span>
-<span id="cb7-15"><a href=""></a></span>
-<span id="cb7-16"><a href=""></a>    pm.Normal(<span class="st">"likelihood"</span>, mu<span class="op">=</span>f, sigma<span class="op">=</span>noise, observed<span class="op">=</span>y_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb8" data-code-line-numbers="|13"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> hsgp_pymc_model:</span>
+<span id="cb8-2"><a href=""></a>    x_data <span class="op">=</span> pm.MutableData(<span class="st">"x_data"</span>, value<span class="op">=</span>x_train)</span>
+<span id="cb8-3"><a href=""></a>    y_data <span class="op">=</span> pm.MutableData(<span class="st">"y_data"</span>, y_train_obs)</span>
+<span id="cb8-4"><a href=""></a></span>
+<span id="cb8-5"><a href=""></a>    kernel_amplitude <span class="op">=</span> pm.InverseGamma(<span class="st">"kernel_amplitude"</span>, ...)</span>
+<span id="cb8-6"><a href=""></a>    kernel_length_scale <span class="op">=</span> pm.InverseGamma(<span class="st">"kernel_length_scale"</span>, ...)</span>
+<span id="cb8-7"><a href=""></a>    noise <span class="op">=</span> pm.InverseGamma(<span class="st">"noise"</span>, ...)</span>
+<span id="cb8-8"><a href=""></a></span>
+<span id="cb8-9"><a href=""></a>    mean <span class="op">=</span> pm.gp.mean.Zero()</span>
+<span id="cb8-10"><a href=""></a>    cov <span class="op">=</span> kernel_amplitude<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> pm.gp.cov.ExpQuad(</span>
+<span id="cb8-11"><a href=""></a>        input_dim<span class="op">=</span><span class="dv">1</span>, ls<span class="op">=</span>kernel_length_scale</span>
+<span id="cb8-12"><a href=""></a>    )</span>
+<span id="cb8-13"><a href=""></a>    gp <span class="op">=</span> pm.gp.HSGP(m<span class="op">=</span>[<span class="dv">20</span>], L<span class="op">=</span>[<span class="fl">1.3</span>], mean_func<span class="op">=</span>mean, cov_func<span class="op">=</span>cov)</span>
+<span id="cb8-14"><a href=""></a>    f <span class="op">=</span> gp.prior(<span class="st">"f"</span>, X<span class="op">=</span>x_data[:, <span class="va">None</span>])</span>
+<span id="cb8-15"><a href=""></a></span>
+<span id="cb8-16"><a href=""></a>    pm.Normal(<span class="st">"likelihood"</span>, mu<span class="op">=</span>f, sigma<span class="op">=</span>noise, observed<span class="op">=</span>y_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="out-of-sample-predictions-1" class="slide level2">
 <h2>Out-of-Sample Predictions</h2>
 <h3 id="conditional-method-1"><code>conditional</code> method</h3>
-<div class="sourceCode" id="cb8" data-code-line-numbers="|3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href=""></a><span class="cf">with</span> hsgp_pymc_model:</span>
-<span id="cb8-2"><a href=""></a>    x_star_data <span class="op">=</span> pm.MutableData(<span class="st">"x_star_data"</span>, x_test)</span>
-<span id="cb8-3"><a href=""></a>    f_star <span class="op">=</span> gp.conditional(<span class="st">"f_star"</span>, x_star_data[:, <span class="va">None</span>])</span>
-<span id="cb8-4"><a href=""></a>    pm.set_data({<span class="st">"x_data"</span>: x_test, <span class="st">"y_data"</span>: np.ones_like(x_test)})</span>
-<span id="cb8-5"><a href=""></a>    hsgp_pymc_idata.extend(</span>
-<span id="cb8-6"><a href=""></a>        pm.sample_posterior_predictive(</span>
-<span id="cb8-7"><a href=""></a>            trace<span class="op">=</span>hsgp_pymc_idata,</span>
-<span id="cb8-8"><a href=""></a>            var_names<span class="op">=</span>[<span class="st">"f_star"</span>, <span class="st">"likelihood"</span>],</span>
-<span id="cb8-9"><a href=""></a>            random_seed<span class="op">=</span>rng_subkey[<span class="dv">1</span>].item(),</span>
-<span id="cb8-10"><a href=""></a>        )</span>
-<span id="cb8-11"><a href=""></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb9" data-code-line-numbers="|3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href=""></a><span class="cf">with</span> hsgp_pymc_model:</span>
+<span id="cb9-2"><a href=""></a>    x_star_data <span class="op">=</span> pm.MutableData(<span class="st">"x_star_data"</span>, x_test)</span>
+<span id="cb9-3"><a href=""></a>    f_star <span class="op">=</span> gp.conditional(<span class="st">"f_star"</span>, x_star_data[:, <span class="va">None</span>])</span>
+<span id="cb9-4"><a href=""></a>    pm.set_data({<span class="st">"x_data"</span>: x_test, <span class="st">"y_data"</span>: np.ones_like(x_test)})</span>
+<span id="cb9-5"><a href=""></a>    hsgp_pymc_idata.extend(</span>
+<span id="cb9-6"><a href=""></a>        pm.sample_posterior_predictive(</span>
+<span id="cb9-7"><a href=""></a>            trace<span class="op">=</span>hsgp_pymc_idata,</span>
+<span id="cb9-8"><a href=""></a>            var_names<span class="op">=</span>[<span class="st">"f_star"</span>, <span class="st">"likelihood"</span>],</span>
+<span id="cb9-9"><a href=""></a>            random_seed<span class="op">=</span>rng_subkey[<span class="dv">1</span>].item(),</span>
+<span id="cb9-10"><a href=""></a>        )</span>
+<span id="cb9-11"><a href=""></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
-<section id="hsgp-model---posterior-predictive" class="slide level2">
+<section id="hsgp-model---posterior-predictive-1" class="slide level2">
 <h2>HSGP Model - Posterior Predictive</h2>
 
 <img data-src="hsgp_intro_files/static/hsgp_intro_files/hsgp_intro_155_0.png" class="quarto-figure quarto-figure-center r-stretch" width="950"></section>
 <section id="pymc-implementation-1" class="slide level2">
 <h2>PyMC Implementation</h2>
 <h3 id="hsgp.prior_linearized"><a href="https://www.pymc.io/projects/docs/en/stable/api/gp/generated/classmethods/pymc.gp.HSGP.prior_linearized.html#pymc.gp.HSGP.prior_linearized"><code>HSGP.prior_linearized</code></a></h3>
-<div class="sourceCode" id="cb9" data-code-line-numbers="|11|12|14-15"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> hsgp_linearized_pymc_model:</span>
-<span id="cb9-2"><a href=""></a>    x_data <span class="op">=</span> pm.MutableData(<span class="st">"x_data"</span>, value<span class="op">=</span>x_train)</span>
-<span id="cb9-3"><a href=""></a>    y_data <span class="op">=</span> pm.MutableData(<span class="st">"y_data"</span>, y_train_obs)</span>
-<span id="cb9-4"><a href=""></a></span>
-<span id="cb9-5"><a href=""></a>    kernel_amplitude <span class="op">=</span> pm.InverseGamma(<span class="st">"kernel_amplitude"</span>, ...)</span>
-<span id="cb9-6"><a href=""></a>    kernel_length_scale <span class="op">=</span> pm.InverseGamma(<span class="st">"kernel_length_scale"</span>, ...)</span>
-<span id="cb9-7"><a href=""></a>    noise <span class="op">=</span> pm.InverseGamma(<span class="st">"noise"</span>, ...)</span>
-<span id="cb9-8"><a href=""></a></span>
-<span id="cb9-9"><a href=""></a>    mean <span class="op">=</span> pm.gp.mean.Zero()</span>
-<span id="cb9-10"><a href=""></a>    cov <span class="op">=</span> kernel_amplitude<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> pm.gp.cov.ExpQuad(input_dim<span class="op">=</span><span class="dv">1</span>, ls<span class="op">=</span>kernel_length_scale)</span>
-<span id="cb9-11"><a href=""></a>    gp <span class="op">=</span> pm.gp.HSGP(m<span class="op">=</span>[<span class="dv">20</span>], L<span class="op">=</span>[<span class="fl">1.3</span>], mean_func<span class="op">=</span>mean, cov_func<span class="op">=</span>cov)</span>
-<span id="cb9-12"><a href=""></a>    phi, sqrt_psd <span class="op">=</span> gp.prior_linearized(Xs<span class="op">=</span>x_data_centered[:, <span class="va">None</span>])</span>
-<span id="cb9-13"><a href=""></a></span>
-<span id="cb9-14"><a href=""></a>    beta <span class="op">=</span> pm.Normal(<span class="st">"beta"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>, size<span class="op">=</span>gp._m_star)</span>
-<span id="cb9-15"><a href=""></a>    f <span class="op">=</span> pm.Deterministic(<span class="st">"f"</span>, phi <span class="op">@</span> (beta <span class="op">*</span> sqrt_psd))</span>
-<span id="cb9-16"><a href=""></a></span>
-<span id="cb9-17"><a href=""></a>    pm.Normal(<span class="st">"likelihood"</span>, mu<span class="op">=</span>f, sigma<span class="op">=</span>noise, observed<span class="op">=</span>y_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb10" data-code-line-numbers="|11|12|14-15"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> hsgp_linearized_pymc_model:</span>
+<span id="cb10-2"><a href=""></a>    x_data <span class="op">=</span> pm.MutableData(<span class="st">"x_data"</span>, value<span class="op">=</span>x_train)</span>
+<span id="cb10-3"><a href=""></a>    y_data <span class="op">=</span> pm.MutableData(<span class="st">"y_data"</span>, y_train_obs)</span>
+<span id="cb10-4"><a href=""></a></span>
+<span id="cb10-5"><a href=""></a>    kernel_amplitude <span class="op">=</span> pm.InverseGamma(<span class="st">"kernel_amplitude"</span>, ...)</span>
+<span id="cb10-6"><a href=""></a>    kernel_length_scale <span class="op">=</span> pm.InverseGamma(<span class="st">"kernel_length_scale"</span>, ...)</span>
+<span id="cb10-7"><a href=""></a>    noise <span class="op">=</span> pm.InverseGamma(<span class="st">"noise"</span>, ...)</span>
+<span id="cb10-8"><a href=""></a></span>
+<span id="cb10-9"><a href=""></a>    mean <span class="op">=</span> pm.gp.mean.Zero()</span>
+<span id="cb10-10"><a href=""></a>    cov <span class="op">=</span> kernel_amplitude<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> pm.gp.cov.ExpQuad(input_dim<span class="op">=</span><span class="dv">1</span>, ls<span class="op">=</span>kernel_length_scale)</span>
+<span id="cb10-11"><a href=""></a>    gp <span class="op">=</span> pm.gp.HSGP(m<span class="op">=</span>[<span class="dv">20</span>], L<span class="op">=</span>[<span class="fl">1.3</span>], mean_func<span class="op">=</span>mean, cov_func<span class="op">=</span>cov)</span>
+<span id="cb10-12"><a href=""></a>    phi, sqrt_psd <span class="op">=</span> gp.prior_linearized(Xs<span class="op">=</span>x_data_centered[:, <span class="va">None</span>])</span>
+<span id="cb10-13"><a href=""></a></span>
+<span id="cb10-14"><a href=""></a>    beta <span class="op">=</span> pm.Normal(<span class="st">"beta"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>, size<span class="op">=</span>gp._m_star)</span>
+<span id="cb10-15"><a href=""></a>    f <span class="op">=</span> pm.Deterministic(<span class="st">"f"</span>, phi <span class="op">@</span> (beta <span class="op">*</span> sqrt_psd))</span>
+<span id="cb10-16"><a href=""></a></span>
+<span id="cb10-17"><a href=""></a>    pm.Normal(<span class="st">"likelihood"</span>, mu<span class="op">=</span>f, sigma<span class="op">=</span>noise, observed<span class="op">=</span>y_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="out-of-sample-predictions-2" class="slide level2">
 <h2>Out-of-Sample Predictions</h2>
 <h3 id="pm.set_data-method"><code>pm.set_data</code> method</h3>
-<div class="sourceCode" id="cb10" data-code-line-numbers="|2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href=""></a><span class="cf">with</span> hsgp_pymc_model:</span>
-<span id="cb10-2"><a href=""></a>    pm.set_data({<span class="st">"x_data"</span>: x_test, <span class="st">"y_data"</span>: np.ones_like(x_test)})</span>
-<span id="cb10-3"><a href=""></a>    hsgp_linearized_pymc_idata.extend(</span>
-<span id="cb10-4"><a href=""></a>        pm.sample_posterior_predictive(</span>
-<span id="cb10-5"><a href=""></a>            trace<span class="op">=</span>hsgp_pymc_idata,</span>
-<span id="cb10-6"><a href=""></a>            var_names<span class="op">=</span>[</span>
-<span id="cb10-7"><a href=""></a>                <span class="st">"f"</span>,</span>
-<span id="cb10-8"><a href=""></a>                <span class="st">"likelihood"</span>,</span>
-<span id="cb10-9"><a href=""></a>            ],</span>
-<span id="cb10-10"><a href=""></a>            random_seed<span class="op">=</span>rng_subkey[<span class="dv">1</span>].item(),</span>
-<span id="cb10-11"><a href=""></a>        )</span>
-<span id="cb10-12"><a href=""></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb11" data-code-line-numbers="|2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href=""></a><span class="cf">with</span> hsgp_pymc_model:</span>
+<span id="cb11-2"><a href=""></a>    pm.set_data({<span class="st">"x_data"</span>: x_test, <span class="st">"y_data"</span>: np.ones_like(x_test)})</span>
+<span id="cb11-3"><a href=""></a>    hsgp_linearized_pymc_idata.extend(</span>
+<span id="cb11-4"><a href=""></a>        pm.sample_posterior_predictive(</span>
+<span id="cb11-5"><a href=""></a>            trace<span class="op">=</span>hsgp_pymc_idata,</span>
+<span id="cb11-6"><a href=""></a>            var_names<span class="op">=</span>[</span>
+<span id="cb11-7"><a href=""></a>                <span class="st">"f"</span>,</span>
+<span id="cb11-8"><a href=""></a>                <span class="st">"likelihood"</span>,</span>
+<span id="cb11-9"><a href=""></a>            ],</span>
+<span id="cb11-10"><a href=""></a>            random_seed<span class="op">=</span>rng_subkey[<span class="dv">1</span>].item(),</span>
+<span id="cb11-11"><a href=""></a>        )</span>
+<span id="cb11-12"><a href=""></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="references" class="slide level2 smaller">
 <h2>References</h2>
