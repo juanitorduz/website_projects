@@ -686,7 +686,7 @@ $$
 We can construct powers of $-\nabla^2$ as
 
 $$
-(- \nabla^2)^{s} f(x) = \int_{\Omega} \color{red}{\overbrace{\left[\sum_{j} \lambda_{j}^{s} \phi_{j}(x) \phi_{j}(x')\right]}^{l^s(x, x')}} f(x') dx'.
+(- \nabla^2)^{s} f(x) = \int_{\Omega} {\color{red}{\overbrace{\left[\sum_{j} \lambda_{j}^{s} \phi_{j}(x) \phi_{j}(x')\right]}^{l^s(x, x')}}} f(x') dx'.
 $$
 
 ## HSGP: Coefficients Identification
@@ -705,7 +705,7 @@ This implies we can approximate the kernel as
 $$
 \begin{align*}
 k(x, x') \approx & \: a_{0} + a_{1} l(x, x') + a_{2} l^{2}(x, x') + \cdots \\
-\approx & \sum_{j} \color{red}{\underbrace{\left[ a_{0} + a_{1} \lambda_{j} + a_{2} \lambda_{j}^2 + \cdots \right]}_{S(\sqrt{\lambda_{j}})}} \phi_{j}(x) \phi_{j}(x')
+\approx & \sum_{j} {\color{red}{\underbrace{\left[ a_{0} + a_{1} \lambda_{j} + a_{2} \lambda_{j}^2 + \cdots \right]}_{S(\sqrt{\lambda_{j}})}}} \phi_{j}(x) \phi_{j}(x')
 \end{align*}
 $$
 

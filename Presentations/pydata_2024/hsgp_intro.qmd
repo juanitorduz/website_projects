@@ -288,24 +288,37 @@ flowchart TD
   identify_coefficients --> approximation["Approximation Formula"]
 ```
 
-## Hilbert Space Approximation {.smaller}
+## Hilbert Space Approximation - Steps {.smaller}
 
-### Approximation Strategy Steps
+::: {.callout-tip appearance="minimal"}
 
 ::: incremental
 
-0. D-Tour: Eigenvalues and Eigenvectors
-1. We recall the spectral density $S(\omega)$ associated with a stationary kernel function $k$.
-2. We approximate the spectral density $S(\omega)$ as a polynomial series in $||\omega||^2$.
-3. We can interpret these polynomial terms as powers of the Laplacian operator. The key observation is that the Fourier
-transform of the Laplacian operator is $||\omega||^2$.
-4. Next, we impose Dirichlet boundary conditions on the Laplacian operator which makes it self-adjoint and with
+0. D-Tour: **Eigenvalues and Eigenvector.s**
+1. We recall the **spectral density** $S(\omega)$ associated with a stationary kernel function $k$.
+2. We approximate the spectral density $S(\omega)$ as a **polynomial series** in $||\omega||^2$.
+3. We can interpret these polynomial terms as powers of the **Laplacian operator**. The key observation is that the **Fourier
+transform** of the Laplacian operator is $||\omega||^2$.
+4. Next, we impose **Dirichlet boundary conditions** on the Laplacian operator which makes it self-adjoint and with
 a discrete spectrum.
 5. We identify the expansion in (2) with the sum of powers of the Laplacian operator in the eigenbasis of (4).
 6. We arrive at the final approximation formula and explicitly compute the terms for the squared exponential kernel in
 the one-dimensional case.
 
 :::
+
+:::
+
+$$
+f(x) \approx \sum_{j = 1}^{m} 
+\overbrace{\underbrace{\color{red}{\left(S(\sqrt{\lambda_j})\right)^{1/2}}}_{\text{All hyperparameters are here!}}}^{\text{Spectral density evaluated at the eigenvalues}}
+\times
+\overbrace{\underbrace{\color{blue}{\phi_{j}(x)}}_{\text{Easy to compute!}}}^{\text{Laplacian Eigenfunctions}}
+\times
+\overbrace{\color{green}{\beta_{j}}}^{\sim \: \text{Normal}(0,1)}
+$$
+
+
 
 ## Eigenvalues and Eigenvectors
 
@@ -588,7 +601,7 @@ $$
 
 ::: incremental
 
-- It is is a **self-adjoint** operator defined on the Hilbert space $L^{2}(\Omega)$ equipped with the Lebesgue measure. That is,
+- It is is a **self-adjoint** operator defined on the **Hilbert space** $L^{2}(\Omega)$ equipped with the Lebesgue measure. That is,
 
   $$
   \int_{\Omega} {\color{purple}{(-\nabla^2 f(x))}} g(x) dx = \int_{\Omega} f(x) {\color{purple}{(-\nabla^2 g(x))}} dx
@@ -646,16 +659,14 @@ $$
 We can construct powers of $-\nabla^2$ as
 
 $$
-(- \nabla^2)^{s} f(x) = \int_{\Omega} \color{red}{\overbrace{\left[\sum_{j} \lambda_{j}^{s} \phi_{j}(x) \phi_{j}(x')\right]}^{l^s(x, x')}} f(x') dx'.
+(- \nabla^2)^{s} f(x) = \int_{\Omega} {\color{red}{\overbrace{\left[\sum_{j} \lambda_{j}^{s} \phi_{j}(x) \phi_{j}(x')\right]}^{l^s(x, x')}}} f(x') dx'.
 $$
 
 ## HSGP: Coefficients Identification
 
-Use the formal expansion of $\mathcal{K}$ in terms of powers of $\nabla^2$:
-
 $$
 \begin{align*}
-& \left[ a_{0} + a_{1}(-\nabla^2) + a_{2}(-\nabla^2)^2 + \cdots \right]f(x) = \\
+& \overbrace{\left[ a_{0} + a_{1}(-\nabla^2) + a_{2}(-\nabla^2)^2 + \cdots \right]}^{\mathbfcal{K}}f(x) = \\
 &\int_{\Omega} \left[a_{0} + a_{1} l(x, x') + a_{2} l^{2}(x, x') + \cdots \right] f(x') dx'
 \end{align*}
 $$
@@ -665,7 +676,7 @@ This implies we can approximate the kernel as
 $$
 \begin{align*}
 k(x, x') \approx & \: a_{0} + a_{1} l(x, x') + a_{2} l^{2}(x, x') + \cdots \\
-\approx & \sum_{j} \color{red}{\underbrace{\left[ a_{0} + a_{1} \lambda_{j} + a_{2} \lambda_{j}^2 + \cdots \right]}_{S(\sqrt{\lambda_{j}})}} \phi_{j}(x) \phi_{j}(x')
+\approx & \sum_{j} {\color{red}{\underbrace{\left[ a_{0} + a_{1} \lambda_{j} + a_{2} \lambda_{j}^2 + \cdots \right]}_{S(\sqrt{\lambda_{j}})}}} \phi_{j}(x) \phi_{j}(x')
 \end{align*}
 $$
 

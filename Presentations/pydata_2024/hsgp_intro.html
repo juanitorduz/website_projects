@@ -676,20 +676,33 @@ flowchart TD
 </div>
 </div>
 </section>
-<section id="hilbert-space-approximation-1" class="slide level2 smaller">
-<h2>Hilbert Space Approximation</h2>
-<h3 id="approximation-strategy-steps">Approximation Strategy Steps</h3>
+<section id="hilbert-space-approximation---steps" class="slide level2 smaller">
+<h2>Hilbert Space Approximation - Steps</h2>
+<div class="callout callout-tip no-icon callout-style-simple">
+<div class="callout-body">
+<div class="callout-content">
 <div>
 <ol start="0" type="1">
-<li class="fragment">D-Tour: Eigenvalues and Eigenvectors</li>
-<li class="fragment">We recall the spectral density <span class="math inline">\(S(\omega)\)</span> associated with a stationary kernel function <span class="math inline">\(k\)</span>.</li>
-<li class="fragment">We approximate the spectral density <span class="math inline">\(S(\omega)\)</span> as a polynomial series in <span class="math inline">\(||\omega||^2\)</span>.</li>
-<li class="fragment">We can interpret these polynomial terms as powers of the Laplacian operator. The key observation is that the Fourier transform of the Laplacian operator is <span class="math inline">\(||\omega||^2\)</span>.</li>
-<li class="fragment">Next, we impose Dirichlet boundary conditions on the Laplacian operator which makes it self-adjoint and with a discrete spectrum.</li>
+<li class="fragment">D-Tour: <strong>Eigenvalues and Eigenvector.s</strong></li>
+<li class="fragment">We recall the <strong>spectral density</strong> <span class="math inline">\(S(\omega)\)</span> associated with a stationary kernel function <span class="math inline">\(k\)</span>.</li>
+<li class="fragment">We approximate the spectral density <span class="math inline">\(S(\omega)\)</span> as a <strong>polynomial series</strong> in <span class="math inline">\(||\omega||^2\)</span>.</li>
+<li class="fragment">We can interpret these polynomial terms as powers of the <strong>Laplacian operator</strong>. The key observation is that the <strong>Fourier transform</strong> of the Laplacian operator is <span class="math inline">\(||\omega||^2\)</span>.</li>
+<li class="fragment">Next, we impose <strong>Dirichlet boundary conditions</strong> on the Laplacian operator which makes it self-adjoint and with a discrete spectrum.</li>
 <li class="fragment">We identify the expansion in (2) with the sum of powers of the Laplacian operator in the eigenbasis of (4).</li>
 <li class="fragment">We arrive at the final approximation formula and explicitly compute the terms for the squared exponential kernel in the one-dimensional case.</li>
 </ol>
 </div>
+</div>
+</div>
+</div>
+<p><span class="math display">\[
+f(x) \approx \sum_{j = 1}^{m}
+\overbrace{\underbrace{\color{red}{\left(S(\sqrt{\lambda_j})\right)^{1/2}}}_{\text{All hyperparameters are here!}}}^{\text{Spectral density evaluated at the eigenvalues}}
+\times
+\overbrace{\underbrace{\color{blue}{\phi_{j}(x)}}_{\text{Easy to compute!}}}^{\text{Laplacian Eigenfunctions}}
+\times
+\overbrace{\color{green}{\beta_{j}}}^{\sim \: \text{Normal}(0,1)}
+\]</span></p>
 </section>
 <section id="eigenvalues-and-eigenvectors" class="slide level2">
 <h2>Eigenvalues and Eigenvectors</h2>
@@ -975,7 +988,7 @@ S(\omega) = a^2(2 \pi \ell^2)^{d/2} \exp\left(-2\pi^2\ell^2\omega^2\right)
 <p><a href="https://en.wikipedia.org/wiki/Dirichlet_eigenvalue">Dirichlet boundary conditions</a>: Only consider function vanishes on the boundary of the domain <span class="math inline">\(\Omega\)</span>.</p>
 <div>
 <ul>
-<li class="fragment"><p>It is is a <strong>self-adjoint</strong> operator defined on the Hilbert space <span class="math inline">\(L^{2}(\Omega)\)</span> equipped with the Lebesgue measure. That is,</p>
+<li class="fragment"><p>It is is a <strong>self-adjoint</strong> operator defined on the <strong>Hilbert space</strong> <span class="math inline">\(L^{2}(\Omega)\)</span> equipped with the Lebesgue measure. That is,</p>
 <p><span class="math display">\[
 \int_{\Omega} {\color{purple}{(-\nabla^2 f(x))}} g(x) dx = \int_{\Omega} f(x) {\color{purple}{(-\nabla^2 g(x))}} dx
 \]</span></p></li>
@@ -1032,15 +1045,14 @@ S(\omega) = a^2(2 \pi \ell^2)^{d/2} \exp\left(-2\pi^2\ell^2\omega^2\right)
 \]</span></p>
 <p>We can construct powers of <span class="math inline">\(-\nabla^2\)</span> as</p>
 <p><span class="math display">\[
-(- \nabla^2)^{s} f(x) = \int_{\Omega} \color{red}{\overbrace{\left[\sum_{j} \lambda_{j}^{s} \phi_{j}(x) \phi_{j}(x')\right]}^{l^s(x, x')}} f(x') dx'.
+(- \nabla^2)^{s} f(x) = \int_{\Omega} {\color{red}{\overbrace{\left[\sum_{j} \lambda_{j}^{s} \phi_{j}(x) \phi_{j}(x')\right]}^{l^s(x, x')}}} f(x') dx'.
 \]</span></p>
 </section>
 <section id="hsgp-coefficients-identification" class="slide level2">
 <h2>HSGP: Coefficients Identification</h2>
-<p>Use the formal expansion of <span class="math inline">\(\mathcal{K}\)</span> in terms of powers of <span class="math inline">\(\nabla^2\)</span>:</p>
 <p><span class="math display">\[
 \begin{align*}
-&amp; \left[ a_{0} + a_{1}(-\nabla^2) + a_{2}(-\nabla^2)^2 + \cdots \right]f(x) = \\
+&amp; \overbrace{\left[ a_{0} + a_{1}(-\nabla^2) + a_{2}(-\nabla^2)^2 + \cdots \right]}^{\mathbfcal{K}}f(x) = \\
 &amp;\int_{\Omega} \left[a_{0} + a_{1} l(x, x') + a_{2} l^{2}(x, x') + \cdots \right] f(x') dx'
 \end{align*}
 \]</span></p>
@@ -1048,7 +1060,7 @@ S(\omega) = a^2(2 \pi \ell^2)^{d/2} \exp\left(-2\pi^2\ell^2\omega^2\right)
 <p><span class="math display">\[
 \begin{align*}
 k(x, x') \approx &amp; \: a_{0} + a_{1} l(x, x') + a_{2} l^{2}(x, x') + \cdots \\
-\approx &amp; \sum_{j} \color{red}{\underbrace{\left[ a_{0} + a_{1} \lambda_{j} + a_{2} \lambda_{j}^2 + \cdots \right]}_{S(\sqrt{\lambda_{j}})}} \phi_{j}(x) \phi_{j}(x')
+\approx &amp; \sum_{j} {\color{red}{\underbrace{\left[ a_{0} + a_{1} \lambda_{j} + a_{2} \lambda_{j}^2 + \cdots \right]}_{S(\sqrt{\lambda_{j}})}}} \phi_{j}(x) \phi_{j}(x')
 \end{align*}
 \]</span></p>
 </section>
