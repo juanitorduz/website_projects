@@ -276,8 +276,8 @@ with gp_pymc_model:
 %%| fig-align: "center"
 %%{init: {"theme": "white", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels": false}}}%%
 flowchart TD
-  kernel["kernel"] --> spectral_sensity["Spectral Density"]
-  spectral_sensity --> polynomial["Polynomial Expansion"]
+  kernel["kernel"] --> spectral_density["Spectral Density"]
+  spectral_density --> polynomial["Polynomial Expansion"]
   laplacian["Laplacian"] --> fourier["Fourier Transform"]
   laplacian --> dirichlet["Dirichlet's BC"]
   dirichlet --> spectral_decomposition["Spectral Decomposition"]
@@ -286,6 +286,12 @@ flowchart TD
   fourier --> identify_coefficients
   functional --> identify_coefficients
   identify_coefficients --> approximation["Approximation Formula"]
+
+style kernel fill:#2a2eec80
+style laplacian fill:#fa7c1780
+style approximation fill:#328c0680
+style fourier fill:#c10c9080
+style spectral_decomposition fill:#65e5f380
 ```
 
 ## Hilbert Space Approximation - Steps {.smaller}
@@ -294,7 +300,7 @@ flowchart TD
 
 ::: incremental
 
-0. D-Tour: **Eigenvalues and Eigenvector.s**
+0. D-Tour: **Eigenvalues and Eigenvectors.**
 1. We recall the **spectral density** $S(\omega)$ associated with a stationary kernel function $k$.
 2. We approximate the spectral density $S(\omega)$ as a **polynomial series** in $||\omega||^2$.
 3. We can interpret these polynomial terms as powers of the **Laplacian operator**. The key observation is that the **Fourier
@@ -480,18 +486,19 @@ $$
 ## Spectral Densities
 
 In the case a kernel function is **stationary**, we can use the spectral representation of the kernel
-function ([Bochner’s theorem](https://en.wikipedia.org/wiki/Bochner%27s_theorem)):
+function ([Bochner’s theorem](https://en.wikipedia.org/wiki/Bochner%27s_theorem)) and write it as:
 
 $$
-k(r) = \frac{1}{(2 \pi)^{d}}\int_{\mathbb{R}^{d}} e^{i \omega^{T} r} d\mu(\omega)
+k(r) = \frac{1}{(2 \pi)^{d}}\int_{\mathbb{R}^{d}} e^{i \omega^{T} r} {\color{red}{S(\omega)}} d\omega
 $$
 
-where $\mu$ is a positive measure. If this measure has a density, it is called the **spectral density** $S(\omega)$ corresponding to the covariance function, i.e. $d\mu(\omega) = S(\omega) d\omega$.
+where $\color{red}{S(\omega)}$ is the  **spectral density** corresponding to the covariance function.
 
 ::: footer
 
 [Gaussian Processes for Machine Learning - Chapter 4: Covariance Functions](https://gaussianprocess.org/gpml/chapters/RW4.pdf).
 
+(Here we are assuming the positive measure from Bochner's theorem has a density, i.e. $d\mu(\omega) = S(\omega)d\omega$)
 :::
 
 ## Spectral Density - Example
@@ -709,15 +716,11 @@ f(x) \approx \sum_{j = 1}^{m}
 \overbrace{\color{green}{\beta_{j}}}^{\sim \: \text{Normal}(0,1)}
 $$
 
-::: {.callout-note}
+::: {.callout-tip title="Key Observations"} 
 
-The only dependence on the hyperparameters is through the spectral density.
+- The only dependence on the hyperparameters is through the spectral density.
 
-:::
-
-::: {.callout-tip title="Computational Cost"}
-
-The computational cost of evaluating the log posterior density of univariate HSGPs scales as $\mathcal{O}(nm + m)$.
+- The computational cost of evaluating the log posterior density of univariate HSGPs scales as $\mathcal{O}(nm + m)$.
 
 :::
 
@@ -738,10 +741,10 @@ $$
 %%| fig-height: 2
 %%| fig-width: 10
 %%| fig-align: "center"
-%%{init: {"theme": "white", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels":false}}}%%
+%%{init: {"theme": "white", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels": false}}}%%
 flowchart TD
-  kernel["kernel"] --> spectral_sensity["Spectral Density"]
-  spectral_sensity --> polynomial["Polynomial Expansion"]
+  kernel["kernel"] --> spectral_density["Spectral Density"]
+  spectral_density --> polynomial["Polynomial Expansion"]
   laplacian["Laplacian"] --> fourier["Fourier Transform"]
   laplacian --> dirichlet["Dirichlet's BC"]
   dirichlet --> spectral_decomposition["Spectral Decomposition"]
@@ -750,7 +753,14 @@ flowchart TD
   fourier --> identify_coefficients
   functional --> identify_coefficients
   identify_coefficients --> approximation["Approximation Formula"]
+
+style kernel fill:#2a2eec80
+style laplacian fill:#fa7c1780
+style approximation fill:#328c0680
+style fourier fill:#c10c9080
+style spectral_decomposition fill:#65e5f380
 ```
+
 
 ## Prior Predictive
 

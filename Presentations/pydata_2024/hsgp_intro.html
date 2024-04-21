@@ -659,8 +659,8 @@ f_*|X, y, X_*
 <div>
 <pre class="mermaid mermaid-js">%%{init: {"theme": "white", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels": false}}}%%
 flowchart TD
-  kernel["kernel"] --&gt; spectral_sensity["Spectral Density"]
-  spectral_sensity --&gt; polynomial["Polynomial Expansion"]
+  kernel["kernel"] --&gt; spectral_density["Spectral Density"]
+  spectral_density --&gt; polynomial["Polynomial Expansion"]
   laplacian["Laplacian"] --&gt; fourier["Fourier Transform"]
   laplacian --&gt; dirichlet["Dirichlet's BC"]
   dirichlet --&gt; spectral_decomposition["Spectral Decomposition"]
@@ -669,6 +669,12 @@ flowchart TD
   fourier --&gt; identify_coefficients
   functional --&gt; identify_coefficients
   identify_coefficients --&gt; approximation["Approximation Formula"]
+
+style kernel fill:#2a2eec80
+style laplacian fill:#fa7c1780
+style approximation fill:#328c0680
+style fourier fill:#c10c9080
+style spectral_decomposition fill:#65e5f380
 </pre>
 </div>
 <p></p></figure><p></p>
@@ -683,7 +689,7 @@ flowchart TD
 <div class="callout-content">
 <div>
 <ol start="0" type="1">
-<li class="fragment">D-Tour: <strong>Eigenvalues and Eigenvector.s</strong></li>
+<li class="fragment">D-Tour: <strong>Eigenvalues and Eigenvectors.</strong></li>
 <li class="fragment">We recall the <strong>spectral density</strong> <span class="math inline">\(S(\omega)\)</span> associated with a stationary kernel function <span class="math inline">\(k\)</span>.</li>
 <li class="fragment">We approximate the spectral density <span class="math inline">\(S(\omega)\)</span> as a <strong>polynomial series</strong> in <span class="math inline">\(||\omega||^2\)</span>.</li>
 <li class="fragment">We can interpret these polynomial terms as powers of the <strong>Laplacian operator</strong>. The key observation is that the <strong>Fourier transform</strong> of the Laplacian operator is <span class="math inline">\(||\omega||^2\)</span>.</li>
@@ -871,13 +877,14 @@ f(A) = \sum_{j=1}^{2} \color{red}{f(\lambda_j)} \color{blue}{v_j v_j^{T}}
 </section>
 <section id="spectral-densities" class="slide level2">
 <h2>Spectral Densities</h2>
-<p>In the case a kernel function is <strong>stationary</strong>, we can use the spectral representation of the kernel function (<a href="https://en.wikipedia.org/wiki/Bochner%27s_theorem">Bochner’s theorem</a>):</p>
+<p>In the case a kernel function is <strong>stationary</strong>, we can use the spectral representation of the kernel function (<a href="https://en.wikipedia.org/wiki/Bochner%27s_theorem">Bochner’s theorem</a>) and write it as:</p>
 <p><span class="math display">\[
-k(r) = \frac{1}{(2 \pi)^{d}}\int_{\mathbb{R}^{d}} e^{i \omega^{T} r} d\mu(\omega)
+k(r) = \frac{1}{(2 \pi)^{d}}\int_{\mathbb{R}^{d}} e^{i \omega^{T} r} {\color{red}{S(\omega)}} d\omega
 \]</span></p>
-<p>where <span class="math inline">\(\mu\)</span> is a positive measure. If this measure has a density, it is called the <strong>spectral density</strong> <span class="math inline">\(S(\omega)\)</span> corresponding to the covariance function, i.e.&nbsp;<span class="math inline">\(d\mu(\omega) = S(\omega) d\omega\)</span>.</p>
+<p>where <span class="math inline">\(\color{red}{S(\omega)}\)</span> is the <strong>spectral density</strong> corresponding to the covariance function.</p>
 <div class="footer">
 <p><a href="https://gaussianprocess.org/gpml/chapters/RW4.pdf">Gaussian Processes for Machine Learning - Chapter 4: Covariance Functions</a>.</p>
+<p>(Here we are assuming the positive measure from Bochner’s theorem has a density, i.e.&nbsp;<span class="math inline">\(d\mu(\omega) = S(\omega)d\omega\)</span>)</p>
 </div>
 </section>
 <section id="spectral-density---example" class="slide level2">
@@ -1088,30 +1095,20 @@ f(x) \approx \sum_{j = 1}^{m}
 \times
 \overbrace{\color{green}{\beta_{j}}}^{\sim \: \text{Normal}(0,1)}
 \]</span></p>
-<div class="callout callout-note callout-titled callout-style-default">
-<div class="callout-body">
-<div class="callout-title">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<p><strong>Note</strong></p>
-</div>
-<div class="callout-content">
-<p>The only dependence on the hyperparameters is through the spectral density.</p>
-</div>
-</div>
-</div>
-<div title="Computational Cost">
+<div title="Key Observations">
 <div class="callout callout-tip callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<p><strong>Computational Cost</strong></p>
+<p><strong>Key Observations</strong></p>
 </div>
 <div class="callout-content">
-<p>The computational cost of evaluating the log posterior density of univariate HSGPs scales as <span class="math inline">\(\mathcal{O}(nm + m)\)</span>.</p>
+<ul>
+<li><p>The only dependence on the hyperparameters is through the spectral density.</p></li>
+<li><p>The computational cost of evaluating the log posterior density of univariate HSGPs scales as <span class="math inline">\(\mathcal{O}(nm + m)\)</span>.</p></li>
+</ul>
 </div>
 </div>
 </div>
@@ -1135,10 +1132,10 @@ k(x, x') \approx
 <div>
 <p></p><figure class=""><p></p>
 <div>
-<pre class="mermaid mermaid-js">%%{init: {"theme": "white", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels":false}}}%%
+<pre class="mermaid mermaid-js">%%{init: {"theme": "white", "themeVariables": {"fontSize": "54px"}, "flowchart":{"htmlLabels": false}}}%%
 flowchart TD
-  kernel["kernel"] --&gt; spectral_sensity["Spectral Density"]
-  spectral_sensity --&gt; polynomial["Polynomial Expansion"]
+  kernel["kernel"] --&gt; spectral_density["Spectral Density"]
+  spectral_density --&gt; polynomial["Polynomial Expansion"]
   laplacian["Laplacian"] --&gt; fourier["Fourier Transform"]
   laplacian --&gt; dirichlet["Dirichlet's BC"]
   dirichlet --&gt; spectral_decomposition["Spectral Decomposition"]
@@ -1147,6 +1144,12 @@ flowchart TD
   fourier --&gt; identify_coefficients
   functional --&gt; identify_coefficients
   identify_coefficients --&gt; approximation["Approximation Formula"]
+
+style kernel fill:#2a2eec80
+style laplacian fill:#fa7c1780
+style approximation fill:#328c0680
+style fourier fill:#c10c9080
+style spectral_decomposition fill:#65e5f380
 </pre>
 </div>
 <p></p></figure><p></p>
