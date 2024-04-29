@@ -1,7 +1,7 @@
 [tool.ruff]
 # See https://beta.ruff.rs/docs/rules/ for complete list of rules.
 # Note: please keep this in sorted order
-select = [
+lint.select = [
     "ASYNC", # flake8-async (ASYNC)
     "B",     # flake-bugbear
     "C",     # ?
@@ -25,5 +25,5 @@ select = [
     "W",   # pycodestyle
 ]
 # automatically fix all issues ruff is cabable of AND which are enabled via select
-fixable = ["ALL"]
-target-version = "py311"
+lint.fixable = ["ALL"]
+target-version = "py312"
