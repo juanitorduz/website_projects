@@ -6,6 +6,6 @@ repos:
     rev: v0.4.6
     hooks:
       - id: ruff
-        args: [--fix]
+        args: ["--fix", "--output-format=full"]
       - id: ruff-format
         files: "(.py$)|(.*.ipynb$)"
