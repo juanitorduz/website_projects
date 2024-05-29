@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 
 import numpy as np
 import numpy.typing as npt
@@ -41,8 +41,7 @@ class ZipCodeDataGenerator:
     def generate_base_df(
         self, zipcodes: npt.ArrayLike, date_range: npt.ArrayLike
     ) -> pd.DataFrame:
-        data_df: pd.DataFrame = pd.merge(
-            left=pd.DataFrame(data={"date": date_range}),
+        data_df: pd.DataFrame = pd.DataFrame(data={"date": date_range}).merge(
             right=pd.DataFrame(data={"zipcode": zipcodes}),
             how="cross",
         )
@@ -92,7 +91,6 @@ class ZipCodeDataGenerator:
         return data_df
 
     def generate_order_rate(self, data_df: pd.DataFrame) -> pd.DataFrame:
-
         base_or: dict[int, float] = {
             0: 0.4,
             1: 0.6,
@@ -140,12 +138,10 @@ class ZipCodeDataGenerator:
         data_df = self.generate_strength_feature(data_df=data_df, zipcodes=zipcodes)
         data_df = self.generate_variant_tag(data_df=data_df, zipcodes=zipcodes)
         data_df = self.generate_order_rate(data_df=data_df)
-        data_df = self.generate_orders(data_df=data_df)
-        return data_df
+        return self.generate_orders(data_df=data_df)
 
 
 if __name__ == "__main__":
-
     FORMAT: str = "%(message)s"
     logging.basicConfig(
         level="INFO", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
@@ -155,10 +151,10 @@ if __name__ == "__main__":
     seed: int = sum(map(ord, "wolt"))
     rng: np.random.Generator = np.random.default_rng(seed=seed)
     n_zipcodes: int = 100
-    start_date: datetime = datetime(year=2022, month=4, day=1)
-    end_date: datetime = datetime(year=2022, month=7, day=31)
+    start_date: datetime = datetime(year=2022, month=4, day=1, tzinfo=UTC)
+    end_date: datetime = datetime(year=2022, month=7, day=31, tzinfo=UTC)
     freq: str = "D"
-    start_campaign: datetime = datetime(year=2022, month=7, day=1)
+    start_campaign: datetime = datetime(year=2022, month=7, day=1, tzinfo=UTC)
 
     zipcode_data_generator = ZipCodeDataGenerator(
         n_zipcodes=n_zipcodes,
