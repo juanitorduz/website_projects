@@ -41,15 +41,13 @@ class CohortDataGenerator:
     def _generate_dataset_base(self) -> pd.DataFrame:
         cohorts = self._generate_cohort_labels()
         n_users = self._generate_cohort_sizes()
-        data_df = pd.merge(
-            left=pd.DataFrame(data={"cohort": cohorts, "n_users": n_users}),
+        data_df = pd.DataFrame(data={"cohort": cohorts, "n_users": n_users}).merge(
             right=pd.DataFrame(data={"period": cohorts}),
             how="cross",
         )
         data_df["age"] = (data_df["period"].max() - data_df["cohort"]).dt.days
         data_df["cohort_age"] = (data_df["period"] - data_df["cohort"]).dt.days
-        data_df = data_df.query("cohort_age >= 0")
-        return data_df
+        return data_df.query("cohort_age >= 0")
 
     def _generate_retention_rates(self, data_df: pd.DataFrame) -> pd.DataFrame:
         data_df["retention_true_mu"] = (
@@ -92,7 +90,6 @@ class CohortDataGenerator:
 
 
 if __name__ == "__main__":
-
     FORMAT: str = "%(message)s"
     logging.basicConfig(
         level="INFO", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
