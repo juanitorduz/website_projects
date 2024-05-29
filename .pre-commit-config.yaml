@@ -6,6 +6,10 @@ repos:
     rev: v0.4.6
     hooks:
       - id: ruff
-        args: ["--fix", "--output-format=full"]
+        args: [--fix]
       - id: ruff-format
-        files: "(.py$)|(.*.ipynb$)"
+
+  - repo: https://github.com/nbQA-dev/nbQA
+    rev: 1.8.5
+    hooks:
+      - id: nbqa-ruff
