@@ -8,8 +8,4 @@ repos:
       - id: ruff
         args: [--fix]
       - id: ruff-format
-
-  - repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.8.5
-    hooks:
-      - id: nbqa-ruff
+        files: "(.py$)|(.*.ipynb$)"
