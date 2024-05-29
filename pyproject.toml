@@ -24,7 +24,7 @@ lint.select = [
     "UP",  # pyupgdrade
     "W",   # pycodestyle
 ]
-extend-include = ["*.ipynb"]
+extend-include = [".*.ipynb$"]
 # automatically fix all issues ruff is cabable of AND which are enabled via select
 lint.fixable = ["ALL"]
 target-version = "py312"
