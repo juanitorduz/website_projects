@@ -6,7 +6,7 @@ repos:
     rev: v0.4.6
     hooks:
       - id: ruff
-        args: [--fix]
+        rgs: ["--fix", "--output-format=full"]
         types_or: [python, jupyter]
       - id: ruff-format
         types_or: [python, jupyter]
