@@ -3,13 +3,10 @@ ci:
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.1
+    rev: v0.4.6
     hooks:
       - id: ruff
-        args: [--fix]
+        rgs: ["--fix", "--output-format=full"]
+        types_or: [python, jupyter]
       - id: ruff-format
-
-  - repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.8.5
-    hooks:
-      - id: nbqa-ruff
+        types_or: [python, jupyter]

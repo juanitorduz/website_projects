@@ -27,3 +27,8 @@ lint.select = [
 # automatically fix all issues ruff is cabable of AND which are enabled via select
 lint.fixable = ["ALL"]
 target-version = "py312"
+
+[tool.ruff.lint.per-file-ignores]
+"Python/bg_nbd_pymc.ipynb" = ["N"]
+
+
