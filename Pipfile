@@ -30,8 +30,8 @@ graphviz = {version = "*", sys_platform = "== 'darwin'"}
 ipykernel = "*"
 ipython = "*"
 ipywidgets = "*"
-jax = ">=0.4.28"
-jaxlib = ">=0.4.28"
+jax = ">=0.4.30"
+jaxlib = ">=0.4.30"
 jaxopt = "*"
 jaxtyping = "*"
 Lifetimes = "==0.11.3"
@@ -41,7 +41,7 @@ mapie = ">=0.8.0"
 matplotlib = ">=3.8.3"
 mlforecast = "*"
 networkx = "*"
-numpyro = ">=0.15.0" 
+numpyro = ">=0.15.1" 
 nutpie = "*"
 openpyxl = "*"
 orbit-ml = ">=1.1.4.9"
@@ -66,9 +66,6 @@ tensorflow-probability = ">=0.24.0"
 tfp-causalimpact = "*"
 utilsforecast = "*"
 xgboost = "*"
-mkl = {version = "*", sys_platform = "== 'darwin'"}
-intel-openmp = {version = "*", sys_platform = "== 'darwin'"}
-tbb = {version = "*", sys_platform = "== 'darwin'"}
 
 [requires]
 python_version = "3.12"
