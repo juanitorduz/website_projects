@@ -29,5 +29,7 @@ lint.extend-select = ["I"]
 lint.fixable = ["ALL"]
 target-version = "py312"
 
+extend-include = ["*.ipynb"]
+
 [tool.ruff.lint.per-file-ignores]
 "Python/bg_nbd_pymc.ipynb" = ["N"]
