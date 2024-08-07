@@ -1,3 +1,88 @@
+[project]
+authors = [{ name = "juanitorduz", email = "juanitorduz@gmail.com" }]
+dependencies = []
+description = "Website projects"
+name = "website_projects"
+requires-python = ">= 3.11"
+version = "0.1.0"
+readme = "README.md"
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[tool.pixi.project]
+channels = ["conda-forge", "pytorch"]
+platforms = ["osx-arm64", "linux-64"]
+
+[tool.pixi.feature.core.dependencies]
+arviz = ">=0.19.0"
+bambi = ">=0.13.0"
+dowhy = "*"
+econml = "*"
+equinox = "*"
+flax = "*"
+geopandas = "*"
+graphviz = "*"
+ipykernel = "*"
+ipython = "*"
+ipywidgets = "*"
+jax = ">=0.4.30"
+jaxlib = ">=0.4.30"
+jaxopt = "*"
+jaxtyping = "*"
+Lifetimes = "==0.11.3"
+lightgbm = "*"
+linearmodels = ">=6.0"
+mapie = ">=0.8.6"
+matplotlib = ">=3.9.0"
+mlforecast = "*"
+networkx = "*"
+nutpie = "*"
+orbit-ml = ">=1.1.4.9"
+pandas = ">=2.2.2"
+preliz = "*"
+pymc = ">=5.15.1"
+pymc-bart = ">=0.5.14"
+pyro-ppl = ">=1.9.1"
+pytorch = "<=2.2"
+scikit-learn = ">=1.5.1"
+seaborn = ">=0.13.2"
+shap = "*"
+statsmodels = ">=0.14.2"
+
+[tool.pixi.feature.core.pypi-dependencies]
+bayeux-ml = "*"
+blackjax = ">=1.2.2"
+category-encoders = "*"
+daft = "*"
+darts = "*"
+datasetsforecast = "*"
+dynamax = "*"
+numpyro = ">=0.15.2"
+openpyxl = "*"
+pgmpy = "*"
+polars = ">=1.4.0"
+pydantic = ">=2.8"
+pymc-experimental = ">=0.1.0"
+scikit-uplift = "*"
+snowflake-sqlalchemy = "*"
+statsforecast = "*"
+tensorflow = ">=2.15"
+tensorflow-probability = ">=0.24.0"
+tfp-causalimpact = "*"
+utilsforecast = "*"
+xgboost = "*"
+
+[tool.pixi.feature.devtools.dependencies]
+pre-commit = "*"
+rich = "*"
+ruff = "*"
+watermark = "*"
+
+[tool.pixi.environments]
+default = ["core", "devtools"]
+
 [tool.ruff]
 # See https://beta.ruff.rs/docs/rules/ for complete list of rules.
 # Note: please keep this in sorted order

@@ -3,19 +3,13 @@ name: ci
 on: [push]
 
 jobs:
-  pipenv:
+  pixi:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Pixi Environment
+        uses: prefix-dev/setup-pixi@v0.8.1
         with:
-          python-version: "3.12"
-      - name: Upgrade pip
-        run: pip install --upgrade pip
-      - name: Upgrade setuptools
-        run: pip install --upgrade setuptools
-      - name: Install pipenv
-        run: pip install pipenv
-      - name: Install dependencies
-        run: pipenv install --dev
+          pixi-version: v0.27.0
+          cache: true
