@@ -19,7 +19,7 @@ This repository contains the code of the projects presented in my personal websi
 
 ### Local Development
 
-We use [pixi](https://github.com/prefix-dev/pixi).
+We use [pixi](https://github.com/prefix-dev/pixi), see [It's time to try out pixi!](https://deploy-preview-102--ericmjl-github-io.netlify.app/blog/2024/8/16/its-time-to-try-out-pixi/) to get started.
 
 ```bash
 pixi shell
