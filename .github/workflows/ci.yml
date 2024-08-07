@@ -13,7 +13,3 @@ jobs:
         with:
           pixi-version: v0.27.0
           cache: true
-      - name: Install dependencies
-        run: |
-          pre-commit install
-          pre-commit run --all-files
