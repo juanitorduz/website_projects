@@ -15,4 +15,5 @@ jobs:
           cache: true
       - name: Install dependencies
         run: |
-          pixi install
+          pre-commit install
+          pre-commit run --all-files
