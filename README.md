@@ -19,18 +19,10 @@ This repository contains the code of the projects presented in my personal websi
 
 ### Local Development
 
-We use [pipenv](https://pipenv.pypa.io/en/latest/).
-
-- Create environment variables in your shell:
+We use [pixi](https://github.com/prefix-dev/pixi).
 
 ```bash
-pipenv install --dev
-```
-
-- Activate:
-
-```bash
-pipenv shell
+pixi shell
 ```
 
 **Remark:** The [`nutpie`](https://github.com/pymc-devs/nutpie) package requires [`cargo`](https://doc.rust-lang.org/cargo/index.html), a rust package manager. For installation instructions, see [here](https://doc.rust-lang.org/cargo/getting-started/installation.html).

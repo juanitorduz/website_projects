@@ -3,7 +3,7 @@ name: ci
 on: [push]
 
 jobs:
-  pipenv:
+  pixi:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
