@@ -7,7 +7,7 @@
 ![Build](https://github.com/juanitorduz/website_projects/workflows/ci/badge.svg)
 
 
-This repository contains the code of the projects presented in my personal website [https://juanitorduz.github.io](https://juanitorduz.github.io).
+This repository contains the code of the notebooks presented on my website [https://juanitorduz.github.io](https://juanitorduz.github.io).
 
 - Feel free to share and use the code.
 
@@ -19,10 +19,11 @@ This repository contains the code of the projects presented in my personal websi
 
 ### Local Development
 
-We use [pixi](https://github.com/prefix-dev/pixi), see [It's time to try out pixi!](https://deploy-preview-102--ericmjl-github-io.netlify.app/blog/2024/8/16/its-time-to-try-out-pixi/) to get started.
+We use [pixi](https://github.com/prefix-dev/pixi), see [It's time to try out pixi!](https://ericmjl.github.io/blog/2024/8/16/its-time-to-try-out-pixi/) to get started.
 
 ```bash
 pixi shell
 ```
 
-**Remark:** The [`nutpie`](https://github.com/pymc-devs/nutpie) package requires [`cargo`](https://doc.rust-lang.org/cargo/index.html), a rust package manager. For installation instructions, see [here](https://doc.rust-lang.org/cargo/getting-started/installation.html).
+> [!NOTE]
+> The [`nutpie`](https://github.com/pymc-devs/nutpie) package requires [`cargo`](https://doc.rust-lang.org/cargo/index.html), a rust package manager. For installation instructions, see [here](https://doc.rust-lang.org/cargo/getting-started/installation.html).
