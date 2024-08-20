@@ -8,7 +8,7 @@
 <link href="intro_hierarchical_models_files/libs/quarto-html/light-border.css" rel="stylesheet">
 <link href="intro_hierarchical_models_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
 <link href="intro_hierarchical_models_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.3.450">
+  <meta name="generator" content="quarto-1.5.54">
 
   <meta name="author" content="Dr.&nbsp;Juan Orduz">
   <title>Introduction to Hierarchical Models</title>
@@ -31,7 +31,7 @@
     }
     /* CSS for syntax highlighting */
     pre > code.sourceCode { white-space: pre; position: relative; }
-    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span { line-height: 1.25; }
     pre > code.sourceCode > span:empty { height: 1.2em; }
     .sourceCode { overflow: visible; }
     code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -42,7 +42,7 @@
     }
     @media print {
     pre > code.sourceCode { white-space: pre-wrap; }
-    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
     }
     pre.numberSource code
       { counter-reset: source-line 0; }
@@ -224,7 +224,8 @@
   }
 
   .callout.callout-titled .callout-body > .callout-content > :last-child {
-    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0;
   }
 
   .callout.callout-titled .callout-icon::before {
@@ -433,11 +434,10 @@
 </div><div class="column" style="width:50%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/pymc.svg" height="500"></p>
+<p><img data-src="intro_hierarchical_models_files/images/pymc.svg" class="quarto-figure quarto-figure-center" height="500"></p>
 </figure>
 </div>
-</div>
-</div>
+</div></div>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/html/intro_hierarchical_models">https://juanitorduz.github.io/html/intro_hierarchical_models</a></p>
 </div>
@@ -480,7 +480,7 @@
 <p>Price and quantities for a single SKU across stores in <span class="math inline">\(9\)</span> regions.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_20_1.png" height="520"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_20_1.png" class="quarto-figure quarto-figure-center" height="520"></p>
 </figure>
 </div>
 <div class="footer">
@@ -491,7 +491,7 @@
 <h2>Price vs Quantities</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_23_2.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_23_2.png" class="quarto-figure quarto-figure-center" height="620"></p>
 </figure>
 </div>
 </section>
@@ -499,7 +499,7 @@
 <h2>Region Median Income</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_27_1.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_27_1.png" class="quarto-figure quarto-figure-center" height="620"></p>
 </figure>
 </div>
 </section>
@@ -508,14 +508,14 @@
 <p>Median income has an effect on price.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_25_2.png" height="550"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_25_2.png" class="quarto-figure quarto-figure-center" height="550"></p>
 </figure>
 </div>
 </section>
 <section id="base-model---unpooled" class="slide level2">
 <h2>Base Model - Unpooled</h2>
 
-<img data-src="intro_hierarchical_models_files/images/unpooled_model.png" class="r-stretch quarto-figure-center"><p>We fit a linear model for each region <span class="math inline">\(j \in \{ 0,\cdots, 8 \}\)</span> separately:</p>
+<img data-src="intro_hierarchical_models_files/images/unpooled_model.png" class="quarto-figure quarto-figure-center r-stretch"><p>We fit a linear model for each region <span class="math inline">\(j \in \{ 0,\cdots, 8 \}\)</span> separately:</p>
 <p><span class="math display">\[
 \log(q_{j}) = \alpha_{j} + \beta_{j} \log(p_{j}) + \varepsilon_{j}
 \]</span></p>
@@ -525,39 +525,39 @@
 </section>
 <section id="base-model---pooled-pymc" class="slide level2">
 <h2>Base Model - Pooled (PyMC)</h2>
-<div class="sourceCode" id="cb1" data-code-line-numbers="|1|3|4-7|9-18|20-27"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a>coords <span class="op">=</span> {<span class="st">"region"</span>: region, <span class="st">"obs"</span>: obs}</span>
-<span id="cb1-2"><a href="#cb1-2"></a></span>
-<span id="cb1-3"><a href="#cb1-3"></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>coords) <span class="im">as</span> base_model:</span>
-<span id="cb1-4"><a href="#cb1-4"></a>    <span class="co"># --- Priors ---</span></span>
-<span id="cb1-5"><a href="#cb1-5"></a>    alpha_j <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"alpha_j"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="fl">1.5</span>, dims<span class="op">=</span><span class="st">"region"</span>)</span>
-<span id="cb1-6"><a href="#cb1-6"></a>    beta_j <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"beta_j"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="fl">1.5</span>, dims<span class="op">=</span><span class="st">"region"</span>)</span>
-<span id="cb1-7"><a href="#cb1-7"></a>    sigma <span class="op">=</span> pm.Exponential(name<span class="op">=</span><span class="st">"sigma"</span>, lam<span class="op">=</span><span class="dv">1</span> <span class="op">/</span> <span class="fl">0.5</span>)</span>
-<span id="cb1-8"><a href="#cb1-8"></a>    </span>
-<span id="cb1-9"><a href="#cb1-9"></a>    <span class="co"># --- Parametrization ---</span></span>
-<span id="cb1-10"><a href="#cb1-10"></a>    alpha <span class="op">=</span> pm.Deterministic(</span>
-<span id="cb1-11"><a href="#cb1-11"></a>        name<span class="op">=</span><span class="st">"alpha"</span>, var<span class="op">=</span>alpha_j[region_idx], dims<span class="op">=</span><span class="st">"obs"</span></span>
-<span id="cb1-12"><a href="#cb1-12"></a>    )</span>
-<span id="cb1-13"><a href="#cb1-13"></a>    beta <span class="op">=</span> pm.Deterministic(</span>
-<span id="cb1-14"><a href="#cb1-14"></a>        name<span class="op">=</span><span class="st">"beta"</span>, var<span class="op">=</span>beta_j[region_idx], dims<span class="op">=</span><span class="st">"obs"</span></span>
-<span id="cb1-15"><a href="#cb1-15"></a>    )</span>
-<span id="cb1-16"><a href="#cb1-16"></a>    mu <span class="op">=</span> pm.Deterministic(</span>
-<span id="cb1-17"><a href="#cb1-17"></a>        name<span class="op">=</span><span class="st">"mu"</span>, var<span class="op">=</span>alpha <span class="op">+</span> beta <span class="op">*</span> log_price, dims<span class="op">=</span><span class="st">"obs"</span></span>
-<span id="cb1-18"><a href="#cb1-18"></a>    )</span>
-<span id="cb1-19"><a href="#cb1-19"></a>    </span>
-<span id="cb1-20"><a href="#cb1-20"></a>    <span class="co"># --- Likelihood ---</span></span>
-<span id="cb1-21"><a href="#cb1-21"></a>    pm.Normal(</span>
-<span id="cb1-22"><a href="#cb1-22"></a>        name<span class="op">=</span><span class="st">"likelihood"</span>,</span>
-<span id="cb1-23"><a href="#cb1-23"></a>        mu<span class="op">=</span>mu,</span>
-<span id="cb1-24"><a href="#cb1-24"></a>        sigma<span class="op">=</span>sigma,</span>
-<span id="cb1-25"><a href="#cb1-25"></a>        observed<span class="op">=</span>log_quantities,</span>
-<span id="cb1-26"><a href="#cb1-26"></a>        dims<span class="op">=</span><span class="st">"obs"</span></span>
-<span id="cb1-27"><a href="#cb1-27"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb1" data-code-line-numbers="|1|3|4-7|9-18|20-27"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a>coords <span class="op">=</span> {<span class="st">"region"</span>: region, <span class="st">"obs"</span>: obs}</span>
+<span id="cb1-2"><a href=""></a></span>
+<span id="cb1-3"><a href=""></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>coords) <span class="im">as</span> base_model:</span>
+<span id="cb1-4"><a href=""></a>    <span class="co"># --- Priors ---</span></span>
+<span id="cb1-5"><a href=""></a>    alpha_j <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"alpha_j"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="fl">1.5</span>, dims<span class="op">=</span><span class="st">"region"</span>)</span>
+<span id="cb1-6"><a href=""></a>    beta_j <span class="op">=</span> pm.Normal(name<span class="op">=</span><span class="st">"beta_j"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="fl">1.5</span>, dims<span class="op">=</span><span class="st">"region"</span>)</span>
+<span id="cb1-7"><a href=""></a>    sigma <span class="op">=</span> pm.Exponential(name<span class="op">=</span><span class="st">"sigma"</span>, lam<span class="op">=</span><span class="dv">1</span> <span class="op">/</span> <span class="fl">0.5</span>)</span>
+<span id="cb1-8"><a href=""></a>    </span>
+<span id="cb1-9"><a href=""></a>    <span class="co"># --- Parametrization ---</span></span>
+<span id="cb1-10"><a href=""></a>    alpha <span class="op">=</span> pm.Deterministic(</span>
+<span id="cb1-11"><a href=""></a>        name<span class="op">=</span><span class="st">"alpha"</span>, var<span class="op">=</span>alpha_j[region_idx], dims<span class="op">=</span><span class="st">"obs"</span></span>
+<span id="cb1-12"><a href=""></a>    )</span>
+<span id="cb1-13"><a href=""></a>    beta <span class="op">=</span> pm.Deterministic(</span>
+<span id="cb1-14"><a href=""></a>        name<span class="op">=</span><span class="st">"beta"</span>, var<span class="op">=</span>beta_j[region_idx], dims<span class="op">=</span><span class="st">"obs"</span></span>
+<span id="cb1-15"><a href=""></a>    )</span>
+<span id="cb1-16"><a href=""></a>    mu <span class="op">=</span> pm.Deterministic(</span>
+<span id="cb1-17"><a href=""></a>        name<span class="op">=</span><span class="st">"mu"</span>, var<span class="op">=</span>alpha <span class="op">+</span> beta <span class="op">*</span> log_price, dims<span class="op">=</span><span class="st">"obs"</span></span>
+<span id="cb1-18"><a href=""></a>    )</span>
+<span id="cb1-19"><a href=""></a>    </span>
+<span id="cb1-20"><a href=""></a>    <span class="co"># --- Likelihood ---</span></span>
+<span id="cb1-21"><a href=""></a>    pm.Normal(</span>
+<span id="cb1-22"><a href=""></a>        name<span class="op">=</span><span class="st">"likelihood"</span>,</span>
+<span id="cb1-23"><a href=""></a>        mu<span class="op">=</span>mu,</span>
+<span id="cb1-24"><a href=""></a>        sigma<span class="op">=</span>sigma,</span>
+<span id="cb1-25"><a href=""></a>        observed<span class="op">=</span>log_quantities,</span>
+<span id="cb1-26"><a href=""></a>        dims<span class="op">=</span><span class="st">"obs"</span></span>
+<span id="cb1-27"><a href=""></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="base-model---pooled-plate-notation" class="slide level2">
 <h2>Base Model - Pooled (Plate Notation)</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_33_0.svg" height="600"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_33_0.svg" class="quarto-figure quarto-figure-center" height="600"></p>
 </figure>
 </div>
 <div class="footer">
@@ -566,22 +566,22 @@
 </section>
 <section id="sampling-engine" class="slide level2">
 <h2>Sampling Engine</h2>
-<div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1"></a>rng: np.random.Generator <span class="op">=</span> np.random.default_rng(seed<span class="op">=</span>seed)</span>
-<span id="cb2-2"><a href="#cb2-2"></a></span>
-<span id="cb2-3"><a href="#cb2-3"></a><span class="cf">with</span> base_model:</span>
-<span id="cb2-4"><a href="#cb2-4"></a></span>
-<span id="cb2-5"><a href="#cb2-5"></a>    idata_base <span class="op">=</span> pm.sample(</span>
-<span id="cb2-6"><a href="#cb2-6"></a>        target_accept<span class="op">=</span><span class="fl">0.9</span>,</span>
-<span id="cb2-7"><a href="#cb2-7"></a>        draws<span class="op">=</span><span class="dv">6_000</span>,  <span class="co"># &lt;- Total number of samples (per chain)</span></span>
-<span id="cb2-8"><a href="#cb2-8"></a>        chains<span class="op">=</span><span class="dv">5</span>,  <span class="co"># &lt;- Independent chains to sample in parallel</span></span>
-<span id="cb2-9"><a href="#cb2-9"></a>        nuts_sampler<span class="op">=</span><span class="st">"numpyro"</span>,  <span class="co"># &lt;- Numpyro (JAX) NUTS sampler</span></span>
-<span id="cb2-10"><a href="#cb2-10"></a>        random_seed<span class="op">=</span>rng,  <span class="co"># &lt;- Make results reproducible</span></span>
-<span id="cb2-11"><a href="#cb2-11"></a>        idata_kwargs<span class="op">=</span>{<span class="st">"log_likelihood"</span>: <span class="va">True</span>},</span>
-<span id="cb2-12"><a href="#cb2-12"></a>    )</span>
-<span id="cb2-13"><a href="#cb2-13"></a></span>
-<span id="cb2-14"><a href="#cb2-14"></a>    posterior_predictive_base <span class="op">=</span> pm.sample_posterior_predictive(</span>
-<span id="cb2-15"><a href="#cb2-15"></a>        trace<span class="op">=</span>idata_base, random_seed<span class="op">=</span>rng</span>
-<span id="cb2-16"><a href="#cb2-16"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href=""></a>rng: np.random.Generator <span class="op">=</span> np.random.default_rng(seed<span class="op">=</span>seed)</span>
+<span id="cb2-2"><a href=""></a></span>
+<span id="cb2-3"><a href=""></a><span class="cf">with</span> base_model:</span>
+<span id="cb2-4"><a href=""></a></span>
+<span id="cb2-5"><a href=""></a>    idata_base <span class="op">=</span> pm.sample(</span>
+<span id="cb2-6"><a href=""></a>        target_accept<span class="op">=</span><span class="fl">0.9</span>,</span>
+<span id="cb2-7"><a href=""></a>        draws<span class="op">=</span><span class="dv">6_000</span>,  <span class="co"># &lt;- Total number of samples (per chain)</span></span>
+<span id="cb2-8"><a href=""></a>        chains<span class="op">=</span><span class="dv">5</span>,  <span class="co"># &lt;- Independent chains to sample in parallel</span></span>
+<span id="cb2-9"><a href=""></a>        nuts_sampler<span class="op">=</span><span class="st">"numpyro"</span>,  <span class="co"># &lt;- Numpyro (JAX) NUTS sampler</span></span>
+<span id="cb2-10"><a href=""></a>        random_seed<span class="op">=</span>rng,  <span class="co"># &lt;- Make results reproducible</span></span>
+<span id="cb2-11"><a href=""></a>        idata_kwargs<span class="op">=</span>{<span class="st">"log_likelihood"</span>: <span class="va">True</span>},</span>
+<span id="cb2-12"><a href=""></a>    )</span>
+<span id="cb2-13"><a href=""></a></span>
+<span id="cb2-14"><a href=""></a>    posterior_predictive_base <span class="op">=</span> pm.sample_posterior_predictive(</span>
+<span id="cb2-15"><a href=""></a>        trace<span class="op">=</span>idata_base, random_seed<span class="op">=</span>rng</span>
+<span id="cb2-16"><a href=""></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div style="font-size: 60%;">
 <blockquote>
 <p>Hamiltonian Monte Carlo is a type of MCMC method that makes use of gradients to generate new proposed states. The gradients of the log-probability of the posterior evaluated at some state provide information on the geometry of the posterior density function.</p>
@@ -595,7 +595,7 @@
 <h2>Model Diagnostics</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_43_1.png" height="600"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_43_1.png" class="quarto-figure quarto-figure-center" height="600"></p>
 </figure>
 </div>
 <div class="footer">
@@ -606,7 +606,7 @@
 <h2>Base Model - Elasticities</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_45_1.png" height="600"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_45_1.png" class="quarto-figure quarto-figure-center" height="600"></p>
 </figure>
 </div>
 </section>
@@ -614,7 +614,7 @@
 <h2>Base Model - Posterior Predictive</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_47_2.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_47_2.png" class="quarto-figure quarto-figure-center" height="620"></p>
 </figure>
 </div>
 </section>
@@ -622,7 +622,7 @@
 <h2>Hierarchical Model</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/partial_pooled_model.png" height="250"></p>
+<p><img data-src="intro_hierarchical_models_files/images/partial_pooled_model.png" class="quarto-figure quarto-figure-center" height="250"></p>
 </figure>
 </div>
 <p><span class="math display">\[
@@ -673,12 +673,12 @@ z \sim \text{Normal}(0, 1) \\
 <section id="shrinkage-effect" class="slide level2">
 <h2>Shrinkage Effect</h2>
 
-<img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_63_1.png" class="r-stretch quarto-figure-center"></section>
+<img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_63_1.png" class="quarto-figure quarto-figure-center r-stretch"></section>
 <section id="posterior-predictive" class="slide level2">
 <h2>Posterior Predictive</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_65_2.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_65_2.png" class="quarto-figure quarto-figure-center" height="620"></p>
 </figure>
 </div>
 </section>
@@ -686,7 +686,7 @@ z \sim \text{Normal}(0, 1) \\
 <h2>Intercepts and Slopes are Correlated</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_25_2.png" height="600"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_25_2.png" class="quarto-figure quarto-figure-center" height="600"></p>
 </figure>
 </div>
 </section>
@@ -696,7 +696,7 @@ z \sim \text{Normal}(0, 1) \\
 <div class="column" style="width:50%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_67_0.svg" height="550"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_67_0.svg" class="quarto-figure quarto-figure-center" height="550"></p>
 </figure>
 </div>
 </div><div class="column" style="width:50%;">
@@ -704,43 +704,42 @@ z \sim \text{Normal}(0, 1) \\
 <li><p>We model the correlation between the intercepts and the slopes as they are not independent.</p></li>
 <li><p>The sampler runs <span class="math inline">\(5x\)</span> faster than the non-correlated model.</p></li>
 </ul>
-</div>
-</div>
+</div></div>
 <div class="footer">
 <p>See <a href="https://tomicapretto.github.io/posts/2022-06-12_lkj-prior/">Hierarchical modeling with the LKJ prior in PyMC</a></p>
 </div>
 </section>
 <section id="sampling-covariances" class="slide level2">
 <h2>Sampling Covariances</h2>
-<div class="sourceCode" id="cb3" data-code-line-numbers="|7-10|12-17|19-22"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1"></a><span class="im">import</span> pymc <span class="im">as</span> pm</span>
-<span id="cb3-2"><a href="#cb3-2"></a><span class="im">import</span> pytensor.tensor <span class="im">as</span> pt</span>
-<span id="cb3-3"><a href="#cb3-3"></a></span>
-<span id="cb3-4"><a href="#cb3-4"></a></span>
-<span id="cb3-5"><a href="#cb3-5"></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>coords) <span class="im">as</span> model_cov:</span>
-<span id="cb3-6"><a href="#cb3-6"></a>    ...</span>
-<span id="cb3-7"><a href="#cb3-7"></a>    sd_dist <span class="op">=</span> pm.HalfNormal.dist(sigma<span class="op">=</span><span class="fl">0.02</span>, shape<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb3-8"><a href="#cb3-8"></a>    chol, corr, sigmas <span class="op">=</span> pm.LKJCholeskyCov(</span>
-<span id="cb3-9"><a href="#cb3-9"></a>        name<span class="op">=</span><span class="st">"chol_cov"</span>, eta<span class="op">=</span><span class="dv">2</span>, n<span class="op">=</span><span class="dv">2</span>, sd_dist<span class="op">=</span>sd_dist</span>
-<span id="cb3-10"><a href="#cb3-10"></a>    )</span>
-<span id="cb3-11"><a href="#cb3-11"></a></span>
-<span id="cb3-12"><a href="#cb3-12"></a>    z_slopes <span class="op">=</span> pm.Normal(</span>
-<span id="cb3-13"><a href="#cb3-13"></a>        name<span class="op">=</span><span class="st">"z_slopes"</span>,</span>
-<span id="cb3-14"><a href="#cb3-14"></a>        mu<span class="op">=</span><span class="dv">0</span>,</span>
-<span id="cb3-15"><a href="#cb3-15"></a>        sigma<span class="op">=</span><span class="dv">1</span>,</span>
-<span id="cb3-16"><a href="#cb3-16"></a>        dims<span class="op">=</span>(<span class="st">"effect"</span>, <span class="st">"region"</span>)</span>
-<span id="cb3-17"><a href="#cb3-17"></a>    )</span>
-<span id="cb3-18"><a href="#cb3-18"></a>    </span>
-<span id="cb3-19"><a href="#cb3-19"></a>    slopes <span class="op">=</span> pm.Deterministic(</span>
-<span id="cb3-20"><a href="#cb3-20"></a>        name<span class="op">=</span><span class="st">"slopes"</span>,</span>
-<span id="cb3-21"><a href="#cb3-21"></a>        var<span class="op">=</span>pt.dot(chol, z_slopes).T,</span>
-<span id="cb3-22"><a href="#cb3-22"></a>        dims<span class="op">=</span>(<span class="st">"region"</span>, <span class="st">"effect"</span>)</span>
-<span id="cb3-23"><a href="#cb3-23"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb3" data-code-line-numbers="|7-10|12-17|19-22"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href=""></a><span class="im">import</span> pymc <span class="im">as</span> pm</span>
+<span id="cb3-2"><a href=""></a><span class="im">import</span> pytensor.tensor <span class="im">as</span> pt</span>
+<span id="cb3-3"><a href=""></a></span>
+<span id="cb3-4"><a href=""></a></span>
+<span id="cb3-5"><a href=""></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>coords) <span class="im">as</span> model_cov:</span>
+<span id="cb3-6"><a href=""></a>    ...</span>
+<span id="cb3-7"><a href=""></a>    sd_dist <span class="op">=</span> pm.HalfNormal.dist(sigma<span class="op">=</span><span class="fl">0.02</span>, shape<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb3-8"><a href=""></a>    chol, corr, sigmas <span class="op">=</span> pm.LKJCholeskyCov(</span>
+<span id="cb3-9"><a href=""></a>        name<span class="op">=</span><span class="st">"chol_cov"</span>, eta<span class="op">=</span><span class="dv">2</span>, n<span class="op">=</span><span class="dv">2</span>, sd_dist<span class="op">=</span>sd_dist</span>
+<span id="cb3-10"><a href=""></a>    )</span>
+<span id="cb3-11"><a href=""></a></span>
+<span id="cb3-12"><a href=""></a>    z_slopes <span class="op">=</span> pm.Normal(</span>
+<span id="cb3-13"><a href=""></a>        name<span class="op">=</span><span class="st">"z_slopes"</span>,</span>
+<span id="cb3-14"><a href=""></a>        mu<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb3-15"><a href=""></a>        sigma<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb3-16"><a href=""></a>        dims<span class="op">=</span>(<span class="st">"effect"</span>, <span class="st">"region"</span>)</span>
+<span id="cb3-17"><a href=""></a>    )</span>
+<span id="cb3-18"><a href=""></a>    </span>
+<span id="cb3-19"><a href=""></a>    slopes <span class="op">=</span> pm.Deterministic(</span>
+<span id="cb3-20"><a href=""></a>        name<span class="op">=</span><span class="st">"slopes"</span>,</span>
+<span id="cb3-21"><a href=""></a>        var<span class="op">=</span>pt.dot(chol, z_slopes).T,</span>
+<span id="cb3-22"><a href=""></a>        dims<span class="op">=</span>(<span class="st">"region"</span>, <span class="st">"effect"</span>)</span>
+<span id="cb3-23"><a href=""></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="model-comparison" class="slide level2">
 <h2>Model Comparison</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_80_1.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_80_1.png" class="quarto-figure quarto-figure-center" height="620"></p>
 </figure>
 </div>
 </section>
@@ -748,7 +747,7 @@ z \sim \text{Normal}(0, 1) \\
 <h2>Intercepts Comparison</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_84_1.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_84_1.png" class="quarto-figure quarto-figure-center" height="620"></p>
 </figure>
 </div>
 </section>
@@ -756,7 +755,7 @@ z \sim \text{Normal}(0, 1) \\
 <h2>Slopes (Elasticities) Comparison</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_86_1.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_86_1.png" class="quarto-figure quarto-figure-center" height="620"></p>
 </figure>
 </div>
 </section>
@@ -765,7 +764,7 @@ z \sim \text{Normal}(0, 1) \\
 <p>We will use the last region as a holdout set.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_24_1.png" height="500"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_24_1.png" class="quarto-figure quarto-figure-center" height="500"></p>
 </figure>
 </div>
 <div class="footer">
@@ -776,7 +775,7 @@ z \sim \text{Normal}(0, 1) \\
 <h2>Intercepts and Slopes</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_27_1.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_27_1.png" class="quarto-figure quarto-figure-center" height="620"></p>
 </figure>
 </div>
 </section>
@@ -784,7 +783,7 @@ z \sim \text{Normal}(0, 1) \\
 <h2>Posterior Predictive Log-Log Scale</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_30_1.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_30_1.png" class="quarto-figure quarto-figure-center" height="620"></p>
 </figure>
 </div>
 </section>
@@ -792,7 +791,7 @@ z \sim \text{Normal}(0, 1) \\
 <h2>Intercept and Slope - New Region</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_36_1.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_36_1.png" class="quarto-figure quarto-figure-center" height="620"></p>
 </figure>
 </div>
 </section>
@@ -800,7 +799,7 @@ z \sim \text{Normal}(0, 1) \\
 <h2>Posterior Predictive - New Region</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_37_1.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_37_1.png" class="quarto-figure quarto-figure-center" height="620"></p>
 </figure>
 </div>
 </section>
@@ -808,7 +807,7 @@ z \sim \text{Normal}(0, 1) \\
 <h2>Elasticities - New Region</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_40_1.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_40_1.png" class="quarto-figure quarto-figure-center" height="620"></p>
 </figure>
 </div>
 </section>
@@ -816,7 +815,7 @@ z \sim \text{Normal}(0, 1) \\
 <h2>Posterior Predictive - New Region</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_43_2.png" height="620"></p>
+<p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_2_43_2.png" class="quarto-figure quarto-figure-center" height="620"></p>
 </figure>
 </div>
 </section>
@@ -829,9 +828,11 @@ z \sim \text{Normal}(0, 1) \\
 <li><p><a href="https://juanitorduz.github.io/multilevel_elasticities_single_sku_2/"><strong>Multilevel Elasticities for a Single SKU (Part II)</strong></a></p></li>
 </ul>
 <p><img data-src="intro_hierarchical_models_files/images/juanitorduz.png" class="absolute" style="left: 0px; bottom: 0px; height: 300px; "></p>
-<p><img src="intro_hierarchical_models_files/images/wolt_logo.png" class="slide-logo"></p>
+<div class="quarto-auto-generated-content">
+<p><img src="intro_hierarchical_models_files/images/juanitorduz_logo_small.png" class="slide-logo"></p>
 <div class="footer footer-default">
 
+</div>
 </div>
 </section>
     </div>
@@ -861,7 +862,6 @@ z \sim \text{Normal}(0, 1) \\
       Reveal.initialize({
 'controlsAuto': true,
 'previewLinksAuto': true,
-'smaller': false,
 'pdfSeparateFragments': false,
 'autoAnimateEasing': "ease",
 'autoAnimateDuration': 1,
@@ -1079,18 +1079,7 @@ z \sim \text{Normal}(0, 1) \\
         }
         return false;
       }
-      const clipboard = new window.ClipboardJS('.code-copy-button', {
-        text: function(trigger) {
-          const codeEl = trigger.previousElementSibling.cloneNode(true);
-          for (const childEl of codeEl.children) {
-            if (isCodeAnnotation(childEl)) {
-              childEl.remove();
-            }
-          }
-          return codeEl.innerText;
-        }
-      });
-      clipboard.on('success', function(e) {
+      const onCopySuccess = function(e) {
         // button target
         const button = e.trigger;
         // don't keep focus
@@ -1122,11 +1111,50 @@ z \sim \text{Normal}(0, 1) \\
         }, 1000);
         // clear code selection
         e.clearSelection();
+      }
+      const getTextToCopy = function(trigger) {
+          const codeEl = trigger.previousElementSibling.cloneNode(true);
+          for (const childEl of codeEl.children) {
+            if (isCodeAnnotation(childEl)) {
+              childEl.remove();
+            }
+          }
+          return codeEl.innerText;
+      }
+      const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+        text: getTextToCopy
       });
-      function tippyHover(el, contentFn) {
+      clipboard.on('success', onCopySuccess);
+      if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+        // For code content inside modals, clipBoardJS needs to be initialized with a container option
+        // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+        const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+          text: getTextToCopy,
+          container: window.document.getElementById('quarto-embedded-source-code-modal')
+        });
+        clipboardModal.on('success', onCopySuccess);
+      }
+        var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+        var mailtoRegex = new RegExp(/^mailto:/);
+          var filterRegex = new RegExp('/' + window.location.host + '/');
+        var isInternal = (href) => {
+            return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+        }
+        // Inspect non-navigation links and adorn them if external
+     	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+        for (var i=0; i<links.length; i++) {
+          const link = links[i];
+          if (!isInternal(link.href)) {
+            // undo the damage that might have been done by quarto-nav.js in the case of
+            // links that we want to consider external
+            if (link.dataset.originalHref !== undefined) {
+              link.href = link.dataset.originalHref;
+            }
+          }
+        }
+      function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
         const config = {
           allowHTML: true,
-          content: contentFn,
           maxWidth: 500,
           delay: 100,
           arrow: false,
@@ -1136,8 +1164,17 @@ z \sim \text{Normal}(0, 1) \\
           interactive: true,
           interactiveBorder: 10,
           theme: 'light-border',
-          placement: 'bottom-start'
+          placement: 'bottom-start',
         };
+        if (contentFn) {
+          config.content = contentFn;
+        }
+        if (onTriggerFn) {
+          config.onTrigger = onTriggerFn;
+        }
+        if (onUntriggerFn) {
+          config.onUntrigger = onUntriggerFn;
+        }
           config['offset'] = [0,0];
           config['maxWidth'] = 700;
         window.tippy(el, config); 
@@ -1151,7 +1188,11 @@ z \sim \text{Normal}(0, 1) \\
           try { href = new URL(href).hash; } catch {}
           const id = href.replace(/^#\/?/, "");
           const note = window.document.getElementById(id);
-          return note.innerHTML;
+          if (note) {
+            return note.innerHTML;
+          } else {
+            return "";
+          }
         });
       }
       const findCites = (el) => {
