@@ -8,7 +8,7 @@
 <link href="intro_hierarchical_models_files/libs/quarto-html/light-border.css" rel="stylesheet">
 <link href="intro_hierarchical_models_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
 <link href="intro_hierarchical_models_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.5.54">
+  <meta name="generator" content="quarto-1.5.56">
 
   <meta name="author" content="Dr.&nbsp;Juan Orduz">
   <title>Introduction to Hierarchical Models</title>
@@ -420,7 +420,7 @@
 <li class="fragment">Data: EDA</li>
 <li class="fragment">Models
 <ul>
-<li class="fragment">Pooled</li>
+<li class="fragment">Unpooled</li>
 <li class="fragment">Hierarchical
 <ul>
 <li class="fragment">Non-Centered Parametrization</li>
@@ -429,6 +429,7 @@
 <li class="fragment">Hierarchical with Correlated Random Effects</li>
 </ul></li>
 <li class="fragment">Predictions for a New Region</li>
+<li class="fragment">Appendix: Hierarchical Pricing Elasticity Models at Scale</li>
 </ul>
 </div>
 </div><div class="column" style="width:50%;">
@@ -523,8 +524,8 @@
 <p>See <a href="https://bayesiancomputationbook.com/markdown/chp_04.html#unpooled-parameters">Bayesian Modeling and Computation in Python, Chapter 4.5.1: Unpooled Parameters</a></p>
 </div>
 </section>
-<section id="base-model---pooled-pymc" class="slide level2">
-<h2>Base Model - Pooled (PyMC)</h2>
+<section id="base-model---unpooled-pymc" class="slide level2">
+<h2>Base Model - Unpooled (PyMC)</h2>
 <div class="sourceCode" id="cb1" data-code-line-numbers="|1|3|4-7|9-18|20-27"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a>coords <span class="op">=</span> {<span class="st">"region"</span>: region, <span class="st">"obs"</span>: obs}</span>
 <span id="cb1-2"><a href=""></a></span>
 <span id="cb1-3"><a href=""></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>coords) <span class="im">as</span> base_model:</span>
@@ -553,8 +554,8 @@
 <span id="cb1-26"><a href=""></a>        dims<span class="op">=</span><span class="st">"obs"</span></span>
 <span id="cb1-27"><a href=""></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
-<section id="base-model---pooled-plate-notation" class="slide level2">
-<h2>Base Model - Pooled (Plate Notation)</h2>
+<section id="base-model---unpooled-1" class="slide level2">
+<h2>Base Model - Unpooled</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
 <p><img data-src="intro_hierarchical_models_files/images/blog/multilevel_elasticities_single_sku_33_0.svg" class="quarto-figure quarto-figure-center" height="600"></p>
@@ -831,7 +832,7 @@ z \sim \text{Normal}(0, 1) \\
 </section>
 <section id="appendix" class="slide level2">
 <h2>Appendix</h2>
-<h3 id="hierarchical-pricing-elasticity-models">Hierarchical Pricing Elasticity Models</h3>
+<h3 id="hierarchical-pricing-elasticity-models-at-scale">Hierarchical Pricing Elasticity Models at Scale</h3>
 <div class="quarto-figure quarto-figure-center">
 <figure>
 <p><img data-src="intro_hierarchical_models_files/images/elasticities_45_0.svg" class="quarto-figure quarto-figure-center" height="500"></p>
