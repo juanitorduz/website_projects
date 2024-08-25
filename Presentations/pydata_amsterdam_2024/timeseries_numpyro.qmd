@@ -23,3 +23,99 @@ format:
         - white
     highlight-style: github-dark
 ---
+
+## Statsmodels - Time Series Models 🤓
+
+![](timeseries_numpyro_files/static/images/statsmodels_docs.png){fig-align="center" width="800"}
+
+::: footer
+[https://www.statsmodels.org/stable/tsa.html](https://www.statsmodels.org/stable/tsa.html)
+:::
+
+## Nixtla 🚀
+
+![](timeseries_numpyro_files/static/images/nitxla_gh.png){fig-align="center" width="1000"}
+
+::: footer
+[https://github.com/Nixtla](https://github.com/Nixtla)
+:::
+
+## Pyro Forecasting Module 🔥
+
+![](timeseries_numpyro_files/static/images/pyro_docs.png){fig-align="center" width="800"}
+
+::: footer
+[https://docs.pyro.ai/en/stable/contrib.forecast.html](https://docs.pyro.ai/en/stable/contrib.forecast.html)
+:::
+
+##
+
+![](timeseries_numpyro_files/static/images/kyle_title.png){fig-align="center" width="800"}
+
+![](timeseries_numpyro_files/static/images/kyle_plot.png){fig-align="center" width="800"}
+
+::: footer
+[https://kylejcaron.github.io/posts/censored_demand/2024-02-06-censored-demand.html](https://kylejcaron.github.io/posts/censored_demand/2024-02-06-censored-demand.html)
+:::
+
+## NumPyro - SGT Example Model 🫠
+
+![](timeseries_numpyro_files/static/images/numpyro_sgt_model.png){fig-align="center" width="1000"}
+
+😅 ...
+
+::: footer
+[https://num.pyro.ai/en/stable/tutorials/time_series_forecasting.html](https://num.pyro.ai/en/stable/tutorials/time_series_forecasting.html)
+:::
+
+## Scan ⭐
+
+### An efficient implementation of `for` loops
+
+```{.python  code-line-numbers="|1-9|10-15"}
+def scan(f, init, xs):
+  """Pure Python implementation of scan.
+
+  Parameters
+  ----------
+  f : A  a Python function to be scanned.
+  init : An initial loop carry value
+  xs : The value over which to scan along the leading axis.
+  """
+  carry = init
+  ys = []
+  for x in xs:
+    carry, y = f(carry, x)
+    ys.append(y)
+  return carry, np.stack(ys)
+```
+
+##
+
+- For loop
+
+```{.python code-line-numbers="|1-3|6-9"}
+def sum_of_powers_for_loop(phi: float, h: int) -> float:
+    "phi -> 1 + phi + phi^2 + ... + phi^h"
+    return sum(phi**i for i in range(1, h + 1))
+
+
+assert sum_of_powers_for_loop(2, 0) == 0
+assert sum_of_powers_for_loop(2, 1) == 2
+assert sum_of_powers_for_loop(2, 2) == 2 + 2**2
+assert sum_of_powers_for_loop(2, 3) == 2 + 2**2 + 2**3
+```
+
+- Scan
+
+```{.python code-line-numbers="|1|2|3|4|5|6|8|9"}
+def sum_of_powers_scan(phi, h):
+    def transition_fn(carry, phi):
+        power_sum, power = carry
+        power = power * phi
+        power_sum = power_sum + power
+        return (power_sum, power), power_sum
+
+    (power_sum, _), _ = scan(f=transition_fn, init=(0, 1), xs=jnp.ones(h) * phi)
+    return power_sum
+```
