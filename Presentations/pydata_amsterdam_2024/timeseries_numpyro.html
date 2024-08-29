@@ -496,6 +496,173 @@
 <span id="cb3-7"><a href=""></a></span>
 <span id="cb3-8"><a href=""></a>    (power_sum, _), _ <span class="op">=</span> scan(f<span class="op">=</span>transition_fn, init<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">1</span>), xs<span class="op">=</span>jnp.ones(h) <span class="op">*</span> phi)</span>
 <span id="cb3-9"><a href=""></a>    <span class="cf">return</span> power_sum</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="example-exponential-smoothing" class="slide level2">
+<h2>Example: Exponential Smoothing</h2>
+
+<img data-src="timeseries_numpyro_files/static/images/exponential_smoothing_numpyro_files/exponential_smoothing_numpyro_16_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/exponential_smoothing_numpyro/">Notes on Exponential Smoothing with NumPyro</a></p>
+</div>
+</section>
+<section id="example-exponential-smoothing-1" class="slide level2">
+<h2>Example: Exponential Smoothing</h2>
+<p><span class="math display">\[
+\begin{align*}
+\hat{y}_{t+h|t} = &amp; \: l_t \\
+l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
+\end{align*}
+\]</span></p>
+<div>
+<ul>
+<li class="fragment"><span class="math inline">\(y_t\)</span> is the observed value at time <span class="math inline">\(t\)</span>.</li>
+<li class="fragment"><span class="math inline">\(\hat{y}_{t+h|t}\)</span> is the forecast of the value at time <span class="math inline">\(t+h\)</span> given the information up to time <span class="math inline">\(t\)</span>.</li>
+<li class="fragment"><span class="math inline">\(l_t\)</span> is the level at time <span class="math inline">\(t\)</span>.</li>
+<li class="fragment"><span class="math inline">\(\alpha\)</span> is the smoothing parameter. It is a value between 0 and 1.</li>
+</ul>
+</div>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/exponential_smoothing_numpyro/">Notes on Exponential Smoothing with NumPyro</a></p>
+</div>
+</section>
+<section id="example-exponential-smoothing-2" class="slide level2">
+<h2>Example: Exponential Smoothing</h2>
+<p><span class="math display">\[
+\begin{align*}
+\hat{y}_{t+h|t} = &amp; \: l_t \\
+l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
+\end{align*}
+\]</span></p>
+<div class="sourceCode" id="cb4" data-code-line-numbers="|1|2|4-8|10-11|13"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a>    <span class="kw">def</span> transition_fn(carry, t):</span>
+<span id="cb4-2"><a href=""></a>        previous_level <span class="op">=</span> carry</span>
+<span id="cb4-3"><a href=""></a></span>
+<span id="cb4-4"><a href=""></a>        level <span class="op">=</span> jnp.where(</span>
+<span id="cb4-5"><a href=""></a>            t <span class="op">&lt;</span> t_max,</span>
+<span id="cb4-6"><a href=""></a>            level_smoothing <span class="op">*</span> y[t] <span class="op">+</span> (<span class="dv">1</span> <span class="op">-</span> level_smoothing) <span class="op">*</span> previous_level,</span>
+<span id="cb4-7"><a href=""></a>            previous_level,</span>
+<span id="cb4-8"><a href=""></a>        )</span>
+<span id="cb4-9"><a href=""></a></span>
+<span id="cb4-10"><a href=""></a>        mu <span class="op">=</span> previous_level</span>
+<span id="cb4-11"><a href=""></a>        pred <span class="op">=</span> numpyro.sample(<span class="st">"pred"</span>, dist.Normal(loc<span class="op">=</span>mu, scale<span class="op">=</span>noise))</span>
+<span id="cb4-12"><a href=""></a></span>
+<span id="cb4-13"><a href=""></a>        <span class="cf">return</span> level, pred</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/exponential_smoothing_numpyro/">Notes on Exponential Smoothing with NumPyro</a></p>
+</div>
+</section>
+<section id="example-exponential-smoothing-3" class="slide level2">
+<h2>Example: Exponential Smoothing</h2>
+<div class="sourceCode" id="cb5" data-code-line-numbers="|1|2-3|5-13|15-17|19-25|27-29"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href=""></a><span class="kw">def</span> level_model(y: ArrayLike, future: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="cb5-2"><a href=""></a>    <span class="co"># Get time series length</span></span>
+<span id="cb5-3"><a href=""></a>    t_max <span class="op">=</span> y.shape[<span class="dv">0</span>]</span>
+<span id="cb5-4"><a href=""></a>    </span>
+<span id="cb5-5"><a href=""></a>    <span class="co"># --- Priors ---</span></span>
+<span id="cb5-6"><a href=""></a>    <span class="co">## Level</span></span>
+<span id="cb5-7"><a href=""></a>    level_smoothing <span class="op">=</span> numpyro.sample(</span>
+<span id="cb5-8"><a href=""></a>        <span class="st">"level_smoothing"</span>, dist.Beta(concentration1<span class="op">=</span><span class="dv">1</span>, concentration0<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb5-9"><a href=""></a>    )</span>
+<span id="cb5-10"><a href=""></a>    level_init <span class="op">=</span> numpyro.sample(<span class="st">"level_init"</span>, dist.Normal(loc<span class="op">=</span><span class="dv">0</span>, scale<span class="op">=</span><span class="dv">1</span>))</span>
+<span id="cb5-11"><a href=""></a></span>
+<span id="cb5-12"><a href=""></a>    <span class="co">## Noise</span></span>
+<span id="cb5-13"><a href=""></a>    noise <span class="op">=</span> numpyro.sample(<span class="st">"noise"</span>, dist.HalfNormal(scale<span class="op">=</span><span class="dv">1</span>))</span>
+<span id="cb5-14"><a href=""></a></span>
+<span id="cb5-15"><a href=""></a>    <span class="co"># --- Transition Function ---</span></span>
+<span id="cb5-16"><a href=""></a>    <span class="kw">def</span> transition_fn(carry, t):</span>
+<span id="cb5-17"><a href=""></a>        . . .</span>
+<span id="cb5-18"><a href=""></a></span>
+<span id="cb5-19"><a href=""></a>    <span class="co"># --- Run Scan ---</span></span>
+<span id="cb5-20"><a href=""></a>    <span class="cf">with</span> numpyro.handlers.condition(data<span class="op">=</span>{<span class="st">"pred"</span>: y}):</span>
+<span id="cb5-21"><a href=""></a>        _, preds <span class="op">=</span> scan(</span>
+<span id="cb5-22"><a href=""></a>            transition_fn,</span>
+<span id="cb5-23"><a href=""></a>            level_init,</span>
+<span id="cb5-24"><a href=""></a>            jnp.arange(t_max <span class="op">+</span> future),</span>
+<span id="cb5-25"><a href=""></a>        )</span>
+<span id="cb5-26"><a href=""></a></span>
+<span id="cb5-27"><a href=""></a>    <span class="co"># --- Forecast ---</span></span>
+<span id="cb5-28"><a href=""></a>    <span class="cf">if</span> future <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb5-29"><a href=""></a>        numpyro.deterministic(<span class="st">"y_forecast"</span>, preds[<span class="op">-</span>future:])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="example-exponential-smoothing-4" class="slide level2">
+<h2>Example: Exponential Smoothing</h2>
+<h3 id="posterior-distribution-parameters">Posterior Distribution Parameters</h3>
+
+<img data-src="timeseries_numpyro_files/static/images/exponential_smoothing_numpyro_files/exponential_smoothing_numpyro_29_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/exponential_smoothing_numpyro/">Notes on Exponential Smoothing with NumPyro</a></p>
+</div>
+</section>
+<section id="example-exponential-smoothing-5" class="slide level2">
+<h2>Example: Exponential Smoothing</h2>
+
+<img data-src="timeseries_numpyro_files/static/images/exponential_smoothing_numpyro_files/exponential_smoothing_numpyro_36_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/exponential_smoothing_numpyro/">Notes on Exponential Smoothing with NumPyro</a></p>
+</div>
+</section>
+<section id="example-exponential-smoothing-6" class="slide level2">
+<h2>Example: Exponential Smoothing</h2>
+<h3 id="trend-seasonal-damped">Trend + Seasonal + Damped</h3>
+
+<img data-src="timeseries_numpyro_files/static/images/exponential_smoothing_numpyro_files/exponential_smoothing_numpyro_78_1.png" class="quarto-figure quarto-figure-center r-stretch" width="900"><div class="footer">
+<p><a href="https://juanitorduz.github.io/exponential_smoothing_numpyro/">Notes on Exponential Smoothing with NumPyro</a></p>
+</div>
+</section>
+<section id="example-arma1-1-model" class="slide level2">
+<h2>Example: ARMA(1, 1) Model</h2>
+<div class="sourceCode" id="cb6" data-code-line-numbers="|1|2|3-4|5-7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a>    <span class="kw">def</span> transition_fn(carry, t):</span>
+<span id="cb6-2"><a href=""></a>        y_prev, error_prev <span class="op">=</span> carry</span>
+<span id="cb6-3"><a href=""></a>        ar_part <span class="op">=</span> phi <span class="op">*</span> y_prev</span>
+<span id="cb6-4"><a href=""></a>        ma_part <span class="op">=</span> theta <span class="op">*</span> error_prev</span>
+<span id="cb6-5"><a href=""></a>        pred <span class="op">=</span> mu <span class="op">+</span> ar_part <span class="op">+</span> ma_part</span>
+<span id="cb6-6"><a href=""></a>        error <span class="op">=</span> y[t] <span class="op">-</span> pred</span>
+<span id="cb6-7"><a href=""></a>        <span class="cf">return</span> (y[t], error), error</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+<img data-src="timeseries_numpyro_files/static/images/arma_numpyro_files/arma_numpyro_40_1.png" class="quarto-figure quarto-figure-center r-stretch" width="650"><div class="footer">
+<p><a href="https://juanitorduz.github.io/arma_numpyro/">Notes on an ARMA(1, 1) Model with NumPyro</a></p>
+</div>
+</section>
+<section id="intermittent-time-series" class="slide level2">
+<h2>Intermittent Time Series</h2>
+
+<img data-src="timeseries_numpyro_files/static/images/croston_numpyro_files/croston_numpyro_6_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/croston_numpyro/">Croston’s Method for Intermittent Time Series Forecasting in NumPyro</a></p>
+</div>
+</section>
+<section id="crostons-method" class="slide level2">
+<h2>Croston’s Method</h2>
+<blockquote>
+<p>The method is based on the idea of separating the demand size and the demand interval, and then forecasting them separately using simple exponential smoothing.</p>
+</blockquote>
+<ul>
+<li>To generate the demand size time series <span class="math inline">\(z_t\)</span> we simply keep the non-zero values of the original series.</li>
+<li>To generate the demand interval time series <span class="math inline">\(y_t\)</span> we keep the time between non-zero values of the original series.</li>
+</ul>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/croston_numpyro/">Croston’s Method for Intermittent Time Series Forecasting in NumPyro</a></p>
+</div>
+</section>
+<section id="crostons-method-1" class="slide level2">
+<h2>Croston’s Method</h2>
+
+<img data-src="timeseries_numpyro_files/static/images/croston_numpyro_files/croston_numpyro_10_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/croston_numpyro/">Croston’s Method for Intermittent Time Series Forecasting in NumPyro</a></p>
+</div>
+</section>
+<section id="crostons-method-2" class="slide level2">
+<h2>Croston’s Method</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href=""></a><span class="kw">def</span> croston_model(z: ArrayLike, p_inv: ArrayLike, future: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="cb7-2"><a href=""></a>    z_forecast <span class="op">=</span> scope(level_model, <span class="st">"demand"</span>)(z, future)</span>
+<span id="cb7-3"><a href=""></a>    p_inv_forecast <span class="op">=</span> scope(level_model, <span class="st">"period_inv"</span>)(p_inv, future)</span>
+<span id="cb7-4"><a href=""></a></span>
+<span id="cb7-5"><a href=""></a>    <span class="cf">if</span> future <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb7-6"><a href=""></a>        numpyro.deterministic(<span class="st">"z_forecast"</span>, z_forecast)</span>
+<span id="cb7-7"><a href=""></a>        numpyro.deterministic(<span class="st">"p_inv_forecast"</span>, p_inv_forecast)</span>
+<span id="cb7-8"><a href=""></a>        numpyro.deterministic(<span class="st">"forecast"</span>, z_forecast <span class="op">*</span> p_inv_forecast)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="timeseries_numpyro_files/static/images/croston_numpyro_files/croston_numpyro_39_1.png" class="quarto-figure quarto-figure-center" width="600"></p>
+</figure>
+</div>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/croston_numpyro/">Croston’s Method for Intermittent Time Series Forecasting in NumPyro</a></p>
+</div>
 <div class="quarto-auto-generated-content">
 <p><img src="timeseries_numpyro_files/static/images/juanitorduz_logo_small.png" class="slide-logo"></p>
 <div class="footer footer-default">

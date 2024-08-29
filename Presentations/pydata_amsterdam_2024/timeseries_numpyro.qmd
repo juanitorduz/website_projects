@@ -119,3 +119,189 @@ def sum_of_powers_scan(phi, h):
     (power_sum, _), _ = scan(f=transition_fn, init=(0, 1), xs=jnp.ones(h) * phi)
     return power_sum
 ```
+
+## Example: Exponential Smoothing
+
+![](timeseries_numpyro_files/static/images/exponential_smoothing_numpyro_files/exponential_smoothing_numpyro_16_1.png){fig-align="center" width="1000"}
+
+::: footer
+[Notes on Exponential Smoothing with NumPyro](https://juanitorduz.github.io/exponential_smoothing_numpyro/)
+:::
+
+## Example: Exponential Smoothing 
+
+$$
+\begin{align*}
+\hat{y}_{t+h|t} = & \: l_t \\
+l_t = & \: \alpha y_t + (1 - \alpha)l_{t-1}
+\end{align*}
+$$
+
+::: incremental
+
+- $y_t$ is the observed value at time $t$.
+- $\hat{y}_{t+h|t}$ is the forecast of the value at time $t+h$ given the information up to time $t$.
+- $l_t$ is the level at time $t$.
+- $\alpha$ is the smoothing parameter. It is a value between 0 and 1.
+
+:::
+
+::: footer
+[Notes on Exponential Smoothing with NumPyro](https://juanitorduz.github.io/exponential_smoothing_numpyro/)
+:::
+
+## Example: Exponential Smoothing 
+
+$$
+\begin{align*}
+\hat{y}_{t+h|t} = & \: l_t \\
+l_t = & \: \alpha y_t + (1 - \alpha)l_{t-1}
+\end{align*}
+$$
+
+```{.python code-line-numbers="|1|2|4-8|10-11|13"}
+    def transition_fn(carry, t):
+        previous_level = carry
+
+        level = jnp.where(
+            t < t_max,
+            level_smoothing * y[t] + (1 - level_smoothing) * previous_level,
+            previous_level,
+        )
+
+        mu = previous_level
+        pred = numpyro.sample("pred", dist.Normal(loc=mu, scale=noise))
+
+        return level, pred
+```
+
+::: footer
+[Notes on Exponential Smoothing with NumPyro](https://juanitorduz.github.io/exponential_smoothing_numpyro/)
+:::
+
+## Example: Exponential Smoothing 
+
+```{.python code-line-numbers="|1|2-3|5-13|15-17|19-25|27-29"}
+def level_model(y: ArrayLike, future: int = 0) -> None:
+    # Get time series length
+    t_max = y.shape[0]
+    
+    # --- Priors ---
+    ## Level
+    level_smoothing = numpyro.sample(
+        "level_smoothing", dist.Beta(concentration1=1, concentration0=1)
+    )
+    level_init = numpyro.sample("level_init", dist.Normal(loc=0, scale=1))
+
+    ## Noise
+    noise = numpyro.sample("noise", dist.HalfNormal(scale=1))
+
+    # --- Transition Function ---
+    def transition_fn(carry, t):
+        . . .
+
+    # --- Run Scan ---
+    with numpyro.handlers.condition(data={"pred": y}):
+        _, preds = scan(
+            transition_fn,
+            level_init,
+            jnp.arange(t_max + future),
+        )
+
+    # --- Forecast ---
+    if future > 0:
+        numpyro.deterministic("y_forecast", preds[-future:])
+```
+
+## Example: Exponential Smoothing
+
+### Posterior Distribution Parameters
+
+![](timeseries_numpyro_files/static/images/exponential_smoothing_numpyro_files/exponential_smoothing_numpyro_29_1.png){fig-align="center" width="1000"}
+
+::: footer
+[Notes on Exponential Smoothing with NumPyro](https://juanitorduz.github.io/exponential_smoothing_numpyro/)
+:::
+
+## Example: Exponential Smoothing
+
+![](timeseries_numpyro_files/static/images/exponential_smoothing_numpyro_files/exponential_smoothing_numpyro_36_1.png){fig-align="center" width="1000"}
+
+::: footer
+[Notes on Exponential Smoothing with NumPyro](https://juanitorduz.github.io/exponential_smoothing_numpyro/)
+:::
+
+## Example: Exponential Smoothing
+
+### Trend + Seasonal + Damped
+
+![](timeseries_numpyro_files/static/images/exponential_smoothing_numpyro_files/exponential_smoothing_numpyro_78_1.png){fig-align="center" width="900"}
+
+::: footer
+[Notes on Exponential Smoothing with NumPyro](https://juanitorduz.github.io/exponential_smoothing_numpyro/)
+:::
+
+## Example: ARMA(1, 1) Model
+
+```{.python code-line-numbers="|1|2|3-4|5-7"}
+    def transition_fn(carry, t):
+        y_prev, error_prev = carry
+        ar_part = phi * y_prev
+        ma_part = theta * error_prev
+        pred = mu + ar_part + ma_part
+        error = y[t] - pred
+        return (y[t], error), error
+```
+
+![](timeseries_numpyro_files/static/images/arma_numpyro_files/arma_numpyro_40_1.png){fig-align="center" width="650"}
+
+::: footer
+[Notes on an ARMA(1, 1) Model with NumPyro](https://juanitorduz.github.io/arma_numpyro/)
+:::
+
+## Intermittent Time Series
+
+![](timeseries_numpyro_files/static/images/croston_numpyro_files/croston_numpyro_6_1.png){fig-align="center" width="1000"}
+
+::: footer
+[Croston's Method for Intermittent Time Series Forecasting in NumPyro](https://juanitorduz.github.io/croston_numpyro/)
+:::
+
+## Croston's Method
+
+> The method is based on the idea of separating the demand size and the demand interval, and then forecasting them separately using simple exponential smoothing.
+
+- To generate the demand size time series $z_t$ we simply keep the non-zero values of the original series.
+- To generate the demand interval time series $y_t$ we keep the time between non-zero values of the original series.
+
+::: footer
+[Croston's Method for Intermittent Time Series Forecasting in NumPyro](https://juanitorduz.github.io/croston_numpyro/)
+:::
+
+## Croston's Method
+
+![](timeseries_numpyro_files/static/images/croston_numpyro_files/croston_numpyro_10_1.png){fig-align="center" width="1000"}
+
+
+::: footer
+[Croston's Method for Intermittent Time Series Forecasting in NumPyro](https://juanitorduz.github.io/croston_numpyro/)
+:::
+
+## Croston's Method
+
+```{.python}
+def croston_model(z: ArrayLike, p_inv: ArrayLike, future: int = 0) -> None:
+    z_forecast = scope(level_model, "demand")(z, future)
+    p_inv_forecast = scope(level_model, "period_inv")(p_inv, future)
+
+    if future > 0:
+        numpyro.deterministic("z_forecast", z_forecast)
+        numpyro.deterministic("p_inv_forecast", p_inv_forecast)
+        numpyro.deterministic("forecast", z_forecast * p_inv_forecast)
+```
+
+![](timeseries_numpyro_files/static/images/croston_numpyro_files/croston_numpyro_39_1.png){fig-align="center" width="600"}
+
+::: footer
+[Croston's Method for Intermittent Time Series Forecasting in NumPyro](https://juanitorduz.github.io/croston_numpyro/)
+:::
