@@ -778,13 +778,63 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 </section>
 <section id="censored-time-series-forecast" class="slide level2">
 <h2>Censored Time Series Forecast</h2>
+
+<img data-src="timeseries_numpyro_files/static/images/demand_files/demand_48_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/demand/">Demand Forecasting with Censored Likelihood</a></p>
+</div>
+</section>
+<section id="hierarchical-exponential-smoothing" class="slide level2">
+<h2>Hierarchical Exponential Smoothing</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="timeseries_numpyro_files/static/images/demand_files/demand_48_0.png" class="quarto-figure quarto-figure-center" width="1000"></p>
+<p><img data-src="timeseries_numpyro_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_45_0.png" class="quarto-figure quarto-figure-center" height="1950"></p>
 </figure>
 </div>
+</section>
+<section id="hierarchical-exponential-smoothing-1" class="slide level2">
+<h2>Hierarchical Exponential Smoothing</h2>
+
+<img data-src="timeseries_numpyro_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_47_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/hierarchical_exponential_smoothing/">Hierarchical Exponential Smoothing Model</a></p>
+</div>
+</section>
+<section id="hierarchical-exponential-smoothing-2" class="slide level2">
+<h2>Hierarchical Exponential Smoothing</h2>
+
+<img data-src="timeseries_numpyro_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_69_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/hierarchical_exponential_smoothing/">Hierarchical Exponential Smoothing Model</a></p>
+</div>
+</section>
+<section id="pymc-time-series" class="slide level2">
+<h2>PyMC &amp; Time Series</h2>
+
+<img data-src="timeseries_numpyro_files/static/images/pymc-ts.svg" class="quarto-figure quarto-figure-center r-stretch" width="600"><div class="footer">
+<p><a href="https://www.pymc.io/projects/examples/en/latest/time_series/Time_Series_Generative_Graph.html">Time Series Models Derived From a Generative Graph</a></p>
+</div>
+</section>
+<section id="pymc-time-series-1" class="slide level2">
+<h2>PyMC &amp; Time Series</h2>
+
+<img data-src="timeseries_numpyro_files/static/images/pymc-ts-forecast.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://www.pymc.io/projects/examples/en/latest/time_series/Time_Series_Generative_Graph.html">Time Series Models Derived From a Generative Graph</a></p>
+</div>
+</section>
+<section id="pymc-state-space-module" class="slide level2">
+<h2>PyMC State Space Module</h2>
+<center>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/G9VWXZdbtKQ" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen="">
+</iframe>
+</center>
+<div class="sourceCode" id="cb11"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href=""></a><span class="im">from</span> pymc_experimental.statespace <span class="im">import</span> structural <span class="im">as</span> st</span>
+<span id="cb11-2"><a href=""></a></span>
+<span id="cb11-3"><a href=""></a>slow_trend <span class="op">=</span> st.LevelTrendComponent(order<span class="op">=</span><span class="dv">2</span>, innovations_order<span class="op">=</span>[<span class="dv">0</span>, <span class="dv">1</span>])</span>
+<span id="cb11-4"><a href=""></a>seasonality <span class="op">=</span> st.FrequencySeasonality(name<span class="op">=</span><span class="st">"annual_seasonality"</span>, season_length<span class="op">=</span><span class="dv">52</span>, n<span class="op">=</span><span class="dv">2</span>, innovations<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb11-5"><a href=""></a>exog <span class="op">=</span> st.RegressionComponent(name<span class="op">=</span><span class="st">"exog"</span>, state_names<span class="op">=</span>X.columns.tolist(), innovations<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb11-6"><a href=""></a>measurement_error <span class="op">=</span> st.MeasurementError(<span class="st">"measurement_error"</span>)</span>
+<span id="cb11-7"><a href=""></a></span>
+<span id="cb11-8"><a href=""></a>ss_mod <span class="op">=</span> (slow_trend <span class="op">+</span> seasonality <span class="op">+</span> exog <span class="op">+</span> measurement_error).build()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="footer">
-<p><a href="https://juanitorduz.github.io/demand/">Demand Forecasting with Censored Likelihood</a></p>
+<p><a href="https://github.com/jessegrabowski/statespace-presentation">https://github.com/jessegrabowski/statespace-presentation</a></p>
 </div>
 <div class="quarto-auto-generated-content">
 <p><img src="timeseries_numpyro_files/static/images/juanitorduz_logo_small.png" class="slide-logo"></p>

@@ -438,3 +438,60 @@ Change likelihood distribution in a time-series model:
 ::: footer
 [Demand Forecasting with Censored Likelihood](https://juanitorduz.github.io/demand/)
 :::
+
+## Hierarchical Exponential Smoothing
+
+![](timeseries_numpyro_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_45_0.png){fig-align="center" height="1950"}
+
+
+## Hierarchical Exponential Smoothing
+
+![](timeseries_numpyro_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_47_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Hierarchical Exponential Smoothing Model](https://juanitorduz.github.io/hierarchical_exponential_smoothing/)
+:::
+
+## Hierarchical Exponential Smoothing
+
+![](timeseries_numpyro_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_69_0.png ){fig-align="center" width="1000"}
+
+::: footer
+[Hierarchical Exponential Smoothing Model](https://juanitorduz.github.io/hierarchical_exponential_smoothing/)
+:::
+
+## PyMC & Time Series
+
+![](timeseries_numpyro_files/static/images/pymc-ts.svg){fig-align="center" width="600"}
+
+::: footer
+[Time Series Models Derived From a Generative Graph](https://www.pymc.io/projects/examples/en/latest/time_series/Time_Series_Generative_Graph.html)
+:::
+
+## PyMC & Time Series
+![](timeseries_numpyro_files/static/images/pymc-ts-forecast.png){fig-align="center" width="1000"}
+
+::: footer
+[Time Series Models Derived From a Generative Graph](https://www.pymc.io/projects/examples/en/latest/time_series/Time_Series_Generative_Graph.html)
+:::
+
+## PyMC State Space Module
+
+<center>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/G9VWXZdbtKQ" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+</center>
+
+```{.python}
+from pymc_experimental.statespace import structural as st
+
+slow_trend = st.LevelTrendComponent(order=2, innovations_order=[0, 1])
+seasonality = st.FrequencySeasonality(name="annual_seasonality", season_length=52, n=2, innovations=False)
+exog = st.RegressionComponent(name="exog", state_names=X.columns.tolist(), innovations=False)
+measurement_error = st.MeasurementError("measurement_error")
+
+ss_mod = (slow_trend + seasonality + exog + measurement_error).build()
+```
+
+::: footer
+[https://github.com/jessegrabowski/statespace-presentation](https://github.com/jessegrabowski/statespace-presentation)
+:::
