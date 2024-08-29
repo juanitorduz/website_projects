@@ -714,36 +714,36 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 <section id="censored-distributions" class="slide level2">
 <h2>Censored Distributions</h2>
 
-<img data-src="timeseries_numpyro_files/static/images/censoring_files/censoring_5_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<img data-src="timeseries_numpyro_files/static/images/censoring_files/censoring_5_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
 <p><a href="https://juanitorduz.github.io/censoring/">Bayesian Censoring Data Modeling</a></p>
 </div>
 </section>
-<section id="censored-distributions-naive" class="slide level2">
-<h2>Censored Distributions (Naive)</h2>
+<section id="section-2" class="slide level2">
+<h2></h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="timeseries_numpyro_files/static/images/censoring_files/censoring_12_1.png" class="quarto-figure quarto-figure-center" width="600"></p>
+<p><img data-src="timeseries_numpyro_files/static/images/censoring_files/censoring_12_0.png" class="quarto-figure quarto-figure-center" width="600"></p>
 </figure>
 </div>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="timeseries_numpyro_files/static/images/censoring_files/censoring_15_1.png" class="quarto-figure quarto-figure-center" width="600"></p>
+<p><img data-src="timeseries_numpyro_files/static/images/censoring_files/censoring_15_0.png" class="quarto-figure quarto-figure-center" width="700"></p>
 </figure>
 </div>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/censoring/">Bayesian Censoring Data Modeling</a></p>
 </div>
 </section>
-<section id="censored-distributions-1" class="slide level2">
-<h2>Censored Distributions</h2>
+<section id="section-3" class="slide level2">
+<h2></h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="timeseries_numpyro_files/static/images/censoring_files/censoring_26_1.png" class="quarto-figure quarto-figure-center" width="600"></p>
+<p><img data-src="timeseries_numpyro_files/static/images/censoring_files/censoring_26_0.png" class="quarto-figure quarto-figure-center" width="600"></p>
 </figure>
 </div>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="timeseries_numpyro_files/static/images/censoring_files/censoring_28_1.png" class="quarto-figure quarto-figure-center" width="600"></p>
+<p><img data-src="timeseries_numpyro_files/static/images/censoring_files/censoring_28_0.png" class="quarto-figure quarto-figure-center" width="700"></p>
 </figure>
 </div>
 <div class="footer">
@@ -763,7 +763,7 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 <span id="cb9-9"><a href=""></a>    <span class="cf">return</span> numpyro.sample(<span class="st">"pred"</span>, distribution.mask(censored <span class="op">!=</span> <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="fragment">
 <p>Change likelihood distribution in a time-series model:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href=""></a>    <span class="co">## Transition function for AR(2)</span></span>
+<div class="sourceCode" id="cb10" data-code-line-numbers="|7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href=""></a>    <span class="co">## Transition function for AR(2)</span></span>
 <span id="cb10-2"><a href=""></a>    <span class="kw">def</span> transition_fn(carry, t):</span>
 <span id="cb10-3"><a href=""></a>        y_prev_1, y_prev_2 <span class="op">=</span> carry</span>
 <span id="cb10-4"><a href=""></a>        ar_part <span class="op">=</span> phi_1 <span class="op">*</span> y_prev_1 <span class="op">+</span> phi_2 <span class="op">*</span> y_prev_2</span>

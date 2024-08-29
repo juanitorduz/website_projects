@@ -374,27 +374,27 @@ def croston_model(z: ArrayLike, p_inv: ArrayLike, future: int = 0) -> None:
 
 ## Censored Distributions
 
-![](timeseries_numpyro_files/static/images/censoring_files/censoring_5_1.png){fig-align="center" width="1000"}
+![](timeseries_numpyro_files/static/images/censoring_files/censoring_5_0.png){fig-align="center" width="1000"}
 
 ::: footer
 [Bayesian Censoring Data Modeling](https://juanitorduz.github.io/censoring/)
 :::
 
-## Censored Distributions (Naive)
+##
 
-![](timeseries_numpyro_files/static/images/censoring_files/censoring_12_1.png){fig-align="center" width="600"}
+![](timeseries_numpyro_files/static/images/censoring_files/censoring_12_0.png){fig-align="center" width="600"}
 
-![](timeseries_numpyro_files/static/images/censoring_files/censoring_15_1.png){fig-align="center" width="600"}
+![](timeseries_numpyro_files/static/images/censoring_files/censoring_15_0.png){fig-align="center" width="700"}
 
 ::: footer
 [Bayesian Censoring Data Modeling](https://juanitorduz.github.io/censoring/)
 :::
 
-## Censored Distributions
+##
 
-![](timeseries_numpyro_files/static/images/censoring_files/censoring_26_1.png){fig-align="center" width="600"}
+![](timeseries_numpyro_files/static/images/censoring_files/censoring_26_0.png){fig-align="center" width="600"}
 
-![](timeseries_numpyro_files/static/images/censoring_files/censoring_28_1.png){fig-align="center" width="600"}
+![](timeseries_numpyro_files/static/images/censoring_files/censoring_28_0.png){fig-align="center" width="700"}
 
 ::: footer
 [Bayesian Censoring Data Modeling](https://juanitorduz.github.io/censoring/)
@@ -417,7 +417,7 @@ def censored_normal(loc, scale, y, censored):
 
 Change likelihood distribution in a time-series model:
 
-```{.python}
+```{.python code-line-numbers="|7"}
     ## Transition function for AR(2)
     def transition_fn(carry, t):
         y_prev_1, y_prev_2 = carry
