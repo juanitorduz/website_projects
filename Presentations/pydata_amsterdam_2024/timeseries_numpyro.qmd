@@ -355,3 +355,86 @@ def croston_model(z: ArrayLike, p_inv: ArrayLike, future: int = 0) -> None:
 ::: footer
 [Zero-Inflated TSB Model](https://juanitorduz.github.io/zi_tsb_numpyro/)
 :::
+
+## Forecasting Unseen Demand
+
+![](timeseries_numpyro_files/static/images/demand_files/demand_8_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Demand Forecasting with Censored Likelihood](https://juanitorduz.github.io/demand/)
+:::
+
+## ARIMA Model
+
+![](timeseries_numpyro_files/static/images/demand_files/demand_25_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Demand Forecasting with Censored Likelihood](https://juanitorduz.github.io/demand/)
+:::
+
+## Censored Distributions
+
+![](timeseries_numpyro_files/static/images/censoring_files/censoring_5_1.png){fig-align="center" width="1000"}
+
+::: footer
+[Bayesian Censoring Data Modeling](https://juanitorduz.github.io/censoring/)
+:::
+
+## Censored Distributions (Naive)
+
+![](timeseries_numpyro_files/static/images/censoring_files/censoring_12_1.png){fig-align="center" width="600"}
+
+![](timeseries_numpyro_files/static/images/censoring_files/censoring_15_1.png){fig-align="center" width="600"}
+
+::: footer
+[Bayesian Censoring Data Modeling](https://juanitorduz.github.io/censoring/)
+:::
+
+## Censored Distributions
+
+![](timeseries_numpyro_files/static/images/censoring_files/censoring_26_1.png){fig-align="center" width="600"}
+
+![](timeseries_numpyro_files/static/images/censoring_files/censoring_28_1.png){fig-align="center" width="600"}
+
+::: footer
+[Bayesian Censoring Data Modeling](https://juanitorduz.github.io/censoring/)
+:::
+
+## Censored Likelihood
+
+```{.python}
+def censored_normal(loc, scale, y, censored):
+    distribution = dist.Normal(loc=loc, scale=scale)
+    ccdf = 1 - distribution.cdf(y)
+    numpyro.sample(
+        "censored_label",
+        dist.Bernoulli(probs=ccdf).mask(censored == 1),
+        obs=censored
+    )
+    return numpyro.sample("pred", distribution.mask(censored != 1))
+```
+. . .
+
+Change likelihood distribution in a time-series model:
+
+```{.python}
+    ## Transition function for AR(2)
+    def transition_fn(carry, t):
+        y_prev_1, y_prev_2 = carry
+        ar_part = phi_1 * y_prev_1 + phi_2 * y_prev_2
+        pred_mean = mu + ar_part + seasonal[t]
+        # Censored likelihood
+        pred = censored_normal(pred_mean, sigma, y[t], censored[t])
+        return (pred, y_prev_1), pred
+```
+::: footer
+[Demand Forecasting with Censored Likelihood](https://juanitorduz.github.io/demand/)
+:::
+
+## Censored Time Series Forecast
+
+![](timeseries_numpyro_files/static/images/demand_files/demand_48_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Demand Forecasting with Censored Likelihood](https://juanitorduz.github.io/demand/)
+:::

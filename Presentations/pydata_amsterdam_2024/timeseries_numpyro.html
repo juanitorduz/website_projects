@@ -692,13 +692,99 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 </section>
 <section id="time-slice-cross-validation" class="slide level2">
 <h2>Time-Slice Cross Validation</h2>
+
+<img data-src="timeseries_numpyro_files/static/images/zi_tsb_numpyro_files/zi_tsb_numpyro_35_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/zi_tsb_numpyro/">Zero-Inflated TSB Model</a></p>
+</div>
+</section>
+<section id="forecasting-unseen-demand" class="slide level2">
+<h2>Forecasting Unseen Demand</h2>
+
+<img data-src="timeseries_numpyro_files/static/images/demand_files/demand_8_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/demand/">Demand Forecasting with Censored Likelihood</a></p>
+</div>
+</section>
+<section id="arima-model" class="slide level2">
+<h2>ARIMA Model</h2>
+
+<img data-src="timeseries_numpyro_files/static/images/demand_files/demand_25_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/demand/">Demand Forecasting with Censored Likelihood</a></p>
+</div>
+</section>
+<section id="censored-distributions" class="slide level2">
+<h2>Censored Distributions</h2>
+
+<img data-src="timeseries_numpyro_files/static/images/censoring_files/censoring_5_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/censoring/">Bayesian Censoring Data Modeling</a></p>
+</div>
+</section>
+<section id="censored-distributions-naive" class="slide level2">
+<h2>Censored Distributions (Naive)</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="timeseries_numpyro_files/static/images/zi_tsb_numpyro_files/zi_tsb_numpyro_35_1.png" class="quarto-figure quarto-figure-center" width="1000"></p>
+<p><img data-src="timeseries_numpyro_files/static/images/censoring_files/censoring_12_1.png" class="quarto-figure quarto-figure-center" width="600"></p>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="timeseries_numpyro_files/static/images/censoring_files/censoring_15_1.png" class="quarto-figure quarto-figure-center" width="600"></p>
 </figure>
 </div>
 <div class="footer">
-<p><a href="https://juanitorduz.github.io/zi_tsb_numpyro/">Zero-Inflated TSB Model</a></p>
+<p><a href="https://juanitorduz.github.io/censoring/">Bayesian Censoring Data Modeling</a></p>
+</div>
+</section>
+<section id="censored-distributions-1" class="slide level2">
+<h2>Censored Distributions</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="timeseries_numpyro_files/static/images/censoring_files/censoring_26_1.png" class="quarto-figure quarto-figure-center" width="600"></p>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="timeseries_numpyro_files/static/images/censoring_files/censoring_28_1.png" class="quarto-figure quarto-figure-center" width="600"></p>
+</figure>
+</div>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/censoring/">Bayesian Censoring Data Modeling</a></p>
+</div>
+</section>
+<section id="censored-likelihood" class="slide level2">
+<h2>Censored Likelihood</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href=""></a><span class="kw">def</span> censored_normal(loc, scale, y, censored):</span>
+<span id="cb9-2"><a href=""></a>    distribution <span class="op">=</span> dist.Normal(loc<span class="op">=</span>loc, scale<span class="op">=</span>scale)</span>
+<span id="cb9-3"><a href=""></a>    ccdf <span class="op">=</span> <span class="dv">1</span> <span class="op">-</span> distribution.cdf(y)</span>
+<span id="cb9-4"><a href=""></a>    numpyro.sample(</span>
+<span id="cb9-5"><a href=""></a>        <span class="st">"censored_label"</span>,</span>
+<span id="cb9-6"><a href=""></a>        dist.Bernoulli(probs<span class="op">=</span>ccdf).mask(censored <span class="op">==</span> <span class="dv">1</span>),</span>
+<span id="cb9-7"><a href=""></a>        obs<span class="op">=</span>censored</span>
+<span id="cb9-8"><a href=""></a>    )</span>
+<span id="cb9-9"><a href=""></a>    <span class="cf">return</span> numpyro.sample(<span class="st">"pred"</span>, distribution.mask(censored <span class="op">!=</span> <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="fragment">
+<p>Change likelihood distribution in a time-series model:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href=""></a>    <span class="co">## Transition function for AR(2)</span></span>
+<span id="cb10-2"><a href=""></a>    <span class="kw">def</span> transition_fn(carry, t):</span>
+<span id="cb10-3"><a href=""></a>        y_prev_1, y_prev_2 <span class="op">=</span> carry</span>
+<span id="cb10-4"><a href=""></a>        ar_part <span class="op">=</span> phi_1 <span class="op">*</span> y_prev_1 <span class="op">+</span> phi_2 <span class="op">*</span> y_prev_2</span>
+<span id="cb10-5"><a href=""></a>        pred_mean <span class="op">=</span> mu <span class="op">+</span> ar_part <span class="op">+</span> seasonal[t]</span>
+<span id="cb10-6"><a href=""></a>        <span class="co"># Censored likelihood</span></span>
+<span id="cb10-7"><a href=""></a>        pred <span class="op">=</span> censored_normal(pred_mean, sigma, y[t], censored[t])</span>
+<span id="cb10-8"><a href=""></a>        <span class="cf">return</span> (pred, y_prev_1), pred</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/demand/">Demand Forecasting with Censored Likelihood</a></p>
+</div>
+</div>
+</section>
+<section id="censored-time-series-forecast" class="slide level2">
+<h2>Censored Time Series Forecast</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="timeseries_numpyro_files/static/images/demand_files/demand_48_0.png" class="quarto-figure quarto-figure-center" width="1000"></p>
+</figure>
+</div>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/demand/">Demand Forecasting with Censored Likelihood</a></p>
 </div>
 <div class="quarto-auto-generated-content">
 <p><img src="timeseries_numpyro_files/static/images/juanitorduz_logo_small.png" class="slide-logo"></p>
