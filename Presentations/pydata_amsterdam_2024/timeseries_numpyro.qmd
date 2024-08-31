@@ -32,6 +32,19 @@ format:
     highlight-style: github-dark
 ---
 
+## Outline
+
+- Introduction
+- `Scan` in NumPyro
+- Exponential Smoothing
+- ARIMA
+- Intermittent Demand
+- Censored Demand
+- Hierarchical Models
+- Price Elasticities
+- PyMC State Space Module
+
+
 ## Statsmodels - Time Series Models 🤓
 
 ![](timeseries_numpyro_files/static/images/statsmodels_docs.png){fig-align="center" width="800"}
@@ -40,7 +53,7 @@ format:
 [https://www.statsmodels.org/stable/tsa.html](https://www.statsmodels.org/stable/tsa.html)
 :::
 
-## Nixtla 🚀
+## Nixtla ✨
 
 ![](timeseries_numpyro_files/static/images/nitxla_gh.png){fig-align="center" width="1000"}
 
@@ -114,7 +127,7 @@ assert sum_of_powers_for_loop(2, 2) == 2 + 2**2
 assert sum_of_powers_for_loop(2, 3) == 2 + 2**2 + 2**3
 ```
 
-- Scan
+- Scan 😎
 
 ```{.python code-line-numbers="|1|2|3|4|5|6|8|9"}
 def sum_of_powers_scan(phi, h):
@@ -356,7 +369,7 @@ def croston_model(z: ArrayLike, p_inv: ArrayLike, future: int = 0) -> None:
 [Zero-Inflated TSB Model](https://juanitorduz.github.io/zi_tsb_numpyro/)
 :::
 
-## Forecasting Unseen Demand
+****## Forecasting Unseen Demand
 
 ![](timeseries_numpyro_files/static/images/demand_files/demand_8_0.png){fig-align="center" width="1000"}
 
@@ -431,7 +444,7 @@ Change likelihood distribution in a time-series model:
 [Demand Forecasting with Censored Likelihood](https://juanitorduz.github.io/demand/)
 :::
 
-## Censored Time Series Forecast
+## Censored Time Series Forecast 💡
 
 ![](timeseries_numpyro_files/static/images/demand_files/demand_48_0.png){fig-align="center" width="1000"}
 
@@ -476,7 +489,7 @@ Change likelihood distribution in a time-series model:
 [Hierarchical Pricing Elasticity Models](https://juanitorduz.github.io/elasticities/)
 :::
 
-## PyMC & Time Series
+## PyMC & Time Series 🚀
 
 ![](timeseries_numpyro_files/static/images/pymc-ts.svg){fig-align="center" width="600"}
 
@@ -484,7 +497,8 @@ Change likelihood distribution in a time-series model:
 [Time Series Models Derived From a Generative Graph](https://www.pymc.io/projects/examples/en/latest/time_series/Time_Series_Generative_Graph.html)
 :::
 
-## PyMC & Time Series
+## PyMC & Time Series 🚀
+
 ![](timeseries_numpyro_files/static/images/pymc-ts-forecast.png){fig-align="center" width="1000"}
 
 ::: footer

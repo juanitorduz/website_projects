@@ -406,6 +406,20 @@
 </div>
 
 </section>
+<section id="outline" class="slide level2">
+<h2>Outline</h2>
+<ul>
+<li>Introduction</li>
+<li><code>Scan</code> in NumPyro</li>
+<li>Exponential Smoothing</li>
+<li>ARIMA</li>
+<li>Intermittent Demand</li>
+<li>Censored Demand</li>
+<li>Hierarchical Models</li>
+<li>Price Elasticities</li>
+<li>PyMC State Space Module</li>
+</ul>
+</section>
 <section id="statsmodels---time-series-models" class="slide level2">
 <h2>Statsmodels - Time Series Models 🤓</h2>
 
@@ -414,7 +428,7 @@
 </div>
 </section>
 <section id="nixtla" class="slide level2">
-<h2>Nixtla 🚀</h2>
+<h2>Nixtla ✨</h2>
 
 <img data-src="timeseries_numpyro_files/static/images/nitxla_gh.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
 <p><a href="https://github.com/Nixtla">https://github.com/Nixtla</a></p>
@@ -485,7 +499,7 @@
 <span id="cb2-8"><a href=""></a><span class="cf">assert</span> sum_of_powers_for_loop(<span class="dv">2</span>, <span class="dv">2</span>) <span class="op">==</span> <span class="dv">2</span> <span class="op">+</span> <span class="dv">2</span><span class="op">**</span><span class="dv">2</span></span>
 <span id="cb2-9"><a href=""></a><span class="cf">assert</span> sum_of_powers_for_loop(<span class="dv">2</span>, <span class="dv">3</span>) <span class="op">==</span> <span class="dv">2</span> <span class="op">+</span> <span class="dv">2</span><span class="op">**</span><span class="dv">2</span> <span class="op">+</span> <span class="dv">2</span><span class="op">**</span><span class="dv">3</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <ul>
-<li>Scan</li>
+<li>Scan 😎</li>
 </ul>
 <div class="sourceCode" id="cb3" data-code-line-numbers="|1|2|3|4|5|6|8|9"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href=""></a><span class="kw">def</span> sum_of_powers_scan(phi, h):</span>
 <span id="cb3-2"><a href=""></a>    <span class="kw">def</span> transition_fn(carry, phi):</span>
@@ -692,15 +706,21 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 </section>
 <section id="time-slice-cross-validation" class="slide level2">
 <h2>Time-Slice Cross Validation</h2>
-
-<img data-src="timeseries_numpyro_files/static/images/zi_tsb_numpyro_files/zi_tsb_numpyro_35_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="timeseries_numpyro_files/static/images/zi_tsb_numpyro_files/zi_tsb_numpyro_35_1.png" class="quarto-figure quarto-figure-center" width="1000"></p>
+</figure>
+</div>
+<div class="footer">
 <p><a href="https://juanitorduz.github.io/zi_tsb_numpyro/">Zero-Inflated TSB Model</a></p>
 </div>
-</section>
-<section id="forecasting-unseen-demand" class="slide level2">
-<h2>Forecasting Unseen Demand</h2>
-
-<img data-src="timeseries_numpyro_files/static/images/demand_files/demand_8_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p>****## Forecasting Unseen Demand</p>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="timeseries_numpyro_files/static/images/demand_files/demand_8_0.png" class="quarto-figure quarto-figure-center" width="1000"></p>
+</figure>
+</div>
+<div class="footer">
 <p><a href="https://juanitorduz.github.io/demand/">Demand Forecasting with Censored Likelihood</a></p>
 </div>
 </section>
@@ -777,7 +797,7 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 </div>
 </section>
 <section id="censored-time-series-forecast" class="slide level2">
-<h2>Censored Time Series Forecast</h2>
+<h2>Censored Time Series Forecast 💡</h2>
 
 <img data-src="timeseries_numpyro_files/static/images/demand_files/demand_48_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
 <p><a href="https://juanitorduz.github.io/demand/">Demand Forecasting with Censored Likelihood</a></p>
@@ -820,14 +840,14 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 </div>
 </section>
 <section id="pymc-time-series" class="slide level2">
-<h2>PyMC &amp; Time Series</h2>
+<h2>PyMC &amp; Time Series 🚀</h2>
 
 <img data-src="timeseries_numpyro_files/static/images/pymc-ts.svg" class="quarto-figure quarto-figure-center r-stretch" width="600"><div class="footer">
 <p><a href="https://www.pymc.io/projects/examples/en/latest/time_series/Time_Series_Generative_Graph.html">Time Series Models Derived From a Generative Graph</a></p>
 </div>
 </section>
 <section id="pymc-time-series-1" class="slide level2">
-<h2>PyMC &amp; Time Series</h2>
+<h2>PyMC &amp; Time Series 🚀</h2>
 
 <img data-src="timeseries_numpyro_files/static/images/pymc-ts-forecast.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
 <p><a href="https://www.pymc.io/projects/examples/en/latest/time_series/Time_Series_Generative_Graph.html">Time Series Models Derived From a Generative Graph</a></p>
