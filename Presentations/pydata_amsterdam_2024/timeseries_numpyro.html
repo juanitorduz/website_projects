@@ -805,6 +805,20 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 <p><a href="https://juanitorduz.github.io/hierarchical_exponential_smoothing/">Hierarchical Exponential Smoothing Model</a></p>
 </div>
 </section>
+<section id="hierarchical-pricing-elasticity-models" class="slide level2">
+<h2>Hierarchical Pricing Elasticity Models</h2>
+
+<img data-src="timeseries_numpyro_files/static/images/elasticities_files/elasticities_47_0.svg" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/elasticities/">Hierarchical Pricing Elasticity Models</a></p>
+</div>
+</section>
+<section id="hierarchical-pricing-elasticity-models-1" class="slide level2">
+<h2>Hierarchical Pricing Elasticity Models</h2>
+
+<img data-src="timeseries_numpyro_files/static/images/elasticities_files/elasticities_58_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/elasticities/">Hierarchical Pricing Elasticity Models</a></p>
+</div>
+</section>
 <section id="pymc-time-series" class="slide level2">
 <h2>PyMC &amp; Time Series</h2>
 
@@ -825,7 +839,7 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 <iframe width="560" height="315" src="https://www.youtube.com/embed/G9VWXZdbtKQ" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen="">
 </iframe>
 </center>
-<div class="sourceCode" id="cb11"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href=""></a><span class="im">from</span> pymc_experimental.statespace <span class="im">import</span> structural <span class="im">as</span> st</span>
+<div class="sourceCode" id="cb11" data-code-line-numbers="|1|3-6|8"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href=""></a><span class="im">from</span> pymc_experimental.statespace <span class="im">import</span> structural <span class="im">as</span> st</span>
 <span id="cb11-2"><a href=""></a></span>
 <span id="cb11-3"><a href=""></a>slow_trend <span class="op">=</span> st.LevelTrendComponent(order<span class="op">=</span><span class="dv">2</span>, innovations_order<span class="op">=</span>[<span class="dv">0</span>, <span class="dv">1</span>])</span>
 <span id="cb11-4"><a href=""></a>seasonality <span class="op">=</span> st.FrequencySeasonality(name<span class="op">=</span><span class="st">"annual_seasonality"</span>, season_length<span class="op">=</span><span class="dv">52</span>, n<span class="op">=</span><span class="dv">2</span>, innovations<span class="op">=</span><span class="va">False</span>)</span>
@@ -836,6 +850,11 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 <div class="footer">
 <p><a href="https://github.com/jessegrabowski/statespace-presentation">https://github.com/jessegrabowski/statespace-presentation</a></p>
 </div>
+</section>
+<section id="thank-you" class="slide level2">
+<h2>Thank you!</h2>
+<p><a href="https://juanitorduz.github.io/">juanitorduz.github.io</a></p>
+<p><img data-src="timeseries_numpyro_files/static/images/juanitorduz.png" class="absolute" style="top: 0px; right: 0px; width: 600px; height: 600px; "></p>
 <div class="quarto-auto-generated-content">
 <p><img src="timeseries_numpyro_files/static/images/juanitorduz_logo_small.png" class="slide-logo"></p>
 <div class="footer footer-default">
