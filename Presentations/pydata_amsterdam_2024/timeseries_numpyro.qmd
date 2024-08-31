@@ -1,0 +1,533 @@
+---
+title: "Time Series Forecasting with NumPyro"
+title-slide-attributes:
+  data-background-image: timeseries_numpyro_files/static/images/exponential_smoothing_numpyro_files/exponential_smoothing_numpyro_78_1.png
+  data-background-size: cover
+  data-background-opacity: "0.20"
+subtitle: "PyData Amsterdam 2024"
+author: 
+  - name: Dr. Juan Orduz
+    url: https://juanitorduz.github.io/
+
+format:
+  revealjs:
+    slide-number: true
+    include-after-body: 
+      - text: |
+          <script type="text/javascript">
+          Reveal.addEventListener('slidechanged', (event) => {
+            const isSnOn = (event.currentSlide.dataset.hideSlideNumber !== 'true');
+            Reveal.configure({ slideNumber: isSnOn });
+          });
+          </script>
+    html-math-method: mathjax 
+    css: timeseries_numpyro_files/style.css
+    logo: timeseries_numpyro_files/static/images/juanitorduz_logo_small.png
+    transition: none
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    theme:
+        - white
+    highlight-style: github-dark
+---
+
+## Outline
+
+- Introduction
+- `Scan` in NumPyro
+- Exponential Smoothing
+- ARIMA
+- Intermittent Demand
+- Censored Demand
+- Hierarchical Models
+- Price Elasticities
+- PyMC State Space Module
+
+
+## Statsmodels - Time Series Models 🤓
+
+![](timeseries_numpyro_files/static/images/statsmodels_docs.png){fig-align="center" width="800"}
+
+::: footer
+[https://www.statsmodels.org/stable/tsa.html](https://www.statsmodels.org/stable/tsa.html)
+:::
+
+## Nixtla ✨
+
+![](timeseries_numpyro_files/static/images/nitxla_gh.png){fig-align="center" width="1000"}
+
+::: footer
+[https://github.com/Nixtla](https://github.com/Nixtla)
+:::
+
+## Pyro Forecasting Module 🔥
+
+![](timeseries_numpyro_files/static/images/pyro_docs.png){fig-align="center" width="800"}
+
+::: footer
+[https://docs.pyro.ai/en/stable/contrib.forecast.html](https://docs.pyro.ai/en/stable/contrib.forecast.html)
+:::
+
+##
+
+![](timeseries_numpyro_files/static/images/kyle_title.png){fig-align="center" width="800"}
+
+![](timeseries_numpyro_files/static/images/kyle_plot.png){fig-align="center" width="800"}
+
+::: footer
+[https://kylejcaron.github.io/posts/censored_demand/2024-02-06-censored-demand.html](https://kylejcaron.github.io/posts/censored_demand/2024-02-06-censored-demand.html)
+:::
+
+## NumPyro - SGT Example Model 🫠
+
+![](timeseries_numpyro_files/static/images/numpyro_sgt_model.png){fig-align="center" width="1000"}
+
+😅 ...
+
+::: footer
+[https://num.pyro.ai/en/stable/tutorials/time_series_forecasting.html](https://num.pyro.ai/en/stable/tutorials/time_series_forecasting.html)
+:::
+
+## Scan ⭐
+
+### An efficient implementation of `for` loops
+
+```{.python  code-line-numbers="|1-9|10-15"}
+def scan(f, init, xs):
+  """Pure Python implementation of scan.
+
+  Parameters
+  ----------
+  f : A  a Python function to be scanned.
+  init : An initial loop carry value
+  xs : The value over which to scan along the leading axis.
+  """
+  carry = init
+  ys = []
+  for x in xs:
+    carry, y = f(carry, x)
+    ys.append(y)
+  return carry, np.stack(ys)
+```
+
+##
+
+- For loop
+
+```{.python code-line-numbers="|1-3|6-9"}
+def sum_of_powers_for_loop(phi: float, h: int) -> float:
+    "phi -> 1 + phi + phi^2 + ... + phi^h"
+    return sum(phi**i for i in range(1, h + 1))
+
+
+assert sum_of_powers_for_loop(2, 0) == 0
+assert sum_of_powers_for_loop(2, 1) == 2
+assert sum_of_powers_for_loop(2, 2) == 2 + 2**2
+assert sum_of_powers_for_loop(2, 3) == 2 + 2**2 + 2**3
+```
+
+- Scan 😎
+
+```{.python code-line-numbers="|1|2|3|4|5|6|8|9"}
+def sum_of_powers_scan(phi, h):
+    def transition_fn(carry, phi):
+        power_sum, power = carry
+        power = power * phi
+        power_sum = power_sum + power
+        return (power_sum, power), power_sum
+
+    (power_sum, _), _ = scan(f=transition_fn, init=(0, 1), xs=jnp.ones(h) * phi)
+    return power_sum
+```
+
+## Example: Exponential Smoothing
+
+![](timeseries_numpyro_files/static/images/exponential_smoothing_numpyro_files/exponential_smoothing_numpyro_16_1.png){fig-align="center" width="1000"}
+
+::: footer
+[Notes on Exponential Smoothing with NumPyro](https://juanitorduz.github.io/exponential_smoothing_numpyro/)
+:::
+
+## Example: Exponential Smoothing 
+
+$$
+\begin{align*}
+\hat{y}_{t+h|t} = & \: l_t \\
+l_t = & \: \alpha y_t + (1 - \alpha)l_{t-1}
+\end{align*}
+$$
+
+::: incremental
+
+- $y_t$ is the observed value at time $t$.
+- $\hat{y}_{t+h|t}$ is the forecast of the value at time $t+h$ given the information up to time $t$.
+- $l_t$ is the level at time $t$.
+- $\alpha$ is the smoothing parameter. It is a value between 0 and 1.
+
+:::
+
+::: footer
+[Notes on Exponential Smoothing with NumPyro](https://juanitorduz.github.io/exponential_smoothing_numpyro/)
+:::
+
+## Example: Exponential Smoothing 
+
+$$
+\begin{align*}
+\hat{y}_{t+h|t} = & \: l_t \\
+l_t = & \: \alpha y_t + (1 - \alpha)l_{t-1}
+\end{align*}
+$$
+
+```{.python code-line-numbers="|1|2|4-8|10-11|13"}
+    def transition_fn(carry, t):
+        previous_level = carry
+
+        level = jnp.where(
+            t < t_max,
+            level_smoothing * y[t] + (1 - level_smoothing) * previous_level,
+            previous_level,
+        )
+
+        mu = previous_level
+        pred = numpyro.sample("pred", dist.Normal(loc=mu, scale=noise))
+
+        return level, pred
+```
+
+::: footer
+[Notes on Exponential Smoothing with NumPyro](https://juanitorduz.github.io/exponential_smoothing_numpyro/)
+:::
+
+## Example: Exponential Smoothing 
+
+```{.python code-line-numbers="|1|2-3|5-13|15-17|19-25|27-29"}
+def level_model(y: ArrayLike, future: int = 0) -> None:
+    # Get time series length
+    t_max = y.shape[0]
+    
+    # --- Priors ---
+    ## Level
+    level_smoothing = numpyro.sample(
+        "level_smoothing", dist.Beta(concentration1=1, concentration0=1)
+    )
+    level_init = numpyro.sample("level_init", dist.Normal(loc=0, scale=1))
+
+    ## Noise
+    noise = numpyro.sample("noise", dist.HalfNormal(scale=1))
+
+    # --- Transition Function ---
+    def transition_fn(carry, t):
+        . . .
+
+    # --- Run Scan ---
+    with numpyro.handlers.condition(data={"pred": y}):
+        _, preds = scan(
+            transition_fn,
+            level_init,
+            jnp.arange(t_max + future),
+        )
+
+    # --- Forecast ---
+    if future > 0:
+        numpyro.deterministic("y_forecast", preds[-future:])
+```
+
+## Example: Exponential Smoothing
+
+### Posterior Distribution Parameters
+
+![](timeseries_numpyro_files/static/images/exponential_smoothing_numpyro_files/exponential_smoothing_numpyro_29_1.png){fig-align="center" width="1000"}
+
+::: footer
+[Notes on Exponential Smoothing with NumPyro](https://juanitorduz.github.io/exponential_smoothing_numpyro/)
+:::
+
+## Example: Exponential Smoothing
+
+![](timeseries_numpyro_files/static/images/exponential_smoothing_numpyro_files/exponential_smoothing_numpyro_36_1.png){fig-align="center" width="1000"}
+
+::: footer
+[Notes on Exponential Smoothing with NumPyro](https://juanitorduz.github.io/exponential_smoothing_numpyro/)
+:::
+
+## Example: Exponential Smoothing
+
+### Trend + Seasonal + Damped
+
+![](timeseries_numpyro_files/static/images/exponential_smoothing_numpyro_files/exponential_smoothing_numpyro_78_1.png){fig-align="center" width="900"}
+
+::: footer
+[Notes on Exponential Smoothing with NumPyro](https://juanitorduz.github.io/exponential_smoothing_numpyro/)
+:::
+
+## Example: ARMA(1, 1) Model
+
+```{.python code-line-numbers="|1|2|3-4|5-7"}
+    def transition_fn(carry, t):
+        y_prev, error_prev = carry
+        ar_part = phi * y_prev
+        ma_part = theta * error_prev
+        pred = mu + ar_part + ma_part
+        error = y[t] - pred
+        return (y[t], error), error
+```
+
+![](timeseries_numpyro_files/static/images/arma_numpyro_files/arma_numpyro_40_1.png){fig-align="center" width="650"}
+
+::: footer
+[Notes on an ARMA(1, 1) Model with NumPyro](https://juanitorduz.github.io/arma_numpyro/)
+:::
+
+## Intermittent Time Series
+
+![](timeseries_numpyro_files/static/images/croston_numpyro_files/croston_numpyro_6_1.png){fig-align="center" width="1000"}
+
+::: footer
+[Croston's Method for Intermittent Time Series Forecasting in NumPyro](https://juanitorduz.github.io/croston_numpyro/)
+:::
+
+## Croston's Method
+
+> The method is based on the idea of separating the demand size and the demand interval, and then forecasting them separately using simple exponential smoothing.
+
+- To generate the demand size time series $z_t$ we simply keep the non-zero values of the original series.
+- To generate the demand interval time series $y_t$ we keep the time between non-zero values of the original series.
+
+::: footer
+[Croston's Method for Intermittent Time Series Forecasting in NumPyro](https://juanitorduz.github.io/croston_numpyro/)
+:::
+
+## Croston's Method
+
+![](timeseries_numpyro_files/static/images/croston_numpyro_files/croston_numpyro_10_1.png){fig-align="center" width="1000"}
+
+
+::: footer
+[Croston's Method for Intermittent Time Series Forecasting in NumPyro](https://juanitorduz.github.io/croston_numpyro/)
+:::
+
+## Croston's Method
+
+```{.python}
+def croston_model(z: ArrayLike, p_inv: ArrayLike, future: int = 0) -> None:
+    z_forecast = scope(level_model, "demand")(z, future)
+    p_inv_forecast = scope(level_model, "period_inv")(p_inv, future)
+
+    if future > 0:
+        numpyro.deterministic("z_forecast", z_forecast)
+        numpyro.deterministic("p_inv_forecast", p_inv_forecast)
+        numpyro.deterministic("forecast", z_forecast * p_inv_forecast)
+```
+
+![](timeseries_numpyro_files/static/images/croston_numpyro_files/croston_numpyro_39_1.png){fig-align="center" width="600"}
+
+::: footer
+[Croston's Method for Intermittent Time Series Forecasting in NumPyro](https://juanitorduz.github.io/croston_numpyro/)
+:::
+
+##  TSB Method
+
+> The TSB method is similar to the Croston’s method in the sense that is constructs two different time series out of the original one and then forecast each of them separately, so that the final forecast is generated by combining the forecasts of the two time series. **The main difference between the two methods is that the TSB method uses the demand probability instead of the demand periods.**
+
+::: footer
+[TSB Method for Intermittent Time Series Forecasting in NumPyro](https://juanitorduz.github.io/tsb_numpyro/)
+:::
+
+## Zero-Inflated TSB Model
+
+🧪 We can modify the TSB model to include zero-inflation by using a Zero-Inflated Negative Binomial Distribution.
+
+```{.python}
+    def transition_fn(carry, t):
+        z_prev, p_prev = carry
+        
+        z_next . . .
+        p_next . . .
+
+        mu = z_next
+        gate = 1 - p_next
+        pred = numpyro.sample(
+            "pred",
+            dist.ZeroInflatedNegativeBinomial2(
+                mean=mu, concentration=concentration, gate=gate
+            ),
+        )
+```
+
+::: footer
+[Zero-Inflated TSB Model](https://juanitorduz.github.io/zi_tsb_numpyro/)
+:::
+
+
+## Time-Slice Cross Validation
+
+![](timeseries_numpyro_files/static/images/zi_tsb_numpyro_files/zi_tsb_numpyro_35_1.png){fig-align="center" width="1000"}
+
+::: footer
+[Zero-Inflated TSB Model](https://juanitorduz.github.io/zi_tsb_numpyro/)
+:::
+
+****## Forecasting Unseen Demand
+
+![](timeseries_numpyro_files/static/images/demand_files/demand_8_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Demand Forecasting with Censored Likelihood](https://juanitorduz.github.io/demand/)
+:::
+
+## ARIMA Model
+
+![](timeseries_numpyro_files/static/images/demand_files/demand_25_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Demand Forecasting with Censored Likelihood](https://juanitorduz.github.io/demand/)
+:::
+
+## Censored Distributions
+
+![](timeseries_numpyro_files/static/images/censoring_files/censoring_5_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Bayesian Censoring Data Modeling](https://juanitorduz.github.io/censoring/)
+:::
+
+##
+
+![](timeseries_numpyro_files/static/images/censoring_files/censoring_12_0.png){fig-align="center" width="600"}
+
+![](timeseries_numpyro_files/static/images/censoring_files/censoring_15_0.png){fig-align="center" width="700"}
+
+::: footer
+[Bayesian Censoring Data Modeling](https://juanitorduz.github.io/censoring/)
+:::
+
+##
+
+![](timeseries_numpyro_files/static/images/censoring_files/censoring_26_0.png){fig-align="center" width="600"}
+
+![](timeseries_numpyro_files/static/images/censoring_files/censoring_28_0.png){fig-align="center" width="700"}
+
+::: footer
+[Bayesian Censoring Data Modeling](https://juanitorduz.github.io/censoring/)
+:::
+
+## Censored Likelihood
+
+```{.python}
+def censored_normal(loc, scale, y, censored):
+    distribution = dist.Normal(loc=loc, scale=scale)
+    ccdf = 1 - distribution.cdf(y)
+    numpyro.sample(
+        "censored_label",
+        dist.Bernoulli(probs=ccdf).mask(censored == 1),
+        obs=censored
+    )
+    return numpyro.sample("pred", distribution.mask(censored != 1))
+```
+. . .
+
+Change likelihood distribution in a time-series model:
+
+```{.python code-line-numbers="|7"}
+    ## Transition function for AR(2)
+    def transition_fn(carry, t):
+        y_prev_1, y_prev_2 = carry
+        ar_part = phi_1 * y_prev_1 + phi_2 * y_prev_2
+        pred_mean = mu + ar_part + seasonal[t]
+        # Censored likelihood
+        pred = censored_normal(pred_mean, sigma, y[t], censored[t])
+        return (pred, y_prev_1), pred
+```
+::: footer
+[Demand Forecasting with Censored Likelihood](https://juanitorduz.github.io/demand/)
+:::
+
+## Censored Time Series Forecast 💡
+
+![](timeseries_numpyro_files/static/images/demand_files/demand_48_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Demand Forecasting with Censored Likelihood](https://juanitorduz.github.io/demand/)
+:::
+
+## Hierarchical Exponential Smoothing
+
+![](timeseries_numpyro_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_45_0.png){fig-align="center" height="1950"}
+
+
+## Hierarchical Exponential Smoothing
+
+![](timeseries_numpyro_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_47_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Hierarchical Exponential Smoothing Model](https://juanitorduz.github.io/hierarchical_exponential_smoothing/)
+:::
+
+## Hierarchical Exponential Smoothing
+
+![](timeseries_numpyro_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_69_0.png ){fig-align="center" width="1000"}
+
+::: footer
+[Hierarchical Exponential Smoothing Model](https://juanitorduz.github.io/hierarchical_exponential_smoothing/)
+:::
+
+## Hierarchical Pricing Elasticity Models
+
+![](timeseries_numpyro_files/static/images/elasticities_files/elasticities_47_0.svg){fig-align="center" width="1000"}
+
+::: footer
+[Hierarchical Pricing Elasticity Models](https://juanitorduz.github.io/elasticities/)
+:::
+
+## Hierarchical Pricing Elasticity Models
+
+![](timeseries_numpyro_files/static/images/elasticities_files/elasticities_58_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Hierarchical Pricing Elasticity Models](https://juanitorduz.github.io/elasticities/)
+:::
+
+## PyMC & Time Series 🚀
+
+![](timeseries_numpyro_files/static/images/pymc-ts.svg){fig-align="center" width="600"}
+
+::: footer
+[Time Series Models Derived From a Generative Graph](https://www.pymc.io/projects/examples/en/latest/time_series/Time_Series_Generative_Graph.html)
+:::
+
+## PyMC & Time Series 🚀
+
+![](timeseries_numpyro_files/static/images/pymc-ts-forecast.png){fig-align="center" width="1000"}
+
+::: footer
+[Time Series Models Derived From a Generative Graph](https://www.pymc.io/projects/examples/en/latest/time_series/Time_Series_Generative_Graph.html)
+:::
+
+## PyMC State Space Module
+
+<center>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/G9VWXZdbtKQ" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+</center>
+
+```{.python code-line-numbers="|1|3-6|8"}
+from pymc_experimental.statespace import structural as st
+
+slow_trend = st.LevelTrendComponent(order=2, innovations_order=[0, 1])
+seasonality = st.FrequencySeasonality(name="annual_seasonality", season_length=52, n=2, innovations=False)
+exog = st.RegressionComponent(name="exog", state_names=X.columns.tolist(), innovations=False)
+measurement_error = st.MeasurementError("measurement_error")
+
+ss_mod = (slow_trend + seasonality + exog + measurement_error).build()
+```
+
+::: footer
+[https://github.com/jessegrabowski/statespace-presentation](https://github.com/jessegrabowski/statespace-presentation)
+:::
+
+## Thank you!
+
+[juanitorduz.github.io](https://juanitorduz.github.io/)
+
+![](timeseries_numpyro_files/static/images/juanitorduz.png){.absolute top=0 right=0 width=600 height=600}
