@@ -8,7 +8,7 @@
 <link href="timeseries_numpyro_files/libs/quarto-html/light-border.css" rel="stylesheet">
 <link href="timeseries_numpyro_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
 <link href="timeseries_numpyro_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.5.56">
+  <meta name="generator" content="quarto-1.5.54">
 
   <meta name="author" content="Dr.&nbsp;Juan Orduz">
   <title>Time Series Forecasting with NumPyro</title>
@@ -669,14 +669,17 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 <i class="callout-icon"></i>
 </div>
 <div class="callout-content">
-<p><span style="font-size: 1.4em;"> The method is based on the idea of <strong>separating the demand size and the demand interval</strong>, and then <strong>forecasting them separately</strong> using simple exponential smoothing. </span></p>
+<p><span style="font-size: 1.4em;"> The method is based on the idea of <strong>separating the demand size <span class="math inline">\(z_t\)</span> and the demand interval <span class="math inline">\(p_t\)</span></strong>, and then <strong>forecasting them separately</strong> using simple exponential smoothing. </span></p>
 </div>
 </div>
 </div>
 <ul>
-<li>To generate the demand size time series <span class="math inline">\(z_t\)</span> we simply keep the non-zero values of the original series.</li>
-<li>To generate the demand interval time series <span class="math inline">\(y_t\)</span> we keep the time between non-zero values of the original series.</li>
+<li><span class="math inline">\(z_t\)</span>: keep the non-zero values of <span class="math inline">\(y_t\)</span>.</li>
+<li><span class="math inline">\(p_t\)</span>: keep the time between non-zero values of <span class="math inline">\(y_t\)</span>.</li>
 </ul>
+<p><span class="math display">\[
+\hat{y}_{t+h} = \frac{\hat{z}_{t+h}}{\hat{p}_{t+h}}
+\]</span></p>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/croston_numpyro/">Croston’s Method for Intermittent Time Series Forecasting in NumPyro</a></p>
 </div>

@@ -312,13 +312,17 @@ def level_model(y: ArrayLike, future: int = 0) -> None:
 ::: {.callout-tip appearance="simple"}
 
 <span style="font-size: 1.4em;">
-The method is based on the idea of **separating the demand size and the demand interval**, and then **forecasting them separately** using simple exponential smoothing.
+The method is based on the idea of **separating the demand size $z_t$ and the demand interval $p_t$**, and then **forecasting them separately** using simple exponential smoothing.
 </span>
 
 :::
 
-- To generate the demand size time series $z_t$ we simply keep the non-zero values of the original series.
-- To generate the demand interval time series $y_t$ we keep the time between non-zero values of the original series.
+- $z_t$: keep the non-zero values of $y_t$.
+- $p_t$: keep the time between non-zero values of $y_t$.
+
+$$
+\hat{y}_{t+h} = \frac{\hat{z}_{t+h}}{\hat{p}_{t+h}}
+$$
 
 ::: footer
 [Croston's Method for Intermittent Time Series Forecasting in NumPyro](https://juanitorduz.github.io/croston_numpyro/)
