@@ -13,7 +13,7 @@ requires = ["hatchling"]
 
 [tool.pixi.project]
 channels = ["conda-forge", "pytorch"]
-platforms = ["osx-arm64", "linux-64"]
+platforms = ["osx-arm64", "osx-64", "linux-64"]
 
 [tool.pixi.feature.core.dependencies]
 arviz = ">=0.19.0"
