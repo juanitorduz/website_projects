@@ -54,6 +54,7 @@ torchvision = "*"
 
 [tool.pixi.feature.core.pypi-dependencies]
 bayeux-ml = "*"
+beartype = "*"
 blackjax = ">=1.2.2"
 category-encoders = "*"
 daft = "*"
@@ -111,9 +112,10 @@ lint.select = [
     "W",   # pycodestyle
 ]
 lint.extend-select = ["I"]
+lint.ignore = ["F722"]
 # automatically fix all issues ruff is cabable of AND which are enabled via select
 lint.fixable = ["ALL"]
-target-version = "py312"
+target-version = "py311"
 
 extend-include = ["*.ipynb"]
 
