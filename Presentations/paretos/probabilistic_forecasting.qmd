@@ -12,14 +12,6 @@ author:
 format:
   revealjs:
     slide-number: true
-    include-after-body: 
-      - text: |
-          <script type="text/javascript">
-          Reveal.addEventListener('slidechanged', (event) => {
-            const isSnOn = (event.currentSlide.dataset.hideSlideNumber !== 'true');
-            Reveal.configure({ slideNumber: isSnOn });
-          });
-          </script>
     html-math-method: mathjax 
     css: probabilistic_forecasting_files/style.css
     logo: probabilistic_forecasting_files/static/images/juanitorduz_logo_small.png
@@ -33,7 +25,7 @@ format:
 ---
 
 ## Outline
- 
+
 ::: {.columns}
 ::: {.column width="50%"}
 
@@ -374,6 +366,16 @@ def croston_model(z: ArrayLike, p_inv: ArrayLike, future: int = 0) -> None:
 [TSB Method for Intermittent Time Series Forecasting in NumPyro](https://juanitorduz.github.io/tsb_numpyro/)
 :::
 
+## TSB Method
+
+### 1 - Step Ahead Time Slice Cross Validation
+
+![](probabilistic_forecasting_files/static/images/tsb_numpyro_files/tsb_numpyro_36_1.png){fig-align="center" width="600"}
+
+::: footer
+[TSB Method for Intermittent Time Series Forecasting in NumPyro](https://juanitorduz.github.io/tsb_numpyro/)
+:::
+
 ## Zero-Inflated TSB Model
 
 🧪 We can modify the TSB model to include zero-inflation by using a Zero-Inflated Negative Binomial Distribution.
@@ -399,13 +401,38 @@ def croston_model(z: ArrayLike, p_inv: ArrayLike, future: int = 0) -> None:
 [Zero-Inflated TSB Model](https://juanitorduz.github.io/zi_tsb_numpyro/)
 :::
 
-
 ## Time-Slice Cross Validation
 
 ![](probabilistic_forecasting_files/static/images/zi_tsb_numpyro_files/zi_tsb_numpyro_35_1.png){fig-align="center" width="1000"}
 
 ::: footer
 [Zero-Inflated TSB Model](https://juanitorduz.github.io/zi_tsb_numpyro/)
+:::
+
+## [Why Zeros Happen?](https://openforecast.org/2024/11/18/why-zeroes-happen/)
+
+### Simulation Study: Availability Constrains
+
+![](probabilistic_forecasting_files/static/images/availability_tsb_files/availability_tsb_12_0.png){fig-align="center" width="100"}
+
+::: footer
+[Hacking the TSB Model for Intermediate Time Series to Accommodate for Availability Constraints](https://juanitorduz.github.io/availability_tsb/)
+:::
+
+## Hacking the TSB Model
+
+![](probabilistic_forecasting_files/static/images/availability_tsb_files/availability_tsb_30_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Hacking the TSB Model for Intermediate Time Series to Accommodate for Availability Constraints](https://juanitorduz.github.io/availability_tsb/)
+:::
+
+## Hacking the TSB Model
+
+![](probabilistic_forecasting_files/static/images/availability_tsb_files/availability_tsb_38_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Hacking the TSB Model for Intermediate Time Series to Accommodate for Availability Constraints](https://juanitorduz.github.io/availability_tsb/)
 :::
 
 ## Forecasting Unseen Demand

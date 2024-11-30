@@ -223,6 +223,7 @@
 <li>Censored Demand</li>
 <li>Hierarchical Models</li>
 <li>Price Elasticities</li>
+<li>Prior Model Calibration</li>
 <li>References</li>
 </ol>
 </div></div>
@@ -523,6 +524,14 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 <p><a href="https://juanitorduz.github.io/tsb_numpyro/">TSB Method for Intermittent Time Series Forecasting in NumPyro</a></p>
 </div>
 </section>
+<section id="tsb-method-1" class="slide level2">
+<h2>TSB Method</h2>
+<h3 id="step-ahead-time-slice-cross-validation">1 - Step Ahead Time Slice Cross Validation</h3>
+
+<img data-src="probabilistic_forecasting_files/static/images/tsb_numpyro_files/tsb_numpyro_36_1.png" class="quarto-figure quarto-figure-center r-stretch" width="600"><div class="footer">
+<p><a href="https://juanitorduz.github.io/tsb_numpyro/">TSB Method for Intermittent Time Series Forecasting in NumPyro</a></p>
+</div>
+</section>
 <section id="zero-inflated-tsb-model" class="slide level2">
 <h2>Zero-Inflated TSB Model</h2>
 <p>🧪 We can modify the TSB model to include zero-inflation by using a Zero-Inflated Negative Binomial Distribution.</p>
@@ -549,6 +558,28 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 
 <img data-src="probabilistic_forecasting_files/static/images/zi_tsb_numpyro_files/zi_tsb_numpyro_35_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
 <p><a href="https://juanitorduz.github.io/zi_tsb_numpyro/">Zero-Inflated TSB Model</a></p>
+</div>
+</section>
+<section id="why-zeros-happen" class="slide level2">
+<h2><a href="https://openforecast.org/2024/11/18/why-zeroes-happen/">Why Zeros Happen?</a></h2>
+<h3 id="simulation-study-availability-constrains">Simulation Study: Availability Constrains</h3>
+
+<img data-src="probabilistic_forecasting_files/static/images/availability_tsb_files/availability_tsb_12_0.png" class="quarto-figure quarto-figure-center r-stretch" width="100"><div class="footer">
+<p><a href="https://juanitorduz.github.io/availability_tsb/">Hacking the TSB Model for Intermediate Time Series to Accommodate for Availability Constraints</a></p>
+</div>
+</section>
+<section id="hacking-the-tsb-model" class="slide level2">
+<h2>Hacking the TSB Model</h2>
+
+<img data-src="probabilistic_forecasting_files/static/images/availability_tsb_files/availability_tsb_30_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/availability_tsb/">Hacking the TSB Model for Intermediate Time Series to Accommodate for Availability Constraints</a></p>
+</div>
+</section>
+<section id="hacking-the-tsb-model-1" class="slide level2">
+<h2>Hacking the TSB Model</h2>
+
+<img data-src="probabilistic_forecasting_files/static/images/availability_tsb_files/availability_tsb_38_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/availability_tsb/">Hacking the TSB Model for Intermediate Time Series to Accommodate for Availability Constraints</a></p>
 </div>
 </section>
 <section id="forecasting-unseen-demand" class="slide level2">
@@ -1127,12 +1158,6 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
           });
         }
       }
-    });
-    </script>
-    <script type="text/javascript">
-    Reveal.addEventListener('slidechanged', (event) => {
-      const isSnOn = (event.currentSlide.dataset.hideSlideNumber !== 'true');
-      Reveal.configure({ slideNumber: isSnOn });
     });
     </script>
     
