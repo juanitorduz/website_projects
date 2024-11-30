@@ -1,7 +1,7 @@
 ---
 title: "Probabilistic Time Series Forecasting"
 title-slide-attributes:
-  data-background-image: probabilistic_forecasting_files/static/images/exponential_smoothing_numpyro_files/exponential_smoothing_numpyro_78_1.png
+  data-background-image: probabilistic_forecasting_files/static/images/availability_tsb_files/availability_tsb_30_0.png
   data-background-size: cover
   data-background-opacity: "0.20"
 subtitle: "Opportunities and Applications"
@@ -53,13 +53,21 @@ format:
 ## Slides
 
 <center>
-[https://juanitorduz.github.io/html/probabilistic_forecasting.html](https://juanitorduz.github.io/html/probabilistic_forecasting.html)
+[https://juanitorduz.github.io/html/paretos/probabilistic_forecasting.html](https://juanitorduz.github.io/html/paretos/probabilistic_forecasting.html)
 </center>
 :::
 
 ## Why Probabilistic Forecasting?
 
 ::: {.callout-tip appearance="simple"}
+
+::: {.absolute top=100 left=700}
+![[NumPyro](https://github.com/pyro-ppl/numpyro) is a lightweight probabilistic programming library that provides a NumPy backend for [Pyro](https://github.com/pyro-ppl/pyro). It relies on [JAX](https://github.com/google/jax) for automatic differentiation and JIT compilation to GPU / CPU.](probabilistic_forecasting_files/static/images/pyro_logo.png){fig-align="center" width="250"}
+:::
+
+::: {.absolute top=500 left=700}
+![](probabilistic_forecasting_files/static/images/jax_logo.png){fig-align="center" width="250"}
+:::
 
 - **Interpretability**
   - Trust on the results
@@ -420,7 +428,7 @@ def croston_model(z: ArrayLike, p_inv: ArrayLike, future: int = 0) -> None:
 [Hacking the TSB Model for Intermediate Time Series to Accommodate for Availability Constraints](https://juanitorduz.github.io/availability_tsb/)
 :::
 
-## Hacking the TSB Model
+## Hacking the TSB Model 🪛
 
 ![](probabilistic_forecasting_files/static/images/availability_tsb_files/availability_tsb_30_0.png){fig-align="center" width="1000"}
 
@@ -570,7 +578,7 @@ Use a hierarchical structure to regularize the demand elasticity parameters.
 [Electricity Demand Forecast: Dynamic Time-Series Model](https://juanitorduz.github.io/electricity_forecast/)
 :::
 
-## Calibrating a Demand Model
+## Calibrating a Demand Model 🧪
 
 > Let us assume that we know from domain knowledge that the effect of temperature on demand over 32°C is somehow stable at around a value of 0.13.
 
@@ -596,7 +604,7 @@ Use a hierarchical structure to regularize the demand elasticity parameters.
 [PyMC-Marketing: Lift Test Calibration](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_lift_test.html)
 :::
 
-## References {.smaller}
+## References 📚 {.smaller}
 
 #### NumPyro Examples
 
@@ -609,7 +617,7 @@ Use a hierarchical structure to regularize the demand elasticity parameters.
 - [Hierarchical Pricing Elasticity Models](https://juanitorduz.github.io/elasticities/)
 - [Electricity Demand Forecast: Dynamic Time-Series Model with Prior Calibration](https://juanitorduz.github.io/electricity_forecast_with_priors/)
 
-## References {.smaller}
+## References 📚 {.smaller}
 
 #### Packages:
 
@@ -621,7 +629,7 @@ Use a hierarchical structure to regularize the demand elasticity parameters.
 - [GluonTS](https://github.com/awslabs/gluonts)
 - [Zalando: PyTorchTS](https://github.com/zalandoresearch/pytorch-ts)
 
-## References {.smaller}
+## References 📚 {.smaller}
 
 #### Other Blogposts
 
