@@ -33,16 +33,17 @@ format:
 2. `Scan` in NumPyro
 3. Exponential Smoothing
 4. ARIMA
-5. Intermittent Demand
+5. Hierarchical Models
+
 :::
 
 ::: {.column width="50%"}
 
-6. Censored Demand
-7. Hierarchical Models
+6. Intermittent Demand
+7. Censored Demand
 8. Price Elasticities
-9. Prior Model Calibration
-10. References
+8. Prior Model Calibration
+9.  References
 
 :::
 :::
@@ -56,20 +57,26 @@ format:
 </center>
 :::
 
-## Statsmodels - Time Series Models 🤓
+## Why Probabilistic Forecasting?
 
-![](probabilistic_forecasting_files/static/images/statsmodels_docs.png){fig-align="center" width="800"}
+::: {.callout-tip appearance="simple"}
 
-::: footer
-[https://www.statsmodels.org/stable/tsa.html](https://www.statsmodels.org/stable/tsa.html)
-:::
+- **Interpretability**
+  - Trust on the results
 
-## Nixtla ✨
+- **Uncertainty quantification**
+  - Risk Assessment
+  - Decision Making
 
-![](probabilistic_forecasting_files/static/images/nitxla_gh.png){fig-align="center" width="1000"}
+- **Customization**
+  - Feature engineering 
+  - Special constraints
+  - Calibrate with domain knowledge
 
-::: footer
-[https://github.com/Nixtla](https://github.com/Nixtla)
+- **Scale**
+  - Good results on production environments
+  - Take advantage of GPU
+
 :::
 
 ## Pyro Forecasting Module 🔥
@@ -104,7 +111,7 @@ format:
 
 ### An efficient implementation of `for` loops
 
-```{.python  code-line-numbers="|1-9|10-15"}
+```{.python}
 def scan(f, init, xs):
   """Pure Python implementation of scan.
 
@@ -121,36 +128,9 @@ def scan(f, init, xs):
     ys.append(y)
   return carry, np.stack(ys)
 ```
-
-##
-
-- For loop
-
-```{.python code-line-numbers="|1-3|6-9"}
-def sum_of_powers_for_loop(phi: float, h: int) -> float:
-    "phi -> 1 + phi + phi^2 + ... + phi^h"
-    return sum(phi**i for i in range(1, h + 1))
-
-
-assert sum_of_powers_for_loop(2, 0) == 0
-assert sum_of_powers_for_loop(2, 1) == 2
-assert sum_of_powers_for_loop(2, 2) == 2 + 2**2
-assert sum_of_powers_for_loop(2, 3) == 2 + 2**2 + 2**3
-```
-
-- Scan 😎
-
-```{.python code-line-numbers="|1|2|3|4|5|6|8|9"}
-def sum_of_powers_scan(phi, h):
-    def transition_fn(carry, phi):
-        power_sum, power = carry
-        power = power * phi
-        power_sum = power_sum + power
-        return (power_sum, power), power_sum
-
-    (power_sum, _), _ = scan(f=transition_fn, init=(0, 1), xs=jnp.ones(h) * phi)
-    return power_sum
-```
+::: {.callout-tip appearance="simple"}
+We need recursive relationships! $y_t \longmapsto y_{t+1}$
+:::
 
 ## Example: Exponential Smoothing
 
@@ -289,6 +269,27 @@ def level_model(y: ArrayLike, future: int = 0) -> None:
 
 ::: footer
 [Notes on an ARMA(1, 1) Model with NumPyro](https://juanitorduz.github.io/arma_numpyro/)
+:::
+
+## Hierarchical Exponential Smoothing
+
+![](probabilistic_forecasting_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_45_0.png){fig-align="center" height="1950"}
+
+
+## Hierarchical Exponential Smoothing
+
+![](probabilistic_forecasting_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_47_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Hierarchical Exponential Smoothing Model](https://juanitorduz.github.io/hierarchical_exponential_smoothing/)
+:::
+
+## Hierarchical Exponential Smoothing
+
+![](probabilistic_forecasting_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_69_0.png ){fig-align="center" width="1000"}
+
+::: footer
+[Hierarchical Exponential Smoothing Model](https://juanitorduz.github.io/hierarchical_exponential_smoothing/)
 :::
 
 ## Intermittent Time Series
@@ -518,6 +519,31 @@ Change likelihood distribution in a time-series model:
 [Demand Forecasting with Censored Likelihood](https://juanitorduz.github.io/demand/)
 :::
 
+## Hierarchical Pricing Elasticity Models
+
+::: {.callout-tip appearance="simple"}
+
+![](probabilistic_forecasting_files/static/images/elasticities_files/elasticities_47_0.svg){fig-align="center" width="1000"}
+
+### Idea 🤓
+<span style="font-size: 1.1em;">
+Use a hierarchical structure to regularize the demand elasticity parameters.
+</span>
+
+:::
+
+::: footer
+[Hierarchical Pricing Elasticity Models](https://juanitorduz.github.io/elasticities/)
+:::
+
+## Hierarchical Pricing Elasticity Models
+
+![](probabilistic_forecasting_files/static/images/elasticities_files/elasticities_58_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Hierarchical Pricing Elasticity Models](https://juanitorduz.github.io/elasticities/)
+:::
+
 ## Dynamic Time-Series Model
 
 ![](probabilistic_forecasting_files/static/images/electricity_forecast_files/electricity_forecast_6_0.png){fig-align="center" width="1000"}
@@ -544,54 +570,14 @@ Change likelihood distribution in a time-series model:
 [Electricity Demand Forecast: Dynamic Time-Series Model](https://juanitorduz.github.io/electricity_forecast/)
 :::
 
-## Hierarchical Exponential Smoothing
+## Calibrating a Demand Model
 
-![](probabilistic_forecasting_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_45_0.png){fig-align="center" height="1950"}
+> Let us assume that we know from domain knowledge that the effect of temperature on demand over 32°C is somehow stable at around a value of 0.13.
 
-
-## Hierarchical Exponential Smoothing
-
-![](probabilistic_forecasting_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_47_0.png){fig-align="center" width="1000"}
+![](probabilistic_forecasting_files/static/images/electricity_forecast_with_priors_files/electricity_forecast_with_priors_32_0.png){fig-align="center" width="1000"}
 
 ::: footer
-[Hierarchical Exponential Smoothing Model](https://juanitorduz.github.io/hierarchical_exponential_smoothing/)
-:::
-
-## Hierarchical Exponential Smoothing
-
-![](probabilistic_forecasting_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_69_0.png ){fig-align="center" width="1000"}
-
-::: footer
-[Hierarchical Exponential Smoothing Model](https://juanitorduz.github.io/hierarchical_exponential_smoothing/)
-:::
-
-## Hierarchical Pricing Elasticity Models
-
-
-::: {.callout-tip appearance="simple"}
-
-
-![](probabilistic_forecasting_files/static/images/elasticities_files/elasticities_47_0.svg){fig-align="center" width="1000"}
-
-
-
-### Idea 🤓
-<span style="font-size: 1.1em;">
-Use a hierarchical structure to regularize the demand elasticity parameters.
-</span>
-
-:::
-
-::: footer
-[Hierarchical Pricing Elasticity Models](https://juanitorduz.github.io/elasticities/)
-:::
-
-## Hierarchical Pricing Elasticity Models
-
-![](probabilistic_forecasting_files/static/images/elasticities_files/elasticities_58_0.png){fig-align="center" width="1000"}
-
-::: footer
-[Hierarchical Pricing Elasticity Models](https://juanitorduz.github.io/elasticities/)
+[Electricity Demand Forecast: Dynamic Time-Series Model with Prior Calibration](https://juanitorduz.github.io/electricity_forecast_with_priors/)
 :::
 
 ## References {.smaller}
@@ -599,10 +585,13 @@ Use a hierarchical structure to regularize the demand elasticity parameters.
 #### NumPyro Examples
 
 - [Notes on Exponential Smoothing with NumPyro](https://juanitorduz.github.io/exponential_smoothing_numpyro/)
+- [Hierarchical Exponential Smoothing Model](https://juanitorduz.github.io/hierarchical_exponential_smoothing/)
 - [Croston's Method for Intermittent Time Series Forecasting in NumPyro](https://juanitorduz.github.io/croston_numpyro/)
+- [Hacking the TSB Model for Intermediate Time Series to Accommodate for Availability Constraints](https://juanitorduz.github.io/availability_tsb/)
 - [Bayesian Censoring Data Modeling](https://juanitorduz.github.io/censoring/)
 - [Demand Forecasting with Censored Likelihood](https://juanitorduz.github.io/demand/)
-- [Hierarchical Exponential Smoothing Model](https://juanitorduz.github.io/hierarchical_exponential_smoothing/)
+- [Hierarchical Pricing Elasticity Models](https://juanitorduz.github.io/elasticities/)
+- [Electricity Demand Forecast: Dynamic Time-Series Model with Prior Calibration](https://juanitorduz.github.io/electricity_forecast_with_priors/)
 
 #### Other Blogposts
 

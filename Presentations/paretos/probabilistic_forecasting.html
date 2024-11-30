@@ -216,12 +216,12 @@
 <li><code>Scan</code> in NumPyro</li>
 <li>Exponential Smoothing</li>
 <li>ARIMA</li>
-<li>Intermittent Demand</li>
+<li>Hierarchical Models</li>
 </ol>
 </div><div class="column" style="width:50%;">
 <ol start="6" type="1">
+<li>Intermittent Demand</li>
 <li>Censored Demand</li>
-<li>Hierarchical Models</li>
 <li>Price Elasticities</li>
 <li>Prior Model Calibration</li>
 <li>References</li>
@@ -243,18 +243,38 @@
 </div>
 </div>
 </section>
-<section id="statsmodels---time-series-models" class="slide level2">
-<h2>Statsmodels - Time Series Models 🤓</h2>
-
-<img data-src="probabilistic_forecasting_files/static/images/statsmodels_docs.png" class="quarto-figure quarto-figure-center r-stretch" width="800"><div class="footer">
-<p><a href="https://www.statsmodels.org/stable/tsa.html">https://www.statsmodels.org/stable/tsa.html</a></p>
+<section id="why-probabilistic-forecasting" class="slide level2">
+<h2>Why Probabilistic Forecasting?</h2>
+<div class="callout callout-tip callout-style-simple">
+<div class="callout-body">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
 </div>
-</section>
-<section id="nixtla" class="slide level2">
-<h2>Nixtla ✨</h2>
-
-<img data-src="probabilistic_forecasting_files/static/images/nitxla_gh.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
-<p><a href="https://github.com/Nixtla">https://github.com/Nixtla</a></p>
+<div class="callout-content">
+<ul>
+<li><strong>Interpretability</strong>
+<ul>
+<li>Trust on the results</li>
+</ul></li>
+<li><strong>Uncertainty quantification</strong>
+<ul>
+<li>Risk Assessment</li>
+<li>Decision Making</li>
+</ul></li>
+<li><strong>Customization</strong>
+<ul>
+<li>Feature engineering</li>
+<li>Special constraints</li>
+<li>Calibrate with domain knowledge</li>
+</ul></li>
+<li><strong>Scale</strong>
+<ul>
+<li>Good results on production environments</li>
+<li>Take advantage of GPU</li>
+</ul></li>
+</ul>
+</div>
+</div>
 </div>
 </section>
 <section id="pyro-forecasting-module" class="slide level2">
@@ -291,7 +311,7 @@
 <section id="scan" class="slide level2">
 <h2>Scan ⭐</h2>
 <h3 id="an-efficient-implementation-of-for-loops">An efficient implementation of <code>for</code> loops</h3>
-<div class="sourceCode" id="cb1" data-code-line-numbers="|1-9|10-15"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a><span class="kw">def</span> scan(f, init, xs):</span>
+<div class="sourceCode" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a><span class="kw">def</span> scan(f, init, xs):</span>
 <span id="cb1-2"><a href=""></a>  <span class="co">"""Pure Python implementation of scan.</span></span>
 <span id="cb1-3"><a href=""></a></span>
 <span id="cb1-4"><a href=""></a><span class="co">  Parameters</span></span>
@@ -306,33 +326,16 @@
 <span id="cb1-13"><a href=""></a>    carry, y <span class="op">=</span> f(carry, x)</span>
 <span id="cb1-14"><a href=""></a>    ys.append(y)</span>
 <span id="cb1-15"><a href=""></a>  <span class="cf">return</span> carry, np.stack(ys)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</section>
-<section id="section-1" class="slide level2">
-<h2></h2>
-<ul>
-<li>For loop</li>
-</ul>
-<div class="sourceCode" id="cb2" data-code-line-numbers="|1-3|6-9"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href=""></a><span class="kw">def</span> sum_of_powers_for_loop(phi: <span class="bu">float</span>, h: <span class="bu">int</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
-<span id="cb2-2"><a href=""></a>    <span class="co">"phi -&gt; 1 + phi + phi^2 + ... + phi^h"</span></span>
-<span id="cb2-3"><a href=""></a>    <span class="cf">return</span> <span class="bu">sum</span>(phi<span class="op">**</span>i <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, h <span class="op">+</span> <span class="dv">1</span>))</span>
-<span id="cb2-4"><a href=""></a></span>
-<span id="cb2-5"><a href=""></a></span>
-<span id="cb2-6"><a href=""></a><span class="cf">assert</span> sum_of_powers_for_loop(<span class="dv">2</span>, <span class="dv">0</span>) <span class="op">==</span> <span class="dv">0</span></span>
-<span id="cb2-7"><a href=""></a><span class="cf">assert</span> sum_of_powers_for_loop(<span class="dv">2</span>, <span class="dv">1</span>) <span class="op">==</span> <span class="dv">2</span></span>
-<span id="cb2-8"><a href=""></a><span class="cf">assert</span> sum_of_powers_for_loop(<span class="dv">2</span>, <span class="dv">2</span>) <span class="op">==</span> <span class="dv">2</span> <span class="op">+</span> <span class="dv">2</span><span class="op">**</span><span class="dv">2</span></span>
-<span id="cb2-9"><a href=""></a><span class="cf">assert</span> sum_of_powers_for_loop(<span class="dv">2</span>, <span class="dv">3</span>) <span class="op">==</span> <span class="dv">2</span> <span class="op">+</span> <span class="dv">2</span><span class="op">**</span><span class="dv">2</span> <span class="op">+</span> <span class="dv">2</span><span class="op">**</span><span class="dv">3</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<ul>
-<li>Scan 😎</li>
-</ul>
-<div class="sourceCode" id="cb3" data-code-line-numbers="|1|2|3|4|5|6|8|9"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href=""></a><span class="kw">def</span> sum_of_powers_scan(phi, h):</span>
-<span id="cb3-2"><a href=""></a>    <span class="kw">def</span> transition_fn(carry, phi):</span>
-<span id="cb3-3"><a href=""></a>        power_sum, power <span class="op">=</span> carry</span>
-<span id="cb3-4"><a href=""></a>        power <span class="op">=</span> power <span class="op">*</span> phi</span>
-<span id="cb3-5"><a href=""></a>        power_sum <span class="op">=</span> power_sum <span class="op">+</span> power</span>
-<span id="cb3-6"><a href=""></a>        <span class="cf">return</span> (power_sum, power), power_sum</span>
-<span id="cb3-7"><a href=""></a></span>
-<span id="cb3-8"><a href=""></a>    (power_sum, _), _ <span class="op">=</span> scan(f<span class="op">=</span>transition_fn, init<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">1</span>), xs<span class="op">=</span>jnp.ones(h) <span class="op">*</span> phi)</span>
-<span id="cb3-9"><a href=""></a>    <span class="cf">return</span> power_sum</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="callout callout-tip callout-style-simple">
+<div class="callout-body">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-content">
+<p>We need recursive relationships! <span class="math inline">\(y_t \longmapsto y_{t+1}\)</span></p>
+</div>
+</div>
+</div>
 </section>
 <section id="example-exponential-smoothing" class="slide level2">
 <h2>Example: Exponential Smoothing</h2>
@@ -369,54 +372,54 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 \end{align*}
 \]</span></p>
-<div class="sourceCode" id="cb4" data-code-line-numbers="|1|2|4-8|10-11|13"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a>    <span class="kw">def</span> transition_fn(carry, t):</span>
-<span id="cb4-2"><a href=""></a>        previous_level <span class="op">=</span> carry</span>
-<span id="cb4-3"><a href=""></a></span>
-<span id="cb4-4"><a href=""></a>        level <span class="op">=</span> jnp.where(</span>
-<span id="cb4-5"><a href=""></a>            t <span class="op">&lt;</span> t_max,</span>
-<span id="cb4-6"><a href=""></a>            level_smoothing <span class="op">*</span> y[t] <span class="op">+</span> (<span class="dv">1</span> <span class="op">-</span> level_smoothing) <span class="op">*</span> previous_level,</span>
-<span id="cb4-7"><a href=""></a>            previous_level,</span>
-<span id="cb4-8"><a href=""></a>        )</span>
-<span id="cb4-9"><a href=""></a></span>
-<span id="cb4-10"><a href=""></a>        mu <span class="op">=</span> previous_level</span>
-<span id="cb4-11"><a href=""></a>        pred <span class="op">=</span> numpyro.sample(<span class="st">"pred"</span>, dist.Normal(loc<span class="op">=</span>mu, scale<span class="op">=</span>noise))</span>
-<span id="cb4-12"><a href=""></a></span>
-<span id="cb4-13"><a href=""></a>        <span class="cf">return</span> level, pred</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb2" data-code-line-numbers="|1|2|4-8|10-11|13"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href=""></a>    <span class="kw">def</span> transition_fn(carry, t):</span>
+<span id="cb2-2"><a href=""></a>        previous_level <span class="op">=</span> carry</span>
+<span id="cb2-3"><a href=""></a></span>
+<span id="cb2-4"><a href=""></a>        level <span class="op">=</span> jnp.where(</span>
+<span id="cb2-5"><a href=""></a>            t <span class="op">&lt;</span> t_max,</span>
+<span id="cb2-6"><a href=""></a>            level_smoothing <span class="op">*</span> y[t] <span class="op">+</span> (<span class="dv">1</span> <span class="op">-</span> level_smoothing) <span class="op">*</span> previous_level,</span>
+<span id="cb2-7"><a href=""></a>            previous_level,</span>
+<span id="cb2-8"><a href=""></a>        )</span>
+<span id="cb2-9"><a href=""></a></span>
+<span id="cb2-10"><a href=""></a>        mu <span class="op">=</span> previous_level</span>
+<span id="cb2-11"><a href=""></a>        pred <span class="op">=</span> numpyro.sample(<span class="st">"pred"</span>, dist.Normal(loc<span class="op">=</span>mu, scale<span class="op">=</span>noise))</span>
+<span id="cb2-12"><a href=""></a></span>
+<span id="cb2-13"><a href=""></a>        <span class="cf">return</span> level, pred</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/exponential_smoothing_numpyro/">Notes on Exponential Smoothing with NumPyro</a></p>
 </div>
 </section>
 <section id="example-exponential-smoothing-3" class="slide level2">
 <h2>Example: Exponential Smoothing</h2>
-<div class="sourceCode" id="cb5" data-code-line-numbers="|1|2-3|5-13|15-17|19-25|27-29"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href=""></a><span class="kw">def</span> level_model(y: ArrayLike, future: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
-<span id="cb5-2"><a href=""></a>    <span class="co"># Get time series length</span></span>
-<span id="cb5-3"><a href=""></a>    t_max <span class="op">=</span> y.shape[<span class="dv">0</span>]</span>
-<span id="cb5-4"><a href=""></a>    </span>
-<span id="cb5-5"><a href=""></a>    <span class="co"># --- Priors ---</span></span>
-<span id="cb5-6"><a href=""></a>    <span class="co">## Level</span></span>
-<span id="cb5-7"><a href=""></a>    level_smoothing <span class="op">=</span> numpyro.sample(</span>
-<span id="cb5-8"><a href=""></a>        <span class="st">"level_smoothing"</span>, dist.Beta(concentration1<span class="op">=</span><span class="dv">1</span>, concentration0<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb5-9"><a href=""></a>    )</span>
-<span id="cb5-10"><a href=""></a>    level_init <span class="op">=</span> numpyro.sample(<span class="st">"level_init"</span>, dist.Normal(loc<span class="op">=</span><span class="dv">0</span>, scale<span class="op">=</span><span class="dv">1</span>))</span>
-<span id="cb5-11"><a href=""></a></span>
-<span id="cb5-12"><a href=""></a>    <span class="co">## Noise</span></span>
-<span id="cb5-13"><a href=""></a>    noise <span class="op">=</span> numpyro.sample(<span class="st">"noise"</span>, dist.HalfNormal(scale<span class="op">=</span><span class="dv">1</span>))</span>
-<span id="cb5-14"><a href=""></a></span>
-<span id="cb5-15"><a href=""></a>    <span class="co"># --- Transition Function ---</span></span>
-<span id="cb5-16"><a href=""></a>    <span class="kw">def</span> transition_fn(carry, t):</span>
-<span id="cb5-17"><a href=""></a>        . . .</span>
-<span id="cb5-18"><a href=""></a></span>
-<span id="cb5-19"><a href=""></a>    <span class="co"># --- Run Scan ---</span></span>
-<span id="cb5-20"><a href=""></a>    <span class="cf">with</span> numpyro.handlers.condition(data<span class="op">=</span>{<span class="st">"pred"</span>: y}):</span>
-<span id="cb5-21"><a href=""></a>        _, preds <span class="op">=</span> scan(</span>
-<span id="cb5-22"><a href=""></a>            transition_fn,</span>
-<span id="cb5-23"><a href=""></a>            level_init,</span>
-<span id="cb5-24"><a href=""></a>            jnp.arange(t_max <span class="op">+</span> future),</span>
-<span id="cb5-25"><a href=""></a>        )</span>
-<span id="cb5-26"><a href=""></a></span>
-<span id="cb5-27"><a href=""></a>    <span class="co"># --- Forecast ---</span></span>
-<span id="cb5-28"><a href=""></a>    <span class="cf">if</span> future <span class="op">&gt;</span> <span class="dv">0</span>:</span>
-<span id="cb5-29"><a href=""></a>        numpyro.deterministic(<span class="st">"y_forecast"</span>, preds[<span class="op">-</span>future:])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb3" data-code-line-numbers="|1|2-3|5-13|15-17|19-25|27-29"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href=""></a><span class="kw">def</span> level_model(y: ArrayLike, future: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="cb3-2"><a href=""></a>    <span class="co"># Get time series length</span></span>
+<span id="cb3-3"><a href=""></a>    t_max <span class="op">=</span> y.shape[<span class="dv">0</span>]</span>
+<span id="cb3-4"><a href=""></a>    </span>
+<span id="cb3-5"><a href=""></a>    <span class="co"># --- Priors ---</span></span>
+<span id="cb3-6"><a href=""></a>    <span class="co">## Level</span></span>
+<span id="cb3-7"><a href=""></a>    level_smoothing <span class="op">=</span> numpyro.sample(</span>
+<span id="cb3-8"><a href=""></a>        <span class="st">"level_smoothing"</span>, dist.Beta(concentration1<span class="op">=</span><span class="dv">1</span>, concentration0<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb3-9"><a href=""></a>    )</span>
+<span id="cb3-10"><a href=""></a>    level_init <span class="op">=</span> numpyro.sample(<span class="st">"level_init"</span>, dist.Normal(loc<span class="op">=</span><span class="dv">0</span>, scale<span class="op">=</span><span class="dv">1</span>))</span>
+<span id="cb3-11"><a href=""></a></span>
+<span id="cb3-12"><a href=""></a>    <span class="co">## Noise</span></span>
+<span id="cb3-13"><a href=""></a>    noise <span class="op">=</span> numpyro.sample(<span class="st">"noise"</span>, dist.HalfNormal(scale<span class="op">=</span><span class="dv">1</span>))</span>
+<span id="cb3-14"><a href=""></a></span>
+<span id="cb3-15"><a href=""></a>    <span class="co"># --- Transition Function ---</span></span>
+<span id="cb3-16"><a href=""></a>    <span class="kw">def</span> transition_fn(carry, t):</span>
+<span id="cb3-17"><a href=""></a>        . . .</span>
+<span id="cb3-18"><a href=""></a></span>
+<span id="cb3-19"><a href=""></a>    <span class="co"># --- Run Scan ---</span></span>
+<span id="cb3-20"><a href=""></a>    <span class="cf">with</span> numpyro.handlers.condition(data<span class="op">=</span>{<span class="st">"pred"</span>: y}):</span>
+<span id="cb3-21"><a href=""></a>        _, preds <span class="op">=</span> scan(</span>
+<span id="cb3-22"><a href=""></a>            transition_fn,</span>
+<span id="cb3-23"><a href=""></a>            level_init,</span>
+<span id="cb3-24"><a href=""></a>            jnp.arange(t_max <span class="op">+</span> future),</span>
+<span id="cb3-25"><a href=""></a>        )</span>
+<span id="cb3-26"><a href=""></a></span>
+<span id="cb3-27"><a href=""></a>    <span class="co"># --- Forecast ---</span></span>
+<span id="cb3-28"><a href=""></a>    <span class="cf">if</span> future <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb3-29"><a href=""></a>        numpyro.deterministic(<span class="st">"y_forecast"</span>, preds[<span class="op">-</span>future:])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="example-exponential-smoothing-4" class="slide level2">
 <h2>Example: Exponential Smoothing</h2>
@@ -443,16 +446,38 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 </section>
 <section id="example-arma1-1-model" class="slide level2">
 <h2>Example: ARMA(1, 1) Model</h2>
-<div class="sourceCode" id="cb6" data-code-line-numbers="|1|2|3-4|5-7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a>    <span class="kw">def</span> transition_fn(carry, t):</span>
-<span id="cb6-2"><a href=""></a>        y_prev, error_prev <span class="op">=</span> carry</span>
-<span id="cb6-3"><a href=""></a>        ar_part <span class="op">=</span> phi <span class="op">*</span> y_prev</span>
-<span id="cb6-4"><a href=""></a>        ma_part <span class="op">=</span> theta <span class="op">*</span> error_prev</span>
-<span id="cb6-5"><a href=""></a>        pred <span class="op">=</span> mu <span class="op">+</span> ar_part <span class="op">+</span> ma_part</span>
-<span id="cb6-6"><a href=""></a>        error <span class="op">=</span> y[t] <span class="op">-</span> pred</span>
-<span id="cb6-7"><a href=""></a>        <span class="cf">return</span> (y[t], error), error</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb4" data-code-line-numbers="|1|2|3-4|5-7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a>    <span class="kw">def</span> transition_fn(carry, t):</span>
+<span id="cb4-2"><a href=""></a>        y_prev, error_prev <span class="op">=</span> carry</span>
+<span id="cb4-3"><a href=""></a>        ar_part <span class="op">=</span> phi <span class="op">*</span> y_prev</span>
+<span id="cb4-4"><a href=""></a>        ma_part <span class="op">=</span> theta <span class="op">*</span> error_prev</span>
+<span id="cb4-5"><a href=""></a>        pred <span class="op">=</span> mu <span class="op">+</span> ar_part <span class="op">+</span> ma_part</span>
+<span id="cb4-6"><a href=""></a>        error <span class="op">=</span> y[t] <span class="op">-</span> pred</span>
+<span id="cb4-7"><a href=""></a>        <span class="cf">return</span> (y[t], error), error</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 <img data-src="probabilistic_forecasting_files/static/images/arma_numpyro_files/arma_numpyro_40_1.png" class="quarto-figure quarto-figure-center r-stretch" width="650"><div class="footer">
 <p><a href="https://juanitorduz.github.io/arma_numpyro/">Notes on an ARMA(1, 1) Model with NumPyro</a></p>
+</div>
+</section>
+<section id="hierarchical-exponential-smoothing" class="slide level2">
+<h2>Hierarchical Exponential Smoothing</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="probabilistic_forecasting_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_45_0.png" class="quarto-figure quarto-figure-center" height="1950"></p>
+</figure>
+</div>
+</section>
+<section id="hierarchical-exponential-smoothing-1" class="slide level2">
+<h2>Hierarchical Exponential Smoothing</h2>
+
+<img data-src="probabilistic_forecasting_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_47_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/hierarchical_exponential_smoothing/">Hierarchical Exponential Smoothing Model</a></p>
+</div>
+</section>
+<section id="hierarchical-exponential-smoothing-2" class="slide level2">
+<h2>Hierarchical Exponential Smoothing</h2>
+
+<img data-src="probabilistic_forecasting_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_69_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/hierarchical_exponential_smoothing/">Hierarchical Exponential Smoothing Model</a></p>
 </div>
 </section>
 <section id="intermittent-time-series" class="slide level2">
@@ -494,14 +519,14 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 </section>
 <section id="crostons-method-2" class="slide level2">
 <h2>Croston’s Method</h2>
-<div class="sourceCode" id="cb7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href=""></a><span class="kw">def</span> croston_model(z: ArrayLike, p_inv: ArrayLike, future: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
-<span id="cb7-2"><a href=""></a>    z_forecast <span class="op">=</span> scope(level_model, <span class="st">"demand"</span>)(z, future)</span>
-<span id="cb7-3"><a href=""></a>    p_inv_forecast <span class="op">=</span> scope(level_model, <span class="st">"period_inv"</span>)(p_inv, future)</span>
-<span id="cb7-4"><a href=""></a></span>
-<span id="cb7-5"><a href=""></a>    <span class="cf">if</span> future <span class="op">&gt;</span> <span class="dv">0</span>:</span>
-<span id="cb7-6"><a href=""></a>        numpyro.deterministic(<span class="st">"z_forecast"</span>, z_forecast)</span>
-<span id="cb7-7"><a href=""></a>        numpyro.deterministic(<span class="st">"p_inv_forecast"</span>, p_inv_forecast)</span>
-<span id="cb7-8"><a href=""></a>        numpyro.deterministic(<span class="st">"forecast"</span>, z_forecast <span class="op">*</span> p_inv_forecast)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href=""></a><span class="kw">def</span> croston_model(z: ArrayLike, p_inv: ArrayLike, future: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="cb5-2"><a href=""></a>    z_forecast <span class="op">=</span> scope(level_model, <span class="st">"demand"</span>)(z, future)</span>
+<span id="cb5-3"><a href=""></a>    p_inv_forecast <span class="op">=</span> scope(level_model, <span class="st">"period_inv"</span>)(p_inv, future)</span>
+<span id="cb5-4"><a href=""></a></span>
+<span id="cb5-5"><a href=""></a>    <span class="cf">if</span> future <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb5-6"><a href=""></a>        numpyro.deterministic(<span class="st">"z_forecast"</span>, z_forecast)</span>
+<span id="cb5-7"><a href=""></a>        numpyro.deterministic(<span class="st">"p_inv_forecast"</span>, p_inv_forecast)</span>
+<span id="cb5-8"><a href=""></a>        numpyro.deterministic(<span class="st">"forecast"</span>, z_forecast <span class="op">*</span> p_inv_forecast)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 <img data-src="probabilistic_forecasting_files/static/images/croston_numpyro_files/croston_numpyro_39_1.png" class="quarto-figure quarto-figure-center r-stretch" width="600"><div class="footer">
 <p><a href="https://juanitorduz.github.io/croston_numpyro/">Croston’s Method for Intermittent Time Series Forecasting in NumPyro</a></p>
@@ -535,20 +560,20 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 <section id="zero-inflated-tsb-model" class="slide level2">
 <h2>Zero-Inflated TSB Model</h2>
 <p>🧪 We can modify the TSB model to include zero-inflation by using a Zero-Inflated Negative Binomial Distribution.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href=""></a>    <span class="kw">def</span> transition_fn(carry, t):</span>
-<span id="cb8-2"><a href=""></a>        z_prev, p_prev <span class="op">=</span> carry</span>
-<span id="cb8-3"><a href=""></a>        </span>
-<span id="cb8-4"><a href=""></a>        z_next . . .</span>
-<span id="cb8-5"><a href=""></a>        p_next . . .</span>
-<span id="cb8-6"><a href=""></a></span>
-<span id="cb8-7"><a href=""></a>        mu <span class="op">=</span> z_next</span>
-<span id="cb8-8"><a href=""></a>        gate <span class="op">=</span> <span class="dv">1</span> <span class="op">-</span> p_next</span>
-<span id="cb8-9"><a href=""></a>        pred <span class="op">=</span> numpyro.sample(</span>
-<span id="cb8-10"><a href=""></a>            <span class="st">"pred"</span>,</span>
-<span id="cb8-11"><a href=""></a>            dist.ZeroInflatedNegativeBinomial2(</span>
-<span id="cb8-12"><a href=""></a>                mean<span class="op">=</span>mu, concentration<span class="op">=</span>concentration, gate<span class="op">=</span>gate</span>
-<span id="cb8-13"><a href=""></a>            ),</span>
-<span id="cb8-14"><a href=""></a>        )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a>    <span class="kw">def</span> transition_fn(carry, t):</span>
+<span id="cb6-2"><a href=""></a>        z_prev, p_prev <span class="op">=</span> carry</span>
+<span id="cb6-3"><a href=""></a>        </span>
+<span id="cb6-4"><a href=""></a>        z_next . . .</span>
+<span id="cb6-5"><a href=""></a>        p_next . . .</span>
+<span id="cb6-6"><a href=""></a></span>
+<span id="cb6-7"><a href=""></a>        mu <span class="op">=</span> z_next</span>
+<span id="cb6-8"><a href=""></a>        gate <span class="op">=</span> <span class="dv">1</span> <span class="op">-</span> p_next</span>
+<span id="cb6-9"><a href=""></a>        pred <span class="op">=</span> numpyro.sample(</span>
+<span id="cb6-10"><a href=""></a>            <span class="st">"pred"</span>,</span>
+<span id="cb6-11"><a href=""></a>            dist.ZeroInflatedNegativeBinomial2(</span>
+<span id="cb6-12"><a href=""></a>                mean<span class="op">=</span>mu, concentration<span class="op">=</span>concentration, gate<span class="op">=</span>gate</span>
+<span id="cb6-13"><a href=""></a>            ),</span>
+<span id="cb6-14"><a href=""></a>        )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/zi_tsb_numpyro/">Zero-Inflated TSB Model</a></p>
 </div>
@@ -603,7 +628,7 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 <p><a href="https://juanitorduz.github.io/censoring/">Bayesian Censoring Data Modeling</a></p>
 </div>
 </section>
-<section id="section-2" class="slide level2">
+<section id="section-1" class="slide level2">
 <h2></h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
@@ -619,7 +644,7 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 <p><a href="https://juanitorduz.github.io/censoring/">Bayesian Censoring Data Modeling</a></p>
 </div>
 </section>
-<section id="section-3" class="slide level2">
+<section id="section-2" class="slide level2">
 <h2></h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
@@ -637,25 +662,25 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 </section>
 <section id="censored-likelihood" class="slide level2">
 <h2>Censored Likelihood</h2>
-<div class="sourceCode" id="cb9"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href=""></a><span class="kw">def</span> censored_normal(loc, scale, y, censored):</span>
-<span id="cb9-2"><a href=""></a>    distribution <span class="op">=</span> dist.Normal(loc<span class="op">=</span>loc, scale<span class="op">=</span>scale)</span>
-<span id="cb9-3"><a href=""></a>    ccdf <span class="op">=</span> <span class="dv">1</span> <span class="op">-</span> distribution.cdf(y)</span>
-<span id="cb9-4"><a href=""></a>    numpyro.sample(</span>
-<span id="cb9-5"><a href=""></a>        <span class="st">"censored_label"</span>,</span>
-<span id="cb9-6"><a href=""></a>        dist.Bernoulli(probs<span class="op">=</span>ccdf).mask(censored <span class="op">==</span> <span class="dv">1</span>),</span>
-<span id="cb9-7"><a href=""></a>        obs<span class="op">=</span>censored</span>
-<span id="cb9-8"><a href=""></a>    )</span>
-<span id="cb9-9"><a href=""></a>    <span class="cf">return</span> numpyro.sample(<span class="st">"pred"</span>, distribution.mask(censored <span class="op">!=</span> <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href=""></a><span class="kw">def</span> censored_normal(loc, scale, y, censored):</span>
+<span id="cb7-2"><a href=""></a>    distribution <span class="op">=</span> dist.Normal(loc<span class="op">=</span>loc, scale<span class="op">=</span>scale)</span>
+<span id="cb7-3"><a href=""></a>    ccdf <span class="op">=</span> <span class="dv">1</span> <span class="op">-</span> distribution.cdf(y)</span>
+<span id="cb7-4"><a href=""></a>    numpyro.sample(</span>
+<span id="cb7-5"><a href=""></a>        <span class="st">"censored_label"</span>,</span>
+<span id="cb7-6"><a href=""></a>        dist.Bernoulli(probs<span class="op">=</span>ccdf).mask(censored <span class="op">==</span> <span class="dv">1</span>),</span>
+<span id="cb7-7"><a href=""></a>        obs<span class="op">=</span>censored</span>
+<span id="cb7-8"><a href=""></a>    )</span>
+<span id="cb7-9"><a href=""></a>    <span class="cf">return</span> numpyro.sample(<span class="st">"pred"</span>, distribution.mask(censored <span class="op">!=</span> <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="fragment">
 <p>Change likelihood distribution in a time-series model:</p>
-<div class="sourceCode" id="cb10" data-code-line-numbers="|7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href=""></a>    <span class="co">## Transition function for AR(2)</span></span>
-<span id="cb10-2"><a href=""></a>    <span class="kw">def</span> transition_fn(carry, t):</span>
-<span id="cb10-3"><a href=""></a>        y_prev_1, y_prev_2 <span class="op">=</span> carry</span>
-<span id="cb10-4"><a href=""></a>        ar_part <span class="op">=</span> phi_1 <span class="op">*</span> y_prev_1 <span class="op">+</span> phi_2 <span class="op">*</span> y_prev_2</span>
-<span id="cb10-5"><a href=""></a>        pred_mean <span class="op">=</span> mu <span class="op">+</span> ar_part <span class="op">+</span> seasonal[t]</span>
-<span id="cb10-6"><a href=""></a>        <span class="co"># Censored likelihood</span></span>
-<span id="cb10-7"><a href=""></a>        pred <span class="op">=</span> censored_normal(pred_mean, sigma, y[t], censored[t])</span>
-<span id="cb10-8"><a href=""></a>        <span class="cf">return</span> (pred, y_prev_1), pred</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb8" data-code-line-numbers="|7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href=""></a>    <span class="co">## Transition function for AR(2)</span></span>
+<span id="cb8-2"><a href=""></a>    <span class="kw">def</span> transition_fn(carry, t):</span>
+<span id="cb8-3"><a href=""></a>        y_prev_1, y_prev_2 <span class="op">=</span> carry</span>
+<span id="cb8-4"><a href=""></a>        ar_part <span class="op">=</span> phi_1 <span class="op">*</span> y_prev_1 <span class="op">+</span> phi_2 <span class="op">*</span> y_prev_2</span>
+<span id="cb8-5"><a href=""></a>        pred_mean <span class="op">=</span> mu <span class="op">+</span> ar_part <span class="op">+</span> seasonal[t]</span>
+<span id="cb8-6"><a href=""></a>        <span class="co"># Censored likelihood</span></span>
+<span id="cb8-7"><a href=""></a>        pred <span class="op">=</span> censored_normal(pred_mean, sigma, y[t], censored[t])</span>
+<span id="cb8-8"><a href=""></a>        <span class="cf">return</span> (pred, y_prev_1), pred</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/demand/">Demand Forecasting with Censored Likelihood</a></p>
 </div>
@@ -666,50 +691,6 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 
 <img data-src="probabilistic_forecasting_files/static/images/demand_files/demand_48_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
 <p><a href="https://juanitorduz.github.io/demand/">Demand Forecasting with Censored Likelihood</a></p>
-</div>
-</section>
-<section id="dynamic-time-series-model" class="slide level2">
-<h2>Dynamic Time-Series Model</h2>
-
-<img data-src="probabilistic_forecasting_files/static/images/electricity_forecast_files/electricity_forecast_6_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
-<p><a href="https://juanitorduz.github.io/electricity_forecast/">Electricity Demand Forecast: Dynamic Time-Series Model</a></p>
-</div>
-</section>
-<section id="dynamic-coefficients" class="slide level2">
-<h2>Dynamic Coefficients</h2>
-<h3 id="hilbert-space-gaussian-processes-for-dynamic-coefficients">Hilbert Space Gaussian Processes for Dynamic Coefficients</h3>
-
-<img data-src="probabilistic_forecasting_files/static/images/electricity_forecast_files/electricity_forecast_27_0.svg" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
-<p><a href="https://juanitorduz.github.io/electricity_forecast/">Electricity Demand Forecast: Dynamic Time-Series Model</a></p>
-</div>
-</section>
-<section id="inferring-effect-of-temperature-on-electricity-demand" class="slide level2">
-<h2>Inferring Effect of Temperature on Electricity Demand</h2>
-
-<img data-src="probabilistic_forecasting_files/static/images/electricity_forecast_files/electricity_forecast_46_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
-<p><a href="https://juanitorduz.github.io/electricity_forecast/">Electricity Demand Forecast: Dynamic Time-Series Model</a></p>
-</div>
-</section>
-<section id="hierarchical-exponential-smoothing" class="slide level2">
-<h2>Hierarchical Exponential Smoothing</h2>
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="probabilistic_forecasting_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_45_0.png" class="quarto-figure quarto-figure-center" height="1950"></p>
-</figure>
-</div>
-</section>
-<section id="hierarchical-exponential-smoothing-1" class="slide level2">
-<h2>Hierarchical Exponential Smoothing</h2>
-
-<img data-src="probabilistic_forecasting_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_47_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
-<p><a href="https://juanitorduz.github.io/hierarchical_exponential_smoothing/">Hierarchical Exponential Smoothing Model</a></p>
-</div>
-</section>
-<section id="hierarchical-exponential-smoothing-2" class="slide level2">
-<h2>Hierarchical Exponential Smoothing</h2>
-
-<img data-src="probabilistic_forecasting_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_69_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
-<p><a href="https://juanitorduz.github.io/hierarchical_exponential_smoothing/">Hierarchical Exponential Smoothing Model</a></p>
 </div>
 </section>
 <section id="hierarchical-pricing-elasticity-models" class="slide level2">
@@ -741,15 +722,50 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 <p><a href="https://juanitorduz.github.io/elasticities/">Hierarchical Pricing Elasticity Models</a></p>
 </div>
 </section>
+<section id="dynamic-time-series-model" class="slide level2">
+<h2>Dynamic Time-Series Model</h2>
+
+<img data-src="probabilistic_forecasting_files/static/images/electricity_forecast_files/electricity_forecast_6_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/electricity_forecast/">Electricity Demand Forecast: Dynamic Time-Series Model</a></p>
+</div>
+</section>
+<section id="dynamic-coefficients" class="slide level2">
+<h2>Dynamic Coefficients</h2>
+<h3 id="hilbert-space-gaussian-processes-for-dynamic-coefficients">Hilbert Space Gaussian Processes for Dynamic Coefficients</h3>
+
+<img data-src="probabilistic_forecasting_files/static/images/electricity_forecast_files/electricity_forecast_27_0.svg" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/electricity_forecast/">Electricity Demand Forecast: Dynamic Time-Series Model</a></p>
+</div>
+</section>
+<section id="inferring-effect-of-temperature-on-electricity-demand" class="slide level2">
+<h2>Inferring Effect of Temperature on Electricity Demand</h2>
+
+<img data-src="probabilistic_forecasting_files/static/images/electricity_forecast_files/electricity_forecast_46_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/electricity_forecast/">Electricity Demand Forecast: Dynamic Time-Series Model</a></p>
+</div>
+</section>
+<section id="calibrating-a-demand-model" class="slide level2">
+<h2>Calibrating a Demand Model</h2>
+<blockquote>
+<p>Let us assume that we know from domain knowledge that the effect of temperature on demand over 32°C is somehow stable at around a value of 0.13.</p>
+</blockquote>
+
+<img data-src="probabilistic_forecasting_files/static/images/electricity_forecast_with_priors_files/electricity_forecast_with_priors_32_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/electricity_forecast_with_priors/">Electricity Demand Forecast: Dynamic Time-Series Model with Prior Calibration</a></p>
+</div>
+</section>
 <section id="references" class="slide level2 smaller">
 <h2>References</h2>
 <h4 id="numpyro-examples">NumPyro Examples</h4>
 <ul>
 <li><a href="https://juanitorduz.github.io/exponential_smoothing_numpyro/">Notes on Exponential Smoothing with NumPyro</a></li>
+<li><a href="https://juanitorduz.github.io/hierarchical_exponential_smoothing/">Hierarchical Exponential Smoothing Model</a></li>
 <li><a href="https://juanitorduz.github.io/croston_numpyro/">Croston’s Method for Intermittent Time Series Forecasting in NumPyro</a></li>
+<li><a href="https://juanitorduz.github.io/availability_tsb/">Hacking the TSB Model for Intermediate Time Series to Accommodate for Availability Constraints</a></li>
 <li><a href="https://juanitorduz.github.io/censoring/">Bayesian Censoring Data Modeling</a></li>
 <li><a href="https://juanitorduz.github.io/demand/">Demand Forecasting with Censored Likelihood</a></li>
-<li><a href="https://juanitorduz.github.io/hierarchical_exponential_smoothing/">Hierarchical Exponential Smoothing Model</a></li>
+<li><a href="https://juanitorduz.github.io/elasticities/">Hierarchical Pricing Elasticity Models</a></li>
+<li><a href="https://juanitorduz.github.io/electricity_forecast_with_priors/">Electricity Demand Forecast: Dynamic Time-Series Model with Prior Calibration</a></li>
 </ul>
 <h4 id="other-blogposts">Other Blogposts</h4>
 <ul>
