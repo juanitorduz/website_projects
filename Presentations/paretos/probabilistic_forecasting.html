@@ -495,6 +495,30 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 <p><a href="https://juanitorduz.github.io/hierarchical_exponential_smoothing/">Hierarchical Exponential Smoothing Model</a></p>
 </div>
 </section>
+<section id="baseline-model" class="slide level2">
+<h2>Baseline Model</h2>
+<h3 id="local-level-model-seasonality-covariates">Local Level Model + Seasonality + Covariates</h3>
+
+<img data-src="probabilistic_forecasting_files/static/images/baseline_covariates.png" class="quarto-figure quarto-figure-center r-stretch" width="650"><div class="callout callout-tip callout-style-simple">
+<div class="callout-body">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-content">
+<ul>
+<li>Local level model to capture the trend component.</li>
+<li>Seasonality using a Fourier modes.</li>
+<li>Add covariates to account for promotions and discounts.</li>
+<li>Global factor to account the availability of the product.</li>
+</ul>
+<p><strong>Scalability:</strong> <span class="math inline">\(~40\)</span>K time-series can be fitted in less than <span class="math inline">\(10\)</span> minutes in a GPU.</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/numpyro_hierarchical_forecasting_1/">From Pyro to NumPyro: Forecasting Hierarchical Models - Part I</a></p>
+</div>
+</section>
 <section id="intermittent-time-series" class="slide level2">
 <h2>Intermittent Time Series</h2>
 
@@ -787,14 +811,16 @@ l_t = &amp; \: \alpha y_t + (1 - \alpha)l_{t-1}
 <h2>References 📚</h2>
 <h4 id="numpyro-examples">NumPyro Examples</h4>
 <ul>
-<li><a href="https://juanitorduz.github.io/exponential_smoothing_numpyro/">Notes on Exponential Smoothing with NumPyro</a></li>
-<li><a href="https://juanitorduz.github.io/hierarchical_exponential_smoothing/">Hierarchical Exponential Smoothing Model</a></li>
-<li><a href="https://juanitorduz.github.io/croston_numpyro/">Croston’s Method for Intermittent Time Series Forecasting in NumPyro</a></li>
-<li><a href="https://juanitorduz.github.io/availability_tsb/">Hacking the TSB Model for Intermediate Time Series to Accommodate for Availability Constraints</a></li>
 <li><a href="https://juanitorduz.github.io/censoring/">Bayesian Censoring Data Modeling</a></li>
+<li><a href="https://juanitorduz.github.io/croston_numpyro/">Croston’s Method for Intermittent Time Series Forecasting in NumPyro</a></li>
 <li><a href="https://juanitorduz.github.io/demand/">Demand Forecasting with Censored Likelihood</a></li>
-<li><a href="https://juanitorduz.github.io/elasticities/">Hierarchical Pricing Elasticity Models</a></li>
 <li><a href="https://juanitorduz.github.io/electricity_forecast_with_priors/">Electricity Demand Forecast: Dynamic Time-Series Model with Prior Calibration</a></li>
+<li><a href="https://juanitorduz.github.io/numpyro_hierarchical_forecasting_1/">From Pyro to NumPyro: Forecasting Hierarchical Models - Part I</a></li>
+<li><a href="https://juanitorduz.github.io/numpyro_hierarchical_forecasting_2/">From Pyro to NumPyro: Forecasting Hierarchical Models - Part II</a></li>
+<li><a href="https://juanitorduz.github.io/availability_tsb/">Hacking the TSB Model for Intermediate Time Series to Accommodate for Availability Constraints</a></li>
+<li><a href="https://juanitorduz.github.io/hierarchical_exponential_smoothing/">Hierarchical Exponential Smoothing Model</a></li>
+<li><a href="https://juanitorduz.github.io/elasticities/">Hierarchical Pricing Elasticity Models</a></li>
+<li><a href="https://juanitorduz.github.io/exponential_smoothing_numpyro/">Notes on Exponential Smoothing with NumPyro</a></li>
 </ul>
 </section>
 <section id="references-1" class="slide level2 smaller">

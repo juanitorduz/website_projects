@@ -300,6 +300,28 @@ def level_model(y: ArrayLike, future: int = 0) -> None:
 [Hierarchical Exponential Smoothing Model](https://juanitorduz.github.io/hierarchical_exponential_smoothing/)
 :::
 
+## Baseline Model
+
+### Local Level Model + Seasonality + Covariates
+
+![](probabilistic_forecasting_files/static/images/baseline_covariates.png){fig-align="center" width="650"}
+
+
+::: {.callout-tip appearance="simple"}
+
+- Local level model to capture the trend component.
+- Seasonality using a Fourier modes.
+- Add covariates to account for promotions and discounts.
+- Global factor to account the availability of the product.
+
+**Scalability:** $~40$K time-series can be fitted in less than $10$ minutes in a GPU.
+
+:::
+
+::: footer
+[From Pyro to NumPyro: Forecasting Hierarchical Models - Part I](https://juanitorduz.github.io/numpyro_hierarchical_forecasting_1/)
+:::
+
 ## Intermittent Time Series
 
 ![](probabilistic_forecasting_files/static/images/croston_numpyro_files/croston_numpyro_6_1.png){fig-align="center" width="1000"}
@@ -608,14 +630,16 @@ Use a hierarchical structure to regularize the demand elasticity parameters.
 
 #### NumPyro Examples
 
-- [Notes on Exponential Smoothing with NumPyro](https://juanitorduz.github.io/exponential_smoothing_numpyro/)
-- [Hierarchical Exponential Smoothing Model](https://juanitorduz.github.io/hierarchical_exponential_smoothing/)
-- [Croston's Method for Intermittent Time Series Forecasting in NumPyro](https://juanitorduz.github.io/croston_numpyro/)
-- [Hacking the TSB Model for Intermediate Time Series to Accommodate for Availability Constraints](https://juanitorduz.github.io/availability_tsb/)
 - [Bayesian Censoring Data Modeling](https://juanitorduz.github.io/censoring/)
+- [Croston's Method for Intermittent Time Series Forecasting in NumPyro](https://juanitorduz.github.io/croston_numpyro/)
 - [Demand Forecasting with Censored Likelihood](https://juanitorduz.github.io/demand/)
-- [Hierarchical Pricing Elasticity Models](https://juanitorduz.github.io/elasticities/)
 - [Electricity Demand Forecast: Dynamic Time-Series Model with Prior Calibration](https://juanitorduz.github.io/electricity_forecast_with_priors/)
+- [From Pyro to NumPyro: Forecasting Hierarchical Models - Part I](https://juanitorduz.github.io/numpyro_hierarchical_forecasting_1/)
+- [From Pyro to NumPyro: Forecasting Hierarchical Models - Part II](https://juanitorduz.github.io/numpyro_hierarchical_forecasting_2/)
+- [Hacking the TSB Model for Intermediate Time Series to Accommodate for Availability Constraints](https://juanitorduz.github.io/availability_tsb/)
+- [Hierarchical Exponential Smoothing Model](https://juanitorduz.github.io/hierarchical_exponential_smoothing/)
+- [Hierarchical Pricing Elasticity Models](https://juanitorduz.github.io/elasticities/)
+- [Notes on Exponential Smoothing with NumPyro](https://juanitorduz.github.io/exponential_smoothing_numpyro/)
 
 ## References 📚 {.smaller}
 
