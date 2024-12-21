@@ -25,5 +25,14 @@ We use [pixi](https://github.com/prefix-dev/pixi), see [It's time to try out pix
 pixi shell
 ```
 
+### Remarks
+
 > [!NOTE]
 > The [`nutpie`](https://github.com/pymc-devs/nutpie) package requires [`cargo`](https://doc.rust-lang.org/cargo/index.html), a rust package manager. For installation instructions, see [here](https://doc.rust-lang.org/cargo/getting-started/installation.html).
+
+> [!IMPORTANT]
+> We need to set the environment variable
+> ```bash
+> XLA_FLAGS=--xla_cpu_use_thunk_runtime=false
+> ```
+> to run the code because of a bug in JAX, see [this discussion](https://github.com/jax-ml/jax/discussions/23822#discussioncomment-10728018).
