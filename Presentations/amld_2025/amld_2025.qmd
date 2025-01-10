@@ -1,0 +1,117 @@
+---
+title: "Advanced Bayesian Media Mix Modeling"
+title-slide-attributes:
+  data-background-image: amld_2025_files/static/images/logos/curves.png
+  data-background-size: cover
+  data-background-opacity: "0.20"
+subtitle: "AMLD EPFL 2025"
+author: 
+  - name: Dr. Juan Orduz
+    url: https://juanitorduz.github.io/
+
+format:
+  revealjs:
+    slide-number: true
+    html-math-method: mathjax 
+    css: amld_2025_files/style.css
+    logo: amld_2025_files/static/images/logos/pymc-labs-favicon.png
+    transition: none
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    theme:
+        - white
+    highlight-style: github-dark
+---
+
+## Outline
+
+1. What is Media Mix Modeling (MMM)?
+2. Media Transformations: Adstock and Saturation
+3. [**PyMC-Marketing**]{style="color:#0379ea"}: A Python Library for Bayesian Media Mix Modeling and Customer Lifetime Value
+
+::: {.callout-note appearance="minimal"}
+**Advanced Topics:**
+
+- Out-of-sample forecasting
+- Budget Optimization and Simulations
+- Time-varying parameters (baseline and media effects)
+- Lift test calibration through custom likelihoods
+- MMMs in production
+:::
+
+## What is Media Mix Modeling (MMM)?
+
+![](amld_2025_files/static/images/mmm_motivation.png){fig-align="center" width="1000"}
+
+## MMM as a Regression Model
+
+$$
+y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c}z_{c, t} + \varepsilon_{t},
+$$
+
+
+::: {.callout-note appearance="minimal"}
+- $y_{t}$: Target variable at time $t$ (e.g. sales, conversions, etc.)
+- $b_{t}$: Baseline sales at time $t$
+- $\beta_{m}$: Effect of media $m$ on sales
+- $f(x_{m, t})$: Transformation of media $m$ at time $t$
+- $\gamma_{c}$: Effect of control variables $z_{c, t}$ on sales
+- $\varepsilon_{t}$: Error term
+:::
+
+::: footer
+[Jin, Yuxue, et al. “Bayesian methods for media mix modeling with carryover and shape effects.” (2017).](https://research.google/pubs/pub46001/)
+:::
+
+## Adstock Effect
+
+::: {.callout-tip appearance="simple"}
+The adstock effect captures the **carryover** of advertising - the idea that the impact of advertising persists and decays over time rather than being instantaneous.
+
+$$
+\text{adstock}(x_{m, t}; \alpha, T) = x_{m, t} + \alpha \sum_{j=1}^{T} x_{m, t-j}
+$$
+
+for $\alpha \in [0, 1]$ and $T$ the number of periods.
+:::
+
+![](amld_2025_files/static/images/geometric_adstock.png){fig-align="center" width="1000"}
+
+## Saturation Effect
+
+::: {.callout-tip appearance="simple"}
+The saturation effect captures the idea that the impact of advertising diminishes as the media budget increases.
+
+$$
+\text{saturation}(x_{m, t}; \lambda) = \frac{1 - \exp(-\lambda x_{m, t})}{1 + \exp(-\lambda x_{m, t})}
+$$
+:::
+
+![](amld_2025_files/static/images/saturation.png){fig-align="center" width="1000"}
+
+
+## Additional Effects
+
+![](amld_2025_files/static/images/trend_seasonality.png){fig-align="center" width="1000"}
+
+## MMM as a Causal Model
+
+![](amld_2025_files/static/images/dag.svg){fig-align="center" width="1000"}
+
+::: footer
+[PyMC-Marketing Example: Unobserved Confounders, ROAS and Lift Tests](https://www.pymc-marketing.io/en/latest/notebooks/mmm/mmm_roas.html)
+:::
+
+## Why Bayesian MMMs?
+
+- ...
+
+## PyMC-Marketing
+
+- ...
+
+## Parameter Recovery Example
+
+- ...
+
