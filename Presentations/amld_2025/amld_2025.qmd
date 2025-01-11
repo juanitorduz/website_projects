@@ -90,6 +90,9 @@ $$
 
 ![](amld_2025_files/static/images/saturation.png){fig-align="center" width="1000"}
 
+## Media Transformations
+
+![](amld_2025_files/static/images/media_transformations.png){fig-align="center" width="1000"}
 
 ## Additional Effects
 
@@ -103,15 +106,132 @@ $$
 [PyMC-Marketing Example: Unobserved Confounders, ROAS and Lift Tests](https://www.pymc-marketing.io/en/latest/notebooks/mmm/mmm_roas.html)
 :::
 
-## Why Bayesian MMMs?
+## Why Bayesian MMMs? {.smaller}
 
-- ...
+### Some MMM Challenges
+
+::: incremental
+
+- Limited data (typically 2-3 years of data, sometimes weekly granularity).
+
+- Media variables are generally very correlated.
+
+- Unobserved confounders (e.g. competitors investments).
+
+:::
+
+### Bayesian MMMs
+
+::: incremental
+
+- Uncertainty quantification.
+
+- Domain knowledge through priors.
+
+- Lift test calibration (e.g. geo-tests or switch-back experiments).
+
+- Time-varying parameters with Bayesian regularization (e.g. strong priors or hierarchies).
+
+- Risk-based budget optimization.
+
+:::
 
 ## PyMC-Marketing
 
-- ...
+![](amld_2025_files/static/images/logos/marketing-logo-light.jpg){fig-align="center" width="1000"}
 
-## Parameter Recovery Example
+> Bayesian marketing toolbox in PyMC. Media Mix (MMM), customer lifetime value (CLV), buy-till-you-die (BTYD) models and more.
 
-- ...
+::: footer
+[PyMC-Marketing](https://www.pymc-marketing.io/)
+:::
 
+## PyMC-Marketing API
+
+```{.python code-line-numbers="|1-3|4-11|13-23|25-36"}
+from pymc_marketing.mmm import MMM, GeometricAdstock, LogisticSaturation
+from pymc_marketing.prior import Prior
+
+# Define priors
+my_model_config = {
+    "intercept": Prior("Normal", mu=0.5, sigma=0.1),
+    ...,
+    "likelihood": Prior(
+        "TruncatedNormal", lower=0, sigma=Prior("Exponential", lam=1)
+    ),
+}
+
+# Define the model
+mmm = MMM(
+    model_config=my_model_config,
+    date_column="date_week",
+    adstock=GeometricAdstock(l_max=8),
+    saturation=LogisticSaturation(),
+    channel_columns=channel_columns,
+    control_columns=control_columns,
+    time_varying_intercept=True,
+    yearly_seasonality=2,
+)
+
+# Fit the model
+_ = mmm.fit(
+    X=X,
+    y=y,
+    target_accept=0.85,
+    chains=4,
+    draws=2_000,
+    nuts_sampler="numpyro",  # <- We can use many samplers and backends!
+    random_seed=rng,
+)
+# Sample from the posterior predictive distribution
+_ = mmm.sample_posterior_predictive(X, extend_idata=True, combined=True)
+```
+
+## Prior Specification
+
+![](amld_2025_files/static/images/beta_priors.png){fig-align="center" width="1000"}
+
+::: footer
+[PyMC-Marketing Example: Prior Predictive Modeling](https://www.pymc-marketing.io/en/latest/notebooks/general/prior_predictive.html)
+:::
+
+## Attribution Decomposition
+
+```{.python}
+mmm.plot_components_contributions(original_scale=True);
+```
+
+![](amld_2025_files/static/images/model_components.png){fig-align="center" width="1000"}
+
+
+## Return on Ad Spend (ROAS)
+
+![](amld_2025_files/static/images/roas_posterior.png){fig-align="center" width="1000"}
+
+## Out-of-sample Forecasting {.smaller}
+
+::: {.columns}
+
+::: {.column width="50%"}
+
+![](amld_2025_files/static/images/tscv.png){fig-align="center" width="500"}
+
+:::
+
+
+::: {.column width="50%"}
+
+::: {.callout-tip title="Model Evaluation Framework"}
+
+Evaluate the model on the holdout set:
+
+- Prediction accuracy (CRPS)
+- Parameter Stability
+
+:::
+  
+![](amld_2025_files/static/images/tscv_alpha.png){fig-align="center" width="900"}
+
+:::
+
+:::
