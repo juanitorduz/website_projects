@@ -37,7 +37,6 @@ format:
 - Budget Optimization and Simulations
 - Time-varying parameters (baseline and media effects)
 - Lift test calibration through custom likelihoods
-- MMMs in production
 :::
 
 ## What is Media Mix Modeling (MMM)?
@@ -47,14 +46,14 @@ format:
 ## MMM as a Regression Model
 
 $$
-y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c}z_{c, t} + \varepsilon_{t},
+y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m, t}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c}z_{c, t} + \varepsilon_{t},
 $$
 
 
 ::: {.callout-note appearance="minimal"}
 - $y_{t}$: Target variable at time $t$ (e.g. sales, conversions, etc.)
 - $b_{t}$: Baseline sales at time $t$
-- $\beta_{m}$: Effect of media $m$ on sales
+- $\beta_{m, t}$: Effect of media $m$ on sales at time $t$
 - $f(x_{m, t})$: Transformation of media $m$ at time $t$
 - $\gamma_{c}$: Effect of control variables $z_{c, t}$ on sales
 - $\varepsilon_{t}$: Error term
@@ -229,9 +228,97 @@ Evaluate the model on the holdout set:
 - Parameter Stability
 
 :::
-  
+
 ![](amld_2025_files/static/images/tscv_alpha.png){fig-align="center" width="900"}
 
 :::
 
 :::
+
+## Time-varying Parameters
+
+- Time-varying intercepts $b_t \sim \text{HSGP}(a, \ell, m)$
+
+- Time-varying media effects $\beta_{m, t} \sim \text{HSGP}(a, \ell, m)$
+
+![](amld_2025_files/static/images/hsgp_tv_intercept_prior.png){fig-align="center" width="1000"}
+
+::: footer
+[A Conceptual and Practical Introduction to Hilbert Space GPs Approximation Methods](https://juanitorduz.github.io/hsgp_intro/)
+:::
+
+## Hierarchical HSGP
+
+![](amld_2025_files/static/images/hierarchical-gaussian-process.png){fig-align="center" width="1000"}
+
+::: footer
+[Gaussian Processes: HSGP Advanced Usage](https://www.pymc.io/projects/examples/en/latest/gaussian_processes/HSGP-Advanced.html)
+:::
+
+## Hierarchical Time-varying Parameters
+
+![](amld_2025_files/static/images/tvp.gif){fig-align="center" width="1000"}
+
+::: footer
+[Bayesian Media Mix Models: Modelling changes in marketing effectiveness over time](https://www.pymc-labs.com/blog-posts/modelling-changes-marketing-effectiveness-over-time/)
+:::
+
+## Lift Test Calibration - Why?
+
+::: {.columns}
+
+::: {.column width="50%"}
+
+![](amld_2025_files/static/images/dag.svg){fig-align="center" width="500"}
+
+:::
+
+::: {.column width="50%"}
+
+![](amld_2025_files/static/images/roas_biased.png){fig-align="center" width="500"}
+
+:::
+
+:::
+
+::: {.callout-important }
+
+Unobserved confounders can bias the ROAS estimates and lead to wrong marketing strategies!
+
+:::
+
+::: footer
+[Unobserved Confounders, ROAS and Lift Tests in Media Mix Models](https://www.pymc-labs.com/blog-posts/mmm_roas_lift/)
+:::
+
+## Lift Test Calibration
+
+### Saturation Curves
+
+![](amld_2025_files/static/images/lift_test_saturation.png){fig-align="center" width="1000"}
+
+::: footer
+[PyMC-Marketing: Lift Test Calibration](https://www.pymc-marketing.io/en/latest/notebooks/mmm/mmm_lift_test.html)
+:::
+
+## Lift Test Calibration
+
+### Additional Likelihood
+
+![](amld_2025_files/static/images/lift_test_likelihood.svg){fig-align="center" width="1000"}
+
+::: footer
+[PyMC-Marketing: Lift Test Calibration](https://www.pymc-marketing.io/en/latest/notebooks/mmm/mmm_lift_test.html)
+:::
+
+## Budget Optimization
+
+![](amld_2025_files/static/images/budget_optimization.png){fig-align="center" width="1000"}
+
+::: footer
+[Budget Allocation Risk Assessment with PyMC-Marketing](https://www.pymc-marketing.io/en/latest/notebooks/mmm/mmm_allocation_assessment.html)
+:::
+
+## Thank You! {background-image="amld_2025_files/static/images/logos/pymc-labs-black.jpg"}
+
+#### [juan.orduz@pymc-labs.com](mailto:juan.orduz@pymc-labs.com)

@@ -6,8 +6,8 @@
 <script src="amld_2025_files/libs/quarto-html/tippy.umd.min.js"></script>
 <link href="amld_2025_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="amld_2025_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<link href="amld_2025_files/libs/quarto-html/quarto-syntax-highlighting-e25cc82807363e79c52e96bc8b7855f1.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.6.39">
+<link href="amld_2025_files/libs/quarto-html/quarto-syntax-highlighting-f8dc6eab18fde03278982b0b35885446.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.6.40">
 
   <meta name="author" content="Dr.&nbsp;Juan Orduz">
   <title>Advanced Bayesian Media Mix Modeling</title>
@@ -223,7 +223,6 @@
 <li>Budget Optimization and Simulations</li>
 <li>Time-varying parameters (baseline and media effects)</li>
 <li>Lift test calibration through custom likelihoods</li>
-<li>MMMs in production</li>
 </ul>
 </div>
 </div>
@@ -236,7 +235,7 @@
 <section id="mmm-as-a-regression-model" class="slide level2">
 <h2>MMM as a Regression Model</h2>
 <p><span class="math display">\[
-y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c}z_{c, t} + \varepsilon_{t},
+y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m, t}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c}z_{c, t} + \varepsilon_{t},
 \]</span></p>
 <div class="callout callout-note no-icon callout-style-simple">
 <div class="callout-body">
@@ -244,7 +243,7 @@ y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c}z_
 <ul>
 <li><span class="math inline">\(y_{t}\)</span>: Target variable at time <span class="math inline">\(t\)</span> (e.g.&nbsp;sales, conversions, etc.)</li>
 <li><span class="math inline">\(b_{t}\)</span>: Baseline sales at time <span class="math inline">\(t\)</span></li>
-<li><span class="math inline">\(\beta_{m}\)</span>: Effect of media <span class="math inline">\(m\)</span> on sales</li>
+<li><span class="math inline">\(\beta_{m, t}\)</span>: Effect of media <span class="math inline">\(m\)</span> on sales at time <span class="math inline">\(t\)</span></li>
 <li><span class="math inline">\(f(x_{m, t})\)</span>: Transformation of media <span class="math inline">\(m\)</span> at time <span class="math inline">\(t\)</span></li>
 <li><span class="math inline">\(\gamma_{c}\)</span>: Effect of control variables <span class="math inline">\(z_{c, t}\)</span> on sales</li>
 <li><span class="math inline">\(\varepsilon_{t}\)</span>: Error term</li>
@@ -427,6 +426,91 @@ y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c}z_
 </figure>
 </div>
 </div></div>
+</section>
+<section id="time-varying-parameters" class="slide level2">
+<h2>Time-varying Parameters</h2>
+<ul>
+<li><p>Time-varying intercepts <span class="math inline">\(b_t \sim \text{HSGP}(a, \ell, m)\)</span></p></li>
+<li><p>Time-varying media effects <span class="math inline">\(\beta_{m, t} \sim \text{HSGP}(a, \ell, m)\)</span></p></li>
+</ul>
+
+<img data-src="amld_2025_files/static/images/hsgp_tv_intercept_prior.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/hsgp_intro/">A Conceptual and Practical Introduction to Hilbert Space GPs Approximation Methods</a></p>
+</div>
+</section>
+<section id="hierarchical-hsgp" class="slide level2">
+<h2>Hierarchical HSGP</h2>
+
+<img data-src="amld_2025_files/static/images/hierarchical-gaussian-process.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://www.pymc.io/projects/examples/en/latest/gaussian_processes/HSGP-Advanced.html">Gaussian Processes: HSGP Advanced Usage</a></p>
+</div>
+</section>
+<section id="hierarchical-time-varying-parameters" class="slide level2">
+<h2>Hierarchical Time-varying Parameters</h2>
+
+<img data-src="amld_2025_files/static/images/tvp.gif" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://www.pymc-labs.com/blog-posts/modelling-changes-marketing-effectiveness-over-time/">Bayesian Media Mix Models: Modelling changes in marketing effectiveness over time</a></p>
+</div>
+</section>
+<section id="lift-test-calibration---why" class="slide level2">
+<h2>Lift Test Calibration - Why?</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="amld_2025_files/static/images/dag.svg" class="quarto-figure quarto-figure-center" width="500"></p>
+</figure>
+</div>
+</div><div class="column" style="width:50%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="amld_2025_files/static/images/roas_biased.png" class="quarto-figure quarto-figure-center" width="500"></p>
+</figure>
+</div>
+</div></div>
+<div class="callout callout-important callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Important</strong></p>
+</div>
+<div class="callout-content">
+<p>Unobserved confounders can bias the ROAS estimates and lead to wrong marketing strategies!</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<p><a href="https://www.pymc-labs.com/blog-posts/mmm_roas_lift/">Unobserved Confounders, ROAS and Lift Tests in Media Mix Models</a></p>
+</div>
+</section>
+<section id="lift-test-calibration" class="slide level2">
+<h2>Lift Test Calibration</h2>
+<h3 id="saturation-curves">Saturation Curves</h3>
+
+<img data-src="amld_2025_files/static/images/lift_test_saturation.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://www.pymc-marketing.io/en/latest/notebooks/mmm/mmm_lift_test.html">PyMC-Marketing: Lift Test Calibration</a></p>
+</div>
+</section>
+<section id="lift-test-calibration-1" class="slide level2">
+<h2>Lift Test Calibration</h2>
+<h3 id="additional-likelihood">Additional Likelihood</h3>
+
+<img data-src="amld_2025_files/static/images/lift_test_likelihood.svg" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://www.pymc-marketing.io/en/latest/notebooks/mmm/mmm_lift_test.html">PyMC-Marketing: Lift Test Calibration</a></p>
+</div>
+</section>
+<section id="budget-optimization" class="slide level2">
+<h2>Budget Optimization</h2>
+
+<img data-src="amld_2025_files/static/images/budget_optimization.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://www.pymc-marketing.io/en/latest/notebooks/mmm/mmm_allocation_assessment.html">Budget Allocation Risk Assessment with PyMC-Marketing</a></p>
+</div>
+</section>
+<section id="thank-you" class="slide level2" data-background-image="amld_2025_files/static/images/logos/pymc-labs-black.jpg">
+<h2>Thank You!</h2>
+<h4 id="juan.orduzpymc-labs.com"><a href="mailto:juan.orduz@pymc-labs.com">juan.orduz@pymc-labs.com</a></h4>
 
 </section>
     </div>
