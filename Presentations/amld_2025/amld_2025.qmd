@@ -1,0 +1,310 @@
+---
+title: "Advanced Bayesian Media Mix Modeling"
+title-slide-attributes:
+  data-background-image: amld_2025_files/static/images/logos/curves.png
+  data-background-size: cover
+  data-background-opacity: "0.20"
+subtitle: "AMLD EPFL 2025"
+author: 
+  - name: Dr. Juan Orduz
+    url: https://juanitorduz.github.io/
+
+format:
+  revealjs:
+    slide-number: true
+    html-math-method: mathjax 
+    css: amld_2025_files/style.css
+    logo: amld_2025_files/static/images/logos/pymc-labs-favicon.png
+    transition: none
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    theme:
+        - white
+    highlight-style: github-dark
+---
+
+## Outline
+
+1. What is Media Mix Modeling (MMM)?
+2. Media Transformations: Adstock and Saturation
+3. [**PyMC-Marketing**]{style="color:#0379ea"}: A Python Library for Bayesian Media Mix Modeling and Customer Lifetime Value
+
+::: {.callout-note appearance="minimal"}
+**Advanced Topics:**
+
+- Out-of-sample forecasting
+- Budget Optimization and Simulations
+- Time-varying parameters (baseline and media effects)
+- Lift test calibration through custom likelihoods
+:::
+
+## What is Media Mix Modeling (MMM)?
+
+![](amld_2025_files/static/images/mmm_motivation.png){fig-align="center" width="1000"}
+
+## MMM as a Regression Model
+
+$$
+y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m, t}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c}z_{c, t} + \varepsilon_{t},
+$$
+
+
+::: {.callout-note appearance="minimal"}
+- $y_{t}$: Target variable at time $t$ (e.g. sales, conversions, etc.)
+- $b_{t}$: Baseline sales at time $t$
+- $\beta_{m, t}$: Effect of media $m$ on sales at time $t$
+- $f(x_{m, t})$: Transformation of media $m$ at time $t$
+- $\gamma_{c}$: Effect of control variables $z_{c, t}$ on sales
+- $\varepsilon_{t}$: Error term
+:::
+
+::: footer
+[Jin, Yuxue, et al. “Bayesian methods for media mix modeling with carryover and shape effects.” (2017).](https://research.google/pubs/pub46001/)
+:::
+
+## Adstock Effect
+
+::: {.callout-tip appearance="simple"}
+The adstock effect captures the **carryover** of advertising - the idea that the impact of advertising persists and decays over time rather than being instantaneous.
+
+$$
+\text{adstock}(x_{m, t}; \alpha, T) = x_{m, t} + \alpha \sum_{j=1}^{T} x_{m, t-j}
+$$
+
+for $\alpha \in [0, 1]$ and $T$ the number of periods.
+:::
+
+![](amld_2025_files/static/images/geometric_adstock.png){fig-align="center" width="1000"}
+
+## Saturation Effect
+
+::: {.callout-tip appearance="simple"}
+The saturation effect captures the idea that the impact of advertising diminishes as the media budget increases.
+
+$$
+\text{saturation}(x_{m, t}; \lambda) = \frac{1 - \exp(-\lambda x_{m, t})}{1 + \exp(-\lambda x_{m, t})}
+$$
+:::
+
+![](amld_2025_files/static/images/saturation.png){fig-align="center" width="1000"}
+
+## Media Transformations
+
+![](amld_2025_files/static/images/media_transformations.png){fig-align="center" width="1000"}
+
+## Additional Effects
+
+![](amld_2025_files/static/images/trend_seasonality.png){fig-align="center" width="1000"}
+
+## MMM as a Causal Model
+
+![](amld_2025_files/static/images/dag.svg){fig-align="center" width="1000"}
+
+::: footer
+[PyMC-Marketing Example: Unobserved Confounders, ROAS and Lift Tests](https://www.pymc-marketing.io/en/latest/notebooks/mmm/mmm_roas.html)
+:::
+
+## Why Bayesian MMMs? {.smaller}
+
+### Some MMM Challenges
+
+::: incremental
+
+- Limited data (typically 2-3 years of data, sometimes weekly granularity).
+
+- Media variables are generally very correlated.
+
+- Unobserved confounders (e.g. competitors investments).
+
+:::
+
+### Bayesian MMMs
+
+::: incremental
+
+- Uncertainty quantification.
+
+- Domain knowledge through priors.
+
+- Lift test calibration (e.g. geo-tests or switch-back experiments).
+
+- Time-varying parameters with Bayesian regularization (e.g. strong priors or hierarchies).
+
+- Risk-based budget optimization.
+
+:::
+
+## PyMC-Marketing
+
+![](amld_2025_files/static/images/logos/marketing-logo-light.jpg){fig-align="center" width="1000"}
+
+> Bayesian marketing toolbox in PyMC. Media Mix (MMM), customer lifetime value (CLV), buy-till-you-die (BTYD) models and more.
+
+::: footer
+[PyMC-Marketing](https://www.pymc-marketing.io/)
+:::
+
+## PyMC-Marketing API
+
+```{.python code-line-numbers="|1-3|4-11|13-23|25-36"}
+from pymc_marketing.mmm import MMM, GeometricAdstock, LogisticSaturation
+from pymc_marketing.prior import Prior
+
+# Define priors
+my_model_config = {
+    "intercept": Prior("Normal", mu=0.5, sigma=0.1),
+    ...,
+    "likelihood": Prior(
+        "TruncatedNormal", lower=0, sigma=Prior("Exponential", lam=1)
+    ),
+}
+
+# Define the model
+mmm = MMM(
+    model_config=my_model_config,
+    date_column="date_week",
+    adstock=GeometricAdstock(l_max=8),
+    saturation=LogisticSaturation(),
+    channel_columns=channel_columns,
+    control_columns=control_columns,
+    time_varying_intercept=True,
+    yearly_seasonality=2,
+)
+
+# Fit the model
+_ = mmm.fit(
+    X=X,
+    y=y,
+    target_accept=0.85,
+    chains=4,
+    draws=2_000,
+    nuts_sampler="numpyro",  # <- We can use many samplers and backends!
+    random_seed=rng,
+)
+# Sample from the posterior predictive distribution
+_ = mmm.sample_posterior_predictive(X, extend_idata=True, combined=True)
+```
+
+## Prior Specification
+
+![](amld_2025_files/static/images/beta_priors.png){fig-align="center" width="1000"}
+
+::: footer
+[PyMC-Marketing Example: Prior Predictive Modeling](https://www.pymc-marketing.io/en/latest/notebooks/general/prior_predictive.html)
+:::
+
+## Attribution Decomposition
+
+```{.python}
+mmm.plot_components_contributions(original_scale=True);
+```
+
+![](amld_2025_files/static/images/model_components.png){fig-align="center" width="1000"}
+
+
+## Return on Ad Spend (ROAS)
+
+![](amld_2025_files/static/images/roas_posterior.png){fig-align="center" width="1000"}
+
+## Out-of-sample Forecasting
+
+::: {style="text-align:center;"}
+
+::: {layout=[[50,50]] layout-valign="bottom"}
+
+![Prediction accuracy (CRPS)](amld_2025_files/static/images/tscv.png){fig-align="center" width="500"}
+
+![Parameter Stability](amld_2025_files/static/images/tscv_alpha.png){fig-align="center" width="500" }
+
+:::
+
+:::
+
+## Time-varying Parameters
+
+- Time-varying intercepts $b_t \sim \text{HSGP}(a, \ell, m)$
+
+- Time-varying media effects $\beta_{m, t} \sim \text{HSGP}(a, \ell, m)$
+
+![](amld_2025_files/static/images/hsgp_tv_intercept_prior.png){fig-align="center" width="1000"}
+
+::: footer
+[A Conceptual and Practical Introduction to Hilbert Space GPs Approximation Methods](https://juanitorduz.github.io/hsgp_intro/)
+:::
+
+## Hierarchical HSGP
+
+![](amld_2025_files/static/images/hierarchical-gaussian-process.png){fig-align="center" width="1000"}
+
+::: footer
+[Gaussian Processes: HSGP Advanced Usage](https://www.pymc.io/projects/examples/en/latest/gaussian_processes/HSGP-Advanced.html)
+:::
+
+## Hierarchical Time-varying Parameters
+
+![](amld_2025_files/static/images/tvp.gif){fig-align="center" width="1000"}
+
+::: footer
+[Bayesian Media Mix Models: Modelling changes in marketing effectiveness over time](https://www.pymc-labs.com/blog-posts/modelling-changes-marketing-effectiveness-over-time/)
+:::
+
+## Lift Test Calibration - Why?
+
+::: {.columns}
+
+::: {.column width="50%"}
+
+![](amld_2025_files/static/images/dag.svg){fig-align="center" width="500"}
+
+:::
+
+::: {.column width="50%"}
+
+![](amld_2025_files/static/images/roas_biased.png){fig-align="center" width="500"}
+
+:::
+
+:::
+
+::: {.callout-important }
+
+Unobserved confounders can bias the ROAS estimates and lead to wrong marketing strategies!
+
+:::
+
+::: footer
+[Unobserved Confounders, ROAS and Lift Tests in Media Mix Models](https://www.pymc-labs.com/blog-posts/mmm_roas_lift/)
+:::
+
+## Lift Test Calibration
+
+### Saturation Curves
+
+![](amld_2025_files/static/images/lift_test_saturation.png){fig-align="center" width="1000"}
+
+::: footer
+[PyMC-Marketing: Lift Test Calibration](https://www.pymc-marketing.io/en/latest/notebooks/mmm/mmm_lift_test.html)
+:::
+
+## Lift Test Calibration
+
+### Additional Likelihood
+
+![](amld_2025_files/static/images/lift_test_likelihood.svg){fig-align="center" width="1000"}
+
+::: footer
+[PyMC-Marketing: Lift Test Calibration](https://www.pymc-marketing.io/en/latest/notebooks/mmm/mmm_lift_test.html)
+:::
+
+## Budget Optimization
+
+![](amld_2025_files/static/images/budget_optimization.png){fig-align="center" width="1000"}
+
+::: footer
+[Budget Allocation Risk Assessment with PyMC-Marketing](https://www.pymc-marketing.io/en/latest/notebooks/mmm/mmm_allocation_assessment.html)
+:::
+
+## Thank You! {background-image="amld_2025_files/static/images/logos/pymc-labs-black.jpg"}
+
+#### [juan.orduz@pymc-labs.com](mailto:juan.orduz@pymc-labs.com)
