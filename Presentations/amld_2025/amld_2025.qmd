@@ -207,29 +207,15 @@ mmm.plot_components_contributions(original_scale=True);
 
 ![](amld_2025_files/static/images/roas_posterior.png){fig-align="center" width="1000"}
 
-## Out-of-sample Forecasting {.smaller}
+## Out-of-sample Forecasting
 
-::: {.columns}
+::: {style="text-align:center;"}
 
-::: {.column width="50%"}
+::: {layout=[[50,50]] layout-valign="bottom"}
 
-![](amld_2025_files/static/images/tscv.png){fig-align="center" width="500"}
+![Prediction accuracy (CRPS)](amld_2025_files/static/images/tscv.png){fig-align="center" width="500"}
 
-:::
-
-
-::: {.column width="50%"}
-
-::: {.callout-tip title="Model Evaluation Framework"}
-
-Evaluate the model on the holdout set:
-
-- Prediction accuracy (CRPS)
-- Parameter Stability
-
-:::
-
-![](amld_2025_files/static/images/tscv_alpha.png){fig-align="center" width="900"}
+![Parameter Stability](amld_2025_files/static/images/tscv_alpha.png){fig-align="center" width="500" }
 
 :::
 
