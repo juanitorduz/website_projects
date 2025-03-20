@@ -3,7 +3,7 @@ authors = [{ name = "juanitorduz", email = "juanitorduz@gmail.com" }]
 dependencies = []
 description = "Website projects"
 name = "website_projects"
-requires-python = ">= 3.11,<3.13"
+requires-python = ">= 3.12,<3.13"
 version = "0.1.0"
 readme = "README.md"
 
@@ -20,15 +20,12 @@ arviz = ">=0.21.0"
 bambi = ">=0.15.0"
 dowhy = "*"
 econml = "*"
-equinox = "*"
 flax = "*"
 geopandas = "*"
 graphviz = "*"
 ipykernel = "*"
 ipython = "*"
 ipywidgets = "*"
-jaxopt = "*"
-jaxtyping = "*"
 lightgbm = "*"
 linearmodels = ">=6.0"
 mapie = ">=0.8.6"
@@ -49,6 +46,7 @@ statsmodels = ">=0.14.4"
 torchvision = "*"
 
 [tool.pixi.feature.core.pypi-dependencies]
+arviz_plots = ">=0.5.0"
 bayeux-ml = "*"
 beartype = "*"
 blackjax = ">=1.2.5"
@@ -57,7 +55,9 @@ daft = "*"
 darts = "*"
 datasetsforecast = "*"
 dynamax = "*"
+equinox = "*"
 funsor = "*"
+jaxtyping = ">=0.3.0"
 numpyro = ">=0.18.0"
 openpyxl = "*"
 pgmpy = "*"
@@ -66,6 +66,7 @@ pydantic = ">=2.8"
 pyfixest = "*"
 pymc-experimental = ">=0.1.0"
 scikit-uplift = "*"
+simuk = "*"
 snowflake-sqlalchemy = "*"
 statsforecast = "*"
 tensorflow-probability = ">=0.25.0"
@@ -75,6 +76,8 @@ xgboost = "*"
 dm-tree = "==0.1.8"
 
 [tool.pixi.feature.devtools.dependencies]
+mypy = "*"
+nbqa = "*"
 pre-commit = "*"
 rich = "*"
 ruff = "*"
@@ -117,5 +120,5 @@ target-version = "py311"
 
 extend-include = ["*.ipynb"]
 
-[tool.ruff.per-file-ignores]
-"Python/bg_nbd_pymc.ipynb" = ["N"]
+[tool.mypy]
+ignore_missing_imports = true

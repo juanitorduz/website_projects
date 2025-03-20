@@ -12,3 +12,9 @@ repos:
         entry: ruff format
         types_or: [python, jupyter]
         language: system
+      - id: nbqa-mypy
+        name: nbqa-mypy
+        additional_dependencies: [mypy]
+        entry: nbqa mypy
+        types_or: [python, jupyter]
+        language: python
