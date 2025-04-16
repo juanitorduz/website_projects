@@ -1,0 +1,280 @@
+---
+title: "Bayesian Methods for Time Series Analysis and Causal Inference"
+title-slide-attributes:
+  data-background-image: bayes_time_series_causal_inference_files/static/images/logos/curves.png
+  data-background-size: cover
+  data-background-opacity: "0.20"
+subtitle: "PyMC Labs"
+author: 
+  - name: Dr. Juan Orduz
+    url: https://juanitorduz.github.io/
+
+format:
+  revealjs:
+    slide-number: true
+    html-math-method: mathjax 
+    css: bayes_time_series_causal_inference_files/style.css
+    logo: bayes_time_series_causal_inference_files/static/images/logos/pymc-labs-favicon.png
+    transition: none
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    theme:
+        - white
+    highlight-style: github-dark
+---
+
+## Outline {.smaller background-image="bayes_time_series_causal_inference_files/static/images/geometric_adstock.png" background-opacity="0.2"}
+
+1. **Motivating Example: Informative Priors in A/B Testing**
+
+2. **Structural Time Series Modeling**
+
+3. **Quasi-Experimental Metods with CausalPy**
+
+4. **Model Calibration Methods:**
+    
+    - Media Mix Models 
+      - What is a (Bayesian) Media Mix Modeling (MMM)?    
+      - Simulation Case Study
+      - ROAS Re-parametrization
+      - Lift Test Calibration
+    
+    - Latent Gaussian Process
+
+## Informative Priors in A/B Testing
+
+## Structural Time Series Modeling
+
+## Quasi-Experimental Methods with CausalPy
+
+## Model Calibration Methods
+
+## What is Media Mix Modeling (MMM)?
+
+![](bayes_time_series_causal_inference_files/static/images/dgp.png){fig-align="center" width="1000"}
+
+## MMM as a Regression Model
+
+$$
+y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m, t}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c}z_{c, t} + \varepsilon_{t},
+$$
+
+
+::: {.callout-note appearance="minimal"}
+- $y_{t}$: Target variable at time $t$ (e.g. sales, conversions, etc.)
+- $b_{t}$: Baseline sales at time $t$
+- $\beta_{m, t}$: Effect of media $m$ on sales at time $t$
+- $f(x_{m, t})$: Transformation of media $m$ at time $t$
+- $\gamma_{c}$: Effect of control variables $z_{c, t}$ on sales
+- $\varepsilon_{t}$: Error term
+:::
+
+::: footer
+[Jin, Yuxue, et al. “Bayesian methods for media mix modeling with carryover and shape effects.” (2017).](https://research.google/pubs/pub46001/)
+:::
+
+## Adstock Effect
+
+::: {.callout-tip appearance="simple"}
+The adstock effect captures the **carryover** of advertising - the idea that the impact of advertising persists and decays over time rather than being instantaneous.
+
+$$
+\text{adstock}(x_{m, t}; \alpha, T) = x_{m, t} + \alpha \sum_{j=1}^{T} x_{m, t-j}
+$$
+
+for $\alpha \in [0, 1]$ and $T$ the number of periods.
+:::
+
+![](bayes_time_series_causal_inference_files/static/images/geometric_adstock.png){fig-align="center" width="1000"}
+
+## Saturation Effect
+
+::: {.callout-tip appearance="simple"}
+The saturation effect captures the idea that the impact of advertising diminishes as the media budget increases.
+
+$$
+\text{saturation}(x_{m, t}; \lambda) = \frac{1 - \exp(-\lambda x_{m, t})}{1 + \exp(-\lambda x_{m, t})}
+$$
+:::
+
+![](bayes_time_series_causal_inference_files/static/images/saturation.png){fig-align="center" width="1000"}
+
+## Media Transformations
+
+![](bayes_time_series_causal_inference_files/static/images/media_transformations.png){fig-align="center" width="1000"}
+
+## Why Bayesian MMMs? {.smaller}
+
+### Some MMM Challenges
+
+::: incremental
+
+- Limited data (typically 2-3 years of data, sometimes weekly granularity).
+
+- Media variables are generally very correlated.
+
+- Unobserved confounders (e.g. competitors investments).
+
+:::
+
+### Bayesian MMMs
+
+::: incremental
+
+- Uncertainty quantification.
+
+- Domain knowledge through priors.
+
+- **Lift test calibration (e.g. geo-tests or switch-back experiments).**
+
+- Time-varying parameters with Bayesian regularization (e.g. strong priors or hierarchies).
+
+- Risk-based budget optimization.
+
+:::
+
+
+## MMM as a Causal Model
+
+![](bayes_time_series_causal_inference_files/static/images/dag.svg){fig-align="center" width="1000"}
+
+::: footer
+[Media Mix Model and Experimental Calibration: A Simulation Study](https://juanitorduz.github.io/mmm_roas/)
+:::
+
+
+## Attribution Decomposition
+
+![](bayes_time_series_causal_inference_files/static/images/model_components_2.png){fig-align="center" width="1000"}
+
+## Channels Contributions over Time
+
+![](bayes_time_series_causal_inference_files/static/images/channel_contributions_2.png){fig-align="center" width="1000"}
+
+## Return on Ad Spend (ROAS) - Biased
+
+![](bayes_time_series_causal_inference_files/static/images/roas_posterior_2.png){fig-align="center" width="1000"}
+
+
+## Lift Test Calibration - Why?
+
+![](bayes_time_series_causal_inference_files/static/images/dag.svg){fig-align="center" width="500"}
+
+::: {.callout-important appearance="simple"}
+
+Unobserved confounders can bias the ROAS estimates and lead to wrong marketing strategies!
+
+:::
+
+::: {.callout-tip appearance="simple"}
+
+- ROAS re-parametrization (Google).
+- Additional likelihood for lift tests (PyMC-Labs).
+:::
+
+## ROAS Re-parametrization
+
+### Formulation
+
+![](bayes_time_series_causal_inference_files/static/images/formula_14-15.png){fig-align="center" width="1000"}
+
+::: footer
+[Media Mix Model Calibration With Bayesian Priors](https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/)
+:::
+
+## ROAS Re-parametrization
+
+### ROAS Priors
+
+![](bayes_time_series_causal_inference_files/static/images/roas_priors.png){fig-align="center" width="1000"}
+
+::: footer
+- [Media Mix Model and Experimental Calibration: A Simulation Study](https://juanitorduz.github.io/mmm_roas/)
+- [Wolt Tech Talks: Offline Campaign Analysis Measurement](https://www.youtube.com/watch?v=gMaxM8PAcpo)
+:::
+
+## ROAS Re-parametrization
+
+### ROAS Posterior
+
+![](bayes_time_series_causal_inference_files/static/images/roas_posterior_3.png){fig-align="center" width="1000"}
+
+::: footer
+[Media Mix Model and Experimental Calibration: A Simulation Study](https://juanitorduz.github.io/mmm_roas/)
+:::
+
+## ROAS Re-parametrization
+
+### Model Comparison
+
+![](bayes_time_series_causal_inference_files/static/images/roas_comparison.png){fig-align="center" width="1000"}
+
+::: footer
+[Media Mix Model and Experimental Calibration: A Simulation Study](https://juanitorduz.github.io/mmm_roas/)
+:::
+
+## Lift Test Calibration
+
+### Saturation Curves
+
+![](bayes_time_series_causal_inference_files/static/images/lift_test_saturation.png){fig-align="center" width="1000"}
+
+::: footer
+[PyMC-Marketing: Lift Test Calibration](https://www.pymc-marketing.io/en/latest/notebooks/mmm/mmm_lift_test.html)
+:::
+
+## Lift Test Calibration
+
+### Additional Likelihood
+
+![](bayes_time_series_causal_inference_files/static/images/lift_test_likelihood.svg){fig-align="center" width="1000"}
+
+::: footer
+[PyMC-Marketing: Lift Test Calibration](https://www.pymc-marketing.io/en/latest/notebooks/mmm/mmm_lift_test.html)
+:::
+
+## Lift Test Calibration
+
+### ROAS Posterior
+
+![](bayes_time_series_causal_inference_files/static/images/roas_posterior_4.png){fig-align="center" width="1000"}
+
+::: footer
+[Case Study: Unobserved Confounders, ROAS and Lift Tests](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_roas.html)
+:::
+
+## PyMC-Marketing
+
+![](bayes_time_series_causal_inference_files/static/images/logos/marketing-logo-light.jpg){fig-align="center" width="1000"}
+
+> Bayesian marketing toolbox in PyMC. Media Mix (MMM), customer lifetime value (CLV), buy-till-you-die (BTYD) models and more.
+
+::: footer
+[PyMC-Marketing](https://www.pymc-marketing.io/)
+:::
+
+## References {.smaller}
+
+#### ROAS Re-parametrization
+
+- [Media Mix Model Calibration With Bayesian Priors](https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/)
+
+- [Media Mix Model and Experimental Calibration: A Simulation Study](https://juanitorduz.github.io/mmm_roas/)
+
+- Google Meridian: [https://github.com/google/meridian](https://github.com/google/meridian)
+
+#### Additional Likelihood
+- [PyMC-Marketing: Lift Test Calibration](https://www.pymc-marketing.io/en/latest/notebooks/mmm/mmm_lift_test.html)
+- [Case Study: Unobserved Confounders, ROAS and Lift Tests](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_roas.html)
+- PyMC-Marketing: [https://github.com/pymc-labs/pymc-marketing](https://github.com/pymc-labs/pymc-marketing)
+
+#### Marketing Experimentation
+
+- [Wolt Tech Talks: Offline Campaign Analysis Measurement](https://www.youtube.com/watch?v=gMaxM8PAcpo)
+- [Google:  The MMM Handbook](https://www.thinkwithgoogle.com/_qs/documents/18104/Marketing_Mix_Modelling_-_A_CMOs_handbook.pdf)
+
+
+## [Thank You!]{style="color: white;"} {background-image="bayes_time_series_causal_inference_files/static/images/logos/pymc-labs-black.jpg"}
+
+#### [juan.orduz@pymc-labs.com](mailto:juan.orduz@pymc-labs.com){style="color: white;"}
