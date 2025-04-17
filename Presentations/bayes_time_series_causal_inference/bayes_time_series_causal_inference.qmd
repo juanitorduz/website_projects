@@ -40,15 +40,171 @@ format:
       - ROAS Re-parametrization
       - Lift Test Calibration
     
-    - Latent Gaussian Process
+    - Latent Gaussian Processes
 
 ## Informative Priors in A/B Testing
+
+### Non-informative Priors
+
+```{.python code-line-numbers="|1|3|5-7|9-11|13-16"}
+import pymc as pm
+
+with pm.Model() as non_informative_model:
+    
+    conversion_rate_control = pm.Uniform(
+      "conversion_rate_control", lower=0, upper=1
+    )
+    
+    conversion_rate_treatment = pm.Uniform(
+        "conversion_rate_treatment", lower=0, upper=1
+    )
+    
+    relative_lift = pm.Deterministic(
+        "relative_lift",
+        conversion_rate_treatment / conversion_rate_control - 1,
+    )
+```
+::: footer
+- [The Bet Test: Spotting Problems in Bayesian A/B Test Analysis](https://www.geteppo.com/blog/the-bet-test-problems-in-bayesian-ab-test-analysis)
+- [Prior Predictive Modeling in Bayesian AB Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
+:::
+
+## Non-informative Priors
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_9_0.png){fig-align="center" width="1000"}
+
+## Non-informative Priors
+
+### Pair Density Plot
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_11_0.png){fig-align="center" width="1000"}
+
+## Non-informative Priors
+
+### Relative Lift Prior
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_14_0.png){fig-align="center" width="1000"}
+
+## Informative Priors
+
+```{.python code-line-numbers="|5-7|9-11|13-16"}
+import pymc as pm
+
+with pm.Model() as informative_model:
+    
+    conversion_rate_control = pm.Beta(
+      "conversion_rate_control", alpha=15, beta=600
+    )
+    
+    conversion_rate_treatment = pm.Beta(
+        "conversion_rate_treatment", alpha=15, beta=600
+    )
+    
+    relative_lift = pm.Deterministic(
+        "relative_lift",
+        conversion_rate_treatment / conversion_rate_control - 1,
+    )
+```
+
+## Informative Priors
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_23_0.png){fig-align="center" width="1000"}
+
+## Informative Priors
+
+### Pair Density Plot
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_25_0.png){fig-align="center" width="1000"}
+
+## Informative Priors
+
+### Relative Lift Prior
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_27_0.png){fig-align="center" width="1000"}
+
+## Correlated Priors
+
+```{.python code-line-numbers="|4-7|9-12|14-19"}
+import pymc as pm
+
+with pm.Model() as correlated_model:
+    # Set a prior on the control conversion rate
+    conversion_rate_control = pm.Beta(
+      "conversion_rate_control", alpha=15, beta=600
+    )
+    
+    # Set a prior on the relative lift
+    relative_lift = pm.Normal(
+      "relative_lift", mu=0, sigma=0.1
+    )
+    
+    # Convert the relative lift to a conversion rate for the treatment
+    # group deterministically
+    conversion_rate_treatment = pm.Deterministic(
+        "conversion_rate_treatment",
+        conversion_rate_control * (1 + relative_lift)
+    )
+```
+
+## Correlated Priors
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_34_0.png){fig-align="center" width="1000"}
+
+## Correlated Priors
+
+### Pair Density Plot
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_37_0.png){fig-align="center" width="1000"}
+
+## Correlated Priors
+
+### Relative Lift Prior
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_39_0.png){fig-align="center" width="1000"}
+
+## Priors Comparison
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_44_0.png){fig-align="center" width="1000"}
+
+## Inference with Correlated Priors
+
+```{.python}
+with correlated_model:
+    pm.Binomial(
+      "n_control", n=n, p=conversion_rate_control, observed=n_control
+    )
+    pm.Binomial(
+      "n_treatment", n=n, p=conversion_rate_treatment, observed=n_treatment
+    )
+```
+
+![](bayes_time_series_causal_inference_files/static/images/conversion_model.png){fig-align="center" width="1000"}
+
+## Posterior Predictive
+
+### Conversions
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_54_0.png){fig-align="center" width="1000"}
+
+## Posterior Predictive
+
+### Relative Lift
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_59_0.png){fig-align="center" width="1000"}
+
+## Relative Lift Prior Vs Posterior
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_61_0.png){fig-align="center" width="1000"}
 
 ## Structural Time Series Modeling
 
 ## Quasi-Experimental Methods with CausalPy
 
 ## Model Calibration Methods
+
+### Media Mix Models
+
+### Latent Gaussian Processes
 
 ## What is Media Mix Modeling (MMM)?
 

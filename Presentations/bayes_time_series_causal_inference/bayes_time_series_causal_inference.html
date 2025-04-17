@@ -28,6 +28,71 @@
       margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
       vertical-align: middle;
     }
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+      }
+    pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+    div.sourceCode
+      { color: #e1e4e8; background-color: #24292e; }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span { color: #e1e4e8; } /* Normal */
+    code span.al { color: #ff5555; font-weight: bold; } /* Alert */
+    code span.an { color: #6a737d; } /* Annotation */
+    code span.at { color: #f97583; } /* Attribute */
+    code span.bn { color: #79b8ff; } /* BaseN */
+    code span.bu { color: #f97583; } /* BuiltIn */
+    code span.cf { color: #f97583; } /* ControlFlow */
+    code span.ch { color: #9ecbff; } /* Char */
+    code span.cn { color: #79b8ff; } /* Constant */
+    code span.co { color: #6a737d; } /* Comment */
+    code span.cv { color: #6a737d; } /* CommentVar */
+    code span.do { color: #6a737d; } /* Documentation */
+    code span.dt { color: #f97583; } /* DataType */
+    code span.dv { color: #79b8ff; } /* DecVal */
+    code span.er { color: #ff5555; text-decoration: underline; } /* Error */
+    code span.ex { color: #f97583; font-weight: bold; } /* Extension */
+    code span.fl { color: #79b8ff; } /* Float */
+    code span.fu { color: #b392f0; } /* Function */
+    code span.im { color: #9ecbff; } /* Import */
+    code span.in { color: #6a737d; } /* Information */
+    code span.kw { color: #f97583; } /* Keyword */
+    code span.op { color: #e1e4e8; } /* Operator */
+    code span.ot { color: #b392f0; } /* Other */
+    code span.pp { color: #f97583; } /* Preprocessor */
+    code span.re { color: #6a737d; } /* RegionMarker */
+    code span.sc { color: #79b8ff; } /* SpecialChar */
+    code span.ss { color: #9ecbff; } /* SpecialString */
+    code span.st { color: #9ecbff; } /* String */
+    code span.va { color: #ffab70; } /* Variable */
+    code span.vs { color: #9ecbff; } /* VerbatimString */
+    code span.wa { color: #ff5555; } /* Warning */
   </style>
   <link rel="stylesheet" href="bayes_time_series_causal_inference_files/libs/revealjs/dist/theme/quarto-7ccb1b102a4e790a9b3b6e1b1147b9c4.css">
   <link rel="stylesheet" href="bayes_time_series_causal_inference_files/style.css">
@@ -158,13 +223,148 @@
 <li>ROAS Re-parametrization</li>
 <li>Lift Test Calibration</li>
 </ul></li>
-<li>Latent Gaussian Process</li>
+<li>Latent Gaussian Processes</li>
 </ul></li>
 </ol>
 </section>
 <section id="informative-priors-in-ab-testing" class="slide level2">
 <h2>Informative Priors in A/B Testing</h2>
+<h3 id="non-informative-priors">Non-informative Priors</h3>
+<div class="sourceCode" id="cb1" data-code-line-numbers="|1|3|5-7|9-11|13-16"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a><span class="im">import</span> pymc <span class="im">as</span> pm</span>
+<span id="cb1-2"><a href=""></a></span>
+<span id="cb1-3"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> non_informative_model:</span>
+<span id="cb1-4"><a href=""></a>    </span>
+<span id="cb1-5"><a href=""></a>    conversion_rate_control <span class="op">=</span> pm.Uniform(</span>
+<span id="cb1-6"><a href=""></a>      <span class="st">"conversion_rate_control"</span>, lower<span class="op">=</span><span class="dv">0</span>, upper<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb1-7"><a href=""></a>    )</span>
+<span id="cb1-8"><a href=""></a>    </span>
+<span id="cb1-9"><a href=""></a>    conversion_rate_treatment <span class="op">=</span> pm.Uniform(</span>
+<span id="cb1-10"><a href=""></a>        <span class="st">"conversion_rate_treatment"</span>, lower<span class="op">=</span><span class="dv">0</span>, upper<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb1-11"><a href=""></a>    )</span>
+<span id="cb1-12"><a href=""></a>    </span>
+<span id="cb1-13"><a href=""></a>    relative_lift <span class="op">=</span> pm.Deterministic(</span>
+<span id="cb1-14"><a href=""></a>        <span class="st">"relative_lift"</span>,</span>
+<span id="cb1-15"><a href=""></a>        conversion_rate_treatment <span class="op">/</span> conversion_rate_control <span class="op">-</span> <span class="dv">1</span>,</span>
+<span id="cb1-16"><a href=""></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="footer">
+<ul>
+<li><a href="https://www.geteppo.com/blog/the-bet-test-problems-in-bayesian-ab-test-analysis">The Bet Test: Spotting Problems in Bayesian A/B Test Analysis</a></li>
+<li><a href="https://juanitorduz.github.io/prior_predictive_ab_testing/">Prior Predictive Modeling in Bayesian AB Testing</a></li>
+</ul>
+</div>
 </section>
+<section id="non-informative-priors-1" class="slide level2">
+<h2>Non-informative Priors</h2>
+
+<img data-src="bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_9_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
+<section id="non-informative-priors-2" class="slide level2">
+<h2>Non-informative Priors</h2>
+<h3 id="pair-density-plot">Pair Density Plot</h3>
+
+<img data-src="bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_11_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
+<section id="non-informative-priors-3" class="slide level2">
+<h2>Non-informative Priors</h2>
+<h3 id="relative-lift-prior">Relative Lift Prior</h3>
+
+<img data-src="bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_14_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
+<section id="informative-priors" class="slide level2">
+<h2>Informative Priors</h2>
+<div class="sourceCode" id="cb2" data-code-line-numbers="|5-7|9-11|13-16"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href=""></a><span class="im">import</span> pymc <span class="im">as</span> pm</span>
+<span id="cb2-2"><a href=""></a></span>
+<span id="cb2-3"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> informative_model:</span>
+<span id="cb2-4"><a href=""></a>    </span>
+<span id="cb2-5"><a href=""></a>    conversion_rate_control <span class="op">=</span> pm.Beta(</span>
+<span id="cb2-6"><a href=""></a>      <span class="st">"conversion_rate_control"</span>, alpha<span class="op">=</span><span class="dv">15</span>, beta<span class="op">=</span><span class="dv">600</span></span>
+<span id="cb2-7"><a href=""></a>    )</span>
+<span id="cb2-8"><a href=""></a>    </span>
+<span id="cb2-9"><a href=""></a>    conversion_rate_treatment <span class="op">=</span> pm.Beta(</span>
+<span id="cb2-10"><a href=""></a>        <span class="st">"conversion_rate_treatment"</span>, alpha<span class="op">=</span><span class="dv">15</span>, beta<span class="op">=</span><span class="dv">600</span></span>
+<span id="cb2-11"><a href=""></a>    )</span>
+<span id="cb2-12"><a href=""></a>    </span>
+<span id="cb2-13"><a href=""></a>    relative_lift <span class="op">=</span> pm.Deterministic(</span>
+<span id="cb2-14"><a href=""></a>        <span class="st">"relative_lift"</span>,</span>
+<span id="cb2-15"><a href=""></a>        conversion_rate_treatment <span class="op">/</span> conversion_rate_control <span class="op">-</span> <span class="dv">1</span>,</span>
+<span id="cb2-16"><a href=""></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="informative-priors-1" class="slide level2">
+<h2>Informative Priors</h2>
+
+<img data-src="bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_23_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
+<section id="informative-priors-2" class="slide level2">
+<h2>Informative Priors</h2>
+<h3 id="pair-density-plot-1">Pair Density Plot</h3>
+
+<img data-src="bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_25_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
+<section id="informative-priors-3" class="slide level2">
+<h2>Informative Priors</h2>
+<h3 id="relative-lift-prior-1">Relative Lift Prior</h3>
+
+<img data-src="bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_27_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
+<section id="correlated-priors" class="slide level2">
+<h2>Correlated Priors</h2>
+<div class="sourceCode" id="cb3" data-code-line-numbers="|4-7|9-12|14-19"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href=""></a><span class="im">import</span> pymc <span class="im">as</span> pm</span>
+<span id="cb3-2"><a href=""></a></span>
+<span id="cb3-3"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> correlated_model:</span>
+<span id="cb3-4"><a href=""></a>    <span class="co"># Set a prior on the control conversion rate</span></span>
+<span id="cb3-5"><a href=""></a>    conversion_rate_control <span class="op">=</span> pm.Beta(</span>
+<span id="cb3-6"><a href=""></a>      <span class="st">"conversion_rate_control"</span>, alpha<span class="op">=</span><span class="dv">15</span>, beta<span class="op">=</span><span class="dv">600</span></span>
+<span id="cb3-7"><a href=""></a>    )</span>
+<span id="cb3-8"><a href=""></a>    </span>
+<span id="cb3-9"><a href=""></a>    <span class="co"># Set a prior on the relative lift</span></span>
+<span id="cb3-10"><a href=""></a>    relative_lift <span class="op">=</span> pm.Normal(</span>
+<span id="cb3-11"><a href=""></a>      <span class="st">"relative_lift"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="fl">0.1</span></span>
+<span id="cb3-12"><a href=""></a>    )</span>
+<span id="cb3-13"><a href=""></a>    </span>
+<span id="cb3-14"><a href=""></a>    <span class="co"># Convert the relative lift to a conversion rate for the treatment</span></span>
+<span id="cb3-15"><a href=""></a>    <span class="co"># group deterministically</span></span>
+<span id="cb3-16"><a href=""></a>    conversion_rate_treatment <span class="op">=</span> pm.Deterministic(</span>
+<span id="cb3-17"><a href=""></a>        <span class="st">"conversion_rate_treatment"</span>,</span>
+<span id="cb3-18"><a href=""></a>        conversion_rate_control <span class="op">*</span> (<span class="dv">1</span> <span class="op">+</span> relative_lift)</span>
+<span id="cb3-19"><a href=""></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="correlated-priors-1" class="slide level2">
+<h2>Correlated Priors</h2>
+
+<img data-src="bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_34_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
+<section id="correlated-priors-2" class="slide level2">
+<h2>Correlated Priors</h2>
+<h3 id="pair-density-plot-2">Pair Density Plot</h3>
+
+<img data-src="bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_37_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
+<section id="correlated-priors-3" class="slide level2">
+<h2>Correlated Priors</h2>
+<h3 id="relative-lift-prior-2">Relative Lift Prior</h3>
+
+<img data-src="bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_39_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
+<section id="priors-comparison" class="slide level2">
+<h2>Priors Comparison</h2>
+
+<img data-src="bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_44_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
+<section id="inference-with-correlated-priors" class="slide level2">
+<h2>Inference with Correlated Priors</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="cf">with</span> correlated_model:</span>
+<span id="cb4-2"><a href=""></a>    pm.Binomial(</span>
+<span id="cb4-3"><a href=""></a>      <span class="st">"n_control"</span>, n<span class="op">=</span>n, p<span class="op">=</span>conversion_rate_control, observed<span class="op">=</span>n_control</span>
+<span id="cb4-4"><a href=""></a>    )</span>
+<span id="cb4-5"><a href=""></a>    pm.Binomial(</span>
+<span id="cb4-6"><a href=""></a>      <span class="st">"n_treatment"</span>, n<span class="op">=</span>n, p<span class="op">=</span>conversion_rate_treatment, observed<span class="op">=</span>n_treatment</span>
+<span id="cb4-7"><a href=""></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+<img data-src="bayes_time_series_causal_inference_files/static/images/conversion_model.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
+<section id="posterior-predictive" class="slide level2">
+<h2>Posterior Predictive</h2>
+<h3 id="conversions">Conversions</h3>
+
+<img data-src="bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_54_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
+<section id="posterior-predictive-1" class="slide level2">
+<h2>Posterior Predictive</h2>
+<h3 id="relative-lift">Relative Lift</h3>
+
+<img data-src="bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_59_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
+<section id="relative-lift-prior-vs-posterior" class="slide level2">
+<h2>Relative Lift Prior Vs Posterior</h2>
+
+<img data-src="bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_61_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
 <section id="structural-time-series-modeling" class="slide level2">
 <h2>Structural Time Series Modeling</h2>
 </section>
@@ -173,6 +373,8 @@
 </section>
 <section id="model-calibration-methods" class="slide level2">
 <h2>Model Calibration Methods</h2>
+<h3 id="media-mix-models">Media Mix Models</h3>
+<h3 id="latent-gaussian-processes">Latent Gaussian Processes</h3>
 </section>
 <section id="what-is-media-mix-modeling-mmm" class="slide level2">
 <h2>What is Media Mix Modeling (MMM)?</h2>
