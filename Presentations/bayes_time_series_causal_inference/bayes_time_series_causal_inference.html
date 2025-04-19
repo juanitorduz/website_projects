@@ -194,7 +194,7 @@
   <div class="reveal">
     <div class="slides">
 
-<section id="title-slide" data-background-image="bayes_time_series_causal_inference_files/static/images/logos/curves.png" data-background-opacity="0.20" data-background-size="cover" class="quarto-title-block center">
+<section id="title-slide" data-background-image="bayes_time_series_causal_inference_files/static/images/logos/prior_calibration.png" data-background-opacity="0.2" data-background-size="cover" class="quarto-title-block center">
   <h1 class="title">Bayesian Methods for Time Series Analysis and Causal Inference</h1>
   <p class="subtitle">PyMC Labs</p>
 
@@ -212,7 +212,6 @@
 <ol type="1">
 <li><p><strong>Motivating Example: Informative Priors in A/B Testing</strong></p></li>
 <li><p><strong>Structural Time Series Modeling</strong></p></li>
-<li><p><strong>Quasi-Experimental Metods with CausalPy</strong></p></li>
 <li><p><strong>Model Calibration Methods:</strong></p>
 <ul>
 <li>Media Mix Models
@@ -365,6 +364,15 @@
 <h2>Relative Lift Prior Vs Posterior</h2>
 
 <img data-src="bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_61_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
+<section id="quasi-experimental-methods" class="slide level2 smaller">
+<h2>Quasi-Experimental Methods</h2>
+<h3 id="causalpy"><a href="https://causalpy.readthedocs.io/en/stable/">CausalPy</a></h3>
+<p>Many Bayesian methods for causal inference. For example: difference-in-differences, instrumental variables, inverse probability weighting, synthetic control, etc.</p>
+
+<img data-src="bayes_time_series_causal_inference_files/static/images/did_causalpy.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://causalpy.readthedocs.io/en/stable/">https://causalpy.readthedocs.io</a></p>
+</div>
+</section>
 <section id="structural-time-series-modeling" class="slide level2">
 <h2>Structural Time Series Modeling</h2>
 
@@ -469,17 +477,27 @@
 <section id="dynamic-time-series-model-2" class="slide level2">
 <h2>Dynamic Time-Series Model</h2>
 
-<img data-src="bayes_time_series_causal_inference_files/static/images/electricity_forecast_46_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
-<p><a href="https://juanitorduz.github.io/electricity_forecast_with_priors/">Electricity Demand Forecast: Dynamic Time-Series Model with Prior Calibration</a></p>
-</div>
-</section>
-<section id="quasi-experimental-methods-with-causalpy" class="slide level2">
-<h2>Quasi-Experimental Methods with CausalPy</h2>
-</section>
+<img data-src="bayes_time_series_causal_inference_files/static/images/electricity_forecast_46_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
 <section id="model-calibration-methods" class="slide level2">
 <h2>Model Calibration Methods</h2>
-<h3 id="media-mix-models">Media Mix Models</h3>
-<h3 id="latent-gaussian-processes">Latent Gaussian Processes</h3>
+<div class="callout callout-warning callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Warning</strong></p>
+</div>
+<div class="callout-content">
+<p>Making inference with observational data is hard! Especially because unobserved confounders. Calibration methods offer a partial solution to this problem.</p>
+</div>
+</div>
+</div>
+<h3 id="examples">Examples:</h3>
+<ul>
+<li>Media Mix Models</li>
+<li>Latent Gaussian Processes</li>
+</ul>
 </section>
 <section id="what-is-media-mix-modeling-mmm" class="slide level2">
 <h2>What is Media Mix Modeling (MMM)?</h2>
@@ -683,8 +701,47 @@ y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m, t}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c
 <p><a href="https://www.pymc-marketing.io/">PyMC-Marketing</a></p>
 </div>
 </section>
+<section id="dynamic-time-series-model-3" class="slide level2">
+<h2>Dynamic Time-Series Model</h2>
+
+<img data-src="bayes_time_series_causal_inference_files/static/images/electricity_forecast_6_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/electricity_forecast/">Electricity Demand Forecast: Dynamic Time-Series Model</a></p>
+</div>
+</section>
+<section id="calibration---additional-likelihood" class="slide level2 smaller">
+<h2>Calibration - Additional Likelihood</h2>
+<p>Assume that we know from domain knowledge that the effect of temperature on demand over <span class="math inline">\(32^\circ C\)</span> is somehow stable at around a value of <span class="math inline">\(0.13\)</span>.</p>
+<div class="callout callout-tip callout-style-simple">
+<div class="callout-body">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-content">
+<p>We can condition the Gaussian process latent variable to this region by adding an additional likelihood.</p>
+</div>
+</div>
+</div>
+
+<img data-src="bayes_time_series_causal_inference_files/static/images/electricity_forecast_with_priors_32_0.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<p><a href="https://juanitorduz.github.io/electricity_forecast_with_priors/">Electricity Demand Forecast: Dynamic Time-Series Model with Prior Calibration</a></p>
+</div>
+</section>
 <section id="references" class="slide level2 smaller">
 <h2>References</h2>
+<h3 id="structural-time-series-models">Structural Time Series Models</h3>
+<ul>
+<li><a href="https://juanitorduz.github.io/demand/">Demand Forecasting with Censored Likelihood</a></li>
+<li><a href="https://juanitorduz.github.io/electricity_forecast_with_priors/">Electricity Demand Forecast: Dynamic Time-Series Model with Prior Calibration</a></li>
+<li><a href="https://juanitorduz.github.io/electricity_forecast/">Electricity Demand Forecast: Dynamic Time-Series Model</a></li>
+<li><a href="https://juanitorduz.github.io/numpyro_forecasting-univariate/">From Pyro to NumPyro: Forecasting a univariate, heavy tailed time series</a></li>
+<li><a href="https://juanitorduz.github.io/numpyro_hierarchical_forecasting_2/">From Pyro to NumPyro: Forecasting Hierarchical Models - Part II</a></li>
+<li><a href="https://juanitorduz.github.io/elasticities/">Hierarchical Pricing Elasticity Models</a></li>
+<li><a href="https://github.com/google/tfp-causalimpact">TFP CausalImpact</a></li>
+</ul>
+</section>
+<section id="references-1" class="slide level2 smaller">
+<h2>References</h2>
+<h3 id="media-mix-models">Media Mix Models</h3>
 <h4 id="roas-re-parametrization-4">ROAS Re-parametrization</h4>
 <ul>
 <li><p><a href="https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/">Media Mix Model Calibration With Bayesian Priors</a></p></li>

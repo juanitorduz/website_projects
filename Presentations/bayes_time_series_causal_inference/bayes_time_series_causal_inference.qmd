@@ -1,9 +1,9 @@
 ---
 title: "Bayesian Methods for Time Series Analysis and Causal Inference"
 title-slide-attributes:
-  data-background-image: bayes_time_series_causal_inference_files/static/images/logos/curves.png
+  data-background-image: bayes_time_series_causal_inference_files/static/images/logos/prior_calibration.png
   data-background-size: cover
-  data-background-opacity: "0.20"
+  data-background-opacity: "0.2"
 subtitle: "PyMC Labs"
 author: 
   - name: Dr. Juan Orduz
@@ -30,9 +30,7 @@ format:
 
 2. **Structural Time Series Modeling**
 
-3. **Quasi-Experimental Metods with CausalPy**
-
-4. **Model Calibration Methods:**
+3. **Model Calibration Methods:**
     
     - Media Mix Models 
       - What is a (Bayesian) Media Mix Modeling (MMM)?    
@@ -196,6 +194,18 @@ with correlated_model:
 
 ![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_61_0.png){fig-align="center" width="1000"}
 
+## Quasi-Experimental Methods {.smaller}
+
+### [CausalPy](https://causalpy.readthedocs.io/en/stable/)
+
+Many Bayesian methods for causal inference. For example: difference-in-differences, instrumental variables, inverse probability weighting, synthetic control, etc.
+
+![](bayes_time_series_causal_inference_files/static/images/did_causalpy.png){fig-align="center" width="1000"}
+
+::: footer
+[https://causalpy.readthedocs.io](https://causalpy.readthedocs.io/en/stable/)
+:::
+
 ## Structural Time Series Modeling
 
 ![](bayes_time_series_causal_inference_files/static/images/univariate_ts_diagram.png){fig-align="center" width="1000"}
@@ -294,22 +304,21 @@ Use a Gaussian process (Hilbert Space approximation) to model the non-linear rel
 
 ![](bayes_time_series_causal_inference_files/static/images/dynamic_model.png){fig-align="center" width="1000"}
 
-
 ## Dynamic Time-Series Model
 
 ![](bayes_time_series_causal_inference_files/static/images/electricity_forecast_46_0.png){fig-align="center" width="1000"}
 
-::: footer
-[Electricity Demand Forecast: Dynamic Time-Series Model with Prior Calibration](https://juanitorduz.github.io/electricity_forecast_with_priors/)
-:::
-
-## Quasi-Experimental Methods with CausalPy
-
 ## Model Calibration Methods
 
-### Media Mix Models
+::: {.callout-warning}
+Making inference with observational data is hard! Especially because unobserved confounders.
+Calibration methods offer a partial solution to this problem.
+:::
 
-### Latent Gaussian Processes
+### Examples:
+
+- Media Mix Models
+- Latent Gaussian Processes
 
 ## What is Media Mix Modeling (MMM)?
 
@@ -332,7 +341,7 @@ $$
 :::
 
 ::: footer
-[Jin, Yuxue, et al. “Bayesian methods for media mix modeling with carryover and shape effects.” (2017).](https://research.google/pubs/pub46001/)
+[Jin, Yuxue, et al. "Bayesian methods for media mix modeling with carryover and shape effects." (2017).](https://research.google/pubs/pub46001/)
 :::
 
 ## Adstock Effect
@@ -515,7 +524,43 @@ Unobserved confounders can bias the ROAS estimates and lead to wrong marketing s
 [PyMC-Marketing](https://www.pymc-marketing.io/)
 :::
 
+## Dynamic Time-Series Model
+
+![](bayes_time_series_causal_inference_files/static/images/electricity_forecast_6_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Electricity Demand Forecast: Dynamic Time-Series Model](https://juanitorduz.github.io/electricity_forecast/)
+:::
+
+## Calibration - Additional Likelihood {.smaller}
+
+Assume that we know from domain knowledge that the effect of temperature on demand over $32^\circ C$ is somehow stable at around a value of $0.13$.
+
+::: {.callout-tip appearance="simple"}
+We can condition the Gaussian process latent variable to this region by adding an additional likelihood.
+:::
+
+![](bayes_time_series_causal_inference_files/static/images/electricity_forecast_with_priors_32_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Electricity Demand Forecast: Dynamic Time-Series Model with Prior Calibration](https://juanitorduz.github.io/electricity_forecast_with_priors/)
+:::
+
 ## References {.smaller}
+
+### Structural Time Series Models
+
+- [Demand Forecasting with Censored Likelihood](https://juanitorduz.github.io/demand/)
+- [Electricity Demand Forecast: Dynamic Time-Series Model with Prior Calibration](https://juanitorduz.github.io/electricity_forecast_with_priors/)
+- [Electricity Demand Forecast: Dynamic Time-Series Model](https://juanitorduz.github.io/electricity_forecast/)
+- [From Pyro to NumPyro: Forecasting a univariate, heavy tailed time series](https://juanitorduz.github.io/numpyro_forecasting-univariate/)
+- [From Pyro to NumPyro: Forecasting Hierarchical Models - Part II](https://juanitorduz.github.io/numpyro_hierarchical_forecasting_2/)
+- [Hierarchical Pricing Elasticity Models](https://juanitorduz.github.io/elasticities/)
+- [TFP CausalImpact](https://github.com/google/tfp-causalimpact)
+
+## References {.smaller}
+
+### Media Mix Models
 
 #### ROAS Re-parametrization
 
