@@ -1,0 +1,586 @@
+---
+title: "Bayesian Methods for Time Series Analysis and Causal Inference"
+title-slide-attributes:
+  data-background-image: bayes_time_series_causal_inference_files/static/images/logos/prior_calibration.png
+  data-background-size: cover
+  data-background-opacity: "0.2"
+subtitle: "PyMC Labs"
+author: 
+  - name: Dr. Juan Orduz
+    url: https://juanitorduz.github.io/
+
+format:
+  revealjs:
+    slide-number: true
+    html-math-method: mathjax 
+    css: bayes_time_series_causal_inference_files/style.css
+    logo: bayes_time_series_causal_inference_files/static/images/logos/pymc-labs-favicon.png
+    transition: none
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    theme:
+        - white
+    highlight-style: github-dark
+---
+
+## Outline {.smaller background-image="bayes_time_series_causal_inference_files/static/images/geometric_adstock.png" background-opacity="0.2"}
+
+1. **Motivating Example: Informative Priors in A/B Testing**
+
+2. **Structural Time Series Modeling**
+
+3. **Model Calibration Methods:**
+    
+    - Media Mix Models 
+      - What is a (Bayesian) Media Mix Modeling (MMM)?    
+      - Simulation Case Study
+      - ROAS Re-parametrization
+      - Lift Test Calibration
+    
+    - Latent Gaussian Processes
+
+## Informative Priors in A/B Testing
+
+### Non-informative Priors
+
+```{.python code-line-numbers="|1|3|5-7|9-11|13-16"}
+import pymc as pm
+
+with pm.Model() as non_informative_model:
+    
+    conversion_rate_control = pm.Uniform(
+      "conversion_rate_control", lower=0, upper=1
+    )
+    
+    conversion_rate_treatment = pm.Uniform(
+        "conversion_rate_treatment", lower=0, upper=1
+    )
+    
+    relative_lift = pm.Deterministic(
+        "relative_lift",
+        conversion_rate_treatment / conversion_rate_control - 1,
+    )
+```
+::: footer
+- [The Bet Test: Spotting Problems in Bayesian A/B Test Analysis](https://www.geteppo.com/blog/the-bet-test-problems-in-bayesian-ab-test-analysis)
+- [Prior Predictive Modeling in Bayesian AB Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
+:::
+
+## Non-informative Priors
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_9_0.png){fig-align="center" width="1000"}
+
+## Non-informative Priors
+
+### Pair Density Plot
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_11_0.png){fig-align="center" width="1000"}
+
+## Non-informative Priors
+
+### Relative Lift Prior
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_14_0.png){fig-align="center" width="1000"}
+
+## Informative Priors
+
+```{.python code-line-numbers="|5-7|9-11|13-16"}
+import pymc as pm
+
+with pm.Model() as informative_model:
+    
+    conversion_rate_control = pm.Beta(
+      "conversion_rate_control", alpha=15, beta=600
+    )
+    
+    conversion_rate_treatment = pm.Beta(
+        "conversion_rate_treatment", alpha=15, beta=600
+    )
+    
+    relative_lift = pm.Deterministic(
+        "relative_lift",
+        conversion_rate_treatment / conversion_rate_control - 1,
+    )
+```
+
+## Informative Priors
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_23_0.png){fig-align="center" width="1000"}
+
+## Informative Priors
+
+### Pair Density Plot
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_25_0.png){fig-align="center" width="1000"}
+
+## Informative Priors
+
+### Relative Lift Prior
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_27_0.png){fig-align="center" width="1000"}
+
+## Correlated Priors
+
+```{.python code-line-numbers="|4-7|9-12|14-19"}
+import pymc as pm
+
+with pm.Model() as correlated_model:
+    # Set a prior on the control conversion rate
+    conversion_rate_control = pm.Beta(
+      "conversion_rate_control", alpha=15, beta=600
+    )
+    
+    # Set a prior on the relative lift
+    relative_lift = pm.Normal(
+      "relative_lift", mu=0, sigma=0.1
+    )
+    
+    # Convert the relative lift to a conversion rate for the treatment
+    # group deterministically
+    conversion_rate_treatment = pm.Deterministic(
+        "conversion_rate_treatment",
+        conversion_rate_control * (1 + relative_lift)
+    )
+```
+
+## Correlated Priors
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_34_0.png){fig-align="center" width="1000"}
+
+## Correlated Priors
+
+### Pair Density Plot
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_37_0.png){fig-align="center" width="1000"}
+
+## Correlated Priors
+
+### Relative Lift Prior
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_39_0.png){fig-align="center" width="1000"}
+
+## Priors Comparison
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_44_0.png){fig-align="center" width="1000"}
+
+## Inference with Correlated Priors
+
+```{.python}
+with correlated_model:
+    pm.Binomial(
+      "n_control", n=n, p=conversion_rate_control, observed=n_control
+    )
+    pm.Binomial(
+      "n_treatment", n=n, p=conversion_rate_treatment, observed=n_treatment
+    )
+```
+
+![](bayes_time_series_causal_inference_files/static/images/conversion_model.png){fig-align="center" width="1000"}
+
+## Posterior Predictive
+
+### Conversions
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_54_0.png){fig-align="center" width="1000"}
+
+## Posterior Predictive
+
+### Relative Lift
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_59_0.png){fig-align="center" width="1000"}
+
+## Relative Lift Prior Vs Posterior
+
+![](bayes_time_series_causal_inference_files/static/images/prior_predictive_ab_testing_61_0.png){fig-align="center" width="1000"}
+
+## Quasi-Experimental Methods {.smaller}
+
+### [CausalPy](https://causalpy.readthedocs.io/en/stable/)
+
+Many Bayesian methods for causal inference. For example: difference-in-differences, instrumental variables, inverse probability weighting, synthetic control, etc.
+
+![](bayes_time_series_causal_inference_files/static/images/did_causalpy.png){fig-align="center" width="1000"}
+
+::: footer
+[https://causalpy.readthedocs.io](https://causalpy.readthedocs.io/en/stable/)
+:::
+
+## Structural Time Series Modeling
+
+![](bayes_time_series_causal_inference_files/static/images/univariate_ts_diagram.png){fig-align="center" width="1000"}
+
+::: footer
+[From Pyro to NumPyro: Forecasting a univariate, heavy tailed time series](https://juanitorduz.github.io/numpyro_forecasting-univariate/)
+:::
+
+## Structural Time Series Modeling
+
+![](bayes_time_series_causal_inference_files/static/images/numpyro_forecasting_univariate_41_0.png){fig-align="center" width="1000"}
+
+::: footer
+[From Pyro to NumPyro: Forecasting a univariate, heavy tailed time series](https://juanitorduz.github.io/numpyro_forecasting-univariate/)
+:::
+
+## Causal Impact 
+
+![](bayes_time_series_causal_inference_files/static/images/causal_impact.png){fig-align="center" width="1000"}
+
+::: footer
+[TFP CausalImpact](https://github.com/google/tfp-causalimpact)
+:::
+
+## Hierarchical Structural Time Series
+
+![](bayes_time_series_causal_inference_files/static/images/hierarchical_model_diagram.png){fig-align="center" width="1000"}
+
+::: footer
+[From Pyro to NumPyro: Forecasting Hierarchical Models - Part II](https://juanitorduz.github.io/numpyro_hierarchical_forecasting_2/)
+:::
+
+## Hierarchical State Space Models
+
+![](bayes_time_series_causal_inference_files/static/images/numpyro_hierarchical_forecasting_2_31_0.png){fig-align="center" width="1000"}
+
+::: footer
+[From Pyro to NumPyro: Forecasting Hierarchical Models - Part II](https://juanitorduz.github.io/numpyro_hierarchical_forecasting_2/)
+:::
+
+## Demand Forecasting
+
+![](bayes_time_series_causal_inference_files/static/images/demand_8_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Demand Forecasting with Censored Likelihood](https://juanitorduz.github.io/demand/)
+:::
+
+## Demand Forecasting
+
+### Censored Likelihood
+
+![](bayes_time_series_causal_inference_files/static/images/demand_48_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Demand Forecasting with Censored Likelihood](https://juanitorduz.github.io/demand/)
+:::
+
+## Hierarchical Pricing Elasticity Models
+
+![](bayes_time_series_causal_inference_files/static/images/elasticities_47_0.svg){fig-align="center" width="1000"}
+
+::: {.callout-tip}
+### Idea 🤓
+<span style="font-size: 1.1em;">
+Use a hierarchical structure to regularize the demand elasticity parameters.
+</span>
+:::
+
+::: footer
+[Hierarchical Pricing Elasticity Models](https://juanitorduz.github.io/elasticities/)
+:::
+
+## Hierarchical Pricing Elasticity Models
+
+![](bayes_time_series_causal_inference_files/static/images/elasticities_58_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Hierarchical Pricing Elasticity Models](https://juanitorduz.github.io/elasticities/)
+:::
+
+## Dynamic Time-Series Model
+
+![](bayes_time_series_causal_inference_files/static/images/electricity_forecast_6_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Electricity Demand Forecast: Dynamic Time-Series Model](https://juanitorduz.github.io/electricity_forecast/)
+:::
+
+## Dynamic Time-Series Model
+
+::: {.callout-tip}
+### Dynamic Regressions Coefficients
+Use a Gaussian process (Hilbert Space approximation) to model the non-linear relationship between the electricity demand and the temperature
+:::
+
+![](bayes_time_series_causal_inference_files/static/images/dynamic_model.png){fig-align="center" width="1000"}
+
+## Dynamic Time-Series Model
+
+![](bayes_time_series_causal_inference_files/static/images/electricity_forecast_46_0.png){fig-align="center" width="1000"}
+
+## Model Calibration Methods
+
+::: {.callout-warning}
+Making inference with observational data is hard! Especially because unobserved confounders.
+Calibration methods offer a partial solution to this problem.
+:::
+
+### Examples:
+
+- Media Mix Models
+- Latent Gaussian Processes
+
+## What is Media Mix Modeling (MMM)?
+
+![](bayes_time_series_causal_inference_files/static/images/dgp.png){fig-align="center" width="1000"}
+
+## MMM as a Regression Model
+
+$$
+y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m, t}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c}z_{c, t} + \varepsilon_{t},
+$$
+
+
+::: {.callout-note appearance="minimal"}
+- $y_{t}$: Target variable at time $t$ (e.g. sales, conversions, etc.)
+- $b_{t}$: Baseline sales at time $t$
+- $\beta_{m, t}$: Effect of media $m$ on sales at time $t$
+- $f(x_{m, t})$: Transformation of media $m$ at time $t$
+- $\gamma_{c}$: Effect of control variables $z_{c, t}$ on sales
+- $\varepsilon_{t}$: Error term
+:::
+
+::: footer
+[Jin, Yuxue, et al. "Bayesian methods for media mix modeling with carryover and shape effects." (2017).](https://research.google/pubs/pub46001/)
+:::
+
+## Adstock Effect
+
+::: {.callout-tip appearance="simple"}
+The adstock effect captures the **carryover** of advertising - the idea that the impact of advertising persists and decays over time rather than being instantaneous.
+
+$$
+\text{adstock}(x_{m, t}; \alpha, T) = x_{m, t} + \alpha \sum_{j=1}^{T} x_{m, t-j}
+$$
+
+for $\alpha \in [0, 1]$ and $T$ the number of periods.
+:::
+
+![](bayes_time_series_causal_inference_files/static/images/geometric_adstock.png){fig-align="center" width="1000"}
+
+## Saturation Effect
+
+::: {.callout-tip appearance="simple"}
+The saturation effect captures the idea that the impact of advertising diminishes as the media budget increases.
+
+$$
+\text{saturation}(x_{m, t}; \lambda) = \frac{1 - \exp(-\lambda x_{m, t})}{1 + \exp(-\lambda x_{m, t})}
+$$
+:::
+
+![](bayes_time_series_causal_inference_files/static/images/saturation.png){fig-align="center" width="1000"}
+
+## Media Transformations
+
+![](bayes_time_series_causal_inference_files/static/images/media_transformations.png){fig-align="center" width="1000"}
+
+## Why Bayesian MMMs? {.smaller}
+
+### Some MMM Challenges
+
+::: incremental
+
+- Limited data (typically 2-3 years of data, sometimes weekly granularity).
+
+- Media variables are generally very correlated.
+
+- Unobserved confounders (e.g. competitors investments).
+
+:::
+
+### Bayesian MMMs
+
+::: incremental
+
+- Uncertainty quantification.
+
+- Domain knowledge through priors.
+
+- **Lift test calibration (e.g. geo-tests or switch-back experiments).**
+
+- Time-varying parameters with Bayesian regularization (e.g. strong priors or hierarchies).
+
+- Risk-based budget optimization.
+
+:::
+
+
+## MMM as a Causal Model
+
+![](bayes_time_series_causal_inference_files/static/images/dag.svg){fig-align="center" width="1000"}
+
+::: footer
+[Media Mix Model and Experimental Calibration: A Simulation Study](https://juanitorduz.github.io/mmm_roas/)
+:::
+
+
+## Attribution Decomposition
+
+![](bayes_time_series_causal_inference_files/static/images/model_components_2.png){fig-align="center" width="1000"}
+
+## Channels Contributions over Time
+
+![](bayes_time_series_causal_inference_files/static/images/channel_contributions_2.png){fig-align="center" width="1000"}
+
+## Return on Ad Spend (ROAS) - Biased
+
+![](bayes_time_series_causal_inference_files/static/images/roas_posterior_2.png){fig-align="center" width="1000"}
+
+
+## Lift Test Calibration - Why?
+
+![](bayes_time_series_causal_inference_files/static/images/dag.svg){fig-align="center" width="500"}
+
+::: {.callout-important appearance="simple"}
+
+Unobserved confounders can bias the ROAS estimates and lead to wrong marketing strategies!
+
+:::
+
+::: {.callout-tip appearance="simple"}
+
+- ROAS re-parametrization (Google).
+- Additional likelihood for lift tests (PyMC-Labs).
+:::
+
+## ROAS Re-parametrization
+
+### Formulation
+
+![](bayes_time_series_causal_inference_files/static/images/formula_14-15.png){fig-align="center" width="1000"}
+
+::: footer
+[Media Mix Model Calibration With Bayesian Priors](https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/)
+:::
+
+## ROAS Re-parametrization
+
+### ROAS Priors
+
+![](bayes_time_series_causal_inference_files/static/images/roas_priors.png){fig-align="center" width="1000"}
+
+::: footer
+- [Media Mix Model and Experimental Calibration: A Simulation Study](https://juanitorduz.github.io/mmm_roas/)
+- [Wolt Tech Talks: Offline Campaign Analysis Measurement](https://www.youtube.com/watch?v=gMaxM8PAcpo)
+:::
+
+## ROAS Re-parametrization
+
+### ROAS Posterior
+
+![](bayes_time_series_causal_inference_files/static/images/roas_posterior_3.png){fig-align="center" width="1000"}
+
+::: footer
+[Media Mix Model and Experimental Calibration: A Simulation Study](https://juanitorduz.github.io/mmm_roas/)
+:::
+
+## ROAS Re-parametrization
+
+### Model Comparison
+
+![](bayes_time_series_causal_inference_files/static/images/roas_comparison.png){fig-align="center" width="1000"}
+
+::: footer
+[Media Mix Model and Experimental Calibration: A Simulation Study](https://juanitorduz.github.io/mmm_roas/)
+:::
+
+## Lift Test Calibration
+
+### Saturation Curves
+
+![](bayes_time_series_causal_inference_files/static/images/lift_test_saturation.png){fig-align="center" width="1000"}
+
+::: footer
+[PyMC-Marketing: Lift Test Calibration](https://www.pymc-marketing.io/en/latest/notebooks/mmm/mmm_lift_test.html)
+:::
+
+## Lift Test Calibration
+
+### Additional Likelihood
+
+![](bayes_time_series_causal_inference_files/static/images/lift_test_likelihood.svg){fig-align="center" width="1000"}
+
+::: footer
+[PyMC-Marketing: Lift Test Calibration](https://www.pymc-marketing.io/en/latest/notebooks/mmm/mmm_lift_test.html)
+:::
+
+## Lift Test Calibration
+
+### ROAS Posterior
+
+![](bayes_time_series_causal_inference_files/static/images/roas_posterior_4.png){fig-align="center" width="1000"}
+
+::: footer
+[Case Study: Unobserved Confounders, ROAS and Lift Tests](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_roas.html)
+:::
+
+## PyMC-Marketing
+
+![](bayes_time_series_causal_inference_files/static/images/logos/marketing-logo-light.jpg){fig-align="center" width="1000"}
+
+> Bayesian marketing toolbox in PyMC. Media Mix (MMM), customer lifetime value (CLV), buy-till-you-die (BTYD) models and more.
+
+::: footer
+[PyMC-Marketing](https://www.pymc-marketing.io/)
+:::
+
+## Dynamic Time-Series Model
+
+![](bayes_time_series_causal_inference_files/static/images/electricity_forecast_6_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Electricity Demand Forecast: Dynamic Time-Series Model](https://juanitorduz.github.io/electricity_forecast/)
+:::
+
+## Calibration - Additional Likelihood {.smaller}
+
+Assume that we know from domain knowledge that the effect of temperature on demand over $32^\circ C$ is somehow stable at around a value of $0.13$.
+
+::: {.callout-tip appearance="simple"}
+We can condition the Gaussian process latent variable to this region by adding an additional likelihood.
+:::
+
+![](bayes_time_series_causal_inference_files/static/images/electricity_forecast_with_priors_32_0.png){fig-align="center" width="1000"}
+
+::: footer
+[Electricity Demand Forecast: Dynamic Time-Series Model with Prior Calibration](https://juanitorduz.github.io/electricity_forecast_with_priors/)
+:::
+
+## References {.smaller}
+
+### Causal Inference
+
+- [CausalPy](https://causalpy.readthedocs.io/en/stable/)
+- [Prior Predictive Modeling in Bayesian AB Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
+- [The Bet Test: Spotting Problems in Bayesian A/B Test Analysis](https://www.geteppo.com/blog/the-bet-test-problems-in-bayesian-ab-test-analysis)
+
+### Structural Time Series Models
+
+- [Demand Forecasting with Censored Likelihood](https://juanitorduz.github.io/demand/)
+- [Electricity Demand Forecast: Dynamic Time-Series Model with Prior Calibration](https://juanitorduz.github.io/electricity_forecast_with_priors/)
+- [Electricity Demand Forecast: Dynamic Time-Series Model](https://juanitorduz.github.io/electricity_forecast/)
+- [From Pyro to NumPyro: Forecasting a univariate, heavy tailed time series](https://juanitorduz.github.io/numpyro_forecasting-univariate/)
+- [From Pyro to NumPyro: Forecasting Hierarchical Models - Part II](https://juanitorduz.github.io/numpyro_hierarchical_forecasting_2/)
+- [Hierarchical Pricing Elasticity Models](https://juanitorduz.github.io/elasticities/)
+- [TFP CausalImpact](https://github.com/google/tfp-causalimpact)
+
+## References {.smaller}
+
+### Media Mix Models
+
+#### ROAS Re-parametrization
+
+- [Media Mix Model Calibration With Bayesian Priors](https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/)
+
+- [Media Mix Model and Experimental Calibration: A Simulation Study](https://juanitorduz.github.io/mmm_roas/)
+
+- Google Meridian: [https://github.com/google/meridian](https://github.com/google/meridian)
+
+#### Additional Likelihood
+- [PyMC-Marketing: Lift Test Calibration](https://www.pymc-marketing.io/en/latest/notebooks/mmm/mmm_lift_test.html)
+- [Case Study: Unobserved Confounders, ROAS and Lift Tests](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_roas.html)
+- PyMC-Marketing: [https://github.com/pymc-labs/pymc-marketing](https://github.com/pymc-labs/pymc-marketing)
+
+## [Thank You!]{style="color: white;"} {background-image="bayes_time_series_causal_inference_files/static/images/logos/pymc-labs-black.jpg"}
+
+#### [juan.orduz@pymc-labs.com](mailto:juan.orduz@pymc-labs.com){style="color: white;"}
