@@ -318,7 +318,9 @@ With this exploratory analysis complete, we can proceed to the modeling phase.
     \label{fig:revenue_per_active_user}
 \end{figure}
 
-\section{Model Specification and Diagnostics}
+\section{Model Structure and Diagnostics}
+
+\subsection{Model Specification}
 
 Let's expand on the model structure outlined in the introduction. The core concept is to model the number of active users
 as a binomial random variable $N_{\text{active}} \sim \text{Binomial}(N_{\text{total}}, p)$, where $p$ represents the retention
@@ -389,10 +391,11 @@ In summary, our cohort-revenue-retention model is specified as:
     \beta_{\text{cohort age} \times \text{age}} & \sim \text{Normal}(0, 1)
 \end{align*}
 
-Once we have the model specification, we can implement and fit it in PyMC (see Appendix \ref{sec:appendix} and
-\cite{orduz_revenue_retention}). Figure \ref{fig:posterior_predictive} shows the posterior predictive distribution of both
-model components. The trace plots for the linear terms (Figure \ref{fig:trace}) show good mixing with no divergences or
-convergence warnings.
+\subsection{Diagnostics}
+
+Once we have the model specification, we can implement and fit it in PyMC (see \cite{orduz_revenue_retention}). Figure
+\ref{fig:posterior_predictive} shows the posterior predictive distribution of both model components. The trace plots for the
+linear terms (Figure \ref{fig:trace}) show good mixing with no divergences or convergence warnings.
 
 \begin{figure}
     \centering
@@ -410,6 +413,46 @@ convergence warnings.
     \label{fig:trace}
 \end{figure}
 
+\subsection{Variable Importance}
+
+The BART component implemented in \cite{quiroga2022bart} provides great tools to understand the importance of the different
+features. Figure \ref{fig:ice_plot} shows the PDP (Partial Dependence Plot) and ICE (Individual Conditional Expectation)
+plots for the retention component. PDP and ICE plots visualize how the model's predictions change as a single feature varies
+while holding all other features constant. Each line represents a different observation from the dataset, showing how the
+predicted retention probability would change for that observation if we modified only the feature of interest. The PDP
+plot is the average of the ICE plots (solid line). These plots allow us to understand how the retention probability varies
+for different values of the features and reveals potential non-linear relationships or interaction effects that might not
+be apparent in aggregate statistics. \\
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{images/retention_bart_29_0.png}
+    \caption{PDP (solid line) and ICE (dashed lines) plots for the retention component.}
+    \label{fig:ice_plot}
+\end{figure}
+
+In this specific example, we can extract the following insights:
+
+\begin{itemize}
+    \item The ICE plots how the retention rate decreases with both cohort age and age. This is not surprising as we saw in the EDA.
+    \item We see that the ICE plots have a similar trend to the PDP plots. This hints that the interaction effects are
+          not so important in this case. This is also something we saws in the linear model where the interaction coefficient
+          was relatively small (see \cite{orduz_retention}).
+    \item We clearly see the seasonality component of the PDP / ICE plots resemble the regression coefficients in the linear
+          model. This is simply representing the strong seasonal component of the data.
+\end{itemize}
+
+In addition, we can extract a relative importance for the different features using the contribution to the in-sample $R^2$,
+as shown in Figure \ref{fig:variable_importance}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{images/retention_bart_32_0.png}
+    \caption{Variable importance for the retention component based on the in-sample $R^2$.}
+    \label{fig:variable_importance}
+\end{figure}
+
+These type of plots are very valuable to understand the {\em drivers} of the retention component.
 
 \section{Predictions}
 
@@ -424,9 +467,10 @@ diagonal line indicating better fit. Beyond point estimates, we can visualize th
 to assess model uncertainty. Figure \ref{fig:in_sample_retention} shows the posterior predictive distribution of retention
 for selected cohorts, with $94\%$ HDI (Highest Density Interval). Note how the intervals are narrower for more recent
 cohorts with more data, reflecting greater certainty in these predictions. Overall, the predictions effectively capture the
-observed retention patterns, including seasonality. For the revenue component, Figure \ref{fig:in_sample_revenue} displays
+observed retention patterns, including seasonality. For the revenue component, Figure \ref{fig:in_sample_revenue} shows
 the posterior predictive distribution compared to actual revenue values. The model successfully captures the revenue
-variability across different cohorts and time periods.
+variability across different cohorts and time periods. We can use the whole posterior distribution to make custom visualizations
+of quantities of interests like the revenue per active user, as shown in Figure \ref{fig:additional_predictions}.
 
 \begin{figure}
     \centering
@@ -470,18 +514,14 @@ variability across different cohorts and time periods.
     \includegraphics[width=\textwidth]{images/revenue_retention_56_0.png}
     \caption{Additional view of posterior predictions across cohorts, illustrating the model's ability to capture
         cohort-specific patterns. This panel view organizes predictions by cohort (columns) and shows how the model
-        adapts to the unique characteristics of each customer group. The consistent performance across cohorts of
-        different ages and sizes demonstrates the model's robustness and the effectiveness of the partial pooling
-        approach, where information is shared across cohorts while preserving their distinct behaviors. This balance
-        between shared information and cohort-specific modeling is particularly valuable for businesses with diverse
-        customer segments acquired through different channels or time periods.}
+        adapts to the unique characteristics of each customer group.}
     \label{fig:additional_predictions}
 \end{figure}
 
 \subsection{Out-of-Sample Predictions}
 
 The true test of any predictive model is its performance on unseen data. We evaluate our model's forecasting capabilities
-using a holdout set consisting of data after {\em 2022-11-01}, which was not used during model training. Figures
+using a holdout set consisting of data after {\em 2022-11}, which was not used during model training. Figures
 \ref{fig:out_sample_retention} and \ref{fig:out_sample_revenue} show the out-of-sample predictions for retention and
 revenue, respectively. The vertical dashed lines indicate the train/test split point. Several key observations emerge:
 
@@ -492,7 +532,7 @@ revenue, respectively. The vertical dashed lines indicate the train/test split p
     \item The model effectively captures the seasonal patterns in retention, correctly predicting the expected peaks and
           troughs in future months based on historical patterns.
 
-    \item For newer cohorts with limited training data (e.g., the {\em 2022-07-01} cohort with only 4 data points in
+    \item For newer cohorts with limited training data (e.g., the {\em 2022-07} cohort with only 4 data points in
           training), the model still produces reasonable predictions by leveraging information learned from older cohorts.
           This demonstrates effective transfer of knowledge across cohorts.
 
@@ -677,97 +717,6 @@ By embracing the complexity inherent in customer behavior while maintaining anal
 gap between sophisticated statistical techniques and practical business applications. As companies continue to recognize the
 strategic importance of customer retention and lifetime value, flexible and accessible modeling approaches like the one presented
 here will become increasingly essential tools in the modern business analytics toolkit.
-
-\appendix
-
-\section{Python Code}\label{sec:appendix}
-
-In this appendix, we present the Python code core used to implement the model in PyMC.
-The detailed implementation can be found in \cite{orduz_revenue_retention}.
-
-\begin{lstlisting}[language=Python, caption=PyMC model implementation.]
-import pymc_bart as pmb
-import pymc as pm
-
-
-with pm.Model(coords={"feature": features}) as model:
-
-    # --- Data ---
-    model.add_coord(name="obs", values=train_obs_idx, mutable=True)
-    age_scaled = pm.MutableData(
-        name="age_scaled", value=train_age_scaled, dims="obs"
-    )
-    cohort_age_scaled = pm.MutableData(
-        name="cohort_age_scaled", value=train_cohort_age_scaled, dims="obs"
-    )
-    x = pm.MutableData(name="x", value=x_train, dims=("obs", "feature"))
-    n_users = pm.MutableData(name="n_users", value=train_n_users, dims="obs")
-    n_active_users = pm.MutableData(
-        name="n_active_users", value=train_n_active_users, dims="obs"
-    )
-    revenue = pm.MutableData(name="revenue", value=train_revenue, dims="obs")
-
-    # --- Priors ---
-    intercept = pm.Normal(name="intercept", mu=0, sigma=1)
-    b_age_scaled = pm.Normal(name="b_age_scaled", mu=0, sigma=1)
-    b_cohort_age_scaled = pm.Normal(name="b_cohort_age_scaled", mu=0, sigma=1)
-    b_age_cohort_age_interaction = pm.Normal(
-        name="b_age_cohort_age_interaction", mu=0, sigma=1
-    )
-
-    # --- Parametrization ---
-    # The BART component models the image of the retention rate under the
-    # logit transform so that the range is not constrained to [0, 1].
-    mu = pmb.BART(name="mu", X=x, Y=train_retention_logit, m=50, dims="obs")
-    # We use the inverse logit transform to get the retention rate
-    # back into [0, 1].
-    p = pm.Deterministic(name="p", var=pm.math.invlogit(mu), dims="obs")
-    # We add a small epsilon to avoid numerical issues.
-    p = pt.switch(pt.eq(p, 0), eps, p)
-    p = pt.switch(pt.eq(p, 1), 1 - eps, p)
-
-    # For the revenue component we use a Gamma distribution where we
-    # combine the number of estimated active users with the average
-    # revenue per user.
-    lam_log = pm.Deterministic(
-        name="lam_log",
-        var=intercept
-        + b_age_scaled * age_scaled
-        + b_cohort_age_scaled * cohort_age_scaled
-        + b_age_cohort_age_interaction * age_scaled * cohort_age_scaled,
-        dims="obs",
-    )
-
-    lam = pm.Deterministic(name="lam", var=pm.math.exp(lam_log), dims="obs")
-
-    # --- Likelihood ---
-    n_active_users_estimated = pm.Binomial(
-        name="n_active_users_estimated",
-        n=n_users,
-        p=p,
-        observed=n_active_users,
-        dims="obs",
-    )
-
-    x = pm.Gamma(
-        name="revenue_estimated",
-        alpha=n_active_users_estimated + eps,
-        beta=lam,
-        observed=revenue,
-        dims="obs",
-    )
-
-    # --- Derived Quantities ---
-    mean_revenue_per_user = pm.Deterministic(
-        name="mean_revenue_per_user", var=(1 / lam), dims="obs"
-    )
-    pm.Deterministic(
-        name="mean_revenue_per_active_user",
-        var=p * mean_revenue_per_user,
-        dims="obs"
-    )
-\end{lstlisting}
-
 
 \bibliographystyle{acm}
 \bibliography{references}
