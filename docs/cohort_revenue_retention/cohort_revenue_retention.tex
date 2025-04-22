@@ -114,7 +114,7 @@ to get a visual intuition of the data we want to model, Figure \ref{fig:retentio
 matrix. Here we encode the cohort retention as a function of time. Note that we exclude the diagonal as it is
 uninformative (always containing ones). Observe that older cohorts have more data (obviously), so we would like to use
 this information to improve the estimation of retention for younger cohorts. Hence, we do not want to model each cohort
-independently but rather the {\em whole retention matrix} (we will so the same for the revenue matrix and couple them
+independently but rather the {\em whole retention matrix} (we will do the same for the revenue matrix and couple them
 together). \\
 
 \begin{figure}
@@ -290,8 +290,8 @@ number of active users. This suggests that revenue per user remains relatively s
 revenue per user as a function of age and period (Figure \ref{fig:revenue_per_user}) as well as revenue per {\em active} user
 (Figure \ref{fig:revenue_per_active_user}). The key difference between these metrics is that revenue per user divides by
 total cohort size, while revenue per active user divides by the number of active users in the given period. All in all,
-we observe the following for the revenue data\footnote{These type of patterns are actually common in real applications. This synthetic
-    dataset is is motivated by real applications where the model was proven to be very effective}:
+we observe the following for the revenue data\footnote{These types of patterns are actually common in real applications. This synthetic
+    dataset is motivated by real applications where the model was proven to be very effective}:
 
 \begin{itemize}
     \item Revenue per user exhibits a clear seasonality pattern, consistent with the seasonal pattern observed in retention.
@@ -378,16 +378,16 @@ coefficients (see \cite{orduz_retention_bart}). \\
 In summary, our cohort-revenue-retention model is specified as:
 
 \begin{align*}
-    \text{Revenue}                              & \sim \text{Gamma}(N_{\text{active}}, \lambda)                                      \\
-    \log(\lambda) = (                           & \text{intercept}                                                                   \\
-                                                & + \beta_{\text{cohort age}} \text{cohort age}                                      \\
-                                                & + \beta_{\text{age}} \text{age}                                                    \\
-                                                & + \beta_{\text{cohort age} \times \text{age}} \text{cohort age} \times \text{age}) \\
-    N_{\text{active}}                           & \sim \text{Binomial}(N_{\text{total}}, p)                                          \\
-    \textrm{logit}(p)                           & = \text{BART}(\text{cohort age}, \text{age}, \text{month})                         \\
-    \text{intercept}                            & \sim \text{Normal}(0, 1)                                                           \\
-    \beta_{\text{cohort age}}                   & \sim \text{Normal}(0, 1)                                                           \\
-    \beta_{\text{age}}                          & \sim \text{Normal}(0, 1)                                                           \\
+    \text{Revenue}                              & \sim \text{Gamma}(N_{\text{active}}, \lambda)                                             \\
+    \log(\lambda) = (                           & \text{intercept}                                                                          \\
+                                                & + \beta_{\text{cohort age}} \times \text{cohort age}                                      \\
+                                                & + \beta_{\text{age}} \times \text{age}                                                    \\
+                                                & + \beta_{\text{cohort age} \times \text{age}} \times \text{cohort age} \times \text{age}) \\
+    N_{\text{active}}                           & \sim \text{Binomial}(N_{\text{total}}, p)                                                 \\
+    \textrm{logit}(p)                           & = \text{BART}(\text{cohort age}, \text{age}, \text{month})                                \\
+    \text{intercept}                            & \sim \text{Normal}(0, 1)                                                                  \\
+    \beta_{\text{cohort age}}                   & \sim \text{Normal}(0, 1)                                                                  \\
+    \beta_{\text{age}}                          & \sim \text{Normal}(0, 1)                                                                  \\
     \beta_{\text{cohort age} \times \text{age}} & \sim \text{Normal}(0, 1)
 \end{align*}
 
@@ -401,7 +401,7 @@ linear terms (Figure \ref{fig:trace}) show good mixing with no divergences or co
     \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_37_0.png}
     \caption{Posterior predictive distribution of the retention (left) and revenue (right) components, showing good fit to
-        the observed data. These cummulative density plots compare the distributions of observed values (black) with simulated
+        the observed data. These cumulative density plots compare the distributions of observed values (black) with simulated
         values from the posterior predictive distribution (orange), providing a visual assessment of model fit.}
     \label{fig:posterior_predictive}
 \end{figure}
@@ -434,12 +434,12 @@ be apparent in aggregate statistics. \\
 In this specific example, we can extract the following insights:
 
 \begin{itemize}
-    \item The ICE plots how the retention rate decreases with both cohort age and age. This is not surprising as we saw in the EDA.
+    \item The ICE plots show how the retention rate decreases with both cohort age and age. This is not surprising as we saw in the EDA.
     \item We see that the ICE plots have a similar trend to the PDP plots. This hints that the interaction effects are
-          not so important in this case. This is also something we saws in the linear model where the interaction coefficient
+          not so important in this case. This is also something we saw in the linear model where the interaction coefficient
           was relatively small (see \cite{orduz_retention}).
     \item We clearly see the seasonality component of the PDP / ICE plots resemble the regression coefficients in the linear
-          model. This is simply representing the strong seasonal component of the data.
+          model from \cite{orduz_retention}. This is simply representing the strong seasonal component of the data.
 \end{itemize}
 
 In addition, we can extract a relative importance for the different features using the contribution to the in-sample $R^2$,
@@ -452,7 +452,7 @@ as shown in Figure \ref{fig:variable_importance}.
     \label{fig:variable_importance}
 \end{figure}
 
-These type of plots are very valuable to understand the {\em drivers} of the retention component.
+These types of plots are very valuable to understand the {\em drivers} of the retention component.
 
 \section{Predictions}
 
