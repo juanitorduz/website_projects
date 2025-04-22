@@ -1,5 +1,4 @@
 \documentclass[11pt]{amsart}
-\linespread{1.0} % Setting single spacing
 \usepackage[all]{xy}
 \usepackage[dvips]{graphicx}
 \usepackage{amsfonts}
@@ -63,28 +62,27 @@
 
 \maketitle
 
-\tableofcontents
 \addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
 
 \section{Introduction}
 
-In today's data-driven business landscape, understanding and predicting customer behavior has become a cornerstone of
-sustainable growth and profitability. Among the metrics that define business success, retention and customer lifetime value
+Understanding and predicting customer behavior directly impacts business profitability through improved retention strategies
+and resource allocation. Among the metrics that define business success, retention and customer lifetime value
 estimation stand at the forefront, serving as critical indicators of a company's ability to not only attract but maintain a
 loyal customer base. These metrics transcend mere financial accounting—they represent the foundation upon which long-term
-business strategies are built and refined.
+business strategies are built and refined. Seminal work by Fader and Hardie has established frameworks for both contractual
+settings \cite{FaderHardie2007}, where subscription-based relationships predominate, and non-contractual settings
+\cite{FaderHardie2005}, where customers may come and go without formal notification\footnote{Our definition of retention
+    corresponds to what they call survival curve. See precise definitions below.}. Modern implementations of these CLV
+models can now be found in Bayesian probabilistic programming frameworks such as PyMC (\cite{pymc2023}), where the
+PyMC-Marketing library \cite{pymc_marketing} provides implementations of many standard buy-till-you-die (BTYD) models including
+the BG/NBD, Pareto/NBD, and Gamma-Gamma models in a flexible, Bayesian framework. While these approaches have proven very valuable, they
+often struggle to scale effectively. They can definitively be scaled with modern hardware and algorithms (for example,
+stochastic variational inference, as described below). Nevertheless, this requires non-trivial work and effort.\\
 
-Seminal work by Fader and Hardie has established frameworks for both contractual settings \cite{FaderHardie2007}, where
-subscription-based relationships predominate, and non-contractual settings \cite{FaderHardie2005}, where customers may come
-and go without formal notification\footnote{Our definition of retention corresponds to what they call survival curve. See
-    precise definitions below.}. While these approaches have proven valuable, they often struggle to scale effectively when
-businesses need to understand behaviors at the cohort level—groups of customers who joined during the same time period.
-
-Modern implementations of these CLV models can now be found in Bayesian probabilistic programming frameworks such as PyMC,
-where the PyMC-Marketing library \cite{pymc_marketing} provides implementations of many standard buy-till-you-die (BTYD)
-models including the BG/NBD, Pareto/NBD, and Gamma-Gamma models in a flexible, Bayesian framework.
-
-When shifting from individual to cohort-level analysis, businesses typically face a methodological trilemma:
+For many decision-making processes, companies just need to understand behaviors at the cohort level—groups of customers
+who joined during the same time period. In this paper we focus on this level of granularity. When shifting from individual
+to cohort-level analysis, businesses typically face a methodological trilemma:
 
 \begin{enumerate}
     \item \textbf{Complete pooling}: Aggregate all cohorts together and model retention and revenue as a collective whole,
@@ -98,22 +96,39 @@ When shifting from individual to cohort-level analysis, businesses typically fac
 \end{enumerate}
 
 As detailed by \cite{FaderHardieNote2017}, each approach offers distinct advantages and limitations. However, a fundamental
-challenge persists across these traditional methodologies: they typically lack the flexibility to elegantly incorporate
+challenge persists across these traditional methodologies: they typically lack the flexibility to efficiently incorporate
 seasonality patterns and external regressors\footnote{Although, one can add regressors in some cases as described in
     \cite{FaderHardieNote2007} for the non-contractual case.}. This limitation becomes particularly problematic for businesses
 with highly seasonal customer behavior—from retail operations affected by holiday shopping patterns to subscription services
 influenced by annual promotional cycles. While some might argue that seasonality is secondary when estimating customer
 lifetime value, the reality for many business models is that seasonal fluctuations significantly impact customer acquisition,
-engagement, and retention decisions.
-
-Beyond the methodological challenges, businesses face practical hurdles in translating retention and revenue models into
-actionable insights. Static models that fail to adapt to changing market dynamics or consumer preferences quickly become
-outdated. Moreover, point estimates without associated uncertainty measures can lead to misplaced confidence in business
-forecasts, potentially resulting in suboptimal resource allocation and strategic planning.
+engagement, and retention decisions. Beyond the methodological challenges, businesses face practical hurdles in translating
+retention and revenue models into actionable insights. Static models that fail to adapt to changing market dynamics or
+consumer preferences quickly become outdated. Moreover, point estimates without associated uncertainty measures can lead to
+misplaced confidence in business forecasts, potentially resulting in suboptimal resource allocation and strategic planning. \\
 
 This work introduces a Bayesian approach that addresses these challenges by modeling cohort-level retention rates from a
 top-down perspective. Instead of building up from individual purchase patterns—a process that can become computationally
 intensive and complex for large customer bases—we directly model aggregate retention and revenue at the cohort level.
+to get a visual intuition of the data we want to model, Figure \ref{fig:retention_matrix} shows an example of a retention
+matrix. Here we encode the cohort retention as a function of time. Note that we exclude the diagonal as it is
+uninformative (always containing ones). Observe that older cohorts have more data (obviously), so we would like to use
+this information to improve the estimation of retention for younger cohorts. Hence, we do not want to model each cohort
+independently but rather the {\em whole retention matrix} (we will so the same for the revenue matrix and couple them
+together). \\
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{images/revenue_retention_17_0.png}
+    \caption{Retention matrix example. The matrix visualizes customer retention rates across different cohorts (rows) and
+        observation periods (columns). Each cell represents the proportion of customers from a specific acquisition
+        cohort that remained active in a subsequent period. Colors indicate retention rates, with darker colors typically
+        showing higher retention. This visualization allows for identifying cohort-specific patterns, seasonal effects,
+        and retention decay over time. The diagonal is excluded as it always contains trivial values of 1 (100\%
+        retention) for the cohort's first period.}
+    \label{fig:retention_matrix}
+\end{figure}
+
 This approach offers several distinct advantages:
 
 \begin{itemize}
@@ -137,11 +152,15 @@ This approach offers several distinct advantages:
 Specifically, we use Bayesian additive regression trees to model the retention component, capturing the probability that a
 customer from a given cohort remains active in subsequent periods. We couple this with a linear model for the revenue
 component, predicting how much revenue active customers will generate. This dual approach balances the flexibility needed to
-capture complex retention patterns with the interpretability desired for revenue forecasting. The main ingredients behind our
-model are:
+capture complex retention patterns with the interpretability desired for revenue forecasting. Next we describe the main
+ingredients of our model: the features and the model specification. We will delve into the details in the next sections.
 
 \subsection*{Features}
-The following are the main features used to model retention and revenue:
+
+Typical purchase databases contain transactional history at user level. We want an approach general enough to benefit
+from the most common features instead of heavy feature engineering. Going back to Figure \ref{fig:retention_matrix}, it
+is natural to consider the following features to model the retention and revenue matrices:
+
 \begin{itemize}
     \item {\bf Cohort age}: Age of the cohort in months, representing the time since the cohort was formed.
     \item {\bf Age}: Age of the cohort with respect to the observation time.
@@ -149,72 +168,88 @@ The following are the main features used to model retention and revenue:
     \item {\bf Month}: Month of the observation time (period), capturing seasonality effects.
 \end{itemize}
 
-Figure \ref{fig:retention_matrix} shows an example of a retention matrix. Note that we exclude the diagonal as it is
-uninformative (always containing ones). For example, if our observation month is {\em 2022-11} and we consider the cohort
-    {\em 2022-09}, the age of this cohort is $2$ months, as the age is always calculated relative to the observation period.
-This cohort was observed during two periods: {\em 2022-10} and {\em 2022-11} with cohort ages $1$ and $2$ respectively.\\
+For example, if our observation month is {\em 2022-11} and we consider the cohort {\em 2022-09}, the age of this cohort
+is $2$ months, as the age is always calculated relative to the observation period. This cohort was observed during two
+periods: {\em 2022-10} and {\em 2022-11} with cohort ages $1$ and $2$ respectively. \\
 
 All these features are available for out-of-sample predictions, ensuring model applicability for forecasting.
 In practice, we can add additional covariates to the model. The only requirement for out-of-sample predictions is that
-these covariates must be available for future observation periods. \\
-
-\begin{figure}
-    \centering
-    \includegraphics[width=\textwidth]{images/revenue_retention_17_0.png}
-    \caption{Retention matrix example.}
-    \label{fig:retention_matrix}
-\end{figure}
+these covariates must be available for future observation periods.
 
 \subsection*{Model Specification}
-Our model has two main components that work together:
+
+The main idea behind the specification is to model each revenue and retention matrices, using the features above, and
+couple them together. Specifically, we have:
+
 \begin{itemize}
     \item {\bf Retention Component}: We model the number of active users in each cohort as a binomial random
           variable $\text{Binomial}(N_{\text{total}}, p)$, where the parameter $p$ represents the retention probability.
-          We model the latent variable $p$ using a BART model with features cohort age, age, and month. This flexible
-          approach allows the model to capture non-linear relationships and interactions between features.
+          We model the latent variable $p$ using a BART model with features cohort age, age, and month (see Figure
+          \ref{fig:active_users}, from a synthetic example described below). This flexible approach allows the model to
+          capture non-linear relationships and interactions between features.
 
-    \item {\bf Revenue Component}: We model the revenue as a gamma random variable $\text{Gamma}(N_{\text{active}}, \lambda)$.
-          We model the rate parameter $\lambda$ through a linear model with features cohort age, age, and a multiplicative
-          interaction term (using a $\log$ link function). We do not explicitly add a seasonality component to this part of
-          the model, as we typically observe that most seasonality effects are already captured by the retention component.
-          However, seasonal features could be added if needed.
+    \item {\bf Revenue Component}: We model the revenue matrix (see Figure \ref{fig:revenue}) through a gamma random variable
+          $\text{Gamma}(N_{\text{active}}, \lambda)$, as we want to ensure non-negative values. We model the rate parameter
+          $\lambda$ through a linear model with features cohort age, age, and a multiplicative interaction term (using a
+          $\log$ link function). We do not explicitly add a seasonality component to this part of the model, as we typically
+          observe that most seasonality effects are already captured by the retention component. However, seasonal features
+          could be added if needed (plus additional features and different parametrizations, for example multiplicative
+          effects).
 
-    \item The retention and revenue components are coupled as follows:
+    \item {\bf Coupling}: The retention and revenue coupling is the most interesting (and novel) part of this work. We
+          couple the two components through the number of active users. Here is the full model specification:
 
           \begin{align*}
-              \text{Revenue}    & \sim \text{Gamma}(N_{\text{active}}, \lambda)                                            \\
-              \log(\lambda) = ( & \text{intercept}                                                                         \\
-                                & + \beta_{\text{cohort age}} \cdot \text{cohort age}                                      \\
-                                & + \beta_{\text{age}} \cdot \text{age}                                                    \\
-                                & + \beta_{\text{cohort age} \times \text{age}} \cdot \text{cohort age} \times \text{age}) \\
-              N_{\text{active}} & \sim \text{Binomial}(N_{\text{total}}, p)                                                \\
+              \text{Revenue}    & \sim \text{Gamma}(N_{\text{active}}, \lambda)                                             \\
+              \log(\lambda) = ( & \text{intercept}                                                                          \\
+                                & + \beta_{\text{cohort age}} \times \text{cohort age}                                      \\
+                                & + \beta_{\text{age}} \times \text{age}                                                    \\
+                                & + \beta_{\text{cohort age} \times \text{age}} \times \text{cohort age} \times \text{age}) \\
+              N_{\text{active}} & \sim \text{Binomial}(N_{\text{total}}, p)                                                 \\
               \textrm{logit}(p) & = \text{BART}(\text{cohort age}, \text{age}, \text{month})
           \end{align*}
 
 \end{itemize}
 
-Our goal is to simultaneously estimate the BART parameters and the beta coefficients (including the intercept) of the linear
-component. Figure \ref{fig:revenue_retention_model} illustrates the complete model structure.
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{images/revenue_retention_21_0.png}
+    \caption{Number of active users across cohorts. This heatmap displays the absolute count of active users for each
+        cohort (rows) across observation periods (columns).}
+    \label{fig:active_users}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{images/revenue_retention_23_0.png}
+    \caption{Revenue per cohort. This heatmap visualizes the total revenue generated by each cohort (rows) across different
+        time periods (columns). The color intensity corresponds to revenue magnitude, revealing a strong correlation
+        with the number of active users (Figure \ref{fig:active_users}).}
+    \label{fig:revenue}
+\end{figure}
 
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_33_0.png}
-    \caption{Cohort-revenue-retention model structure.}
+    \caption{Cohort-revenue-retention model structure. This diagram illustrates the two coupled components of our model:
+        the retention component (left) using BART to model the probability of customers remaining active, and the
+        revenue component (right) using a gamma distribution with parameters informed by the retention model. The arrows
+        show the flow of information, demonstrating how the estimated number of active users from the retention model
+        directly feeds into the revenue model.}
     \label{fig:revenue_retention_model}
 \end{figure}
 
+Figure \ref{fig:revenue_retention_model} illustrates the complete model structure. Our goal is to simultaneously estimate
+the BART parameters and the beta coefficients (including the intercept) of the linear component.  \\
 
-\begin{remark}
-    This work is the result of a sequence of blog posts where all the details on the code and implementation are presented;
-    see \cite{orduz_retention}, \cite{orduz_retention_bart} and \cite{orduz_revenue_retention}.
-\end{remark}
-
+In the rest of the paper, we delve into the details of the model specification and diagnostics. Moreover, we describe
+how to generate out-of-sample predictions for both the retention and revenue matrices. To make the approach more tangible,
+we present a synthetic dataset in the next section. This should help the reader to better understand the data and the approach.
 
 \section{Synthetic Data}
 
 To illustrate our approach, we use a synthetic dataset (available as a {\em csv} file from \cite{orduz_revenue_retention}).
-The code to generate this dataset (deterministically) is publicly available in \cite{orduz_revenue_retention_data_code}. \\
-
+The code to generate this dataset (deterministically) is publicly available in \cite{orduz_revenue_retention_data_code}.
 Let's begin with exploratory data analysis. Figure \ref{fig:retention_matrix} displays the retention matrix per cohort and
 period. Two key observations stand out:
 
@@ -229,7 +264,7 @@ period. Two key observations stand out:
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_19_0.png}
-    \caption{Retention as a function of the period, clearly demonstrating the yearly seasonality pattern in retention values.}
+    \caption{Retention as a function of the period, demonstrating the yearly seasonality pattern in retention values.}
     \label{fig:retention_seasonal}
 \end{figure}
 
@@ -237,20 +272,6 @@ It's important to remember that retention is a ratio, making cohort size an impo
 of 0.4 could represent either $4/10$ or $4\times 10^{5} / 10^{6}$. The former case carries considerably more uncertainty in
 its estimation. This insight motivates us to examine the number of active users, as shown in Figure \ref{fig:active_users}.
 We observe that more recent cohorts have significantly more active users, a pattern we want our model to account for. \\
-
-\begin{figure}
-    \centering
-    \includegraphics[width=\textwidth]{images/revenue_retention_21_0.png}
-    \caption{Number of active users across cohorts.}
-    \label{fig:active_users}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=\textwidth]{images/revenue_retention_23_0.png}
-    \caption{Revenue per cohort.}
-    \label{fig:revenue}
-\end{figure}
 
 Next, we examine revenue patterns. Figure \ref{fig:revenue} presents revenue by cohort, showing a strong correlation with the
 number of active users. This suggests that revenue per user remains relatively stable over time. To verify this, we compute
@@ -263,27 +284,28 @@ include:
     \item Revenue per user exhibits a clear seasonality pattern, consistent with the seasonal pattern observed in retention.
     \item Revenue per active user does not show the same seasonality pattern since seasonal effects are already captured in
           the denominator (active users). Additionally, revenue per active user appears to decrease as cohort age increases,
-          suggesting that older cohorts generate less revenue per active customer.
+          suggesting that older cohorts generate less revenue per active customer. \\
 \end{itemize}
+
+With this exploratory analysis complete,we can proceed to the modeling phase.
 
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_27_0.png}
-    \caption{Revenue per user across cohorts.}
+    \caption{Revenue per user across cohorts. This visualization normalizes the total revenue by the original cohort size,
+        showing the average revenue generated per initially acquired user.}
     \label{fig:revenue_per_user}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_25_0.png}
-    \caption{Revenue per active user across cohorts.}
+    \caption{Revenue per active user across cohorts. This metric divides total revenue by the number of active users in each
+        period, isolating spending patterns from retention effects.}
     \label{fig:revenue_per_active_user}
 \end{figure}
 
-With this exploratory analysis complete, we can proceed to the modeling phase.
-
 \section{Model Specification and Diagnostics}
-
 Let's expand on the model structure outlined in the introduction. The core concept is to model the number of active users as
 a binomial random variable $\text{Binomial}(N_{\text{total}}, p)$, where $p$ represents the retention probability.
 We use Bayesian additive regression trees (BART) to model this latent variable $p$ using cohort age, age, and month (period)
@@ -357,7 +379,7 @@ In summary, our cohort-revenue-retention model is specified as:
     notation above for simplicity.
 \end{remark}
 
-Once we have the model specification, we can implement it in PyMC \cite{pymc2023} (see Appendix \ref{sec:appendix} and
+Once we have the model specification, we can implement it in PyMC (see Appendix \ref{sec:appendix} and
 \cite{orduz_revenue_retention}). Figure \ref{fig:posterior_predictive} shows the posterior predictive distribution of both
 model components. The trace plots for the linear terms (Figure \ref{fig:trace}) show good mixing with no divergences or
 convergence warnings.
@@ -366,14 +388,25 @@ convergence warnings.
     \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_37_0.png}
     \caption{Posterior predictive distribution of the retention (left) and revenue (right) components, showing good fit to
-        the observed data.}
+        the observed data. These density plots compare the distributions of observed values (blue) with simulated values
+        from the posterior predictive distribution (orange), providing a visual assessment of model fit. The substantial
+        overlap between observed and predicted distributions indicates that our model successfully captures the
+        underlying data-generating process for both retention and revenue components. This validation is crucial for
+        ensuring that the model's uncertainty estimates are well-calibrated and that its predictions will generalize
+        reliably to new data.}
     \label{fig:posterior_predictive}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_41_0.png}
-    \caption{Trace plots for the linear model parameters, showing good mixing and convergence of the MCMC chains.}
+    \caption{Trace plots for the linear model parameters, showing good mixing and convergence of the MCMC chains. These
+        plots display the sampled parameter values across iterations for each coefficient in the revenue component's
+        linear model. The rapid oscillation without visible trends or patterns indicates efficient exploration of the
+        posterior distribution (good mixing), while the consistent range of values across multiple chains suggests they
+        have converged to the same stationary distribution. These diagnostics are essential in Bayesian inference to
+        ensure reliable posterior estimates, as poor mixing or lack of convergence would undermine the validity of our
+        uncertainty quantification and predictions.}
     \label{fig:trace}
 \end{figure}
 
@@ -396,7 +429,12 @@ diagonal line indicating better fit.
         \includegraphics[width=0.5 \textwidth]{images/revenue_retention_47_0.png}
     \end{tabular}
     \caption{Retention (left) and revenue (right) in-sample posterior predictive mean values plotted against the actual
-        observations.}
+        observations. These scatter plots provide a quantitative assessment of model fit by comparing predicted
+        versus observed values, with points closer to the diagonal line indicating better predictions. The tight
+        clustering around the diagonal for both components demonstrates strong predictive accuracy across the entire
+        range of values. The retention plot shows particularly high precision for larger retention rates (upper right),
+        while the revenue plot maintains accuracy across various magnitudes, confirming the model's ability to capture
+        both components effectively without systematic bias in specific regions.}
     \label{fig:in_sample_mean}
 \end{figure}
 
@@ -413,7 +451,12 @@ actual revenue values. The model successfully captures the revenue variability a
     \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_51_0.png}
     \caption{Retention in-sample posterior predictive distribution for selected cohorts, showing $94\%$ HDI (blue shaded areas)
-        and observed retention values (blue points).}
+        and observed retention values (blue points). This visualization displays the model's predictive performance for
+        retention across time for different cohorts, with uncertainty quantified through highest density intervals.
+        The narrower intervals for more recent cohorts (bottom panels) reflect greater certainty due to more available
+        data, while the consistent capture of observed values within the intervals indicates well-calibrated uncertainty
+        estimates. The plots also reveal the model's ability to adapt to cohort-specific patterns and seasonal
+        fluctuations, demonstrating its flexibility in capturing complex temporal dynamics.}
     \label{fig:in_sample_retention}
 \end{figure}
 
@@ -421,14 +464,24 @@ actual revenue values. The model successfully captures the revenue variability a
     \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_53_0.png}
     \caption{Revenue in-sample posterior predictive distribution for selected cohorts, showing $94\%$ HDI (blue shaded areas)
-        and observed revenue values (blue points).}
+        and observed revenue values (blue points). These plots illustrate the model's revenue predictions and associated
+        uncertainty across time for different cohorts. The successful capture of observed values within the HDI bands
+        demonstrates the model's ability to accurately represent not just central tendencies but also the inherent
+        variability in revenue. The visualization highlights how our coupled modeling approach effectively propagates
+        uncertainty from the retention component to revenue estimates, providing business stakeholders with realistic
+        confidence intervals for financial planning and analysis.}
     \label{fig:in_sample_revenue}
 \end{figure}
 
 \begin{figure}
     \includegraphics[width=\textwidth]{images/revenue_retention_56_0.png}
     \caption{Additional view of posterior predictions across cohorts, illustrating the model's ability to capture
-        cohort-specific patterns.}
+        cohort-specific patterns. This panel view organizes predictions by cohort (columns) and shows how the model
+        adapts to the unique characteristics of each customer group. The consistent performance across cohorts of
+        different ages and sizes demonstrates the model's robustness and the effectiveness of the partial pooling
+        approach, where information is shared across cohorts while preserving their distinct behaviors. This balance
+        between shared information and cohort-specific modeling is particularly valuable for businesses with diverse
+        customer segments acquired through different channels or time periods.}
     \label{fig:additional_predictions}
 \end{figure}
 
@@ -460,7 +513,11 @@ revenue, respectively. The vertical dashed lines indicate the train/test split p
     \includegraphics[width=\textwidth]{images/revenue_retention_66_0.png}
     \caption{Retention out-of-sample posterior predictive distribution for selected cohorts. Blue areas represent training
         data $94\%$ HDI, red areas represent test data $94\%$ HDI, and the vertical dashed line indicates the train/test
-        split point.}
+        split point. This visualization demonstrates the model's forecasting capabilities by showing predictions beyond
+        the training data period. The consistent capture of future observations within the prediction intervals validates
+        the model's generalization ability. Notably, the prediction intervals appropriately widen as we forecast further
+        into the future, reflecting increasing uncertainty with time horizon. The model's successful extrapolation of
+        seasonal patterns is particularly evident, showing its ability to learn and project complex temporal dynamics.}
     \label{fig:out_sample_retention}
 \end{figure}
 
@@ -469,7 +526,12 @@ revenue, respectively. The vertical dashed lines indicate the train/test split p
     \includegraphics[width=\textwidth]{images/revenue_retention_68_0.png}
     \caption{Revenue out-of-sample posterior predictive distribution for selected cohorts. Blue areas represent training
         data $94\%$ HDI, red areas represent test data $94\%$ HDI, and the vertical dashed line indicates the train/test
-        split point.}
+        split point. This figure evaluates the model's ability to forecast future revenue, the ultimate business metric
+        of interest. The accurate prediction of revenue patterns in the test period demonstrates how our coupled modeling
+        approach effectively translates retention forecasts into financial projections. The widening prediction intervals
+        for distant forecasts provide business stakeholders with realistic assessments of financial uncertainty, enabling
+        risk-aware decision making. For newer cohorts with limited historical data (e.g., bottom panels), the model
+        leverages information from older cohorts to produce reasonable predictions despite data sparsity.}
     \label{fig:out_sample_revenue}
 \end{figure}
 
