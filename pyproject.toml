@@ -18,6 +18,7 @@ platforms = ["osx-arm64", "osx-64", "linux-64"]
 [tool.pixi.feature.core.dependencies]
 arviz = ">=0.22.0"
 bambi = ">=0.15.0"
+orbit-ml = ">=1.1.4.9"
 preliz = "*"
 pymc = ">=5.23.0"
 pymc-bart = ">=0.5.14"
@@ -55,7 +56,6 @@ networkx = "*"
 numpyro = ">=0.18.0"
 nutpie = "*"
 openpyxl = "*"
-orbit-ml = ">=1.1.4.9"
 pandas = ">=2.2.3"
 pandera = { version = "*", extras = ["polars"] }
 pgmpy = "*"
