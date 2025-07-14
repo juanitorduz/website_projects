@@ -345,7 +345,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/a0/c4/c2971a3ba4c6103a3d10c4b0f24f461ddc027f0f09763220cf35ca1401b3/nest_asyncio-1.6.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0a/92/dda081df8d207b72e419ef5dbd6a861041ceabdc609557249f334555a619/nfoursid-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d2/1d/1b658dbd2b9fa9c4c9f32accbfc0205d532c8c6194dc0f2a4c0428e7128a/nodeenv-1.9.1-py2.py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/94/a3/8f689c90970afc61ca112af937168e1d364efe36682e9b92685d6158899c/numpyro-0.18.0-py3-none-any.whl
+      - pypi: git+https://github.com/pyro-ppl/numpyro.git#6fd6045a3df94e7dbb61620615920f6c7c505c89
       - pypi: https://files.pythonhosted.org/packages/f5/a1/4c05e4707b0560977b337b33b5f551186bab87f432197002c50c8dcdfc81/nutpie-0.15.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/6e/89/f7a07dc961b60645dbbf42e80f2bc85ade7feb9a491b11a1e973aa00071f/nvidia_nccl_cu12-2.27.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/c0/da/977ded879c29cbd04de313843e76868e6e13408a94ed6b987245dc7c8506/openpyxl-3.1.5-py2.py3-none-any.whl
@@ -728,7 +728,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/a0/c4/c2971a3ba4c6103a3d10c4b0f24f461ddc027f0f09763220cf35ca1401b3/nest_asyncio-1.6.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0a/92/dda081df8d207b72e419ef5dbd6a861041ceabdc609557249f334555a619/nfoursid-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d2/1d/1b658dbd2b9fa9c4c9f32accbfc0205d532c8c6194dc0f2a4c0428e7128a/nodeenv-1.9.1-py2.py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/94/a3/8f689c90970afc61ca112af937168e1d364efe36682e9b92685d6158899c/numpyro-0.18.0-py3-none-any.whl
+      - pypi: git+https://github.com/pyro-ppl/numpyro.git#6fd6045a3df94e7dbb61620615920f6c7c505c89
       - pypi: https://files.pythonhosted.org/packages/1d/2a/c8ea07c1d5304d51e1b3f5db68d196fc29fe1a456ed36750790f79a74399/nutpie-0.15.1-cp312-cp312-macosx_10_12_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/c0/da/977ded879c29cbd04de313843e76868e6e13408a94ed6b987245dc7c8506/openpyxl-3.1.5-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b9/33/f86091c706db1a5459f501830241afff2ecab3532725c188ea57be6e54de/optax-0.2.5-py3-none-any.whl
@@ -1124,7 +1124,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/a0/c4/c2971a3ba4c6103a3d10c4b0f24f461ddc027f0f09763220cf35ca1401b3/nest_asyncio-1.6.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0a/92/dda081df8d207b72e419ef5dbd6a861041ceabdc609557249f334555a619/nfoursid-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d2/1d/1b658dbd2b9fa9c4c9f32accbfc0205d532c8c6194dc0f2a4c0428e7128a/nodeenv-1.9.1-py2.py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/94/a3/8f689c90970afc61ca112af937168e1d364efe36682e9b92685d6158899c/numpyro-0.18.0-py3-none-any.whl
+      - pypi: git+https://github.com/pyro-ppl/numpyro.git#6fd6045a3df94e7dbb61620615920f6c7c505c89
       - pypi: https://files.pythonhosted.org/packages/85/cf/c5529c8014b0da387c5e3b4d3851feceb13462176eceb0cf6040743ad6ec/nutpie-0.15.1-cp312-cp312-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/c0/da/977ded879c29cbd04de313843e76868e6e13408a94ed6b987245dc7c8506/openpyxl-3.1.5-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b9/33/f86091c706db1a5459f501830241afff2ecab3532725c188ea57be6e54de/optax-0.2.5-py3-none-any.whl
@@ -8503,10 +8503,9 @@ packages:
   - pkg:pypi/numpy?source=hash-mapping
   size: 6437085
   timestamp: 1747545094808
-- pypi: https://files.pythonhosted.org/packages/94/a3/8f689c90970afc61ca112af937168e1d364efe36682e9b92685d6158899c/numpyro-0.18.0-py3-none-any.whl
+- pypi: git+https://github.com/pyro-ppl/numpyro.git#6fd6045a3df94e7dbb61620615920f6c7c505c89
   name: numpyro
   version: 0.18.0
-  sha256: b7cc96c59b55a0bc254ca365c68057840ae0a358b99ace288eaceb7cf199f762
   requires_dist:
   - jax>=0.4.25
   - jaxlib>=0.4.25
@@ -8526,11 +8525,13 @@ packages:
   - pyro-api>=0.1.1 ; extra == 'test'
   - scikit-learn ; extra == 'test'
   - scipy>=1.9 ; extra == 'test'
-  - dm-haiku ; extra == 'dev'
+  - dm-haiku>=0.0.14 ; python_full_version >= '3.10' and extra == 'dev'
+  - dm-haiku<0.0.14 ; python_full_version < '3.10' and extra == 'dev'
+  - equinox ; extra == 'dev'
   - flax ; extra == 'dev'
   - funsor>=0.4.1 ; extra == 'dev'
   - graphviz ; extra == 'dev'
-  - jaxns==2.6.3 ; extra == 'dev'
+  - jaxns>=2.6.3,<=2.6.8 ; extra == 'dev'
   - matplotlib ; extra == 'dev'
   - optax>=0.0.6 ; extra == 'dev'
   - pylab-sdk ; extra == 'dev'
