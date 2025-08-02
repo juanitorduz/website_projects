@@ -113,13 +113,14 @@ nnx_module = MLP(
 
 ## NumPyro Model
 
-```{.python code-line-numbers="|1-3|5-7|8-13|15-19|21|23-24"}
+```{.python code-line-numbers="|1-3|5-8|9-14|16-20|22|24-25"}
 import numpyro
 import numpyro.distributions as dist
 from numpyro.contrib.module import random_nnx_module
 
 def model(
-    x: Float[Array, "n_obs features"], y: Int[Array, " n_obs"] | None = None
+    x: Float[Array, "n_obs features"],
+    y: Int[Array, " n_obs"] | None = None,
 ) -> None:
     n_obs: int = x.shape[0]
 
@@ -140,16 +141,165 @@ def model(
         numpyro.sample("y", dist.Bernoulli(probs=p), obs=y)
 ```
 
-
 ## Prior Predictive Checks
 
 ![](intro_svi_files/static/images/intro_svi_files/intro_svi_20_0.png){fig-align="center" width="1000"}
 
 ## Inference: SVI in NumPyro
 
+```{.python code-line-numbers="|5|6|7|8|10-17|19-20"}
+import numpyro
+from numpyro.infer import SVI, Trace_ELBO
+from numpyro.infer.autoguide import AutoNormal
+
+guide = AutoNormal(model) # <- Posterior Approximation
+optimizer = numpyro.optim.Adam(step_size=0.01) # <- Optimizer
+svi = SVI(model, guide, optimizer, loss=Trace_ELBO())
+num_steps = 10_000
+
+rng_key, rng_subkey = random.split(key=rng_key)
+
+# Optimization Loop
+svi_result = svi.run(
+    rng_subkey,
+    num_steps,
+    x_train,
+    y_train,
+)
+
+# Results
+params = svi_result.params
+```
+
+## Inference: ELBO Curve
+
+![](intro_svi_files/static/images/elbo_curve_example.png){fig-align="center" width="1000"}
+
+
+## Inference: Custom Guide 🤕
+
+```{.python code-line-numbers="|1-11|13-23|25-31|33-45"}
+def layer_guide(
+    loc_shape: tuple[int, ...],
+    loc_amplitude: float,
+    scale_shape: tuple[int, ...],
+    scale_amplitude: float,
+    loc_name: str,
+    scale_name: str,
+    layer_name: str,
+    event_shape: int = 1,
+    seed: int = 42,
+) -> None:
+
+    # Create local random key for this layer
+    rng_key = random.PRNGKey(seed)
+
+    # Initialize location parameters with random values
+    rng_key, rng_subkey = random.split(rng_key)
+    # As for general neural networks, we need to initialize the parameters.
+    # It is recommended to initialize the parameters at random.
+    # Here we do it for the location parameters.
+    loc = numpyro.param(
+        loc_name, loc_amplitude * random.uniform(rng_subkey, shape=loc_shape)
+    )
+
+    # We do the same for the scale parameters.
+    rng_key, rng_subkey = random.split(rng_key)
+    scale = numpyro.param(
+        scale_name,
+        scale_amplitude * random.uniform(rng_subkey, shape=scale_shape),
+        constraint=dist.constraints.positive,  # Ensure scale > 0
+    )
+
+    # Choose distribution type based on layer name
+    if "bias" in layer_name:
+        # Bias parameters use Normal distribution (matching model prior)
+        numpyro.sample(
+            layer_name,
+            dist.Normal(loc=loc, scale=scale).to_event(event_shape),
+        )
+    else:
+        # Weight parameters use SoftLaplace distribution (matching model prior)
+        numpyro.sample(
+            layer_name,
+            dist.SoftLaplace(loc=loc, scale=scale).to_event(event_shape),
+        )
+
+```
+
+
+## Inference: Custom Optimizer
+
+```{.python code-line-numbers="|1|3-10|11-21"}
+import optax
+# OneCycle schedule: low -> high -> low with specific timing
+scheduler = optax.linear_onecycle_schedule(
+    transition_steps=8_000,  # Total number of optimization steps
+    peak_value=0.008,  # Maximum learning rate (reached at pct_start)
+    pct_start=0.008,  # Percent of training to reach peak (0.8%)
+    pct_final=0.8,  # Percent of training for final phase (80%)
+    div_factor=3,  # Initial LR = peak_value / div_factor
+    final_div_factor=4,  # Final LR = initial_LR / final_div_factor
+)
+# Chain multiple optimizers for sophisticated training
+optimizer = optax.chain(
+    # Primary optimizer: Adam with scheduled learning rate
+    optax.adam(learning_rate=scheduler),
+    # Secondary optimizer: Reduce LR when loss plateaus
+    optax.contrib.reduce_on_plateau(
+        factor=0.1,  # Multiply LR by 0.1 when plateau detected
+        patience=10,  # Wait 10 evaluations before reducing
+        accumulation_size=100,  # Window size for detecting plateaus
+    ),
+)
+```
+
+## Inference: Custom Optimization Loop
+
+```{.python code-line-numbers="|1-3|5-7|9-11|13-22|24-32"}
+def body_fn(svi_state, _):
+    svi_state, loss = svi.update(svi_state, x=x_train, y=y_train)
+    return svi_state, loss
+
+with tqdm.trange(1, num_steps + 1) as t:
+    batch = max(num_steps // 20, 1)
+    patience_counter = 0
+
+    for i in t:
+        # Perform one training step (JIT compiled for speed)
+        svi_state, train_loss = jax.jit(body_fn)(svi_state, None)
+
+        # Normalize loss by dataset size for fair comparison
+        norm_train_loss = jax.device_get(train_loss) / y_train.shape[0]
+        train_losses.append(jax.device_get(train_loss))
+        norm_train_losses.append(norm_train_loss)
+
+        # Compute validation loss (JIT compiled for speed)
+        val_loss = jax.jit(get_val_loss)(svi_state, x_val, y_val)
+        norm_val_loss = jax.device_get(val_loss) / y_val.shape[0]
+        val_losses.append(jax.device_get(val_loss))
+        norm_val_losses.append(norm_val_loss)
+
+        # Early stopping logic: stop if validation loss > training loss consistently
+        condition = norm_val_loss > norm_train_loss
+        patience_counter = patience_counter + 1 if condition else 0
+
+        if patience_counter >= patience:
+            print(
+                f"Early stopping at step {i} (validation loss exceeding training loss)"
+            )
+            break
+```
+
+
 ## Inference: Early Stopping
 
 ![](intro_svi_files/static/images/intro_svi_files/intro_svi_30_0.png){fig-align="center" width="1000"}
+
+```{.python}
+37%|███▋      | 2924/8000 [00:02<00:04, 1145.56it/s, train: 396.8835, val: 202.2204]
+Early stopping at step 2925 (validation loss exceeding training loss)
+```
 
 ## Model Evaluation: Posterior AUC
 
@@ -163,7 +313,7 @@ def model(
 
 ![](intro_svi_files/static/images/intro_svi_files/intro_svi_49_0.png){fig-align="center" width="1000"}
 
-## Posterior Predictive "Uncertainty"
+## Posterior Predictive *Uncertainty*
 
 ![](intro_svi_files/static/images/intro_svi_files/intro_svi_51_0.png){fig-align="center" width="1000"}
 
