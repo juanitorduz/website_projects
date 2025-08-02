@@ -56,6 +56,15 @@ Classification problem with non-linear decision boundary.
 
 ## Model Structure
 
+::: {.callout-tip}
+## Model Components
+  
+- We use a multi-layer perceptron (MLP) to model the non-linear decision boundary parameter $p(x)$.
+- We model our data with a Bernoulli likelihood with parameter $p(x)$.
+
+:::
+
+
 ![](intro_svi_files/static/images/intro_svi_files/intro_svi_15_1.svg){fig-align="center" width="1000"}
 
 ## Neural Network Component
@@ -135,6 +144,8 @@ def model(
 ## Prior Predictive Checks
 
 ![](intro_svi_files/static/images/intro_svi_files/intro_svi_20_0.png){fig-align="center" width="1000"}
+
+## Inference: SVI in NumPyro
 
 ## Inference: Early Stopping
 
