@@ -1,9 +1,10 @@
 [workspace]
 name = "website_projects"
 channels = ["conda-forge", "pytorch"]
-platforms = ["osx-arm64", "osx-64", "linux-64"]
+platforms = ["osx-arm64", "linux-64"]
 
 [dependencies]
+python = ">=3.12,<3.13"
 arviz = ">=0.22.0"
 bambi = ">=0.15.0"
 cvxpy = "*"
@@ -32,6 +33,7 @@ graphviz = "*"
 ipykernel = "*"
 ipython = "*"
 ipywidgets = "*"
+jax = ">=0.7.0"
 jaxopt = "*"
 jaxtyping = "*"
 jupytext = "*"
@@ -39,14 +41,14 @@ lightgbm = "*"
 matplotlib = ">=3.9.0"
 mlforecast = "*"
 networkx = "*"
-numpyro = { git = "https://github.com/pyro-ppl/numpyro.git", branch = "master" }
+numpyro = ">=0.19.0"
 nutpie = "*"
 openpyxl = "*"
 pandas = ">=2.2.3"
 pandera = { version = "*", extras = ["polars"] }
-polars = ">=1.4.0"
+polars = ">=1.32.2"
 pre-commit = "*"
-pydantic = ">=2.8"
+pydantic = ">=2.11.7"
 pyfixest = "*"
 pyro-ppl = ">=1.9.1"
 rich = "*"
@@ -56,7 +58,7 @@ seaborn = ">=0.13.2"
 shap = "*"
 statsforecast = "*"
 statsmodels = ">=0.14.4"
-tensorflow-probability = ">=0.25.0"
+tfp-nightly = "*"
 tfp-causalimpact = "*"
 utilsforecast = "*"
 watermark = "*"
