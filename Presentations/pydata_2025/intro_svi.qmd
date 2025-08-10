@@ -26,11 +26,11 @@ format:
 
 ## Outline
 
-- Motivating Examples:
-  - Custom Probabilistic Forecasting Models
-  - Hierarchical Cohort Revenue-Retention Models
+- Motivating
 
 - Variational Inference in a Nutshell
+
+- Toy Example: Parameter Recovery Gamma Distribution
 
 - **End-to-End Example: Bayesian Neural Network Model**
 
@@ -44,11 +44,92 @@ format:
 :::
 
 
-## Toy Example: Two Moons Dataset
+## Estimating the Concentration Parameter of a Gamma Distribution $\sim x^{\alpha - 1} e^{-x}$
+
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_5_1.png){fig-align="center" width="1000"}
+
+## Approximation Model
+
+```{.python code-line-numbers="|1-2|3-8|9-16"}
+# Model to estimate the concentration parameter
+def model(z: jax.Array | None = None) -> None:
+    # Sample the concentration parameter from a HalfNormal distribution
+    # as the concentration parameter has to be positive
+    concentration = numpyro.sample(
+        "concentration",
+        dist.HalfNormal(scale=1),
+    )
+    # Sample the data from a Gamma distribution
+    # with the concentration parameter and a rate of 1.0
+    rate = 1.0
+    numpyro.sample(
+        "z",
+        dist.Gamma(concentration=concentration, rate=rate),
+        obs=z,
+    )
+```
+
+## Approximation Guide
+
+```{.python code-line-numbers="|1|2-11|12-16|17-22|23-24"}
+def guide(z: jax.Array | None = None) -> None:
+    # Location and scale parameters of the normal distribution
+    concentration_loc = numpyro.param(
+        "concentration_loc",
+        init_value=0.5,
+    )
+    concentration_scale = numpyro.param(
+        "concentration_scale",
+        init_value=0.1,
+        constraint=dist.constraints.positive,
+    )
+    # Variational approximation
+    base_distribution = dist.Normal(
+        loc=concentration_loc,
+        scale=concentration_scale,
+    )
+    # We need to transform the base distribution
+    # as the concentration parameter has to be positive
+    transformed_distribution = dist.TransformedDistribution(
+        base_distribution=base_distribution,
+        transforms=dist.transforms.ExpTransform(),
+    )
+    # Sample the concentration parameter from the transformed distribution
+    numpyro.sample("concentration", transformed_distribution)
+```
+
+## Inference with SVI
+
+```{.python code-line-numbers="|1-2|4-5|7-8|10-17"}
+# Define the loss function (ELBO)
+loss = Trace_ELBO(num_particles=10)
+
+# Define the optimizer
+optimizer = optax.adam(learning_rate=0.005)
+
+# Define the SVI algorithm
+svi = SVI(model=model, guide=guide, optim=optimizer, loss=loss)
+
+# Run the SVI algorithm
+rng_key, rng_subkey = random.split(rng_key)
+svi_result = svi.run(
+    rng_subkey,
+    num_steps=1_000,
+    z=z,
+    progress_bar=True,
+)
+```
+
+## Approximation Results
+
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_28_1.png){fig-align="center" width="1000"}
+
+
+## Example: Bayesian Neural Network
 
 Classification problem with non-linear decision boundary.
 
-![](intro_svi_files/static/images/intro_svi_files/intro_svi_6_0.png){fig-align="center" width="1000"}
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_37_1.png){fig-align="center" width="1000"}
 
 ::: footer
 [https://scikit-learn.org/stable/modules/generated/sklearn.datasets.make_moons.html](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.make_moons.html)
@@ -65,14 +146,16 @@ Classification problem with non-linear decision boundary.
 :::
 
 
-![](intro_svi_files/static/images/intro_svi_files/intro_svi_15_1.svg){fig-align="center" width="1000"}
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_46_0.svg){fig-align="center" width="1000"}
 
 ## Neural Network Component
 
-```{.python code-line-numbers="|1-3|5-10|12-15|17-21"}
-from itertools import pairwise
+```{.python code-line-numbers="|1-4|7-11|12-17|19-23|26-34"}
 import jax
+import jax.random as random
 from flax import nnx
+from itertools import pairwise
+
 
 class MLP(nnx.Module):
 
@@ -91,18 +174,11 @@ class MLP(nnx.Module):
             x = jax.nn.tanh(layer(x))
 
         return jax.nn.sigmoid(self.layers[-1](x))
-```
 
-## Initialize the Neural Network
-
-```{.python code-line-numbers="|1-3|5-6|8-13"}
-import jax.random as random
-
-rng_key, rng_subkey = random.split(rng_key)
 
 hidden_layers = [4, 3]
 dout = 1
-
+rng_key, rng_subkey = random.split(rng_key)
 nnx_module = MLP(
     din=x_train.shape[1],
     dout=dout,
@@ -143,11 +219,11 @@ def model(
 
 ## Prior Predictive Checks
 
-![](intro_svi_files/static/images/intro_svi_files/intro_svi_20_0.png){fig-align="center" width="1000"}
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_51_1.png){fig-align="center" width="1000"}
 
 ## Inference: SVI in NumPyro
 
-```{.python code-line-numbers="|5|6|7|8|10-17|19-20"}
+```{.python code-line-numbers="|5|6|7|8|10-18|20-21"}
 import numpyro
 from numpyro.infer import SVI, Trace_ELBO
 from numpyro.infer.autoguide import AutoNormal
@@ -178,7 +254,7 @@ params = svi_result.params
 
 ## Inference: Custom Guide 🤕
 
-```{.python code-line-numbers="|1-11|13-23|25-31|33-45"}
+```{.python}
 def layer_guide(
     loc_shape: tuple[int, ...],
     loc_amplitude: float,
@@ -191,39 +267,7 @@ def layer_guide(
     seed: int = 42,
 ) -> None:
 
-    # Create local random key for this layer
-    rng_key = random.PRNGKey(seed)
-
-    # Initialize location parameters with random values
-    rng_key, rng_subkey = random.split(rng_key)
-    # As for general neural networks, we need to initialize the parameters.
-    # It is recommended to initialize the parameters at random.
-    # Here we do it for the location parameters.
-    loc = numpyro.param(
-        loc_name, loc_amplitude * random.uniform(rng_subkey, shape=loc_shape)
-    )
-
-    # We do the same for the scale parameters.
-    rng_key, rng_subkey = random.split(rng_key)
-    scale = numpyro.param(
-        scale_name,
-        scale_amplitude * random.uniform(rng_subkey, shape=scale_shape),
-        constraint=dist.constraints.positive,  # Ensure scale > 0
-    )
-
-    # Choose distribution type based on layer name
-    if "bias" in layer_name:
-        # Bias parameters use Normal distribution (matching model prior)
-        numpyro.sample(
-            layer_name,
-            dist.Normal(loc=loc, scale=scale).to_event(event_shape),
-        )
-    else:
-        # Weight parameters use SoftLaplace distribution (matching model prior)
-        numpyro.sample(
-            layer_name,
-            dist.SoftLaplace(loc=loc, scale=scale).to_event(event_shape),
-        )
+    . . .
 
 ```
 
@@ -294,7 +338,7 @@ with tqdm.trange(1, num_steps + 1) as t:
 
 ## Inference: Early Stopping
 
-![](intro_svi_files/static/images/intro_svi_files/intro_svi_30_0.png){fig-align="center" width="1000"}
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_61_1.png){fig-align="center" width="1000"}
 
 ```{.python}
 37%|███▋      | 2924/8000 [00:02<00:04, 1145.56it/s, train: 396.8835, val: 202.2204]
@@ -303,22 +347,18 @@ Early stopping at step 2925 (validation loss exceeding training loss)
 
 ## Model Evaluation: Posterior AUC
 
-![](intro_svi_files/static/images/intro_svi_files/intro_svi_39_0.png){fig-align="center" width="1000"}
-
-## Model Evaluation: Posterior ROC
-
-![](intro_svi_files/static/images/intro_svi_files/intro_svi_47_0.png){fig-align="center" width="1000"}
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_70_1.png){fig-align="center" width="1000"}
 
 ## Posterior Predictive Mean
 
-![](intro_svi_files/static/images/intro_svi_files/intro_svi_49_0.png){fig-align="center" width="1000"}
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_80_1.png){fig-align="center" width="1000"}
 
 ## Posterior Predictive *Uncertainty*
 
-![](intro_svi_files/static/images/intro_svi_files/intro_svi_51_0.png){fig-align="center" width="1000"}
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_82_1.png){fig-align="center" width="1000"}
 
 ## Predictions Outside Training Data
 
-![](intro_svi_files/static/images/intro_svi_files/intro_svi_56_0.png){fig-align="center" width="1000"}
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_87_1.png){fig-align="center" width="1000"}
 
 ## References
