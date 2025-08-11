@@ -26,7 +26,7 @@ format:
 
 ## Outline
 
-- Motivating
+- Motivating Examples
 
 - Variational Inference in a Nutshell
 
@@ -43,12 +43,30 @@ format:
 [https://juanitorduz.github.io/intro_svi/](https://juanitorduz.github.io/intro_svi/)
 :::
 
+##  {.smaller}
+
+::: {.columns}
+
+::: {.column width="50%"}
+### [Demand Forecasting](https://www.youtube.com/watch?v=9Q6r2w0CDB0)
+![](intro_svi_files/static/images/numpyro_hierarchical_forecasting.png){fig-align="center" width="100%"}
+:::
+
+::: {.column width="50%"}
+### [Cohort Modeling](https://juanitorduz.github.io/hierarchical_revenue_retention/)
+![](intro_svi_files/static/images/hierarchical_revenue_retention.png){fig-align="center" width="100%"}
+:::
+
+:::
 
 ## Estimating the Concentration Parameter of a Gamma Distribution $\sim x^{\alpha - 1} e^{-x}$
 
 ![](intro_svi_files/static/images/intro_svi_files/intro_svi_5_1.png){fig-align="center" width="1000"}
 
 ## Approximation Model
+
+We want to estimate the concentration parameter of a Gamma distribution. We model the **data generating process** as:
+
 
 ```{.python code-line-numbers="|1-2|3-8|9-16"}
 # Model to estimate the concentration parameter
@@ -99,6 +117,8 @@ def guide(z: jax.Array | None = None) -> None:
 ```
 
 ## Inference with SVI
+
+This is how a typical SVI workflow looks like in NumPyro:
 
 ```{.python code-line-numbers="|1-2|4-5|7-8|10-17"}
 # Define the loss function (ELBO)
@@ -266,37 +286,43 @@ def layer_guide(
     event_shape: int = 1,
     seed: int = 42,
 ) -> None:
-
-    . . .
-
 ```
 
+::: {.callout-tip}
+# Writing a custom guide?
+- [If you are having trouble constructing a custom guide](https://pyro.ai/examples/svi_part_iv.html#6.-If-you-are-having-trouble-constructing-a-custom-guide,-use-an-AutoGuide), use an [`AutoGuide`](https://num.pyro.ai/en/stable/autoguide.html).
+- [Parameter initialization matters](https://pyro.ai/examples/svi_part_iv.html#7.-Parameter-initialization-matters:-initialize-guide-distributions-to-have-low-variance): initialize guide distributions to have low variance.
+- [Pay attention to scales](https://pyro.ai/examples/svi_part_iv.html#11.-Pay-attention-to-scales).
+:::
+
+::: footer
+[SVI Part IV: Tips and Tricks](https://pyro.ai/examples/svi_part_iv.html)
+:::
 
 ## Inference: Custom Optimizer
 
-```{.python code-line-numbers="|1|3-10|11-21"}
+```{.python code-line-numbers="|1|2-10|11-21"}
 import optax
-# OneCycle schedule: low -> high -> low with specific timing
+
 scheduler = optax.linear_onecycle_schedule(
-    transition_steps=8_000,  # Total number of optimization steps
-    peak_value=0.008,  # Maximum learning rate (reached at pct_start)
-    pct_start=0.008,  # Percent of training to reach peak (0.8%)
-    pct_final=0.8,  # Percent of training for final phase (80%)
-    div_factor=3,  # Initial LR = peak_value / div_factor
-    final_div_factor=4,  # Final LR = initial_LR / final_div_factor
+    transition_steps=8_000,  
+    peak_value=0.008,  
+    pct_start=0.008,  
+    pct_final=0.8,  
+    div_factor=3,  
+    final_div_factor=4,
 )
-# Chain multiple optimizers for sophisticated training
+
 optimizer = optax.chain(
-    # Primary optimizer: Adam with scheduled learning rate
     optax.adam(learning_rate=scheduler),
-    # Secondary optimizer: Reduce LR when loss plateaus
     optax.contrib.reduce_on_plateau(
-        factor=0.1,  # Multiply LR by 0.1 when plateau detected
-        patience=10,  # Wait 10 evaluations before reducing
-        accumulation_size=100,  # Window size for detecting plateaus
+        factor=0.1,  
+        patience=10,  
+        accumulation_size=100,  
     ),
 )
 ```
+
 
 ## Inference: Custom Optimization Loop
 

@@ -6,8 +6,8 @@
 <script src="intro_svi_files/libs/quarto-html/tippy.umd.min.js"></script>
 <link href="intro_svi_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="intro_svi_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<link href="intro_svi_files/libs/quarto-html/quarto-syntax-highlighting-46f4cc9626f044588a66931b604fc9c8.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.7.31">
+<link href="intro_svi_files/libs/quarto-html/quarto-syntax-highlighting-d329e753491efaeac79c98c4b193a686.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.7.33">
 
   <meta name="author" content="Dr.&nbsp;Juan Orduz">
   <title>Scaling Probabilistic Models with Variational Inference</title>
@@ -211,7 +211,7 @@
 <section id="outline" class="slide level2">
 <h2>Outline</h2>
 <ul>
-<li><p>Motivating</p></li>
+<li><p>Motivating Examples</p></li>
 <li><p>Variational Inference in a Nutshell</p></li>
 <li><p>Toy Example: Parameter Recovery Gamma Distribution</p></li>
 <li><p><strong>End-to-End Example: Bayesian Neural Network Model</strong></p></li>
@@ -231,12 +231,32 @@
 </div>
 </div>
 </section>
+<section id="section" class="slide level2 smaller">
+<h2></h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h3 id="demand-forecasting"><a href="https://www.youtube.com/watch?v=9Q6r2w0CDB0">Demand Forecasting</a></h3>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="intro_svi_files/static/images/numpyro_hierarchical_forecasting.png" class="quarto-figure quarto-figure-center" style="width:100.0%"></p>
+</figure>
+</div>
+</div><div class="column" style="width:50%;">
+<h3 id="cohort-modeling"><a href="https://juanitorduz.github.io/hierarchical_revenue_retention/">Cohort Modeling</a></h3>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="intro_svi_files/static/images/hierarchical_revenue_retention.png" class="quarto-figure quarto-figure-center" style="width:100.0%"></p>
+</figure>
+</div>
+</div></div>
+</section>
 <section id="estimating-the-concentration-parameter-of-a-gamma-distribution-sim-xalpha---1-e-x" class="slide level2">
 <h2>Estimating the Concentration Parameter of a Gamma Distribution <span class="math inline">\(\sim x^{\alpha - 1} e^{-x}\)</span></h2>
 
 <img data-src="intro_svi_files/static/images/intro_svi_files/intro_svi_5_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
 <section id="approximation-model" class="slide level2">
 <h2>Approximation Model</h2>
+<p>We want to estimate the concentration parameter of a Gamma distribution. We model the <strong>data generating process</strong> as:</p>
 <div class="sourceCode" id="cb1" data-code-line-numbers="|1-2|3-8|9-16"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a><span class="co"># Model to estimate the concentration parameter</span></span>
 <span id="cb1-2"><a href=""></a><span class="kw">def</span> model(z: jax.Array <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
 <span id="cb1-3"><a href=""></a>    <span class="co"># Sample the concentration parameter from a HalfNormal distribution</span></span>
@@ -283,6 +303,7 @@
 </section>
 <section id="inference-with-svi" class="slide level2">
 <h2>Inference with SVI</h2>
+<p>This is how a typical SVI workflow looks like in NumPyro:</p>
 <div class="sourceCode" id="cb3" data-code-line-numbers="|1-2|4-5|7-8|10-17"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href=""></a><span class="co"># Define the loss function (ELBO)</span></span>
 <span id="cb3-2"><a href=""></a>loss <span class="op">=</span> Trace_ELBO(num_particles<span class="op">=</span><span class="dv">10</span>)</span>
 <span id="cb3-3"><a href=""></a></span>
@@ -442,33 +463,49 @@
 <span id="cb7-8"><a href=""></a>    layer_name: <span class="bu">str</span>,</span>
 <span id="cb7-9"><a href=""></a>    event_shape: <span class="bu">int</span> <span class="op">=</span> <span class="dv">1</span>,</span>
 <span id="cb7-10"><a href=""></a>    seed: <span class="bu">int</span> <span class="op">=</span> <span class="dv">42</span>,</span>
-<span id="cb7-11"><a href=""></a>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
-<span id="cb7-12"><a href=""></a></span>
-<span id="cb7-13"><a href=""></a>    . . .</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-11"><a href=""></a>) <span class="op">-&gt;</span> <span class="va">None</span>:</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Writing a custom guide?</strong></p>
+</div>
+<div class="callout-content">
+<ul>
+<li><a href="https://pyro.ai/examples/svi_part_iv.html#6.-If-you-are-having-trouble-constructing-a-custom-guide,-use-an-AutoGuide">If you are having trouble constructing a custom guide</a>, use an <a href="https://num.pyro.ai/en/stable/autoguide.html"><code>AutoGuide</code></a>.</li>
+<li><a href="https://pyro.ai/examples/svi_part_iv.html#7.-Parameter-initialization-matters:-initialize-guide-distributions-to-have-low-variance">Parameter initialization matters</a>: initialize guide distributions to have low variance.</li>
+<li><a href="https://pyro.ai/examples/svi_part_iv.html#11.-Pay-attention-to-scales">Pay attention to scales</a>.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="footer">
+<p><a href="https://pyro.ai/examples/svi_part_iv.html">SVI Part IV: Tips and Tricks</a></p>
+</div>
 </section>
 <section id="inference-custom-optimizer" class="slide level2">
 <h2>Inference: Custom Optimizer</h2>
-<div class="sourceCode" id="cb8" data-code-line-numbers="|1|3-10|11-21"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href=""></a><span class="im">import</span> optax</span>
-<span id="cb8-2"><a href=""></a><span class="co"># OneCycle schedule: low -&gt; high -&gt; low with specific timing</span></span>
+<div class="sourceCode" id="cb8" data-code-line-numbers="|1|2-10|11-21"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href=""></a><span class="im">import</span> optax</span>
+<span id="cb8-2"><a href=""></a></span>
 <span id="cb8-3"><a href=""></a>scheduler <span class="op">=</span> optax.linear_onecycle_schedule(</span>
-<span id="cb8-4"><a href=""></a>    transition_steps<span class="op">=</span><span class="dv">8_000</span>,  <span class="co"># Total number of optimization steps</span></span>
-<span id="cb8-5"><a href=""></a>    peak_value<span class="op">=</span><span class="fl">0.008</span>,  <span class="co"># Maximum learning rate (reached at pct_start)</span></span>
-<span id="cb8-6"><a href=""></a>    pct_start<span class="op">=</span><span class="fl">0.008</span>,  <span class="co"># Percent of training to reach peak (0.8%)</span></span>
-<span id="cb8-7"><a href=""></a>    pct_final<span class="op">=</span><span class="fl">0.8</span>,  <span class="co"># Percent of training for final phase (80%)</span></span>
-<span id="cb8-8"><a href=""></a>    div_factor<span class="op">=</span><span class="dv">3</span>,  <span class="co"># Initial LR = peak_value / div_factor</span></span>
-<span id="cb8-9"><a href=""></a>    final_div_factor<span class="op">=</span><span class="dv">4</span>,  <span class="co"># Final LR = initial_LR / final_div_factor</span></span>
+<span id="cb8-4"><a href=""></a>    transition_steps<span class="op">=</span><span class="dv">8_000</span>,  </span>
+<span id="cb8-5"><a href=""></a>    peak_value<span class="op">=</span><span class="fl">0.008</span>,  </span>
+<span id="cb8-6"><a href=""></a>    pct_start<span class="op">=</span><span class="fl">0.008</span>,  </span>
+<span id="cb8-7"><a href=""></a>    pct_final<span class="op">=</span><span class="fl">0.8</span>,  </span>
+<span id="cb8-8"><a href=""></a>    div_factor<span class="op">=</span><span class="dv">3</span>,  </span>
+<span id="cb8-9"><a href=""></a>    final_div_factor<span class="op">=</span><span class="dv">4</span>,</span>
 <span id="cb8-10"><a href=""></a>)</span>
-<span id="cb8-11"><a href=""></a><span class="co"># Chain multiple optimizers for sophisticated training</span></span>
+<span id="cb8-11"><a href=""></a></span>
 <span id="cb8-12"><a href=""></a>optimizer <span class="op">=</span> optax.chain(</span>
-<span id="cb8-13"><a href=""></a>    <span class="co"># Primary optimizer: Adam with scheduled learning rate</span></span>
-<span id="cb8-14"><a href=""></a>    optax.adam(learning_rate<span class="op">=</span>scheduler),</span>
-<span id="cb8-15"><a href=""></a>    <span class="co"># Secondary optimizer: Reduce LR when loss plateaus</span></span>
-<span id="cb8-16"><a href=""></a>    optax.contrib.reduce_on_plateau(</span>
-<span id="cb8-17"><a href=""></a>        factor<span class="op">=</span><span class="fl">0.1</span>,  <span class="co"># Multiply LR by 0.1 when plateau detected</span></span>
-<span id="cb8-18"><a href=""></a>        patience<span class="op">=</span><span class="dv">10</span>,  <span class="co"># Wait 10 evaluations before reducing</span></span>
-<span id="cb8-19"><a href=""></a>        accumulation_size<span class="op">=</span><span class="dv">100</span>,  <span class="co"># Window size for detecting plateaus</span></span>
-<span id="cb8-20"><a href=""></a>    ),</span>
-<span id="cb8-21"><a href=""></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-13"><a href=""></a>    optax.adam(learning_rate<span class="op">=</span>scheduler),</span>
+<span id="cb8-14"><a href=""></a>    optax.contrib.reduce_on_plateau(</span>
+<span id="cb8-15"><a href=""></a>        factor<span class="op">=</span><span class="fl">0.1</span>,  </span>
+<span id="cb8-16"><a href=""></a>        patience<span class="op">=</span><span class="dv">10</span>,  </span>
+<span id="cb8-17"><a href=""></a>        accumulation_size<span class="op">=</span><span class="dv">100</span>,  </span>
+<span id="cb8-18"><a href=""></a>    ),</span>
+<span id="cb8-19"><a href=""></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="inference-custom-optimization-loop" class="slide level2">
 <h2>Inference: Custom Optimization Loop</h2>
