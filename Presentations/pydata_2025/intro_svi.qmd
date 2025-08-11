@@ -301,24 +301,26 @@ def layer_guide(
 
 ## Inference: Custom Optimizer
 
-```{.python code-line-numbers="|1|2-10|11-21"}
+```{.python code-line-numbers="|1|2-10|11-22"}
 import optax
-
+# OneCycle schedule: low -> high -> low with specific timing
 scheduler = optax.linear_onecycle_schedule(
-    transition_steps=8_000,  
-    peak_value=0.008,  
-    pct_start=0.008,  
-    pct_final=0.8,  
-    div_factor=3,  
-    final_div_factor=4,
+    transition_steps=8_000,  # Total number of optimization steps
+    peak_value=0.008,  # Maximum learning rate (reached at pct_start)
+    pct_start=0.2,  # Percent of training to reach peak (20%)
+    pct_final=0.8,  # Percent of training for final phase (80%)
+    div_factor=3,  # Initial LR = peak_value / div_factor
+    final_div_factor=4,  # Final LR = initial_LR / final_div_factor
 )
-
+# Chain multiple optimizers for sophisticated training
 optimizer = optax.chain(
+    # Primary optimizer: Adam with scheduled learning rate
     optax.adam(learning_rate=scheduler),
+    # Secondary optimizer: Reduce LR when loss plateaus
     optax.contrib.reduce_on_plateau(
-        factor=0.1,  
-        patience=10,  
-        accumulation_size=100,  
+        factor=0.1,  # Multiply LR by 0.1 when plateau detected
+        patience=10,  # Wait 10 evaluations before reducing
+        accumulation_size=100,  # Window size for detecting plateaus
     ),
 )
 ```

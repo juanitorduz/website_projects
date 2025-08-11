@@ -487,25 +487,27 @@
 </section>
 <section id="inference-custom-optimizer" class="slide level2">
 <h2>Inference: Custom Optimizer</h2>
-<div class="sourceCode" id="cb8" data-code-line-numbers="|1|2-10|11-21"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href=""></a><span class="im">import</span> optax</span>
-<span id="cb8-2"><a href=""></a></span>
+<div class="sourceCode" id="cb8" data-code-line-numbers="|1|2-10|11-22"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href=""></a><span class="im">import</span> optax</span>
+<span id="cb8-2"><a href=""></a><span class="co"># OneCycle schedule: low -&gt; high -&gt; low with specific timing</span></span>
 <span id="cb8-3"><a href=""></a>scheduler <span class="op">=</span> optax.linear_onecycle_schedule(</span>
-<span id="cb8-4"><a href=""></a>    transition_steps<span class="op">=</span><span class="dv">8_000</span>,  </span>
-<span id="cb8-5"><a href=""></a>    peak_value<span class="op">=</span><span class="fl">0.008</span>,  </span>
-<span id="cb8-6"><a href=""></a>    pct_start<span class="op">=</span><span class="fl">0.008</span>,  </span>
-<span id="cb8-7"><a href=""></a>    pct_final<span class="op">=</span><span class="fl">0.8</span>,  </span>
-<span id="cb8-8"><a href=""></a>    div_factor<span class="op">=</span><span class="dv">3</span>,  </span>
-<span id="cb8-9"><a href=""></a>    final_div_factor<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb8-4"><a href=""></a>    transition_steps<span class="op">=</span><span class="dv">8_000</span>,  <span class="co"># Total number of optimization steps</span></span>
+<span id="cb8-5"><a href=""></a>    peak_value<span class="op">=</span><span class="fl">0.008</span>,  <span class="co"># Maximum learning rate (reached at pct_start)</span></span>
+<span id="cb8-6"><a href=""></a>    pct_start<span class="op">=</span><span class="fl">0.2</span>,  <span class="co"># Percent of training to reach peak (20%)</span></span>
+<span id="cb8-7"><a href=""></a>    pct_final<span class="op">=</span><span class="fl">0.8</span>,  <span class="co"># Percent of training for final phase (80%)</span></span>
+<span id="cb8-8"><a href=""></a>    div_factor<span class="op">=</span><span class="dv">3</span>,  <span class="co"># Initial LR = peak_value / div_factor</span></span>
+<span id="cb8-9"><a href=""></a>    final_div_factor<span class="op">=</span><span class="dv">4</span>,  <span class="co"># Final LR = initial_LR / final_div_factor</span></span>
 <span id="cb8-10"><a href=""></a>)</span>
-<span id="cb8-11"><a href=""></a></span>
+<span id="cb8-11"><a href=""></a><span class="co"># Chain multiple optimizers for sophisticated training</span></span>
 <span id="cb8-12"><a href=""></a>optimizer <span class="op">=</span> optax.chain(</span>
-<span id="cb8-13"><a href=""></a>    optax.adam(learning_rate<span class="op">=</span>scheduler),</span>
-<span id="cb8-14"><a href=""></a>    optax.contrib.reduce_on_plateau(</span>
-<span id="cb8-15"><a href=""></a>        factor<span class="op">=</span><span class="fl">0.1</span>,  </span>
-<span id="cb8-16"><a href=""></a>        patience<span class="op">=</span><span class="dv">10</span>,  </span>
-<span id="cb8-17"><a href=""></a>        accumulation_size<span class="op">=</span><span class="dv">100</span>,  </span>
-<span id="cb8-18"><a href=""></a>    ),</span>
-<span id="cb8-19"><a href=""></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-13"><a href=""></a>    <span class="co"># Primary optimizer: Adam with scheduled learning rate</span></span>
+<span id="cb8-14"><a href=""></a>    optax.adam(learning_rate<span class="op">=</span>scheduler),</span>
+<span id="cb8-15"><a href=""></a>    <span class="co"># Secondary optimizer: Reduce LR when loss plateaus</span></span>
+<span id="cb8-16"><a href=""></a>    optax.contrib.reduce_on_plateau(</span>
+<span id="cb8-17"><a href=""></a>        factor<span class="op">=</span><span class="fl">0.1</span>,  <span class="co"># Multiply LR by 0.1 when plateau detected</span></span>
+<span id="cb8-18"><a href=""></a>        patience<span class="op">=</span><span class="dv">10</span>,  <span class="co"># Wait 10 evaluations before reducing</span></span>
+<span id="cb8-19"><a href=""></a>        accumulation_size<span class="op">=</span><span class="dv">100</span>,  <span class="co"># Window size for detecting plateaus</span></span>
+<span id="cb8-20"><a href=""></a>    ),</span>
+<span id="cb8-21"><a href=""></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="inference-custom-optimization-loop" class="slide level2">
 <h2>Inference: Custom Optimization Loop</h2>
