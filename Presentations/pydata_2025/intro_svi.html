@@ -250,6 +250,31 @@
 </div>
 </div></div>
 </section>
+<section id="what-is-variational-inference" class="slide level2">
+<h2>What is Variational Inference?</h2>
+<ul>
+<li><p>Stochastic Variational Inference (SVI) is a calable <strong>approximate inference method that transforms the problem of posterior inference into an optimization problem</strong>.</p></li>
+<li><p>Instead of sampling from the posterior distribution (like MCMC), SVI finds the best approximation to the posterior within a family of simpler distributions.</p></li>
+</ul>
+</section>
+<section id="variational-inference-in-a-nutshell" class="slide level2 smaller">
+<h2>Variational Inference in a Nutshell</h2>
+<ul>
+<li class="fragment"><p><span class="math inline">\(D = \{(x_i, y_i)\}_{i=1}^N\)</span>: Our complete dataset</p></li>
+<li class="fragment"><p><span class="math inline">\(\theta\)</span>: Model parameters (e.g., in a neural network, the weights and biases)</p></li>
+<li class="fragment"><p><span class="math inline">\(p(\theta|D)\)</span>: True posterior distribution (what we want but can’t compute easily)</p></li>
+<li class="fragment"><p><span class="math inline">\(\phi\)</span>: Variational parameters (parameters of our approximate posterior)</p></li>
+<li class="fragment"><p><span class="math inline">\(q_\phi(\theta)\)</span>: Variational approximation to the posterior (what we’ll optimize)</p></li>
+<li class="fragment"><p><span class="math inline">\(\text{ELBO}(\phi) = \mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta) + \log p(\theta) - \log q_\phi(\theta)]\)</span></p></li>
+<li class="fragment"><p>Maximizing the ELBO is equivalent to minimizing the KL divergence between our approximate posterior <span class="math inline">\(q_\phi(\theta)\)</span> and the true posterior <span class="math inline">\(p(\theta|D)\)</span>.</p></li>
+<li class="fragment"><p>This decomposes into three intuitive terms:</p>
+<ul>
+<li class="fragment"><span class="math inline">\(\mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta)]\)</span>: Expected log-likelihood (how well we explain the data)</li>
+<li class="fragment"><span class="math inline">\(\mathbb{E}_{q_\phi(\theta)}[\log p(\theta)]\)</span>: Expected log-prior (staying close to prior beliefs)</li>
+<li class="fragment"><span class="math inline">\(\mathbb{E}_{q_\phi(\theta)}[\log q_\phi(\theta)]\)</span>: Entropy of variational distribution (encouraging exploration)</li>
+</ul></li>
+</ul>
+</section>
 <section id="estimating-the-concentration-parameter-of-a-gamma-distribution-sim-xalpha---1-e-x" class="slide level2">
 <h2>Estimating the Concentration Parameter of a Gamma Distribution <span class="math inline">\(\sim x^{\alpha - 1} e^{-x}\)</span></h2>
 
@@ -566,8 +591,30 @@
 <h2>Predictions Outside Training Data</h2>
 
 <img data-src="intro_svi_files/static/images/intro_svi_files/intro_svi_87_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
-<section id="references" class="slide level2">
+<section id="references" class="slide level2 smaller">
 <h2>References</h2>
+<h5 id="pyro-tutorials">Pyro Tutorials</h5>
+<ul>
+<li><a href="https://pyro.ai/examples/svi_part_i.html">SVI Part I: An Introduction to Stochastic Variational Inference in Pyro</a></li>
+<li><a href="https://pyro.ai/examples/svi_part_ii.html">SVI Part II: Conditional Independence, Subsampling, and Amortization</a></li>
+<li><a href="https://pyro.ai/examples/svi_part_iii.html">SVI Part III: ELBO Gradient Estimators</a></li>
+<li><a href="https://pyro.ai/examples/svi_part_iv.html">SVI Part IV: Tips and Tricks</a></li>
+<li><a href="https://num.pyro.ai/en/latest/">NumPyro Documentation</a></li>
+</ul>
+<h5 id="papers">Papers</h5>
+<ul>
+<li><a href="https://arxiv.org/abs/1601.00670">Variational Inference: A Review for Statisticians</a></li>
+<li><a href="https://arxiv.org/abs/1506.03431">Automatic Variational Inference in Stan</a></li>
+</ul>
+<h5 id="videos">Videos</h5>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=XECLmgnS6Ng">Chris Fonnesbeck - A Beginner’s Guide to Variational Inference | PyData Virginia 2025</a></li>
+</ul>
+</section>
+<section id="thank-you" class="slide level2">
+<h2>Thank you!</h2>
+<p><a href="https://juanitorduz.github.io/">juanitorduz.github.io</a></p>
+<p><img data-src="intro_svi_files/static/images/juanitorduz.png" class="absolute" style="top: 0px; right: 0px; width: 600px; height: 600px; "></p>
 
 </section>
     </div>

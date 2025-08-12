@@ -59,6 +59,40 @@ format:
 
 :::
 
+## What is Variational Inference?
+
+- Stochastic Variational Inference (SVI) is a calable **approximate inference method that transforms the problem of posterior inference into an optimization problem**.
+
+- Instead of sampling from the posterior distribution (like MCMC), SVI finds the best approximation to the posterior within a family of simpler distributions.
+
+
+## Variational Inference in a Nutshell {.smaller}
+
+::: incremental
+
+- $D = \{(x_i, y_i)\}_{i=1}^N$: Our complete dataset
+
+- $\theta$: Model parameters (e.g., in a neural network, the weights and biases)
+
+- $p(\theta|D)$: True posterior distribution (what we want but can't compute easily)
+
+- $\phi$: Variational parameters (parameters of our approximate posterior)
+
+- $q_\phi(\theta)$: Variational approximation to the posterior (what we'll optimize)
+
+- $\text{ELBO}(\phi) = \mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta) + \log p(\theta) - \log q_\phi(\theta)]$
+
+- Maximizing the ELBO is equivalent to minimizing the KL divergence between our approximate posterior $q_\phi(\theta)$ and the true posterior $p(\theta|D)$.
+
+- This decomposes into three intuitive terms:
+
+    - $\mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta)]$: Expected log-likelihood (how well we explain the data)
+    - $\mathbb{E}_{q_\phi(\theta)}[\log p(\theta)]$: Expected log-prior (staying close to prior beliefs)
+    - $\mathbb{E}_{q_\phi(\theta)}[\log q_\phi(\theta)]$: Entropy of variational distribution (encouraging exploration)
+
+:::
+
+
 ## Estimating the Concentration Parameter of a Gamma Distribution $\sim x^{\alpha - 1} e^{-x}$
 
 ![](intro_svi_files/static/images/intro_svi_files/intro_svi_5_1.png){fig-align="center" width="1000"}
@@ -389,4 +423,30 @@ Early stopping at step 2925 (validation loss exceeding training loss)
 
 ![](intro_svi_files/static/images/intro_svi_files/intro_svi_87_1.png){fig-align="center" width="1000"}
 
-## References
+## References {.smaller}
+
+##### Pyro Tutorials
+
+- [SVI Part I: An Introduction to Stochastic Variational Inference in Pyro](https://pyro.ai/examples/svi_part_i.html)
+- [SVI Part II: Conditional Independence, Subsampling, and Amortization](https://pyro.ai/examples/svi_part_ii.html)
+- [SVI Part III: ELBO Gradient Estimators](https://pyro.ai/examples/svi_part_iii.html)
+- [SVI Part IV: Tips and Tricks](https://pyro.ai/examples/svi_part_iv.html)
+- [NumPyro Documentation](https://num.pyro.ai/en/latest/)
+
+##### Papers
+
+- [Variational Inference: A Review for Statisticians](https://arxiv.org/abs/1601.00670)
+- [Automatic Variational Inference in Stan](https://arxiv.org/abs/1506.03431)
+
+##### Videos
+
+- [Chris Fonnesbeck - A Beginner's Guide to Variational Inference | PyData Virginia 2025](https://www.youtube.com/watch?v=XECLmgnS6Ng)
+
+
+
+
+## Thank you!
+
+[juanitorduz.github.io](https://juanitorduz.github.io/)
+
+![](intro_svi_files/static/images/juanitorduz.png){.absolute top=0 right=0 width=600 height=600}
