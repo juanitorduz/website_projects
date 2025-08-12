@@ -1,0 +1,452 @@
+---
+title: "Scaling Probabilistic Models with Variational Inference"
+title-slide-attributes:
+  data-background-image: intro_svi_files/static/images/logos/pydata_berlin_logo.png
+  data-background-size: cover
+  data-background-opacity: "0.15"
+subtitle: "PyData Berlin 2025"
+author: 
+  - name: Dr. Juan Orduz
+    url: https://juanitorduz.github.io/
+
+format:
+  revealjs:
+    slide-number: true
+    html-math-method: mathjax 
+    css: intro_svi_files/style.css
+    logo: intro_svi_files/static/images/logos/pydata_berlin_logo.png 
+    transition: none
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    theme:
+        - white
+    highlight-style: github-dark
+---
+
+## Outline
+
+- Motivating Examples
+
+- Variational Inference in a Nutshell
+
+- Toy Example: Parameter Recovery Gamma Distribution
+
+- **End-to-End Example: Bayesian Neural Network Model**
+
+- References
+
+
+::: {.callout-tip}
+## Code
+  
+[https://juanitorduz.github.io/intro_svi/](https://juanitorduz.github.io/intro_svi/)
+:::
+
+##  {.smaller}
+
+::: {.columns}
+
+::: {.column width="50%"}
+### [Demand Forecasting](https://www.youtube.com/watch?v=9Q6r2w0CDB0)
+![](intro_svi_files/static/images/numpyro_hierarchical_forecasting.png){fig-align="center" width="100%"}
+:::
+
+::: {.column width="50%"}
+### [Cohort Modeling](https://juanitorduz.github.io/hierarchical_revenue_retention/)
+![](intro_svi_files/static/images/hierarchical_revenue_retention.png){fig-align="center" width="100%"}
+:::
+
+:::
+
+## What is Variational Inference?
+
+- Stochastic Variational Inference (SVI) is a calable **approximate inference method that transforms the problem of posterior inference into an optimization problem**.
+
+- Instead of sampling from the posterior distribution (like MCMC), SVI finds the best approximation to the posterior within a family of simpler distributions.
+
+
+## Variational Inference in a Nutshell {.smaller}
+
+::: incremental
+
+- $D = \{(x_i, y_i)\}_{i=1}^N$: Our complete dataset
+
+- $\theta$: Model parameters (e.g., in a neural network, the weights and biases)
+
+- $p(\theta|D)$: True posterior distribution (what we want but can't compute easily)
+
+- $\phi$: Variational parameters (parameters of our approximate posterior)
+
+- $q_\phi(\theta)$: Variational approximation to the posterior (what we'll optimize)
+
+- $\text{ELBO}(\phi) = \mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta) + \log p(\theta) - \log q_\phi(\theta)]$
+
+- Maximizing the ELBO is equivalent to minimizing the KL divergence between our approximate posterior $q_\phi(\theta)$ and the true posterior $p(\theta|D)$.
+
+- This decomposes into three intuitive terms:
+
+    - $\mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta)]$: Expected log-likelihood (how well we explain the data)
+    - $\mathbb{E}_{q_\phi(\theta)}[\log p(\theta)]$: Expected log-prior (staying close to prior beliefs)
+    - $\mathbb{E}_{q_\phi(\theta)}[\log q_\phi(\theta)]$: Entropy of variational distribution (encouraging exploration)
+
+:::
+
+
+## Estimating the Concentration Parameter of a Gamma Distribution $\sim x^{\alpha - 1} e^{-x}$
+
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_5_1.png){fig-align="center" width="1000"}
+
+## Approximation Model
+
+We want to estimate the concentration parameter of a Gamma distribution. We model the **data generating process** as:
+
+
+```{.python code-line-numbers="|1-2|3-8|9-16"}
+# Model to estimate the concentration parameter
+def model(z: jax.Array | None = None) -> None:
+    # Sample the concentration parameter from a HalfNormal distribution
+    # as the concentration parameter has to be positive
+    concentration = numpyro.sample(
+        "concentration",
+        dist.HalfNormal(scale=1),
+    )
+    # Sample the data from a Gamma distribution
+    # with the concentration parameter and a rate of 1.0
+    rate = 1.0
+    numpyro.sample(
+        "z",
+        dist.Gamma(concentration=concentration, rate=rate),
+        obs=z,
+    )
+```
+
+## Approximation Guide
+
+```{.python code-line-numbers="|1|2-11|12-16|17-22|23-24"}
+def guide(z: jax.Array | None = None) -> None:
+    # Location and scale parameters of the normal distribution
+    concentration_loc = numpyro.param(
+        "concentration_loc",
+        init_value=0.5,
+    )
+    concentration_scale = numpyro.param(
+        "concentration_scale",
+        init_value=0.1,
+        constraint=dist.constraints.positive,
+    )
+    # Variational approximation
+    base_distribution = dist.Normal(
+        loc=concentration_loc,
+        scale=concentration_scale,
+    )
+    # We need to transform the base distribution
+    # as the concentration parameter has to be positive
+    transformed_distribution = dist.TransformedDistribution(
+        base_distribution=base_distribution,
+        transforms=dist.transforms.ExpTransform(),
+    )
+    # Sample the concentration parameter from the transformed distribution
+    numpyro.sample("concentration", transformed_distribution)
+```
+
+## Inference with SVI
+
+This is how a typical SVI workflow looks like in NumPyro:
+
+```{.python code-line-numbers="|1-2|4-5|7-8|10-17"}
+# Define the loss function (ELBO)
+loss = Trace_ELBO(num_particles=10)
+
+# Define the optimizer
+optimizer = optax.adam(learning_rate=0.005)
+
+# Define the SVI algorithm
+svi = SVI(model=model, guide=guide, optim=optimizer, loss=loss)
+
+# Run the SVI algorithm
+rng_key, rng_subkey = random.split(rng_key)
+svi_result = svi.run(
+    rng_subkey,
+    num_steps=1_000,
+    z=z,
+    progress_bar=True,
+)
+```
+
+## Approximation Results
+
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_28_1.png){fig-align="center" width="1000"}
+
+
+## Example: Bayesian Neural Network
+
+Classification problem with non-linear decision boundary.
+
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_37_1.png){fig-align="center" width="1000"}
+
+::: footer
+[https://scikit-learn.org/stable/modules/generated/sklearn.datasets.make_moons.html](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.make_moons.html)
+:::
+
+## Model Structure
+
+::: {.callout-tip}
+## Model Components
+  
+- We use a multi-layer perceptron (MLP) to model the non-linear decision boundary parameter $p(x)$.
+- We model our data with a Bernoulli likelihood with parameter $p(x)$.
+
+:::
+
+
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_46_0.svg){fig-align="center" width="1000"}
+
+## Neural Network Component
+
+```{.python code-line-numbers="|1-4|7-11|12-17|19-23|26-34"}
+import jax
+import jax.random as random
+from flax import nnx
+from itertools import pairwise
+
+
+class MLP(nnx.Module):
+
+    def __init__(
+        self, din: int, dout: int, hidden_layers: list[int], *, rngs: nnx.Rngs
+    ) -> None:
+        self.layers = []
+
+        layer_dims = [din, *hidden_layers, dout]
+
+        for in_dim, out_dim in pairwise(layer_dims):
+            self.layers.append(nnx.Linear(in_dim, out_dim, rngs=rngs))
+
+    def __call__(self, x: jax.Array) -> jax.Array:
+        for layer in self.layers[:-1]:
+            x = jax.nn.tanh(layer(x))
+
+        return jax.nn.sigmoid(self.layers[-1](x))
+
+
+hidden_layers = [4, 3]
+dout = 1
+rng_key, rng_subkey = random.split(rng_key)
+nnx_module = MLP(
+    din=x_train.shape[1],
+    dout=dout,
+    hidden_layers=hidden_layers,
+    rngs=nnx.Rngs(rng_subkey),
+)
+```
+
+## NumPyro Model
+
+```{.python code-line-numbers="|1-3|5-8|9-14|16-20|22|24-25"}
+import numpyro
+import numpyro.distributions as dist
+from numpyro.contrib.module import random_nnx_module
+
+def model(
+    x: Float[Array, "n_obs features"],
+    y: Int[Array, " n_obs"] | None = None,
+) -> None:
+    n_obs: int = x.shape[0]
+
+    def prior(name, shape):
+        if "bias" in name:
+            return dist.Normal(loc=0, scale=1)
+        return dist.SoftLaplace(loc=0, scale=1)
+
+    nn = random_nnx_module(
+        "nn",
+        nnx_module,
+        prior=prior,
+    )
+
+    p = numpyro.deterministic("p", nn(x).squeeze(-1))
+
+    with numpyro.plate("data", n_obs):
+        numpyro.sample("y", dist.Bernoulli(probs=p), obs=y)
+```
+
+## Prior Predictive Checks
+
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_51_1.png){fig-align="center" width="1000"}
+
+## Inference: SVI in NumPyro
+
+```{.python code-line-numbers="|5|6|7|8|10-18|20-21"}
+import numpyro
+from numpyro.infer import SVI, Trace_ELBO
+from numpyro.infer.autoguide import AutoNormal
+
+guide = AutoNormal(model) # <- Posterior Approximation
+optimizer = numpyro.optim.Adam(step_size=0.01) # <- Optimizer
+svi = SVI(model, guide, optimizer, loss=Trace_ELBO())
+num_steps = 10_000
+
+rng_key, rng_subkey = random.split(key=rng_key)
+
+# Optimization Loop
+svi_result = svi.run(
+    rng_subkey,
+    num_steps,
+    x_train,
+    y_train,
+)
+
+# Results
+params = svi_result.params
+```
+
+## Inference: ELBO Curve
+
+![](intro_svi_files/static/images/elbo_curve_example.png){fig-align="center" width="1000"}
+
+
+## Inference: Custom Guide 🤕
+
+```{.python}
+def layer_guide(
+    loc_shape: tuple[int, ...],
+    loc_amplitude: float,
+    scale_shape: tuple[int, ...],
+    scale_amplitude: float,
+    loc_name: str,
+    scale_name: str,
+    layer_name: str,
+    event_shape: int = 1,
+    seed: int = 42,
+) -> None:
+```
+
+::: {.callout-tip}
+# Writing a custom guide?
+- [If you are having trouble constructing a custom guide](https://pyro.ai/examples/svi_part_iv.html#6.-If-you-are-having-trouble-constructing-a-custom-guide,-use-an-AutoGuide), use an [`AutoGuide`](https://num.pyro.ai/en/stable/autoguide.html).
+- [Parameter initialization matters](https://pyro.ai/examples/svi_part_iv.html#7.-Parameter-initialization-matters:-initialize-guide-distributions-to-have-low-variance): initialize guide distributions to have low variance.
+- [Pay attention to scales](https://pyro.ai/examples/svi_part_iv.html#11.-Pay-attention-to-scales).
+:::
+
+::: footer
+[SVI Part IV: Tips and Tricks](https://pyro.ai/examples/svi_part_iv.html)
+:::
+
+## Inference: Custom Optimizer
+
+```{.python code-line-numbers="|1|2-10|11-22"}
+import optax
+# OneCycle schedule: low -> high -> low with specific timing
+scheduler = optax.linear_onecycle_schedule(
+    transition_steps=8_000,  # Total number of optimization steps
+    peak_value=0.008,  # Maximum learning rate (reached at pct_start)
+    pct_start=0.2,  # Percent of training to reach peak (20%)
+    pct_final=0.8,  # Percent of training for final phase (80%)
+    div_factor=3,  # Initial LR = peak_value / div_factor
+    final_div_factor=4,  # Final LR = initial_LR / final_div_factor
+)
+# Chain multiple optimizers for sophisticated training
+optimizer = optax.chain(
+    # Primary optimizer: Adam with scheduled learning rate
+    optax.adam(learning_rate=scheduler),
+    # Secondary optimizer: Reduce LR when loss plateaus
+    optax.contrib.reduce_on_plateau(
+        factor=0.1,  # Multiply LR by 0.1 when plateau detected
+        patience=10,  # Wait 10 evaluations before reducing
+        accumulation_size=100,  # Window size for detecting plateaus
+    ),
+)
+```
+
+
+## Inference: Custom Optimization Loop
+
+```{.python code-line-numbers="|1-3|5-7|9-11|13-22|24-32"}
+def body_fn(svi_state, _):
+    svi_state, loss = svi.update(svi_state, x=x_train, y=y_train)
+    return svi_state, loss
+
+with tqdm.trange(1, num_steps + 1) as t:
+    batch = max(num_steps // 20, 1)
+    patience_counter = 0
+
+    for i in t:
+        # Perform one training step (JIT compiled for speed)
+        svi_state, train_loss = jax.jit(body_fn)(svi_state, None)
+
+        # Normalize loss by dataset size for fair comparison
+        norm_train_loss = jax.device_get(train_loss) / y_train.shape[0]
+        train_losses.append(jax.device_get(train_loss))
+        norm_train_losses.append(norm_train_loss)
+
+        # Compute validation loss (JIT compiled for speed)
+        val_loss = jax.jit(get_val_loss)(svi_state, x_val, y_val)
+        norm_val_loss = jax.device_get(val_loss) / y_val.shape[0]
+        val_losses.append(jax.device_get(val_loss))
+        norm_val_losses.append(norm_val_loss)
+
+        # Early stopping logic: stop if validation loss > training loss consistently
+        condition = norm_val_loss > norm_train_loss
+        patience_counter = patience_counter + 1 if condition else 0
+
+        if patience_counter >= patience:
+            print(
+                f"Early stopping at step {i} (validation loss exceeding training loss)"
+            )
+            break
+```
+
+
+## Inference: Early Stopping
+
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_61_1.png){fig-align="center" width="1000"}
+
+```{.python}
+37%|███▋      | 2924/8000 [00:02<00:04, 1145.56it/s, train: 396.8835, val: 202.2204]
+Early stopping at step 2925 (validation loss exceeding training loss)
+```
+
+## Model Evaluation: Posterior AUC
+
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_70_1.png){fig-align="center" width="1000"}
+
+## Posterior Predictive Mean
+
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_80_1.png){fig-align="center" width="1000"}
+
+## Posterior Predictive *Uncertainty*
+
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_82_1.png){fig-align="center" width="1000"}
+
+## Predictions Outside Training Data
+
+![](intro_svi_files/static/images/intro_svi_files/intro_svi_87_1.png){fig-align="center" width="1000"}
+
+## References {.smaller}
+
+##### Pyro Tutorials
+
+- [SVI Part I: An Introduction to Stochastic Variational Inference in Pyro](https://pyro.ai/examples/svi_part_i.html)
+- [SVI Part II: Conditional Independence, Subsampling, and Amortization](https://pyro.ai/examples/svi_part_ii.html)
+- [SVI Part III: ELBO Gradient Estimators](https://pyro.ai/examples/svi_part_iii.html)
+- [SVI Part IV: Tips and Tricks](https://pyro.ai/examples/svi_part_iv.html)
+- [NumPyro Documentation](https://num.pyro.ai/en/latest/)
+
+##### Papers
+
+- [Variational Inference: A Review for Statisticians](https://arxiv.org/abs/1601.00670)
+- [Automatic Variational Inference in Stan](https://arxiv.org/abs/1506.03431)
+
+##### Videos
+
+- [Chris Fonnesbeck - A Beginner's Guide to Variational Inference | PyData Virginia 2025](https://www.youtube.com/watch?v=XECLmgnS6Ng)
+
+
+
+
+## Thank you!
+
+[juanitorduz.github.io](https://juanitorduz.github.io/)
+
+![](intro_svi_files/static/images/juanitorduz.png){.absolute top=0 right=0 width=600 height=600}
