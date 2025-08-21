@@ -50,7 +50,7 @@ format:
 :::
 
 ::: footer
-[Chris Fonnesbeck - A Beginner's Guide to Variational Inference | PyData Virginia 2025](https://www.youtube.com/watch?v=XECLmgnS6Ng)
+[https://github.com/fonnesbeck/vi_pydata_virginia_2025](https://github.com/fonnesbeck/vi_pydata_virginia_2025)
 :::
 
 ##  {.smaller}
@@ -212,7 +212,7 @@ Classification problem with non-linear decision boundary.
 
 ![](intro_svi_files/static/images/intro_svi_files/intro_svi_46_0.svg){fig-align="center" width="1000"}
 
-## Neural Network Component
+## Neural Network Component 🤖
 
 ```{.python code-line-numbers="|1-4|7-11|12-17|19-23|26-34"}
 import jax
@@ -285,7 +285,7 @@ def model(
 
 ![](intro_svi_files/static/images/intro_svi_files/intro_svi_51_1.png){fig-align="center" width="1000"}
 
-## Inference: SVI in NumPyro
+## Inference: SVI in NumPyro 🚀
 
 ```{.python code-line-numbers="|5|6|7|8|10-18|20-21"}
 import numpyro
@@ -343,7 +343,7 @@ def layer_guide(
 [SVI Part IV: Tips and Tricks](https://pyro.ai/examples/svi_part_iv.html)
 :::
 
-## Inference: Custom Optimizer
+## Inference: Custom Optimizer ⚡
 
 ```{.python code-line-numbers="|1|2-10|11-22"}
 import optax
@@ -433,7 +433,7 @@ Early stopping at step 2925 (validation loss exceeding training loss)
 
 ![](intro_svi_files/static/images/intro_svi_files/intro_svi_87_1.png){fig-align="center" width="1000"}
 
-## References {.smaller}
+## References 📚 {.smaller}
 
 ##### Pyro Tutorials
 
@@ -454,9 +454,8 @@ Early stopping at step 2925 (validation loss exceeding training loss)
 
 
 
+## Thank you! {data-background-image="intro_svi_files/static/images/logos/juanitorduz_logo_small.png" data-background-size="cover" data-background-opacity="0.15"}
 
-## Thank you!
+### [juanitorduz.github.io](https://juanitorduz.github.io/)
 
-[juanitorduz.github.io](https://juanitorduz.github.io/)
-
-![](intro_svi_files/static/images/juanitorduz.png){.absolute top=0 right=0 width=600 height=600}
+![](intro_svi_files/static/images/juanitorduz.png){.absolute top=150 right=0 width=550 height=550}

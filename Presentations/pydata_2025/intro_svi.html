@@ -237,7 +237,7 @@
 <iframe data-external="1" src="https://www.youtube.com/embed/XECLmgnS6Ng" width="80%" height="600" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
 </div>
 <div class="footer">
-<p><a href="https://www.youtube.com/watch?v=XECLmgnS6Ng">Chris Fonnesbeck - A Beginner’s Guide to Variational Inference | PyData Virginia 2025</a></p>
+<p><a href="https://github.com/fonnesbeck/vi_pydata_virginia_2025">https://github.com/fonnesbeck/vi_pydata_virginia_2025</a></p>
 </div>
 </section>
 <section id="section" class="slide level2 smaller">
@@ -389,7 +389,7 @@
 
 <img data-src="intro_svi_files/static/images/intro_svi_files/intro_svi_46_0.svg" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
 <section id="neural-network-component" class="slide level2">
-<h2>Neural Network Component</h2>
+<h2>Neural Network Component 🤖</h2>
 <div class="sourceCode" id="cb4" data-code-line-numbers="|1-4|7-11|12-17|19-23|26-34"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="im">import</span> jax</span>
 <span id="cb4-2"><a href=""></a><span class="im">import</span> jax.random <span class="im">as</span> random</span>
 <span id="cb4-3"><a href=""></a><span class="im">from</span> flax <span class="im">import</span> nnx</span>
@@ -458,7 +458,7 @@
 
 <img data-src="intro_svi_files/static/images/intro_svi_files/intro_svi_51_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
 <section id="inference-svi-in-numpyro" class="slide level2">
-<h2>Inference: SVI in NumPyro</h2>
+<h2>Inference: SVI in NumPyro 🚀</h2>
 <div class="sourceCode" id="cb6" data-code-line-numbers="|5|6|7|8|10-18|20-21"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a><span class="im">import</span> numpyro</span>
 <span id="cb6-2"><a href=""></a><span class="im">from</span> numpyro.infer <span class="im">import</span> SVI, Trace_ELBO</span>
 <span id="cb6-3"><a href=""></a><span class="im">from</span> numpyro.infer.autoguide <span class="im">import</span> AutoNormal</span>
@@ -520,7 +520,7 @@
 </div>
 </section>
 <section id="inference-custom-optimizer" class="slide level2">
-<h2>Inference: Custom Optimizer</h2>
+<h2>Inference: Custom Optimizer ⚡</h2>
 <div class="sourceCode" id="cb8" data-code-line-numbers="|1|2-10|11-22"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href=""></a><span class="im">import</span> optax</span>
 <span id="cb8-2"><a href=""></a><span class="co"># OneCycle schedule: low -&gt; high -&gt; low with specific timing</span></span>
 <span id="cb8-3"><a href=""></a>scheduler <span class="op">=</span> optax.linear_onecycle_schedule(</span>
@@ -601,7 +601,7 @@
 
 <img data-src="intro_svi_files/static/images/intro_svi_files/intro_svi_87_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
 <section id="references" class="slide level2 smaller">
-<h2>References</h2>
+<h2>References 📚</h2>
 <h5 id="pyro-tutorials">Pyro Tutorials</h5>
 <ul>
 <li><a href="https://pyro.ai/examples/svi_part_i.html">SVI Part I: An Introduction to Stochastic Variational Inference in Pyro</a></li>
@@ -620,10 +620,10 @@
 <li><a href="https://www.youtube.com/watch?v=XECLmgnS6Ng">Chris Fonnesbeck - A Beginner’s Guide to Variational Inference | PyData Virginia 2025</a></li>
 </ul>
 </section>
-<section id="thank-you" class="slide level2">
+<section id="thank-you" class="slide level2" data-background-image="intro_svi_files/static/images/logos/juanitorduz_logo_small.png" data-background-size="cover" data-background-opacity="0.15">
 <h2>Thank you!</h2>
-<p><a href="https://juanitorduz.github.io/">juanitorduz.github.io</a></p>
-<p><img data-src="intro_svi_files/static/images/juanitorduz.png" class="absolute" style="top: 0px; right: 0px; width: 600px; height: 600px; "></p>
+<h3 id="juanitorduz.github.io"><a href="https://juanitorduz.github.io/">juanitorduz.github.io</a></h3>
+<p><img data-src="intro_svi_files/static/images/juanitorduz.png" class="absolute" style="top: 150px; right: 0px; width: 550px; height: 550px; "></p>
 
 </section>
     </div>
