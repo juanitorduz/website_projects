@@ -215,6 +215,7 @@
 <li><p>Variational Inference in a Nutshell</p></li>
 <li><p>Toy Example: Parameter Recovery Gamma Distribution</p></li>
 <li><p><strong>End-to-End Example: Bayesian Neural Network Model</strong></p></li>
+<li><p>Tips &amp; Tricks</p></li>
 <li><p>References</p></li>
 </ul>
 <div class="callout callout-tip callout-titled callout-style-default">
@@ -229,15 +230,6 @@
 <p><a href="https://juanitorduz.github.io/intro_svi/">https://juanitorduz.github.io/intro_svi/</a></p>
 </div>
 </div>
-</div>
-</section>
-<section id="variational-inference-in-pymc" class="slide level2">
-<h2>Variational Inference in PyMC</h2>
-<div style="text-align: center;">
-<iframe data-external="1" src="https://www.youtube.com/embed/XECLmgnS6Ng" width="80%" height="600" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
-</div>
-<div class="footer">
-<p><a href="https://github.com/fonnesbeck/vi_pydata_virginia_2025">https://github.com/fonnesbeck/vi_pydata_virginia_2025</a></p>
 </div>
 </section>
 <section id="section" class="slide level2 smaller">
@@ -262,9 +254,21 @@
 <section id="what-is-variational-inference" class="slide level2">
 <h2>What is Variational Inference?</h2>
 <ul>
-<li><p>Stochastic Variational Inference (SVI) is a calable <strong>approximate inference method that transforms the problem of posterior inference into an optimization problem</strong>.</p></li>
-<li><p>Instead of sampling from the posterior distribution (like MCMC), SVI finds the best approximation to the posterior within a family of simpler distributions.</p></li>
+<li><p>Stochastic Variational Inference (SVI) is a scalable <strong>approximate inference method that transforms the problem of posterior inference into an optimization problem</strong>.</p></li>
+<li><p>Instead of sampling from the posterior distribution (like MCMC), SVI finds the <em>best</em> approximation to the posterior within a family of simpler distributions.</p></li>
 </ul>
+<div class="footer">
+<p><a href="https://arxiv.org/abs/1601.00670">Variational Inference: A Review for Statisticians</a></p>
+</div>
+</section>
+<section id="variational-inference-in-pymc" class="slide level2">
+<h2>Variational Inference in PyMC</h2>
+<div style="text-align: center;">
+<iframe data-external="1" src="https://www.youtube.com/embed/XECLmgnS6Ng" width="100%" height="600" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+</div>
+<div class="footer">
+<p><a href="https://github.com/fonnesbeck/vi_pydata_virginia_2025">https://github.com/fonnesbeck/vi_pydata_virginia_2025</a></p>
+</div>
 </section>
 <section id="variational-inference-in-a-nutshell" class="slide level2 smaller">
 <h2>Variational Inference in a Nutshell</h2>
@@ -600,6 +604,39 @@
 <h2>Predictions Outside Training Data</h2>
 
 <img data-src="intro_svi_files/static/images/intro_svi_files/intro_svi_87_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
+<section id="tips-tricks" class="slide level2">
+<h2>Tips &amp; Tricks</h2>
+<h3 id="when-to-use-svi-vs-mcmc">When to Use SVI vs MCMC?</h3>
+<h4 id="use-svi-when">Use SVI when:</h4>
+<ul>
+<li>You have large datasets</li>
+<li>You need fast inference for production systems</li>
+<li>You can accept approximate (vs exact) posterior inference</li>
+</ul>
+<h4 id="use-mcmc-when">Use MCMC when:</h4>
+<ul>
+<li>You have small-medium datasets</li>
+<li>You need precise posterior samples</li>
+<li>You have time for longer computation</li>
+</ul>
+</section>
+<section id="tips-tricks-1" class="slide level2 smaller">
+<h2>Tips &amp; Tricks</h2>
+<h4 id="tips-and-tricks-svi-in-production">Tips and Tricks: SVI in Production</h4>
+<ul>
+<li>Using GPUs for training can significantly speed up the training process.</li>
+<li>Using mini-batches can help with memory issues and speed up the training process.</li>
+<li>Using a good learning rate scheduler can help with the training process.</li>
+<li>Computing posterior predictive samples can be batched using <a href="https://num.pyro.ai/en/stable/utilities.html#predictive"><code>Predictive</code></a> from NumPyro (you might need to do it by hand, but is quite straightforward). This batching can help memory issues.</li>
+</ul>
+<h4 id="other-inference-methods-for-baysian-models">Other Inference Methods for Baysian Models</h4>
+<p>It is important to note that there are other inference methods for Bayesian models:</p>
+<ul>
+<li>See all the <a href="https://num.pyro.ai/en/stable/mcmc.html">Markov Chain Monte Carlo (MCMC)</a> methods available in NumPyro</li>
+<li>See some more custom ones from <a href="https://blackjax-devs.github.io/blackjax/index.html"><code>Blackjax</code></a> or <a href="https://danielward27.github.io/flowjax/"><code>FlowJAx</code></a>.</li>
+<li>All of them can be integrated with NumPyro, see the example notebook <a href="https://num.pyro.ai/en/stable/tutorials/other_samplers.html">NumPyro Integration with Other Libraries</a>.</li>
+</ul>
+</section>
 <section id="references" class="slide level2 smaller">
 <h2>References 📚</h2>
 <h5 id="pyro-tutorials">Pyro Tutorials</h5>
