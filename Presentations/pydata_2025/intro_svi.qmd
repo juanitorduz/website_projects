@@ -83,32 +83,40 @@ format:
 
 ## JAX Ecosystem {.smaller}
 
+JAX is a Python library for accelerator-oriented array computation and program transformation, designed for high-performance numerical computing and large-scale machine learning.
+
 ::: {.columns}
 
-::: {.column width="33%"}
-### JAX
+::: {.column width="50%"}
 
-*JAX is a Python library for accelerator-oriented array computation and program transformation, designed for high-performance numerical computing and large-scale machine learning.*
+#### JAX
 
-![](intro_svi_files/static/images/logos/jax_logo.png){fig-align="center" width="200"}
-:::
+![](intro_svi_files/static/images/logos/jax_logo.svg){fig-align="center" width="250"}
 
-::: {.column width="33%"}
-### NumPyro
-
-*NumPyro is a lightweight probabilistic programming library that provides a NumPy backend for Pyro. We rely on JAX for automatic differentiation and JIT compilation to GPU / CPU.*
+#### NumPyro
 
 ![](intro_svi_files/static/images/logos/pyro_logo.png){fig-align="center" width="200"}
+
 :::
 
-::: {.column width="33%"}
-### Optax
+::: {.column width="50%"}
 
-*Optax is a gradient processing and optimization library for JAX. It is designed to facilitate research by providing building blocks that can be easily recombined in custom ways.*
+#### Flax
+
+![](intro_svi_files/static/images/logos/flax_logo.svg){fig-align="center" width="120"}
+
+
+#### Optax
+
 
 ![](intro_svi_files/static/images/logos/optax_logo.svg){fig-align="center" width="200"}
+
 :::
 
+:::
+
+::: footer
+[https://docs.jax.dev/en/latest/](https://docs.jax.dev/en/latest/)
 :::
 
 
