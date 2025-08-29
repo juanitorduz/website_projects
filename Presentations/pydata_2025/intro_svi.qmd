@@ -81,6 +81,37 @@ format:
 [https://github.com/fonnesbeck/vi_pydata_virginia_2025](https://github.com/fonnesbeck/vi_pydata_virginia_2025)
 :::
 
+## JAX Ecosystem {.smaller}
+
+::: {.columns}
+
+::: {.column width="33%"}
+### JAX
+
+*JAX is a Python library for accelerator-oriented array computation and program transformation, designed for high-performance numerical computing and large-scale machine learning.*
+
+![](intro_svi_files/static/images/logos/jax_logo.png){fig-align="center" width="200"}
+:::
+
+::: {.column width="33%"}
+### NumPyro
+
+*NumPyro is a lightweight probabilistic programming library that provides a NumPy backend for Pyro. We rely on JAX for automatic differentiation and JIT compilation to GPU / CPU.*
+
+![](intro_svi_files/static/images/logos/pyro_logo.png){fig-align="center" width="200"}
+:::
+
+::: {.column width="33%"}
+### Optax
+
+*Optax is a gradient processing and optimization library for JAX. It is designed to facilitate research by providing building blocks that can be easily recombined in custom ways.*
+
+![](intro_svi_files/static/images/logos/optax_logo.svg){fig-align="center" width="200"}
+:::
+
+:::
+
+
 ## Variational Inference in a Nutshell {.smaller}
 
 ::: incremental
