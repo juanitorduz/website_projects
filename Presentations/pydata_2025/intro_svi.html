@@ -251,14 +251,38 @@
 </div>
 </div></div>
 </section>
-<section id="what-is-variational-inference" class="slide level2">
+<section id="what-is-variational-inference" class="slide level2 smaller">
 <h2>What is Variational Inference?</h2>
+<div class="callout callout-note callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Bayes’ Rule</strong></p>
+</div>
+<div class="callout-content">
+<p>Recall, given the data <span class="math inline">\(D\)</span> and the model <span class="math inline">\(p(\theta|D)\)</span>, we can use Bayes’ rule to compute the posterior distribution:</p>
+<p><span class="math display">\[
+p(\theta|D) = \frac{p(D|\theta)p(\theta)}{p(D)}
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(p(D|\theta)\)</span>: Likelihood (how well the model fits the data)</li>
+<li><span class="math inline">\(p(\theta)\)</span>: Prior (our beliefs about the parameters before seeing the data)</li>
+<li><span class="math inline">\(\displaystyle {p(D) = \int p(D|\theta)p(\theta)d\theta}\)</span>: <span style="color:red;"><strong>Hard to compute!</strong></span></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="fragment">
 <ul>
 <li><p>Stochastic Variational Inference (SVI) is a scalable <strong>approximate inference method that transforms the problem of posterior inference into an optimization problem</strong>.</p></li>
 <li><p>Instead of sampling from the posterior distribution (like MCMC), SVI finds the <em>best</em> approximation to the posterior within a family of simpler distributions.</p></li>
 </ul>
 <div class="footer">
 <p><a href="https://arxiv.org/abs/1601.00670">Variational Inference: A Review for Statisticians</a></p>
+</div>
 </div>
 </section>
 <section id="variational-inference-in-pymc" class="slide level2">
@@ -272,7 +296,7 @@
 </section>
 <section id="jax-ecosystem" class="slide level2 smaller">
 <h2>JAX Ecosystem</h2>
-<p>JAX is a Python library for accelerator-oriented array computation and program transformation, designed for high-performance numerical computing and large-scale machine learning.</p>
+<p>JAX is a Python library for accelerator-oriented array computation and program transformation, designed for <strong>high-performance numerical computing and large-scale machine learning</strong>.</p>
 <div class="columns">
 <div class="column" style="width:50%;">
 <h4 id="jax">JAX</h4>
@@ -311,20 +335,25 @@
 <li class="fragment"><p><span class="math inline">\(D = \{(x_i, y_i)\}_{i=1}^N\)</span>: Our complete dataset</p></li>
 <li class="fragment"><p><span class="math inline">\(\theta\)</span>: Model parameters (e.g., in a neural network, the weights and biases)</p></li>
 <li class="fragment"><p><span class="math inline">\(p(\theta|D)\)</span>: True posterior distribution (what we want but can’t compute easily)</p></li>
-<li class="fragment"><p><span class="math inline">\(\phi\)</span>: Variational parameters (parameters of our approximate posterior)</p></li>
 <li class="fragment"><p><span class="math inline">\(q_\phi(\theta)\)</span>: Variational approximation to the posterior (what we’ll optimize)</p></li>
-<li class="fragment"><p><span class="math inline">\(\text{ELBO}(\phi) = \mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta) + \log p(\theta) - \log q_\phi(\theta)]\)</span></p></li>
-<li class="fragment"><p>Maximizing the ELBO is equivalent to minimizing the KL divergence between our approximate posterior <span class="math inline">\(q_\phi(\theta)\)</span> and the true posterior <span class="math inline">\(p(\theta|D)\)</span>.</p></li>
-<li class="fragment"><p>This decomposes into three intuitive terms:</p>
+<li class="fragment"><p><span class="math inline">\(\phi\)</span>: Variational parameters (parameters of our approximate posterior)</p></li>
+</ul>
+<hr>
 <ul>
-<li class="fragment"><span class="math inline">\(\mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta)]\)</span>: Expected log-likelihood (how well we explain the data)</li>
-<li class="fragment"><span class="math inline">\(\mathbb{E}_{q_\phi(\theta)}[\log p(\theta)]\)</span>: Expected log-prior (staying close to prior beliefs)</li>
-<li class="fragment"><span class="math inline">\(\mathbb{E}_{q_\phi(\theta)}[\log q_\phi(\theta)]\)</span>: Entropy of variational distribution (encouraging exploration)</li>
+<li class="fragment"><p><span class="math inline">\(\text{ELBO}(\phi) = \mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta)] - \text{KL}(q_\phi(\theta) || p(\theta))\)</span></p></li>
+<li class="fragment"><p><span style="color:red;"><strong>Maximizing the ELBO is equivalent to minimizing the KL divergence between our approximate posterior <span class="math inline">\(q_\phi(\theta)\)</span> and the true posterior <span class="math inline">\(p(\theta|D)\)</span> (up to a constant, with respect to <span class="math inline">\(q_\phi(\theta)\)</span>).</strong></span> <strong>Why? Use the Bayes’ rule to expand the KL divergence.</strong></p></li>
+<li class="fragment"><p>This decomposes into two intuitive terms:</p>
+<ul>
+<li class="fragment"><p><span class="math inline">\(\mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta)]\)</span>: Expected log-likelihood (how well we explain the data)</p></li>
+<li class="fragment"><p><span class="math inline">\(\text{KL}(q_\phi(\theta) || p(\theta))\)</span>: KL divergence between <span class="math inline">\(q_\phi(\theta)\)</span> and the prior <span class="math inline">\(p(\theta)\)</span>.</p></li>
 </ul></li>
 </ul>
+<div class="footer">
+<p><a href="https://arxiv.org/abs/1601.00670">Variational Inference: A Review for Statisticians</a></p>
+</div>
 </section>
-<section id="estimating-the-concentration-parameter-of-a-gamma-distribution-sim-xalpha---1-e-x" class="slide level2">
-<h2>Estimating the Concentration Parameter of a Gamma Distribution <span class="math inline">\(\sim x^{\alpha - 1} e^{-x}\)</span></h2>
+<section id="estimating-the-concentration-parameter-of-a-gamma-distribution-textgammaalpha-sim-xalpha---1-e-x" class="slide level2">
+<h2>Estimating the Concentration Parameter of a Gamma Distribution <span class="math inline">\(\text{Gamma}(\alpha) \sim x^{\alpha - 1} e^{-x}\)</span></h2>
 
 <img data-src="intro_svi_files/static/images/intro_svi_files/intro_svi_5_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
 <section id="approximation-model" class="slide level2">
@@ -664,11 +693,11 @@
 <li>Using a good learning rate scheduler can help with the training process.</li>
 <li>Computing posterior predictive samples can be batched using <a href="https://num.pyro.ai/en/stable/utilities.html#predictive"><code>Predictive</code></a> from NumPyro (you might need to do it by hand, but is quite straightforward). This batching can help memory issues.</li>
 </ul>
-<h4 id="other-inference-methods-for-baysian-models">Other Inference Methods for Baysian Models</h4>
+<h4 id="other-inference-methods-for-bayesian-models">Other Inference Methods for Bayesian Models</h4>
 <p>It is important to note that there are other inference methods for Bayesian models:</p>
 <ul>
 <li>See all the <a href="https://num.pyro.ai/en/stable/mcmc.html">Markov Chain Monte Carlo (MCMC)</a> methods available in NumPyro</li>
-<li>See some more custom ones from <a href="https://blackjax-devs.github.io/blackjax/index.html"><code>Blackjax</code></a> or <a href="https://danielward27.github.io/flowjax/"><code>FlowJAx</code></a>.</li>
+<li>See some more custom ones from <a href="https://blackjax-devs.github.io/blackjax/index.html"><code>Blackjax</code></a> or <a href="https://danielward27.github.io/flowjax/"><code>FlowJAX</code></a>.</li>
 <li>All of them can be integrated with NumPyro, see the example notebook <a href="https://num.pyro.ai/en/stable/tutorials/other_samplers.html">NumPyro Integration with Other Libraries</a>.</li>
 </ul>
 </section>

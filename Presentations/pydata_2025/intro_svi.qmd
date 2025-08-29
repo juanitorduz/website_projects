@@ -61,7 +61,27 @@ format:
 
 :::
 
-## What is Variational Inference?
+## What is Variational Inference? {.smaller}
+
+
+::: {.callout-note}
+# Bayes' Rule
+
+Recall, given the data $D$ and the model $p(\theta|D)$, we can use Bayes' rule to compute the posterior distribution:
+
+$$
+p(\theta|D) = \frac{p(D|\theta)p(\theta)}{p(D)}
+$$
+
+where:
+
+- $p(D|\theta)$: Likelihood (how well the model fits the data)
+- $p(\theta)$: Prior (our beliefs about the parameters before seeing the data)
+- $\displaystyle {p(D) = \int p(D|\theta)p(\theta)d\theta}$: [**Hard to compute!**]{style="color:red;"}
+
+:::
+
+. . . 
 
 - Stochastic Variational Inference (SVI) is a scalable **approximate inference method that transforms the problem of posterior inference into an optimization problem**.
 
@@ -83,7 +103,7 @@ format:
 
 ## JAX Ecosystem {.smaller}
 
-JAX is a Python library for accelerator-oriented array computation and program transformation, designed for high-performance numerical computing and large-scale machine learning.
+JAX is a Python library for accelerator-oriented array computation and program transformation, designed for **high-performance numerical computing and large-scale machine learning**.
 
 ::: {.columns}
 
@@ -130,24 +150,30 @@ JAX is a Python library for accelerator-oriented array computation and program t
 
 - $p(\theta|D)$: True posterior distribution (what we want but can't compute easily)
 
-- $\phi$: Variational parameters (parameters of our approximate posterior)
-
 - $q_\phi(\theta)$: Variational approximation to the posterior (what we'll optimize)
 
-- $\text{ELBO}(\phi) = \mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta) + \log p(\theta) - \log q_\phi(\theta)]$
+- $\phi$: Variational parameters (parameters of our approximate posterior)
 
-- Maximizing the ELBO is equivalent to minimizing the KL divergence between our approximate posterior $q_\phi(\theta)$ and the true posterior $p(\theta|D)$.
+---
 
-- This decomposes into three intuitive terms:
+- $\text{ELBO}(\phi) = \mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta)] - \text{KL}(q_\phi(\theta) || p(\theta))$
+
+- [**Maximizing the ELBO is equivalent to minimizing the KL divergence between our approximate posterior $q_\phi(\theta)$ and the true posterior $p(\theta|D)$ (up to a constant, with respect to $q_\phi(\theta)$).**]{style="color:red;"} **Why? Use the Bayes' rule to expand the KL divergence.**
+
+- This decomposes into two intuitive terms:
 
     - $\mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta)]$: Expected log-likelihood (how well we explain the data)
-    - $\mathbb{E}_{q_\phi(\theta)}[\log p(\theta)]$: Expected log-prior (staying close to prior beliefs)
-    - $\mathbb{E}_{q_\phi(\theta)}[\log q_\phi(\theta)]$: Entropy of variational distribution (encouraging exploration)
+
+    - $\text{KL}(q_\phi(\theta) || p(\theta))$: KL divergence between $q_\phi(\theta)$ and the prior $p(\theta)$.
 
 :::
 
+::: footer
+[Variational Inference: A Review for Statisticians](https://arxiv.org/abs/1601.00670)
+:::
 
-## Estimating the Concentration Parameter of a Gamma Distribution $\sim x^{\alpha - 1} e^{-x}$
+
+## Estimating the Concentration Parameter of a Gamma Distribution $\text{Gamma}(\alpha) \sim x^{\alpha - 1} e^{-x}$
 
 ![](intro_svi_files/static/images/intro_svi_files/intro_svi_5_1.png){fig-align="center" width="1000"}
 
@@ -501,12 +527,12 @@ Early stopping at step 2925 (validation loss exceeding training loss)
 - Using a good learning rate scheduler can help with the training process.
 - Computing posterior predictive samples can be batched using [`Predictive`](https://num.pyro.ai/en/stable/utilities.html#predictive) from NumPyro (you might need to do it by hand, but is quite straightforward). This batching can help memory issues.
 
-#### Other Inference Methods for Baysian Models
+#### Other Inference Methods for Bayesian Models
 
 It is important to note that there are other inference methods for Bayesian models: 
 
 - See all the [Markov Chain Monte Carlo (MCMC)](https://num.pyro.ai/en/stable/mcmc.html) methods available in NumPyro
-- See some more custom ones from [`Blackjax`](https://blackjax-devs.github.io/blackjax/index.html) or [`FlowJAx`](https://danielward27.github.io/flowjax/). 
+- See some more custom ones from [`Blackjax`](https://blackjax-devs.github.io/blackjax/index.html) or [`FlowJAX`](https://danielward27.github.io/flowjax/). 
 - All of them can be integrated with NumPyro, see the example notebook [NumPyro Integration with Other Libraries](https://num.pyro.ai/en/stable/tutorials/other_samplers.html).
 
 ## References 📚 {.smaller}
