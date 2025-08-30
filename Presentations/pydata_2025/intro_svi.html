@@ -6,8 +6,8 @@
 <script src="intro_svi_files/libs/quarto-html/tippy.umd.min.js"></script>
 <link href="intro_svi_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="intro_svi_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<link href="intro_svi_files/libs/quarto-html/quarto-syntax-highlighting-d329e753491efaeac79c98c4b193a686.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.7.33">
+<link href="intro_svi_files/libs/quarto-html/quarto-syntax-highlighting-67839544912bc898267f15026188952a.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.8.21">
 
   <meta name="author" content="Dr.&nbsp;Juan Orduz">
   <title>Scaling Probabilistic Models with Variational Inference</title>
@@ -95,7 +95,7 @@
     code span.vs { color: #9ecbff; } /* VerbatimString */
     code span.wa { color: #ff5555; } /* Warning */
   </style>
-  <link rel="stylesheet" href="intro_svi_files/libs/revealjs/dist/theme/quarto-e8560d57ff2dd42e5be853c1949f032b.css">
+  <link rel="stylesheet" href="intro_svi_files/libs/revealjs/dist/theme/quarto-e819637885281928af38d8b96f95b3b0.css">
   <link rel="stylesheet" href="intro_svi_files/style.css">
   <link href="intro_svi_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="intro_svi_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
@@ -215,6 +215,7 @@
 <li><p>Variational Inference in a Nutshell</p></li>
 <li><p>Toy Example: Parameter Recovery Gamma Distribution</p></li>
 <li><p><strong>End-to-End Example: Bayesian Neural Network Model</strong></p></li>
+<li><p>Tips &amp; Tricks</p></li>
 <li><p>References</p></li>
 </ul>
 <div class="callout callout-tip callout-titled callout-style-default">
@@ -250,12 +251,83 @@
 </div>
 </div></div>
 </section>
-<section id="what-is-variational-inference" class="slide level2">
+<section id="what-is-variational-inference" class="slide level2 smaller">
 <h2>What is Variational Inference?</h2>
+<div class="callout callout-note callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Bayes’ Rule</strong></p>
+</div>
+<div class="callout-content">
+<p>Recall, given the data <span class="math inline">\(D\)</span> and the model <span class="math inline">\(p(\theta|D)\)</span>, we can use Bayes’ rule to compute the posterior distribution:</p>
+<p><span class="math display">\[
+p(\theta|D) = \frac{p(D|\theta)p(\theta)}{p(D)}
+\]</span></p>
+<p>where:</p>
 <ul>
-<li><p>Stochastic Variational Inference (SVI) is a calable <strong>approximate inference method that transforms the problem of posterior inference into an optimization problem</strong>.</p></li>
-<li><p>Instead of sampling from the posterior distribution (like MCMC), SVI finds the best approximation to the posterior within a family of simpler distributions.</p></li>
+<li><span class="math inline">\(p(D|\theta)\)</span>: Likelihood (how well the model fits the data)</li>
+<li><span class="math inline">\(p(\theta)\)</span>: Prior (our beliefs about the parameters before seeing the data)</li>
+<li><span class="math inline">\(\displaystyle {p(D) = \int p(D|\theta)p(\theta)d\theta}\)</span>: <span style="color:red;"><strong>Hard to compute!</strong></span></li>
 </ul>
+</div>
+</div>
+</div>
+<div class="fragment">
+<ul>
+<li><p>Stochastic Variational Inference (SVI) is a scalable <strong>approximate inference method that transforms the problem of posterior inference into an optimization problem</strong>.</p></li>
+<li><p>Instead of sampling from the posterior distribution (like MCMC), SVI finds the <em>best</em> approximation to the posterior within a family of simpler distributions.</p></li>
+</ul>
+<div class="footer">
+<p><a href="https://arxiv.org/abs/1601.00670">Variational Inference: A Review for Statisticians</a></p>
+</div>
+</div>
+</section>
+<section id="variational-inference-in-pymc" class="slide level2">
+<h2>Variational Inference in PyMC</h2>
+<div style="text-align: center;">
+<iframe data-external="1" src="https://www.youtube.com/embed/XECLmgnS6Ng" width="100%" height="600" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+</div>
+<div class="footer">
+<p><a href="https://github.com/fonnesbeck/vi_pydata_virginia_2025">https://github.com/fonnesbeck/vi_pydata_virginia_2025</a></p>
+</div>
+</section>
+<section id="jax-ecosystem" class="slide level2 smaller">
+<h2>JAX Ecosystem</h2>
+<p>JAX is a Python library for accelerator-oriented array computation and program transformation, designed for <strong>high-performance numerical computing and large-scale machine learning</strong>.</p>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="jax">JAX</h4>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="intro_svi_files/static/images/logos/jax_logo.svg" class="quarto-figure quarto-figure-center" width="250"></p>
+</figure>
+</div>
+<h4 id="numpyro">NumPyro</h4>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="intro_svi_files/static/images/logos/pyro_logo.png" class="quarto-figure quarto-figure-center" width="200"></p>
+</figure>
+</div>
+</div><div class="column" style="width:50%;">
+<h4 id="flax">Flax</h4>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="intro_svi_files/static/images/logos/flax_logo.svg" class="quarto-figure quarto-figure-center" width="120"></p>
+</figure>
+</div>
+<h4 id="optax">Optax</h4>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="intro_svi_files/static/images/logos/optax_logo.svg" class="quarto-figure quarto-figure-center" width="200"></p>
+</figure>
+</div>
+</div></div>
+<div class="footer">
+<p><a href="https://docs.jax.dev/en/latest/">https://docs.jax.dev/en/latest/</a></p>
+</div>
 </section>
 <section id="variational-inference-in-a-nutshell" class="slide level2 smaller">
 <h2>Variational Inference in a Nutshell</h2>
@@ -263,26 +335,31 @@
 <li class="fragment"><p><span class="math inline">\(D = \{(x_i, y_i)\}_{i=1}^N\)</span>: Our complete dataset</p></li>
 <li class="fragment"><p><span class="math inline">\(\theta\)</span>: Model parameters (e.g., in a neural network, the weights and biases)</p></li>
 <li class="fragment"><p><span class="math inline">\(p(\theta|D)\)</span>: True posterior distribution (what we want but can’t compute easily)</p></li>
-<li class="fragment"><p><span class="math inline">\(\phi\)</span>: Variational parameters (parameters of our approximate posterior)</p></li>
 <li class="fragment"><p><span class="math inline">\(q_\phi(\theta)\)</span>: Variational approximation to the posterior (what we’ll optimize)</p></li>
-<li class="fragment"><p><span class="math inline">\(\text{ELBO}(\phi) = \mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta) + \log p(\theta) - \log q_\phi(\theta)]\)</span></p></li>
-<li class="fragment"><p>Maximizing the ELBO is equivalent to minimizing the KL divergence between our approximate posterior <span class="math inline">\(q_\phi(\theta)\)</span> and the true posterior <span class="math inline">\(p(\theta|D)\)</span>.</p></li>
-<li class="fragment"><p>This decomposes into three intuitive terms:</p>
+<li class="fragment"><p><span class="math inline">\(\phi\)</span>: Variational parameters (parameters of our approximate posterior)</p></li>
+</ul>
+<hr>
 <ul>
-<li class="fragment"><span class="math inline">\(\mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta)]\)</span>: Expected log-likelihood (how well we explain the data)</li>
-<li class="fragment"><span class="math inline">\(\mathbb{E}_{q_\phi(\theta)}[\log p(\theta)]\)</span>: Expected log-prior (staying close to prior beliefs)</li>
-<li class="fragment"><span class="math inline">\(\mathbb{E}_{q_\phi(\theta)}[\log q_\phi(\theta)]\)</span>: Entropy of variational distribution (encouraging exploration)</li>
+<li class="fragment"><p><span class="math inline">\(\text{ELBO}(\phi) = \mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta)] - \text{KL}(q_\phi(\theta) || p(\theta))\)</span></p></li>
+<li class="fragment"><p><span style="color:red;"><strong>Maximizing the ELBO is equivalent to minimizing the KL divergence between our approximate posterior <span class="math inline">\(q_\phi(\theta)\)</span> and the true posterior <span class="math inline">\(p(\theta|D)\)</span> (up to a constant, with respect to <span class="math inline">\(q_\phi(\theta)\)</span>).</strong></span> <strong>Why? Use the Bayes’ rule to expand the KL divergence.</strong></p></li>
+<li class="fragment"><p>This decomposes into two intuitive terms:</p>
+<ul>
+<li class="fragment"><p><span class="math inline">\(\mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta)]\)</span>: Expected log-likelihood (how well we explain the data)</p></li>
+<li class="fragment"><p><span class="math inline">\(\text{KL}(q_\phi(\theta) || p(\theta))\)</span>: KL divergence between <span class="math inline">\(q_\phi(\theta)\)</span> and the prior <span class="math inline">\(p(\theta)\)</span>.</p></li>
 </ul></li>
 </ul>
+<div class="footer">
+<p><a href="https://arxiv.org/abs/1601.00670">Variational Inference: A Review for Statisticians</a></p>
+</div>
 </section>
-<section id="estimating-the-concentration-parameter-of-a-gamma-distribution-sim-xalpha---1-e-x" class="slide level2">
-<h2>Estimating the Concentration Parameter of a Gamma Distribution <span class="math inline">\(\sim x^{\alpha - 1} e^{-x}\)</span></h2>
+<section id="estimating-the-concentration-parameter-of-a-gamma-distribution-textgammaalpha-sim-xalpha---1-e-x" class="slide level2">
+<h2>Estimating the Concentration Parameter of a Gamma Distribution <span class="math inline">\(\text{Gamma}(\alpha) \sim x^{\alpha - 1} e^{-x}\)</span></h2>
 
 <img data-src="intro_svi_files/static/images/intro_svi_files/intro_svi_5_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
 <section id="approximation-model" class="slide level2">
 <h2>Approximation Model</h2>
 <p>We want to estimate the concentration parameter of a Gamma distribution. We model the <strong>data generating process</strong> as:</p>
-<div class="sourceCode" id="cb1" data-code-line-numbers="|1-2|3-8|9-16"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a><span class="co"># Model to estimate the concentration parameter</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-code-line-numbers="|1-2|3-8|9-16"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a><span class="co"># Model to estimate the concentration parameter</span></span>
 <span id="cb1-2"><a href=""></a><span class="kw">def</span> model(z: jax.Array <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
 <span id="cb1-3"><a href=""></a>    <span class="co"># Sample the concentration parameter from a HalfNormal distribution</span></span>
 <span id="cb1-4"><a href=""></a>    <span class="co"># as the concentration parameter has to be positive</span></span>
@@ -297,11 +374,11 @@
 <span id="cb1-13"><a href=""></a>        <span class="st">"z"</span>,</span>
 <span id="cb1-14"><a href=""></a>        dist.Gamma(concentration<span class="op">=</span>concentration, rate<span class="op">=</span>rate),</span>
 <span id="cb1-15"><a href=""></a>        obs<span class="op">=</span>z,</span>
-<span id="cb1-16"><a href=""></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-16"><a href=""></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="approximation-guide" class="slide level2">
 <h2>Approximation Guide</h2>
-<div class="sourceCode" id="cb2" data-code-line-numbers="|1|2-11|12-16|17-22|23-24"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href=""></a><span class="kw">def</span> guide(z: jax.Array <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-code-line-numbers="|1|2-11|12-16|17-22|23-24"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href=""></a><span class="kw">def</span> guide(z: jax.Array <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
 <span id="cb2-2"><a href=""></a>    <span class="co"># Location and scale parameters of the normal distribution</span></span>
 <span id="cb2-3"><a href=""></a>    concentration_loc <span class="op">=</span> numpyro.param(</span>
 <span id="cb2-4"><a href=""></a>        <span class="st">"concentration_loc"</span>,</span>
@@ -324,12 +401,12 @@
 <span id="cb2-21"><a href=""></a>        transforms<span class="op">=</span>dist.transforms.ExpTransform(),</span>
 <span id="cb2-22"><a href=""></a>    )</span>
 <span id="cb2-23"><a href=""></a>    <span class="co"># Sample the concentration parameter from the transformed distribution</span></span>
-<span id="cb2-24"><a href=""></a>    numpyro.sample(<span class="st">"concentration"</span>, transformed_distribution)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-24"><a href=""></a>    numpyro.sample(<span class="st">"concentration"</span>, transformed_distribution)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="inference-with-svi" class="slide level2">
 <h2>Inference with SVI</h2>
 <p>This is how a typical SVI workflow looks like in NumPyro:</p>
-<div class="sourceCode" id="cb3" data-code-line-numbers="|1-2|4-5|7-8|10-17"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href=""></a><span class="co"># Define the loss function (ELBO)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" data-code-line-numbers="|1-2|4-5|7-8|10-17"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href=""></a><span class="co"># Define the loss function (ELBO)</span></span>
 <span id="cb3-2"><a href=""></a>loss <span class="op">=</span> Trace_ELBO(num_particles<span class="op">=</span><span class="dv">10</span>)</span>
 <span id="cb3-3"><a href=""></a></span>
 <span id="cb3-4"><a href=""></a><span class="co"># Define the optimizer</span></span>
@@ -345,7 +422,7 @@
 <span id="cb3-14"><a href=""></a>    num_steps<span class="op">=</span><span class="dv">1_000</span>,</span>
 <span id="cb3-15"><a href=""></a>    z<span class="op">=</span>z,</span>
 <span id="cb3-16"><a href=""></a>    progress_bar<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb3-17"><a href=""></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-17"><a href=""></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="approximation-results" class="slide level2">
 <h2>Approximation Results</h2>
@@ -380,8 +457,8 @@
 
 <img data-src="intro_svi_files/static/images/intro_svi_files/intro_svi_46_0.svg" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
 <section id="neural-network-component" class="slide level2">
-<h2>Neural Network Component</h2>
-<div class="sourceCode" id="cb4" data-code-line-numbers="|1-4|7-11|12-17|19-23|26-34"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="im">import</span> jax</span>
+<h2>Neural Network Component 🤖</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-code-line-numbers="|1-4|7-11|12-17|19-23|26-34"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="im">import</span> jax</span>
 <span id="cb4-2"><a href=""></a><span class="im">import</span> jax.random <span class="im">as</span> random</span>
 <span id="cb4-3"><a href=""></a><span class="im">from</span> flax <span class="im">import</span> nnx</span>
 <span id="cb4-4"><a href=""></a><span class="im">from</span> itertools <span class="im">import</span> pairwise</span>
@@ -414,11 +491,11 @@
 <span id="cb4-31"><a href=""></a>    dout<span class="op">=</span>dout,</span>
 <span id="cb4-32"><a href=""></a>    hidden_layers<span class="op">=</span>hidden_layers,</span>
 <span id="cb4-33"><a href=""></a>    rngs<span class="op">=</span>nnx.Rngs(rng_subkey),</span>
-<span id="cb4-34"><a href=""></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-34"><a href=""></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="numpyro-model" class="slide level2">
 <h2>NumPyro Model</h2>
-<div class="sourceCode" id="cb5" data-code-line-numbers="|1-3|5-8|9-14|16-20|22|24-25"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href=""></a><span class="im">import</span> numpyro</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" data-code-line-numbers="|1-3|5-8|9-14|16-20|22|24-25"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href=""></a><span class="im">import</span> numpyro</span>
 <span id="cb5-2"><a href=""></a><span class="im">import</span> numpyro.distributions <span class="im">as</span> dist</span>
 <span id="cb5-3"><a href=""></a><span class="im">from</span> numpyro.contrib.module <span class="im">import</span> random_nnx_module</span>
 <span id="cb5-4"><a href=""></a></span>
@@ -442,15 +519,15 @@
 <span id="cb5-22"><a href=""></a>    p <span class="op">=</span> numpyro.deterministic(<span class="st">"p"</span>, nn(x).squeeze(<span class="op">-</span><span class="dv">1</span>))</span>
 <span id="cb5-23"><a href=""></a></span>
 <span id="cb5-24"><a href=""></a>    <span class="cf">with</span> numpyro.plate(<span class="st">"data"</span>, n_obs):</span>
-<span id="cb5-25"><a href=""></a>        numpyro.sample(<span class="st">"y"</span>, dist.Bernoulli(probs<span class="op">=</span>p), obs<span class="op">=</span>y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-25"><a href=""></a>        numpyro.sample(<span class="st">"y"</span>, dist.Bernoulli(probs<span class="op">=</span>p), obs<span class="op">=</span>y)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="prior-predictive-checks" class="slide level2">
 <h2>Prior Predictive Checks</h2>
 
 <img data-src="intro_svi_files/static/images/intro_svi_files/intro_svi_51_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
 <section id="inference-svi-in-numpyro" class="slide level2">
-<h2>Inference: SVI in NumPyro</h2>
-<div class="sourceCode" id="cb6" data-code-line-numbers="|5|6|7|8|10-18|20-21"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a><span class="im">import</span> numpyro</span>
+<h2>Inference: SVI in NumPyro 🚀</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" data-code-line-numbers="|5|6|7|8|10-18|20-21"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a><span class="im">import</span> numpyro</span>
 <span id="cb6-2"><a href=""></a><span class="im">from</span> numpyro.infer <span class="im">import</span> SVI, Trace_ELBO</span>
 <span id="cb6-3"><a href=""></a><span class="im">from</span> numpyro.infer.autoguide <span class="im">import</span> AutoNormal</span>
 <span id="cb6-4"><a href=""></a></span>
@@ -470,7 +547,7 @@
 <span id="cb6-18"><a href=""></a>)</span>
 <span id="cb6-19"><a href=""></a></span>
 <span id="cb6-20"><a href=""></a><span class="co"># Results</span></span>
-<span id="cb6-21"><a href=""></a>params <span class="op">=</span> svi_result.params</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-21"><a href=""></a>params <span class="op">=</span> svi_result.params</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="inference-elbo-curve" class="slide level2">
 <h2>Inference: ELBO Curve</h2>
@@ -478,7 +555,7 @@
 <img data-src="intro_svi_files/static/images/elbo_curve_example.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
 <section id="inference-custom-guide" class="slide level2">
 <h2>Inference: Custom Guide 🤕</h2>
-<div class="sourceCode" id="cb7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href=""></a><span class="kw">def</span> layer_guide(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href=""></a><span class="kw">def</span> layer_guide(</span>
 <span id="cb7-2"><a href=""></a>    loc_shape: <span class="bu">tuple</span>[<span class="bu">int</span>, ...],</span>
 <span id="cb7-3"><a href=""></a>    loc_amplitude: <span class="bu">float</span>,</span>
 <span id="cb7-4"><a href=""></a>    scale_shape: <span class="bu">tuple</span>[<span class="bu">int</span>, ...],</span>
@@ -488,7 +565,7 @@
 <span id="cb7-8"><a href=""></a>    layer_name: <span class="bu">str</span>,</span>
 <span id="cb7-9"><a href=""></a>    event_shape: <span class="bu">int</span> <span class="op">=</span> <span class="dv">1</span>,</span>
 <span id="cb7-10"><a href=""></a>    seed: <span class="bu">int</span> <span class="op">=</span> <span class="dv">42</span>,</span>
-<span id="cb7-11"><a href=""></a>) <span class="op">-&gt;</span> <span class="va">None</span>:</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-11"><a href=""></a>) <span class="op">-&gt;</span> <span class="va">None</span>:</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="callout callout-tip callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
@@ -511,8 +588,8 @@
 </div>
 </section>
 <section id="inference-custom-optimizer" class="slide level2">
-<h2>Inference: Custom Optimizer</h2>
-<div class="sourceCode" id="cb8" data-code-line-numbers="|1|2-10|11-22"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href=""></a><span class="im">import</span> optax</span>
+<h2>Inference: Custom Optimizer ⚡</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" data-code-line-numbers="|1|2-10|11-22"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href=""></a><span class="im">import</span> optax</span>
 <span id="cb8-2"><a href=""></a><span class="co"># OneCycle schedule: low -&gt; high -&gt; low with specific timing</span></span>
 <span id="cb8-3"><a href=""></a>scheduler <span class="op">=</span> optax.linear_onecycle_schedule(</span>
 <span id="cb8-4"><a href=""></a>    transition_steps<span class="op">=</span><span class="dv">8_000</span>,  <span class="co"># Total number of optimization steps</span></span>
@@ -532,11 +609,11 @@
 <span id="cb8-18"><a href=""></a>        patience<span class="op">=</span><span class="dv">10</span>,  <span class="co"># Wait 10 evaluations before reducing</span></span>
 <span id="cb8-19"><a href=""></a>        accumulation_size<span class="op">=</span><span class="dv">100</span>,  <span class="co"># Window size for detecting plateaus</span></span>
 <span id="cb8-20"><a href=""></a>    ),</span>
-<span id="cb8-21"><a href=""></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-21"><a href=""></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="inference-custom-optimization-loop" class="slide level2">
 <h2>Inference: Custom Optimization Loop</h2>
-<div class="sourceCode" id="cb9" data-code-line-numbers="|1-3|5-7|9-11|13-22|24-32"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href=""></a><span class="kw">def</span> body_fn(svi_state, _):</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" data-code-line-numbers="|1-3|5-7|9-11|13-22|24-32"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href=""></a><span class="kw">def</span> body_fn(svi_state, _):</span>
 <span id="cb9-2"><a href=""></a>    svi_state, loss <span class="op">=</span> svi.update(svi_state, x<span class="op">=</span>x_train, y<span class="op">=</span>y_train)</span>
 <span id="cb9-3"><a href=""></a>    <span class="cf">return</span> svi_state, loss</span>
 <span id="cb9-4"><a href=""></a></span>
@@ -567,13 +644,13 @@
 <span id="cb9-29"><a href=""></a>            <span class="bu">print</span>(</span>
 <span id="cb9-30"><a href=""></a>                <span class="ss">f"Early stopping at step </span><span class="sc">{</span>i<span class="sc">}</span><span class="ss"> (validation loss exceeding training loss)"</span></span>
 <span id="cb9-31"><a href=""></a>            )</span>
-<span id="cb9-32"><a href=""></a>            <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-32"><a href=""></a>            <span class="cf">break</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="inference-early-stopping" class="slide level2">
 <h2>Inference: Early Stopping</h2>
 
-<img data-src="intro_svi_files/static/images/intro_svi_files/intro_svi_61_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="sourceCode" id="cb10"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href=""></a><span class="dv">37</span><span class="op">%|</span>███▋      <span class="op">|</span> <span class="dv">2924</span><span class="op">/</span><span class="dv">8000</span> [<span class="dv">00</span>:<span class="dv">0</span><span class="er">2</span><span class="op">&lt;</span><span class="dv">00</span>:<span class="dv">0</span><span class="er">4</span>, <span class="fl">1145.56</span><span class="er">it</span><span class="op">/</span>s, train: <span class="fl">396.8835</span>, val: <span class="fl">202.2204</span>]</span>
-<span id="cb10-2"><a href=""></a>Early stopping at step <span class="dv">2925</span> (validation loss exceeding training loss)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<img data-src="intro_svi_files/static/images/intro_svi_files/intro_svi_61_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href=""></a><span class="dv">37</span><span class="op">%|</span>███▋      <span class="op">|</span> <span class="dv">2924</span><span class="op">/</span><span class="dv">8000</span> [<span class="dv">00</span>:<span class="dv">0</span><span class="er">2</span><span class="op">&lt;</span><span class="dv">00</span>:<span class="dv">0</span><span class="er">4</span>, <span class="fl">1145.56</span><span class="er">it</span><span class="op">/</span>s, train: <span class="fl">396.8835</span>, val: <span class="fl">202.2204</span>]</span>
+<span id="cb10-2"><a href=""></a>Early stopping at step <span class="dv">2925</span> (validation loss exceeding training loss)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="model-evaluation-posterior-auc" class="slide level2">
 <h2>Model Evaluation: Posterior AUC</h2>
@@ -591,8 +668,41 @@
 <h2>Predictions Outside Training Data</h2>
 
 <img data-src="intro_svi_files/static/images/intro_svi_files/intro_svi_87_1.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"></section>
+<section id="tips-tricks" class="slide level2">
+<h2>Tips &amp; Tricks</h2>
+<h3 id="when-to-use-svi-vs-mcmc">When to Use SVI vs MCMC?</h3>
+<h4 id="use-svi-when">Use SVI when:</h4>
+<ul>
+<li>You have large datasets</li>
+<li>You need fast inference for production systems</li>
+<li>You can accept approximate (vs exact) posterior inference</li>
+</ul>
+<h4 id="use-mcmc-when">Use MCMC when:</h4>
+<ul>
+<li>You have small-medium datasets</li>
+<li>You need precise posterior samples</li>
+<li>You have time for longer computation</li>
+</ul>
+</section>
+<section id="tips-tricks-1" class="slide level2 smaller">
+<h2>Tips &amp; Tricks</h2>
+<h4 id="tips-and-tricks-svi-in-production">Tips and Tricks: SVI in Production</h4>
+<ul>
+<li>Using GPUs for training can significantly speed up the training process.</li>
+<li>Using mini-batches can help with memory issues and speed up the training process.</li>
+<li>Using a good learning rate scheduler can help with the training process.</li>
+<li>Computing posterior predictive samples can be batched using <a href="https://num.pyro.ai/en/stable/utilities.html#predictive"><code>Predictive</code></a> from NumPyro (you might need to do it by hand, but is quite straightforward). This batching can help memory issues.</li>
+</ul>
+<h4 id="other-inference-methods-for-bayesian-models">Other Inference Methods for Bayesian Models</h4>
+<p>It is important to note that there are other inference methods for Bayesian models:</p>
+<ul>
+<li>See all the <a href="https://num.pyro.ai/en/stable/mcmc.html">Markov Chain Monte Carlo (MCMC)</a> methods available in NumPyro</li>
+<li>See some more custom ones from <a href="https://blackjax-devs.github.io/blackjax/index.html"><code>Blackjax</code></a> or <a href="https://danielward27.github.io/flowjax/"><code>FlowJAX</code></a>.</li>
+<li>All of them can be integrated with NumPyro, see the example notebook <a href="https://num.pyro.ai/en/stable/tutorials/other_samplers.html">NumPyro Integration with Other Libraries</a>.</li>
+</ul>
+</section>
 <section id="references" class="slide level2 smaller">
-<h2>References</h2>
+<h2>References 📚</h2>
 <h5 id="pyro-tutorials">Pyro Tutorials</h5>
 <ul>
 <li><a href="https://pyro.ai/examples/svi_part_i.html">SVI Part I: An Introduction to Stochastic Variational Inference in Pyro</a></li>
@@ -611,10 +721,10 @@
 <li><a href="https://www.youtube.com/watch?v=XECLmgnS6Ng">Chris Fonnesbeck - A Beginner’s Guide to Variational Inference | PyData Virginia 2025</a></li>
 </ul>
 </section>
-<section id="thank-you" class="slide level2">
+<section id="thank-you" class="slide level2" data-background-image="intro_svi_files/static/images/logos/juanitorduz_logo_small.png" data-background-size="cover" data-background-opacity="0.15">
 <h2>Thank you!</h2>
-<p><a href="https://juanitorduz.github.io/">juanitorduz.github.io</a></p>
-<p><img data-src="intro_svi_files/static/images/juanitorduz.png" class="absolute" style="top: 0px; right: 0px; width: 600px; height: 600px; "></p>
+<h3 id="juanitorduz.github.io"><a href="https://juanitorduz.github.io/">juanitorduz.github.io</a></h3>
+<p><img data-src="intro_svi_files/static/images/juanitorduz.png" class="absolute" style="top: 150px; right: 0px; width: 550px; height: 550px; "></p>
 
 </section>
     </div>

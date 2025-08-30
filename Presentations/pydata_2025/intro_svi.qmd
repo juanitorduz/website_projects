@@ -34,6 +34,8 @@ format:
 
 - **End-to-End Example: Bayesian Neural Network Model**
 
+- Tips & Tricks
+
 - References
 
 
@@ -59,11 +61,83 @@ format:
 
 :::
 
-## What is Variational Inference?
+## What is Variational Inference? {.smaller}
 
-- Stochastic Variational Inference (SVI) is a calable **approximate inference method that transforms the problem of posterior inference into an optimization problem**.
 
-- Instead of sampling from the posterior distribution (like MCMC), SVI finds the best approximation to the posterior within a family of simpler distributions.
+::: {.callout-note}
+# Bayes' Rule
+
+Recall, given the data $D$ and the model $p(\theta|D)$, we can use Bayes' rule to compute the posterior distribution:
+
+$$
+p(\theta|D) = \frac{p(D|\theta)p(\theta)}{p(D)}
+$$
+
+where:
+
+- $p(D|\theta)$: Likelihood (how well the model fits the data)
+- $p(\theta)$: Prior (our beliefs about the parameters before seeing the data)
+- $\displaystyle {p(D) = \int p(D|\theta)p(\theta)d\theta}$: [**Hard to compute!**]{style="color:red;"}
+
+:::
+
+. . . 
+
+- Stochastic Variational Inference (SVI) is a scalable **approximate inference method that transforms the problem of posterior inference into an optimization problem**.
+
+- Instead of sampling from the posterior distribution (like MCMC), SVI finds the *best* approximation to the posterior within a family of simpler distributions.
+
+::: footer
+[Variational Inference: A Review for Statisticians](https://arxiv.org/abs/1601.00670)
+:::
+
+## Variational Inference in PyMC
+
+::: {style="text-align: center;"}
+{{< video https://www.youtube.com/watch?v=XECLmgnS6Ng width="100%" height="600" >}}
+:::
+
+::: footer
+[https://github.com/fonnesbeck/vi_pydata_virginia_2025](https://github.com/fonnesbeck/vi_pydata_virginia_2025)
+:::
+
+## JAX Ecosystem {.smaller}
+
+JAX is a Python library for accelerator-oriented array computation and program transformation, designed for **high-performance numerical computing and large-scale machine learning**.
+
+::: {.columns}
+
+::: {.column width="50%"}
+
+#### JAX
+
+![](intro_svi_files/static/images/logos/jax_logo.svg){fig-align="center" width="250"}
+
+#### NumPyro
+
+![](intro_svi_files/static/images/logos/pyro_logo.png){fig-align="center" width="200"}
+
+:::
+
+::: {.column width="50%"}
+
+#### Flax
+
+![](intro_svi_files/static/images/logos/flax_logo.svg){fig-align="center" width="120"}
+
+
+#### Optax
+
+
+![](intro_svi_files/static/images/logos/optax_logo.svg){fig-align="center" width="200"}
+
+:::
+
+:::
+
+::: footer
+[https://docs.jax.dev/en/latest/](https://docs.jax.dev/en/latest/)
+:::
 
 
 ## Variational Inference in a Nutshell {.smaller}
@@ -76,24 +150,30 @@ format:
 
 - $p(\theta|D)$: True posterior distribution (what we want but can't compute easily)
 
-- $\phi$: Variational parameters (parameters of our approximate posterior)
-
 - $q_\phi(\theta)$: Variational approximation to the posterior (what we'll optimize)
 
-- $\text{ELBO}(\phi) = \mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta) + \log p(\theta) - \log q_\phi(\theta)]$
+- $\phi$: Variational parameters (parameters of our approximate posterior)
 
-- Maximizing the ELBO is equivalent to minimizing the KL divergence between our approximate posterior $q_\phi(\theta)$ and the true posterior $p(\theta|D)$.
+---
 
-- This decomposes into three intuitive terms:
+- $\text{ELBO}(\phi) = \mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta)] - \text{KL}(q_\phi(\theta) || p(\theta))$
+
+- [**Maximizing the ELBO is equivalent to minimizing the KL divergence between our approximate posterior $q_\phi(\theta)$ and the true posterior $p(\theta|D)$ (up to a constant, with respect to $q_\phi(\theta)$).**]{style="color:red;"} **Why? Use the Bayes' rule to expand the KL divergence.**
+
+- This decomposes into two intuitive terms:
 
     - $\mathbb{E}_{q_\phi(\theta)}[\log p(y|x, \theta)]$: Expected log-likelihood (how well we explain the data)
-    - $\mathbb{E}_{q_\phi(\theta)}[\log p(\theta)]$: Expected log-prior (staying close to prior beliefs)
-    - $\mathbb{E}_{q_\phi(\theta)}[\log q_\phi(\theta)]$: Entropy of variational distribution (encouraging exploration)
+
+    - $\text{KL}(q_\phi(\theta) || p(\theta))$: KL divergence between $q_\phi(\theta)$ and the prior $p(\theta)$.
 
 :::
 
+::: footer
+[Variational Inference: A Review for Statisticians](https://arxiv.org/abs/1601.00670)
+:::
 
-## Estimating the Concentration Parameter of a Gamma Distribution $\sim x^{\alpha - 1} e^{-x}$
+
+## Estimating the Concentration Parameter of a Gamma Distribution $\text{Gamma}(\alpha) \sim x^{\alpha - 1} e^{-x}$
 
 ![](intro_svi_files/static/images/intro_svi_files/intro_svi_5_1.png){fig-align="center" width="1000"}
 
@@ -202,7 +282,7 @@ Classification problem with non-linear decision boundary.
 
 ![](intro_svi_files/static/images/intro_svi_files/intro_svi_46_0.svg){fig-align="center" width="1000"}
 
-## Neural Network Component
+## Neural Network Component 🤖
 
 ```{.python code-line-numbers="|1-4|7-11|12-17|19-23|26-34"}
 import jax
@@ -275,7 +355,7 @@ def model(
 
 ![](intro_svi_files/static/images/intro_svi_files/intro_svi_51_1.png){fig-align="center" width="1000"}
 
-## Inference: SVI in NumPyro
+## Inference: SVI in NumPyro 🚀
 
 ```{.python code-line-numbers="|5|6|7|8|10-18|20-21"}
 import numpyro
@@ -333,7 +413,7 @@ def layer_guide(
 [SVI Part IV: Tips and Tricks](https://pyro.ai/examples/svi_part_iv.html)
 :::
 
-## Inference: Custom Optimizer
+## Inference: Custom Optimizer ⚡
 
 ```{.python code-line-numbers="|1|2-10|11-22"}
 import optax
@@ -423,7 +503,39 @@ Early stopping at step 2925 (validation loss exceeding training loss)
 
 ![](intro_svi_files/static/images/intro_svi_files/intro_svi_87_1.png){fig-align="center" width="1000"}
 
-## References {.smaller}
+## Tips & Tricks
+
+### When to Use SVI vs MCMC?
+
+#### Use SVI when:
+- You have large datasets
+- You need fast inference for production systems
+- You can accept approximate (vs exact) posterior inference
+
+#### Use MCMC when:
+- You have small-medium datasets
+- You need precise posterior samples
+- You have time for longer computation
+
+
+## Tips & Tricks {.smaller}
+
+#### Tips and Tricks: SVI in Production
+
+- Using GPUs for training can significantly speed up the training process.
+- Using mini-batches can help with memory issues and speed up the training process.
+- Using a good learning rate scheduler can help with the training process.
+- Computing posterior predictive samples can be batched using [`Predictive`](https://num.pyro.ai/en/stable/utilities.html#predictive) from NumPyro (you might need to do it by hand, but is quite straightforward). This batching can help memory issues.
+
+#### Other Inference Methods for Bayesian Models
+
+It is important to note that there are other inference methods for Bayesian models: 
+
+- See all the [Markov Chain Monte Carlo (MCMC)](https://num.pyro.ai/en/stable/mcmc.html) methods available in NumPyro
+- See some more custom ones from [`Blackjax`](https://blackjax-devs.github.io/blackjax/index.html) or [`FlowJAX`](https://danielward27.github.io/flowjax/). 
+- All of them can be integrated with NumPyro, see the example notebook [NumPyro Integration with Other Libraries](https://num.pyro.ai/en/stable/tutorials/other_samplers.html).
+
+## References 📚 {.smaller}
 
 ##### Pyro Tutorials
 
@@ -444,9 +556,8 @@ Early stopping at step 2925 (validation loss exceeding training loss)
 
 
 
+## Thank you! {data-background-image="intro_svi_files/static/images/logos/juanitorduz_logo_small.png" data-background-size="cover" data-background-opacity="0.15"}
 
-## Thank you!
+### [juanitorduz.github.io](https://juanitorduz.github.io/)
 
-[juanitorduz.github.io](https://juanitorduz.github.io/)
-
-![](intro_svi_files/static/images/juanitorduz.png){.absolute top=0 right=0 width=600 height=600}
+![](intro_svi_files/static/images/juanitorduz.png){.absolute top=150 right=0 width=550 height=550}
