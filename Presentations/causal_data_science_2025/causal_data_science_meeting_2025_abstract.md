@@ -1,5 +1,7 @@
 # Bridging the Causal Inference Gap: Using Simulations and Probabilistic Programming to Drive Causal Inference Adoption
 
+[**Dr. Juan Orduz**](https://juanitorduz.github.io/)
+
 ## Abstract
 
 One of the most significant barriers to implementing causal inference in industry is not technical complexity, but rather organizational resistance rooted in unfamiliarity with causal thinking. While some (not all) data scientists understand the mathematical foundations of causal inference, translating these concepts to non-technical stakeholders—executives, product managers, and domain experts—remains a persistent challenge. This talk explores how simulation-based approaches using probabilistic programming languages can serve as powerful pedagogical tools to demonstrate causal concepts, build organizational understanding, and secure buy-in for causal inference initiatives.
