@@ -1,10 +1,10 @@
-# Bridging the Causal Inference Gap: Using Simulations and Probabilistic Programming to Drive Causal Inference Adoption
+# Bridging the Causal Inference Gap: A Hands-On Workshop Using Simulations and Probabilistic Programming
 
 [**Dr. Juan Orduz**](https://juanitorduz.github.io/)
 
-## Abstract
+## Workshop Abstract
 
-One of the most significant barriers to implementing causal inference in industry is not technical complexity, but rather organizational resistance rooted in unfamiliarity with causal thinking. While some (not all) data scientists understand the mathematical foundations of causal inference, translating these concepts to non-technical stakeholders—executives, product managers, and domain experts—remains a persistent challenge. This talk explores how simulation-based approaches using probabilistic programming languages can serve as powerful pedagogical tools to demonstrate causal concepts, build organizational understanding, and secure buy-in for causal inference initiatives.
+One of the most significant barriers to implementing causal inference in industry is not technical complexity, but rather organizational resistance rooted in unfamiliarity with causal thinking. While some (not all) data scientists understand the mathematical foundations of causal inference, translating these concepts to non-technical stakeholders—executives, product managers, and domain experts—remains a persistent challenge. This hands-on workshop teaches participants how to use simulation-based approaches with probabilistic programming languages as powerful pedagogical tools to demonstrate causal concepts, build organizational understanding, and secure buy-in for causal inference initiatives.
 
 Simulations prove particularly valuable in scenarios where traditional A/B testing falls short. Consider marketing funnel effects, where upper-funnel brand marketing (TV advertising) influences lower-funnel performance marketing (Google Ads), creating complex confounding relationships. Using probabilistic programming, we can simulate these multi-channel attribution problems and demonstrate how naive correlation analysis might incorrectly attribute sales increases to Google Ads when the true driver is TV advertising.
 
@@ -18,16 +18,31 @@ Traditional approaches to explaining causal inference often rely on abstract the
 
 Modern probabilistic programming frameworks offer unique advantages through their `observe` and `do` operators, which directly map to Pearl's causal hierarchy. The `observe` operator demonstrates passive observation (correlation), while the `do` operator showcases active intervention (causation). This clear distinction helps non-technical stakeholders understand why "correlation is not causation" and why A/B tests and observational studies require different analytical approaches.
 
-### Talk Outline
+### Workshop Structure
 
-This talk will present practical strategies for using simulation-based education to drive causal inference adoption:
+This interactive workshop will equip participants with practical skills and tools for using simulation-based education to drive causal inference adoption in their organizations:
 
-- **Use simulations to create intuition:** Instead of using mathematical notation, use simulations to create intuition.
+**Part 1: Building Intuition Through Simulation (45 minutes)**
+- Hands-on exercise: Participants will create simple simulations using NumPyro/PyMC to generate data with known causal structures
+- Live coding demonstration: Building intuition about confounders and selection bias through explicit data generating processes
+- Interactive exercise: Comparing naive correlation analysis with proper causal methods on simulated data
 
-- **Workshop to define causal DAGS:** Meet with different stakeholders to draft causal DAGS relevant to the domain. It is always interesting to see the different perspectives and how the causal directions differ across different domains.
+**Part 2: Collaborative DAG Construction (45 minutes)**
+- Small group activity: Participants work in teams to draft causal DAGs relevant to their domains (marketing, logistics, product, etc.)
+- Cross-team sharing: Groups present their DAGs and discuss different perspectives on causal relationships
+- Facilitated discussion: How causal directions differ across domains and stakeholder viewpoints
 
-- **Simulated Case Studies:** Use one simple component of the causal model to illustrate the causal concepts. For example, confounders, selection bias, etc. Emphasize that ignoring these can lead to biased estimates, which ultimately lead to bad decisions with significant financial implications.
+**Part 3: Practical Case Study Implementation (60 minutes)**
+- Guided implementation: Participants choose one component from their DAGs to model and simulate
+- Focus areas: Confounders, selection bias, or temporal effects relevant to their use cases
+- Real-world application: Using actual data patterns to simulate future scenarios and strategy changes
 
-- **User Real Data to simulate future scenarios:** This is especially useful to understand change in strategies like pricing or structureal product changes.
+**Part 4: Strategic Implementation Planning (30 minutes)**
+- Group exercise: Developing actionable plans for introducing causal inference in participants' organizations
+- Best practices discussion: Starting with incremental wins rather than perfect solutions
+- Resource sharing: Templates and code examples for ongoing simulation-based education efforts
 
-- For the first practical application do not aim for the best solution but think about strategic incremental wins to get the trust and business value from the causal inference initiatives.
+### Prerequisites
+- Basic Python programming experience
+- Familiarity with data analysis concepts (no prior causal inference knowledge required)
+- Laptop with Python environment (setup instructions will be provided in advance)
