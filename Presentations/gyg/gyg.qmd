@@ -1,0 +1,85 @@
+---
+title: "MMM in Practice"
+title-slide-attributes:
+  data-background-image: gyg_files/static/images/mmm_components.png
+  data-background-size: cover
+  data-background-opacity: "0.15"
+subtitle: "Culture, Processes and Learnings"
+author: 
+  - name: Dr. Juan Orduz
+    url: https://juanitorduz.github.io/
+
+format:
+  revealjs:
+    slide-number: true
+    html-math-method: mathjax 
+    css: gyg_files/style.css
+    logo: gyg_files/static/images/logos/juanitorduz_logo_small.png 
+    transition: none
+    chalkboard: 
+      buttons: false
+    preview-links: auto
+    theme:
+        - white
+    highlight-style: github-dark
+---
+
+## Outline
+
+- About Me
+- Business Context
+- The Measurement Challenge
+- Model Development
+- Desision Making
+- Validation
+- Experimentation
+- Open Source
+- Research
+
+## About Me {.smaller}
+
+::: incremental
+
+- Mathematician
+    - BSc in Math and Physics, Universidad de los Andes
+    - PhD in Math, Humboldt Universität zu Berlin
+
+- First (real) job after PhD: Data Scientist Marketing Analytics Consultancy
+
+- Other positions:
+    - Hellofresh: Demand Forecasting
+    - **Wolt: Founding Member Marketing Tech Team**
+    - Wolt: Relail Pricing and Forecasting
+    - Delivery Hero: Principal Data Scientist (AdTech)
+    - Open Source Developer: PyMC Labs
+
+:::
+
+## Business Context
+
+### Status
+
+- Significant marketing spend
+- Attribution driven
+- Lack of visibility on offline spending
+
+### Objective
+
+- Incrementally improve the marketing measurement:
+    - Geo-Experimentation
+    - Media Mix Models (MMM)
+
+## Geo-Experimentation
+
+::: {.text-center}
+{{< video https://www.youtube.com/watch?v=gMaxM8PAcpo width="1000" height="562" >}}
+:::
+
+## Media Mix Model (MMM)
+
+- Decided for an in-house (custom) implementation of a MMM:
+    - Facebook Robyn is very unstable
+    - Google's Lightweight MMM was under beta development
+    - I had experience with MMMs and PyMC.
+    - Implementation of ["Bayesian Methods for Media Mix Modeling with Carryover and Shape Effects", by Jin et al. (2017)](https://research.google/pubs/bayesian-methods-for-media-mix-modeling-with-carryover-and-shape-effects/).
+    - Production-Level Code (modular, tests, diagnostics, etc.)
