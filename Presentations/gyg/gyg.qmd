@@ -31,10 +31,10 @@ format:
 - The Measurement Challenge
 - Model Development
 - Desision Making
-- Validation
-- Experimentation
-- Open Source
-- Research
+- Validation & Calibration
+- Achivements and Learnings
+- Marketing & Causal Inference
+- Leading the State of the Art MMMs
 
 ## About Me {.smaller}
 
@@ -77,13 +77,17 @@ format:
 
 ## Media Mix Model (MMM)
 
+::: incremental
+
 - Decided for an in-house (custom) implementation of a MMM:
     - Facebook Robyn is very unstable
     - Google's Lightweight MMM was under beta development
-    - I had experience with MMMs and PyMC.
+    - I had experience with MMMs and PyMC
     - Implementation of ["Bayesian Methods for Media Mix Modeling with Carryover and Shape Effects", by Jin et al. (2017)](https://research.google/pubs/bayesian-methods-for-media-mix-modeling-with-carryover-and-shape-effects/).
     - Production-Level Code (modular, tests, diagnostics, etc.)
-    - The data ... 🫠
+    - The data ... 🙃 🙂
+
+:::
 
 ## Desision Making {.smaller}
 
@@ -93,9 +97,73 @@ format:
 
 ::: incremental
 
-- **Strategy 1:** Simulations and par
+- **Strategy 1:** Simulations and parameter recovery
 - **Strategy 2:** Education and training
 - **Strategy 3:** Productionization (automation)
 - **Strategy 4:** Experiments 👈
 
 :::
+
+## Validation & Calibration
+
+- The MMM and the attribution model did not agree on the CAC estimates for channel $X$.
+
+- Strategies $1$, $2$ and $3$ did not work.
+
+- We decided to run a test in across many markets.
+
+![](gyg_files/static/images/geo_test.png){fig-align="center" width="1000"}
+
+- **The results aligned much more closely with the MMM.**
+
+## Achivements and Learnings {.smaller}
+
+::: incremental
+
+#### Achievements
+
+- From zero to marketing measurement strategy.
+- Team growth: from $1$ to $3$ Data Scientists.
+- Production-level code for the MMM and geo-experiments.
+- Masive busdget allocation changes for channel $X$.
+- Better understanding of the offline vs online mechanism.
+
+#### Learnings
+
+- In-house MMM comes with maintanance and development costs.
+- The hardest part of the MMM is its inclusion in the decision making process.
+- All MMMs are wrong, but some are useful. 
+- Once has see this as a process and iterating with experiments.
+- True analytical and causal thinking are needed to fully leverage the MMM and experimentation.
+
+:::
+
+## Marketing & Causal Inference {.smaller}
+
+- It is crucial to acknowledge that marketing mix models (and other models in marketing) are causal models.
+- We need to think about the causal graph and the causal relationships between the variables and use causal inference to for the estimation and decision making.
+
+::: {.columns}
+
+::: {.column width="50%"}
+![](gyg_files/static/images/causal_graph.svg){fig-align="center" width="100%"}
+:::
+
+::: {.column width="50%"}
+{{< video https://www.youtube.com/watch?v=bTTSg91pFUk width="100%" height="338" >}}
+:::
+
+:::
+
+
+## Leading the State of the Art MMMs {.smaller}
+
+- [(2022)Media Effect Estimation with PyMC: Adstock, Saturation & Diminishing Returns](https://juanitorduz.github.io/pymc_mmm/): First explicit PyMC implementation of a MMM with time-varying parameters.
+
+- [(2024) PyMC-Marketing](https://www.pymc-marketing.io/): Bayesian marketing toolbox in PyMC. Media Mix (MMM), customer lifetime value (CLV), buy-till-you-die (BTYD) models and more.
+
+![](gyg_files/static/images/pymc-marketing.png){fig-align="center" width="1000"}
+
+- [(2024) Media Mix Model and Experimental Calibration: A Simulation Study](https://juanitorduz.github.io/mmm_roas/). First PyMC implementation of a MMM with experimental calibration (ROAS parametrization approach from Google).
+
+## Thank You!

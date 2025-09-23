@@ -6,8 +6,8 @@
 <script src="gyg_files/libs/quarto-html/tippy.umd.min.js"></script>
 <link href="gyg_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="gyg_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<link href="gyg_files/libs/quarto-html/quarto-syntax-highlighting-67839544912bc898267f15026188952a.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.8.21">
+<link href="gyg_files/libs/quarto-html/quarto-syntax-highlighting-4a17e18fdf56099d4f6da1e105f33a53.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.8.24">
 
   <meta name="author" content="Dr.&nbsp;Juan Orduz">
   <title>MMM in Practice</title>
@@ -150,10 +150,10 @@
 <li>The Measurement Challenge</li>
 <li>Model Development</li>
 <li>Desision Making</li>
-<li>Validation</li>
-<li>Experimentation</li>
-<li>Open Source</li>
-<li>Research</li>
+<li>Validation &amp; Calibration</li>
+<li>Achivements and Learnings</li>
+<li>Marketing &amp; Causal Inference</li>
+<li>Leading the State of the Art MMMs</li>
 </ul>
 </section>
 <section id="about-me" class="slide level2 smaller">
@@ -201,14 +201,14 @@
 <section id="media-mix-model-mmm" class="slide level2">
 <h2>Media Mix Model (MMM)</h2>
 <ul>
-<li>Decided for an in-house (custom) implementation of a MMM:
+<li class="fragment">Decided for an in-house (custom) implementation of a MMM:
 <ul>
-<li>Facebook Robyn is very unstable</li>
-<li>Google’s Lightweight MMM was under beta development</li>
-<li>I had experience with MMMs and PyMC.</li>
-<li>Implementation of <a href="https://research.google/pubs/bayesian-methods-for-media-mix-modeling-with-carryover-and-shape-effects/">“Bayesian Methods for Media Mix Modeling with Carryover and Shape Effects”, by Jin et al.&nbsp;(2017)</a>.</li>
-<li>Production-Level Code (modular, tests, diagnostics, etc.)</li>
-<li>The data … 🫠</li>
+<li class="fragment">Facebook Robyn is very unstable</li>
+<li class="fragment">Google’s Lightweight MMM was under beta development</li>
+<li class="fragment">I had experience with MMMs and PyMC</li>
+<li class="fragment">Implementation of <a href="https://research.google/pubs/bayesian-methods-for-media-mix-modeling-with-carryover-and-shape-effects/">“Bayesian Methods for Media Mix Modeling with Carryover and Shape Effects”, by Jin et al.&nbsp;(2017)</a>.</li>
+<li class="fragment">Production-Level Code (modular, tests, diagnostics, etc.)</li>
+<li class="fragment">The data … 🙃 🙂</li>
 </ul></li>
 </ul>
 </section>
@@ -217,11 +217,73 @@
 <h3 id="how-to-bring-the-mmm-for-decision-making">How to bring the mmm for decision making?</h3>
 
 <img data-src="gyg_files/static/images/mmm_parameter_recovery.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><ul>
-<li class="fragment"><strong>Strategy 1:</strong> Simulations and par</li>
+<li class="fragment"><strong>Strategy 1:</strong> Simulations and parameter recovery</li>
 <li class="fragment"><strong>Strategy 2:</strong> Education and training</li>
 <li class="fragment"><strong>Strategy 3:</strong> Productionization (automation)</li>
 <li class="fragment"><strong>Strategy 4:</strong> Experiments 👈</li>
 </ul>
+</section>
+<section id="validation-calibration" class="slide level2">
+<h2>Validation &amp; Calibration</h2>
+<ul>
+<li><p>The MMM and the attribution model did not agree on the CAC estimates for channel <span class="math inline">\(X\)</span>.</p></li>
+<li><p>Strategies <span class="math inline">\(1\)</span>, <span class="math inline">\(2\)</span> and <span class="math inline">\(3\)</span> did not work.</p></li>
+<li><p>We decided to run a test in across many markets.</p></li>
+</ul>
+
+<img data-src="gyg_files/static/images/geo_test.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><ul>
+<li><strong>The results aligned much more closely with the MMM.</strong></li>
+</ul>
+</section>
+<section id="achivements-and-learnings" class="slide level2 smaller">
+<h2>Achivements and Learnings</h2>
+<h4 id="achievements">Achievements</h4>
+<ul>
+<li class="fragment">From zero to marketing measurement strategy.</li>
+<li class="fragment">Team growth: from <span class="math inline">\(1\)</span> to <span class="math inline">\(3\)</span> Data Scientists.</li>
+<li class="fragment">Production-level code for the MMM and geo-experiments.</li>
+<li class="fragment">Masive busdget allocation changes for channel <span class="math inline">\(X\)</span>.</li>
+<li class="fragment">Better understanding of the offline vs online mechanism.</li>
+</ul>
+<h4 id="learnings">Learnings</h4>
+<ul>
+<li class="fragment">In-house MMM comes with maintanance and development costs.</li>
+<li class="fragment">The hardest part of the MMM is its inclusion in the decision making process.</li>
+<li class="fragment">All MMMs are wrong, but some are useful.</li>
+<li class="fragment">Once has see this as a process and iterating with experiments.</li>
+<li class="fragment">True analytical and causal thinking are needed to fully leverage the MMM and experimentation.</li>
+</ul>
+</section>
+<section id="marketing-causal-inference" class="slide level2 smaller">
+<h2>Marketing &amp; Causal Inference</h2>
+<ul>
+<li>It is crucial to acknowledge that marketing mix models (and other models in marketing) are causal models.</li>
+<li>We need to think about the causal graph and the causal relationships between the variables and use causal inference to for the estimation and decision making.</li>
+</ul>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="gyg_files/static/images/causal_graph.svg" class="quarto-figure quarto-figure-center" style="width:100.0%"></p>
+</figure>
+</div>
+</div><div class="column" style="width:50%;">
+<iframe data-external="1" src="https://www.youtube.com/embed/bTTSg91pFUk" width="100%" height="338" title="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+</div></div>
+</section>
+<section id="leading-the-state-of-the-art-mmms" class="slide level2 smaller">
+<h2>Leading the State of the Art MMMs</h2>
+<ul>
+<li><p><a href="https://juanitorduz.github.io/pymc_mmm/">(2022)Media Effect Estimation with PyMC: Adstock, Saturation &amp; Diminishing Returns</a>: First explicit PyMC implementation of a MMM with time-varying parameters.</p></li>
+<li><p><a href="https://www.pymc-marketing.io/">(2024) PyMC-Marketing</a>: Bayesian marketing toolbox in PyMC. Media Mix (MMM), customer lifetime value (CLV), buy-till-you-die (BTYD) models and more.</p></li>
+</ul>
+
+<img data-src="gyg_files/static/images/pymc-marketing.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><ul>
+<li><a href="https://juanitorduz.github.io/mmm_roas/">(2024) Media Mix Model and Experimental Calibration: A Simulation Study</a>. First PyMC implementation of a MMM with experimental calibration (ROAS parametrization approach from Google).</li>
+</ul>
+</section>
+<section id="thank-you" class="slide level2">
+<h2>Thank You!</h2>
 
 </section>
     </div>
@@ -490,13 +552,14 @@
           e.clearSelection();
         }
         const getTextToCopy = function(trigger) {
-            const codeEl = trigger.previousElementSibling.cloneNode(true);
-            for (const childEl of codeEl.children) {
-              if (isCodeAnnotation(childEl)) {
-                childEl.remove();
-              }
+          const outerScaffold = trigger.parentElement.cloneNode(true);
+          const codeEl = outerScaffold.querySelector('code');
+          for (const childEl of codeEl.children) {
+            if (isCodeAnnotation(childEl)) {
+              childEl.remove();
             }
-            return codeEl.innerText;
+          }
+          return codeEl.innerText;
         }
         const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
           text: getTextToCopy
