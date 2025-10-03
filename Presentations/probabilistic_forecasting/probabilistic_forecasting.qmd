@@ -337,6 +337,14 @@ def level_model(y: ArrayLike, future: int = 0) -> None:
 [Notes on an ARMA(1, 1) Model with NumPyro](https://juanitorduz.github.io/arma_numpyro/)
 :::
 
+## $\text{VAR}(p)$ Models and IRF
+
+![](probabilistic_forecasting_files/static/images/var_irf.png){fig-align="center" width="650"}
+
+::: footer
+[Bayesian Vector Autoregressive Models in NumPyro](https://juanitorduz.github.io/var_numpyro/)
+:::
+
 ## Hierarchical Exponential Smoothing
 
 ![](probabilistic_forecasting_files/static/images/hierarchical_exponential_smoothing_files/hierarchical_exponential_smoothing_45_0.png){fig-align="center" height="1950"}
@@ -686,10 +694,9 @@ Use a hierarchical structure to regularize the demand elasticity parameters.
 
 ## References 📚 {.smaller}
 
-#### NumPyro Examples
-
 - [Introduction to Stochastic Variational Inference with NumPyro](https://juanitorduz.github.io/intro_svi/) ⭐
 - [Bayesian Censoring Data Modeling](https://juanitorduz.github.io/censoring/)
+- [Bayesian Vector Autoregressive Models in NumPyro](https://juanitorduz.github.io/var_numpyro/)
 - [Croston's Method for Intermittent Time Series Forecasting in NumPyro](https://juanitorduz.github.io/croston_numpyro/)
 - [Demand Forecasting with Censored Likelihood](https://juanitorduz.github.io/demand/)
 - [Electricity Demand Forecast: Dynamic Time-Series Model with Prior Calibration](https://juanitorduz.github.io/electricity_forecast_with_priors/)
