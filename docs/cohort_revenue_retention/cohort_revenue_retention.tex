@@ -51,18 +51,17 @@
 
 \begin{abstract}
     We present a Bayesian framework for jointly modeling cohort-level retention and revenue over time. We contribute a
-    framework that couples these two business metrics through the number of active users. We model retention using Bayesian
-    additive regression trees (BART) to capture non-linear patterns and seasonality, and couple this with a gamma-distributed
-    revenue model where the estimated active user counts from the retention component inform the revenue predictions.
-    This approach enables information sharing across cohorts, naturally incorporates seasonal effects, and
-    provides well-calibrated uncertainty quantification through highest density intervals. The framework is flexible enough
-    to incorporate additional covariates in both model components and can be implemented with alternative non-parametric
-    approaches such as neural networks with stochastic variational inference. We demonstrate the approach using synthetic
+    framework that couples these two business metrics through the number of active users. We model retention non-parametrically using
+    Bayesian additive regression trees (BART) and Bayesian neural networks to capture non-linear patterns and seasonality, and couple
+    this with a gamma-distributed revenue model where the estimated active user counts from the retention component inform
+    the revenue predictions. This approach enables information sharing across cohorts, naturally incorporates seasonal effects,
+    and provides well-calibrated uncertainty quantification through highest density intervals. The framework is flexible enough
+    to incorporate additional covariates (which can vary over time) in both model components. We demonstrate the approach using synthetic
     data designed to reflect realistic business scenarios, showing accurate out-of-sample predictions with appropriate
     uncertainty estimates. The framework's modular design facilitates extensions to hierarchical structures: we demonstrate
     a multi-market implementation that pools information across markets with varying data availability, enabling reliable
-    forecasts even for markets with very limited cohort histories. Implementation code is provided in PyMC and NumPyro,
-    making the method accessible for practical applications.
+    forecasts even for markets with very limited cohort histories. Implementation code is provided in PyMC and NumPyro, where
+    we use both MCMC and stochastic variational inference to fit the models, making the method accessible for practical applications.
 \end{abstract}
 
 \maketitle
@@ -79,15 +78,16 @@ business strategies are built and refined. Seminal work by Fader and Hardie has 
 settings \cite{FaderHardie2007}, where subscription-based relationships predominate, and non-contractual settings
 \cite{FaderHardie2005}, where customers may come and go without formal notification\footnote{Our definition of retention
     corresponds to what they call survival curve. See precise definitions below.}. Modern implementations of these CLV
-models can now be found in Bayesian probabilistic programming frameworks such as PyMC (\cite{pymc2023}), where the
+models can now be found in Bayesian probabilistic programming frameworks such as PyMC (\cite{pymc2023}). Specifically, the
 PyMC-Marketing library \cite{pymc_marketing} provides implementations of many standard buy-till-you-die (BTYD) models including
 the BG/NBD, Pareto/NBD, and Gamma-Gamma models in a flexible, Bayesian framework. While these approaches have proven very valuable, they
 often struggle to scale effectively. They can definitively be scaled with modern hardware and algorithms (for example,
 stochastic variational inference, as described below). Nevertheless, this requires non-trivial work and effort.\\
 
-For many decision-making processes, companies just need to understand behaviors at the cohort level—groups of customers
-who joined during the same time period. In this paper we focus on this level of granularity. When shifting from individual
-to cohort-level analysis, businesses typically face a methodological trilemma:
+For many decision-making processes, companies and senior management (think of a C-level executive) mostly need to understand
+behaviors at the cohort level—groups (e.g. cohorts of customers who joined during the same time period). In this paper we
+focus on this level of granularity. When shifting from individual to cohort-level analysis, businesses typically face a
+methodological trilemma:
 
 \begin{enumerate}
     \item \textbf{Complete pooling}: Aggregate all cohorts together and model retention and revenue as a collective whole,
@@ -111,40 +111,46 @@ engagement, and retention decisions. Beyond the methodological challenges, busin
 retention and revenue models into actionable insights. Static models that fail to adapt to changing market dynamics or
 consumer preferences quickly become outdated. Moreover, point estimates without associated uncertainty measures can lead to
 misplaced confidence in business forecasts, potentially resulting in suboptimal resource allocation and strategic planning.
+The Bayesian cohort-revenue-retention framework presented in this paper addresses these challenges and has been successfully
+applied to real-world business datasets (both in contractual and non-contractual settings). As we will describe below, the
+model structure is flexible enough to incorporate extensive business specific prior knowledge through priors and convenient
+parametrizations. Most importantly, the framework provides a straightforward way to add custom covariates in both the retention
+and revenue components (and even in the coupling mechanism) which can vary over time. This is a fundamental advantage of this work,
+as in other classical probabilistic models like BG/NBD and Pareto/NBD, covariates can be added but are computationally expensive
+(and actually, the time-varying covariates require significant amoutn of work to implement in a way that scales).
 
-The economic value of improved retention and revenue forecasting extends across multiple business functions. More accurate
-forecasts enable marketing teams to optimize customer acquisition spending by better estimating lifetime value, potentially
-preventing over-investment in low-retention channels or under-investment in high-value segments. Financial planning becomes
-more robust when forecasts include well-calibrated uncertainty estimates: rather than relying on single-point revenue
-projections, organizations can quantify downside risks and plan accordingly. For subscription-based businesses in particular,
-where customer retention directly determines revenue trajectory, forecast improvements of even 5-10\% in mean absolute error
-can translate to substantially better resource allocation decisions. Moreover, probabilistic forecasts that capture
-uncertainty—expressed through highest density intervals—enable risk-aware decision making, allowing organizations to tailor
-strategies to their risk tolerance rather than treating uncertain outcomes as deterministic.
 
 \subsection*{Why Cohort-Level Modeling?}
 
-Before proceeding further, we address an important question: why focus on cohort-level rather than individual-level modeling?
-While individual-level models can provide granular predictions for specific customers, cohort-level analysis offers several
-strategic advantages that make it particularly well-suited for many business decision-making contexts.
+Before proceeding further, let's come back to the beginning and address an important question: why focus on cohort-level
+rather than individual-level modeling? While individual-level models can provide granular predictions for specific customers,
+cohort-level analysis offers several strategic advantages that make it particularly well-suited for many business
+decision-making contexts.
 
-First, cohort-level aggregation substantially reduces noise inherent in individual transaction data. Individual purchase
-patterns are often highly variable and influenced by idiosyncratic factors that average out when aggregating to the cohort
-level. This noise reduction leads to more stable parameter estimates and more reliable forecasts, particularly valuable for
-strategic planning where robustness is paramount.
+\begin{itemize}
 
-Second, cohort-level models align naturally with how many business decisions are actually made. Marketing strategies, budget
-allocations, and resource planning typically target customer segments rather than individuals. Financial forecasting and
-business planning operate at aggregate levels. A model that directly addresses these cohort-level questions provides more
-immediately actionable insights than individual-level predictions that must subsequently be aggregated. This alignment
-enhances accessibility for marketing stakeholders and strategic decision-makers who may not require customer-specific
-granularity but need to understand temporal patterns and cohort dynamics.
+    \item First, cohort-level aggregation substantially reduces noise inherent in individual transaction data. Individual purchase
+          patterns are often highly variable and influenced by idiosyncratic factors that average out when aggregating to the cohort
+          level. This noise reduction leads to more stable parameter estimates and more reliable forecasts, particularly valuable for
+          strategic planning where robustness is paramount.
 
-Third, from a computational and practical perspective, cohort-level models scale more favorably than individual-level
-approaches, particularly as customer bases grow into millions. While modern Bayesian methods can handle large individual-level
-datasets, the computational requirements and implementation complexity increase substantially. Cohort-level modeling offers
-an efficient path to actionable insights without sacrificing the flexibility to incorporate rich covariate information when
-needed.
+    \item Second, cohort-level models align naturally with how many business decisions are actually made. Marketing strategies, budget
+          allocations, and resource planning typically target customer segments rather than individuals. Financial forecasting and
+          business planning operate at aggregate levels. A model that directly addresses these cohort-level questions provides more
+          immediately actionable insights than individual-level predictions that must subsequently be aggregated. This alignment
+          enhances accessibility for marketing stakeholders and strategic decision-makers who may not require customer-specific
+          granularity but need to understand temporal patterns and cohort dynamics. For example, the model presented in this paper
+          sucessfully enabeled data-driven decisions at a company operating in multiple countries where user-level predictions
+          were hard to understand and make actionable. It was strategically better to segment the cohorts (adding other dimensions
+          like marketing aquisition channel) to extract relevant signals and insights for senior management.
+
+    \item Third, from a computational and practical perspective, cohort-level models scale more favorably than individual-level
+          approaches, particularly as customer bases grow into millions. While modern Bayesian methods can handle large individual-level
+          datasets, the computational requirements and implementation complexity increase substantially. Cohort-level modeling offers
+          an efficient path to actionable insights without sacrificing the flexibility to incorporate rich covariate information when
+          needed.
+
+\end{itemize}
 
 Importantly, the cohort-level focus does not preclude the incorporation of customer characteristics. As we demonstrate in our
 framework, additional covariates—such as acquisition channel, geographic location, or customer segment—can be seamlessly
@@ -157,7 +163,9 @@ a priori. The non-parametric nature of BART allows it to scale effectively with 
 heterogeneous effects across different customer types while maintaining the interpretability advantages of cohort-level
 aggregation through tools like partial dependence plots. Thus, our approach strikes a balance: operating at the cohort level
 for strategic clarity while retaining the flexibility to incorporate individual-level characteristics when they provide
-additional explanatory power.
+additional explanatory power. Moreover, as we can additional imporse a hierarchical structure across markets or subset
+of covariates, we can efficiently pool information across different cohorts and markets. Trying to do this pooling at
+the individual level is essentially impossible to a scale of millions of customers (which is more the norm than the exception).
 
 \subsection*{Related Work and Literature}
 
@@ -523,7 +531,7 @@ For the revenue component, we employ a gamma random variable $\text{Gamma}(N_{\t
 \cite{stucchio2015bayesian}). The gamma distribution is a natural choice for modeling revenue as it ensures non-negativity
 and provides flexibility in capturing different revenue distributions through its shape and rate parameters. The mean of
 this gamma distribution is $N_{\text{active}} / \lambda$, allowing us to interpret $1 / \lambda$ as the {\em average
-revenue per active user}. By using $N_{\text{active}}$ as the shape parameter, we ensure that cohorts with more active
+        revenue per active user}. By using $N_{\text{active}}$ as the shape parameter, we ensure that cohorts with more active
 users have lower relative variance (coefficient of variation $1/\sqrt{N_{\text{active}}}$), which aligns with the intuition
 that aggregated revenue from larger cohorts should be more stable. This parametrization also creates a direct connection
 between the retention and revenue components: cohorts with higher retention (larger $N_{\text{active}}$) contribute both
@@ -790,7 +798,7 @@ companies might optimize for median expectations. Point estimates obscure this c
 adjustments. The out-of-sample predictions reveal that retention peaks in November-December and dips mid-year—a pattern that
 persists across cohorts. Marketing teams can leverage this insight by timing customer acquisition campaigns to coincide with
 high-retention periods, maximizing long-term value per acquisition dollar. Conversely, they might implement targeted retention
-interventions during low-retention months to counteract natural attrition patterns. Financial planning can also benefit: 
+interventions during low-retention months to counteract natural attrition patterns. Financial planning can also benefit:
 quarterly revenue forecasts should account for seasonal fluctuations rather than assuming constant monthly patterns, avoiding
 systematic over- or under-estimation.
 
@@ -803,7 +811,7 @@ uncertainty narrows—a dynamic that deterministic models cannot capture. This s
 cautious investment based on high-uncertainty forecasts, followed by scaled investment as evidence accumulates.
 
 \paragraph{Portfolio-Level Resource Allocation.} Organizations managing multiple customer segments or product lines can use
-the framework to optimize resource allocation at the portfolio level. By generating forecasts for each cohort or segment, 
+the framework to optimize resource allocation at the portfolio level. By generating forecasts for each cohort or segment,
 decision-makers can identify which groups merit increased retention investment versus which would benefit more from improved
 acquisition efficiency. For example, if older cohorts show declining revenue-per-active-user but stable retention, product
 enhancements targeting monetization might yield better returns than generic retention campaigns. Conversely, cohorts with
@@ -932,7 +940,7 @@ We extend the neural network approach from Section 5 to accommodate multiple mar
     \item \textbf{Retention component}: We incorporate market identity as an additional feature in the neural network. The
           network learns market-specific retention patterns while sharing information about temporal dynamics (cohort age,
           calendar effects, seasonality) across markets.
-    
+
     \item \textbf{Revenue component}: We implement a hierarchical linear model where market-specific regression coefficients
           are drawn from common hierarchical priors. This allows each market to have its own revenue dynamics while constraining
           these parameters to be similar across markets through the prior distribution.
@@ -989,14 +997,14 @@ Several key findings emerge from the hierarchical implementation:
     \item \textbf{Successful information pooling}: Market D achieves prediction accuracy that would be impossible with
           independent modeling. The hierarchical priors effectively transfer knowledge about retention decay patterns and revenue
           dynamics from mature markets.
-    
+
     \item \textbf{Market-specific adaptation}: While borrowing information, the model still captures market-specific patterns.
           Each market's predictions reflect its own data when available, rather than being dominated by the larger markets.
-    
+
     \item \textbf{Appropriate uncertainty quantification}: The highest density intervals are wider for Market D than for more
           established markets, correctly reflecting the greater uncertainty due to limited data. This honest uncertainty
           quantification is crucial for business decision-making.
-    
+
     \item \textbf{Coupling mechanism preserved}: The connection between retention and revenue components functions effectively in
           the hierarchical setting. Active user predictions from the retention model inform revenue forecasts across all markets.
 \end{itemize}
@@ -1124,7 +1132,7 @@ value, flexible and accessible modeling approaches like the one presented here w
 the modern business analytics toolkit, particularly for strategic decision-making contexts where aggregate patterns and
 well-calibrated uncertainty estimates drive resource allocation and planning.
 
-\bibliographystyle{acm}
+\bibliographystyle{apalike}
 \bibliography{references}
 
 \end{document}
