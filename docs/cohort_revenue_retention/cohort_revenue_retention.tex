@@ -208,6 +208,9 @@ have made these models more accessible and extended their capabilities. However,
 primarily at the individual level and can face scalability challenges. While \cite{FaderHardieNote2007} demonstrates that
 covariates can be incorporated, and \cite{FaderHardieNote2017} discusses multi-cohort fitting strategies
 (Shifted Beta Geometric model), these extensions still work within the constraints of the original parametric model structures.
+We want to emphasize that we are not claiming that our approach is better than the BTYD models, but rather that in many
+applications where the seasonal componets and additional covariates are important, for the mid-term decision making, our approach
+tends to be more accurate and flexible.
 
 \subsection*{The Cohort-Revenue-Retention Modeling Strategy}
 
@@ -248,8 +251,9 @@ We start with a non-parametric approach to model the retention matrix. Namely, w
 customer from a given cohort remains active in subsequent periods. Then, we couple this model with an additional linear model
 to model the revenue matrix, predicting how much revenue active customers will generate. This dual approach balances the
 flexibility needed to capture complex retention patterns with the interpretability desired for revenue forecasting. That being said,
-this framework is flexible enough to incorporate additional parametrizations for the revenue component. {\em The true key ingredient is
-        having a Bayesian model with two likelihoods (retention and revenue) that are coupled through the number of active users.} \\
+this framework is flexible enough to incorporate additional parametrizations for the revenue component. The true key ingredients are:
+having a Bayesian model with two likelihoods (retention and revenue) that are coupled through the number of active users and
+the ability to add additional covariates to the model.
 
 An important strength of this modular framework is its extensibility to more complex structures. Namely, we also present
 a hierarchical extension that models multiple markets simultaneously, pooling information across them. This is particularly
@@ -372,22 +376,19 @@ In the rest of the paper, we delve into the details of the model specification a
 how to generate out-of-sample predictions for both the retention and revenue matrices. To make the approach more tangible,
 we present a synthetic dataset in the next section. This should help the reader to better understand the data and the approach.
 
-\section{Synthetic Data}
+\section{A Synthetic Dataset}
 
 Having established the theoretical foundations and positioning of our approach, we now turn to a concrete demonstration using
 synthetic data. While our framework has been successfully applied to real business datasets, we present results using synthetic
 data for reproducibility and to avoid proprietary information concerns. The synthetic dataset is designed to reflect realistic
-business scenarios, incorporating the types of temporal patterns and cohort dynamics commonly observed in subscription-based
-and retention-focused business models.
+business scenarios, incorporating the types of temporal patterns and cohort dynamics commonly observed.
 
 The synthetic dataset is available as a CSV file from \cite{orduz_revenue_retention}, and the code to generate this dataset
 deterministically is publicly available in \cite{orduz_revenue_retention_data_code}. This ensures full reproducibility of
-our results and allows researchers to explore model behavior under controlled conditions.
-
-\subsection*{Exploratory Data Analysis}
+our results and allows researchers to explore model behavior under controlled conditions. \\
 
 Before fitting our model, we conduct exploratory data analysis to understand the key patterns in the data. This analysis
-both motivates our modeling choices and provides a baseline for evaluating model performance. Figure \ref{fig:retention_matrix}
+motivates our modeling choices and provides a baseline for evaluating model performance. Figure \ref{fig:retention_matrix}
 displays the retention matrix per cohort and period. Two key observations stand out:
 
 \begin{enumerate}
@@ -451,6 +452,8 @@ component. With this exploratory understanding established, we now proceed to fo
 
 \subsection{Model Specification}
 
+\subsubsection{Retention Component}
+
 Let's expand on the model structure outlined in the introduction. The core concept is to model the number of active users
 as a binomial random variable $N_{\text{active}} \sim \text{Binomial}(N_{\text{total}}, p)$, where $p$ represents the retention
 probability. We use Bayesian additive regression trees (BART) to model this latent variable $p$ using cohort age, age, and
@@ -461,59 +464,44 @@ month (period) as features.
     \textrm{logit}(p) & = \text{BART}(\text{cohort age}, \text{age}, \text{month})
 \end{align*}
 
-It is important to clarify the role of $N_{\text{active}}$ in the model specification versus estimation. In the model
-formulation above, $N_{\text{active}}$ is formally treated as a random variable following a binomial distribution. However,
-in practical applications with observed cohort data, we directly observe retention rates (the proportion of customers who
-remain active) or equivalently, the realized counts $N_{\text{active}}$. During inference, the observed retention data
-informs the estimation of $p$ through the BART model, which captures how retention probability varies across cohorts, time
-periods, and months. This formulation allows us to propagate uncertainty from the retention probability estimates through
-to revenue predictions via the coupling mechanism described below.
+When we run the inference process (MCMC or SVI), we condition on the number of active users $N_{\text{active}}$ and not
+directly on the observed retention rates. The reason to treat the retention as a latent variable is to have better uncertainty
+estimates for it depending on the cohort size ($N_{\text{total}}$) and the number of active users ($N_{\text{active}}$). Recall
+that the standar error of a proportion is $\sqrt{p(1-p)/N_{\text{total}}}$.\\
 
-\paragraph{BART Prior Specification.} BART models the unknown retention function as a sum of many regression trees, where
+The BART component models the unknown retention latent variable as a sum of many regression trees, where
 each tree contributes a small part to the overall prediction \cite{chipman2010bart}. The key advantage is that this ensemble
 automatically learns complex non-linear patterns and interactions without requiring the analyst to specify functional forms.
 The prior specification encourages sparse, shallow trees that collectively capture the data structure while avoiding overfitting.
-
 We implement BART using the PyMC framework via \cite{quiroga2022bart}, which handles the technical details of tree structure
-priors and parameter estimation. The main tuning parameter is the number of trees $m$. We use default prior settings from
-\cite{chipman2010bart} which have proven robust across diverse applications: these priors favor shallow trees and regularize
-individual tree contributions so that the ensemble learns smooth functions through additive combinations. For our retention
-modeling, we typically start with $m = 20$ trees and increase incrementally (e.g., to 50 or 100) while monitoring posterior
+priors and parameter estimation. The main tuning parameter is the number of trees $m$. For our retention
+modeling, we typically start with $m = 20$ trees and increase incrementally (e.g., to $50$ or $100$) while monitoring posterior
 predictive fit. BART is relatively insensitive to this choice for sufficiently large $m$, but smaller values offer
 computational efficiency and maintain interpretability through tools like partial dependence plots.
-
 Readers interested in the mathematical details of BART priors—including tree topology priors, splitting rule distributions,
 and leaf parameter specifications—are referred to the comprehensive treatment in \cite{chipman2010bart} and the implementation
 details in \cite{quiroga2022bart}.
 
-\begin{remark}
+\begin{remark}[Additional Covariates]
     A key advantage of the BART model is its flexibility in incorporating additional covariates. In real business
     applications, we have successfully added customer segmentation features (such as acquisition media channels from
     attribution models). This provides valuable insights into media channel return-on-investment (ROI), allowing businesses
     to consider not just acquisition costs but also estimated customer lifetime value through this combined model.
 \end{remark}
 
-\begin{remark}
-    While one could start with a simpler model, such as a linear model as described in \cite{orduz_revenue_retention},
-    our experience with real datasets shows that such simpler approaches often fail to adequately capture the complex
-    patterns in the data.
+\begin{remark}[Baseline Model]
+    We always recommend starting with a simple baseline, such as a linear model
+    \begin{align*}
+        \text{logit}(p)  = & \left(\text{intercept} + \beta_{\text{cohort age}} \times \text{cohort age} + \beta_{\text{age}} \times \text{age} \right.                        \\
+                           & \left. + \beta_{\text{cohort age} \times \text{age}} \times \text{cohort age} \times \text{age} + \beta_{\text{month}} \times \text{month}\right)
+    \end{align*}
+
+    as described in \cite{orduz_revenue_retention}. In many cases, these baseline models are sufficient for the first
+    iteration to get the decision-making process moving forward. Nevertheles, in many real applications, we have seen that
+    the BART models can significantly improve the performance of the model (in and out of sample predictions).
 \end{remark}
 
-\paragraph{Computational Details and Inference.} Inference for BART models is performed using Markov Chain Monte Carlo (MCMC)
-methods, specifically the Particle Gibbs sampler implemented in \cite{quiroga2022bart}. This algorithm iteratively updates
-tree structures through propose-accept-reject steps and updates leaf parameters through Gibbs sampling conditional on the
-tree structures. The MCMC sampler requires specification of the number of chains, number of draws, and warm-up (burn-in)
-period. We use multiple chains (typically 4) to assess convergence through standard diagnostics. For the synthetic data
-analysis presented in this paper, we run 2000 draws with 1000 warm-up iterations per chain, which proves sufficient for
-convergence. Larger datasets or more complex models may require more iterations.
-
-Convergence diagnostics play a crucial role in ensuring reliable inference. We monitor the $\hat{R}$ statistic (Gelman-Rubin
-diagnostic) for all parameters, requiring $\hat{R} < 1.01$ for convergence. We also visually inspect trace plots for the
-linear model parameters to ensure proper mixing and stationarity. The BART component's stochastic nature (sampling tree
-structures) means individual tree parameters are not directly interpretable, but we can assess overall model convergence
-through the posterior predictive distribution and by monitoring whether different chains produce similar predictions. We
-verify that the model produces no divergent transitions, which would indicate problematic posterior geometry. All diagnostics
-are implemented using the ArviZ library for exploratory analysis of Bayesian models.
+\subsubsection{Revenue Component}
 
 For the revenue component, we employ a gamma random variable $\text{Gamma}(N_{\text{active}}, \lambda)$ (inspired by
 \cite{stucchio2015bayesian}). The gamma distribution is a natural choice for modeling revenue as it ensures non-negativity
@@ -538,9 +526,11 @@ normal priors for the coefficients (see \cite{orduz_retention_bart}).
 \end{align*}
 
 A key insight from both this synthetic dataset and many real-world applications is that we typically don't need to explicitly
-model seasonality in the revenue component, as seasonal patterns are already captured by the retention component.
+model seasonality in the revenue component, as seasonal patterns are already captured by the retention component. Still,
+if the business model ad hand also has a strong seasonal component in average basket sizes, then an additional seasonal component
+can be added to the revenue model.
 
-\begin{remark}
+\begin{remark}[Chort Age Encoding]
     The {\em age} feature characterizes each cohort's temporal position. While we could replace this numerical encoding with
     a one-hot encoding of cohorts and add hierarchical structure to pool information across cohorts, the numerical encoding
     is more parsimonious under the assumption that temporally proximate cohorts behave more similarly than distant ones.
@@ -565,24 +555,21 @@ In summary, our cohort-revenue-retention model is specified as:
 \subsection{Diagnostics}
 
 With the model fully specified, we implement and fit it using PyMC \cite{pymc2023}, leveraging the BART implementation
-from \cite{quiroga2022bart}. Complete implementation details and code are available in \cite{orduz_revenue_retention}. After
-fitting the model using MCMC with the computational settings described above, we conduct thorough diagnostics to ensure
-reliable inference.
-
-Figure \ref{fig:posterior_predictive} presents a critical diagnostic: the posterior predictive distribution for both model
+from \cite{quiroga2022bart}. Complete implementation details and code are available in \cite{orduz_revenue_retention}, where
+we follow the {\em Bayesian workflow} (\cite{gelman2020bayesianworkflow}). After fitting the model using MCMC with the
+computational settings described above, we conduct thorough diagnostics to ensure reliable inference. Figure \ref{fig:posterior_predictive}
+presents a critical diagnostic: the posterior predictive distribution for both model
 components. These plots compare the distribution of observed values against the distribution of values simulated from the
 fitted model's posterior predictive distribution. Close agreement between these distributions indicates that the model
 successfully captures the data-generating process. For both retention and revenue components, we observe excellent agreement,
-with the simulated distributions (orange) closely matching the observed distributions (black). This suggests the model
-provides an adequate fit to the data.
-
-Beyond the posterior predictive check, we examine convergence diagnostics for the model parameters. Figure \ref{fig:trace}
-displays trace plots for the linear model parameters (intercept and regression coefficients). These plots show the evolution
-of parameter values across MCMC iterations for each chain. Good mixing—evidenced by chains that explore the parameter space
-efficiently without getting stuck—is essential for reliable inference. We observe healthy mixing for all parameters, with no
-divergences or convergence warnings. All $\hat{R}$ statistics are below 1.01, confirming convergence. These diagnostics give
-us confidence that the MCMC sampling has successfully explored the posterior distribution and that our parameter estimates
-are reliable.
+with the simulated distributions (red) closely matching the observed distributions (black). This suggests the model
+provides an adequate fit to the data. Beyond the posterior predictive check, we examine convergence diagnostics for
+the model parameters. Figure \ref{fig:trace} displays trace plots for the linear model parameters
+(intercept and regression coefficients). These plots show the evolution of parameter values across MCMC iterations for each chain.
+Good mixing—evidenced by chains that explore the parameter space efficiently without getting stuck—is essential for reliable inference.
+We observe healthy mixing for all parameters, with no divergences or convergence warnings. All $\hat{R}$ statistics are below $1.01$,
+confirming convergence. These diagnostics give us confidence that the MCMC sampling has successfully explored the posterior
+distribution and that our parameter estimates are reliable.
 
 \begin{figure}
     \centering
@@ -605,34 +592,25 @@ are reliable.
 A key advantage of using BART over more opaque machine learning methods is the availability of tools for understanding which
 features drive predictions and how they influence outcomes. The BART implementation in \cite{quiroga2022bart} provides
 interpretability tools that allow us to peer inside the model and extract actionable insights about retention drivers.
-
-Figure \ref{fig:ice_plot} presents PDP (Partial Dependence Plot) and ICE (Individual Conditional Expectation) plots for the
+Figure \ref{fig:ice_plot} presents {\em Partial Dependence Plot (PDP)} and {\em Individual Conditional Expectation (ICE)} plots for the
 retention component. These visualization techniques reveal how the model's predictions change as each feature varies
 while holding all other features constant. Each line represents a different observation from the dataset, showing how the
-predicted retention probability would change for that observation if we modified only the feature of interest. The PDP
-plot is the average of the ICE plots (solid line). These plots allow us to understand how the retention probability varies
+predicted retention probability would change for that observation if we modified only the feature of interest. The solid line
+represents the PDP plot, which is the average of the ICE plots. These plots allow us to understand how the retention probability varies
 for different values of the features and reveals potential non-linear relationships or interaction effects that might not
 be apparent in aggregate statistics. \\
 
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{images/retention_bart_32_1.png}
-    \caption{Partial Dependence Plot (PDP, solid lines) and Individual Conditional Expectation (ICE, thin dashed lines) plots
-        for the retention component. These plots visualize how the predicted retention probability changes as each feature
-        varies while holding others constant. The left panel shows the effect of cohort age: retention decreases as cohorts
-        mature, with relatively consistent patterns across observations. The middle panel displays the age (cohort identifier)
-        effect: more recent cohorts tend to have higher retention. The right panel reveals strong seasonality: retention
-        peaks in months 11-12 (November-December) and dips in mid-year months. The close alignment between individual ICE
-        plots and the average PDP suggests relatively consistent feature effects across different observations, indicating
-        limited interaction effects. These plots demonstrate one of BART's key advantages: interpretable visualization of
-        learned patterns without requiring pre-specification of functional forms.}
+    \caption{PDP (solid line) and ICE (dashed lines) plots for the retention component.}
     \label{fig:ice_plot}
 \end{figure}
 
 In this specific example, we can extract the following insights:
 
 \begin{itemize}
-    \item The ICE plots show how the retention rate decreases with both cohort age and age. This is not surprising as we saw in the EDA.
+    \item The ICE plots show how the retention rate decreases with both cohort age and age. This is not surprising as we saw in the exploratory data analysis.
     \item We see that the ICE plots have a similar trend to the PDP plots. This hints that the interaction effects are
           not so important in this case. This is also something we saw in the linear model where the interaction coefficient
           was relatively small (see \cite{orduz_retention}).
@@ -646,13 +624,7 @@ as shown in Figure \ref{fig:variable_importance}.
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{images/retention_bart_32_0.png}
-    \caption{Variable importance for the retention component, quantified by each feature's contribution to in-sample $R^2$.
-        This metric captures how much predictive power each feature adds to the model. Month (period) emerges as the most
-        important feature, reflecting the strong seasonality observed in the exploratory analysis. Cohort age is also highly
-        important, capturing the decay in retention as cohorts mature. The age (cohort identifier) has lower but non-negligible
-        importance, suggesting some differences between cohorts beyond what is captured by cohort age and seasonality. These
-        importance scores help prioritize data collection efforts and guide model simplification if needed, though all three
-        features clearly contribute meaningfully to retention prediction.}
+    \caption{Variable importance for the retention component based on the in-sample $R^2$.}
     \label{fig:variable_importance}
 \end{figure}
 
