@@ -50,14 +50,18 @@
 \date{\today}
 
 \begin{abstract}
-    We present a Bayesian approach to model cohort-level retention rates and revenue over time. We use Bayesian additive
-    regression trees (BART) to model the retention component which we couple with a linear model for the revenue component.
-    This method is flexible enough to allow adding additional covariates to both model components. This Bayesian framework
-    allows us to quantify uncertainty in the estimation, understand the effect of covariates on retention through partial
-    dependence plots (PDP) and individual conditional expectation (ICE) plots, and most importantly, forecast future
-    revenue and retention rates with well-calibrated uncertainty through highest density intervals. We also provide
-    alternative approaches to model the retention component using neural networks and inference through stochastic variational
-    inference.
+    We present a Bayesian framework for jointly modeling cohort-level retention and revenue over time. We contribute a
+    framework that couples these two business metrics through the number of active users. We model retention non-parametrically using
+    Bayesian additive regression trees (BART) and Bayesian neural networks to capture non-linear patterns and seasonality, and couple
+    this with a gamma-distributed revenue model where the estimated active user counts from the retention component inform
+    the revenue predictions. This approach enables information sharing across cohorts, naturally incorporates seasonal effects,
+    and provides well-calibrated uncertainty quantification through highest density intervals. The framework is flexible enough
+    to incorporate additional covariates (which can vary over time) in both model components. We demonstrate the approach using synthetic
+    data designed to reflect realistic business scenarios, showing accurate out-of-sample predictions with appropriate
+    uncertainty estimates. The framework's modular design facilitates extensions to hierarchical structures: we demonstrate
+    a multi-market implementation that pools information across markets with varying data availability, enabling reliable
+    forecasts even for markets with very limited cohort histories. Implementation code is provided in PyMC and NumPyro, where
+    we use both MCMC and stochastic variational inference to fit the models, making the method accessible for practical applications.
 \end{abstract}
 
 \maketitle
@@ -74,15 +78,16 @@ business strategies are built and refined. Seminal work by Fader and Hardie has 
 settings \cite{FaderHardie2007}, where subscription-based relationships predominate, and non-contractual settings
 \cite{FaderHardie2005}, where customers may come and go without formal notification\footnote{Our definition of retention
     corresponds to what they call survival curve. See precise definitions below.}. Modern implementations of these CLV
-models can now be found in Bayesian probabilistic programming frameworks such as PyMC (\cite{pymc2023}), where the
+models can now be found in Bayesian probabilistic programming frameworks such as PyMC (\cite{pymc2023}). Specifically, the
 PyMC-Marketing library \cite{pymc_marketing} provides implementations of many standard buy-till-you-die (BTYD) models including
 the BG/NBD, Pareto/NBD, and Gamma-Gamma models in a flexible, Bayesian framework. While these approaches have proven very valuable, they
 often struggle to scale effectively. They can definitively be scaled with modern hardware and algorithms (for example,
 stochastic variational inference, as described below). Nevertheless, this requires non-trivial work and effort.\\
 
-For many decision-making processes, companies just need to understand behaviors at the cohort level—groups of customers
-who joined during the same time period. In this paper we focus on this level of granularity. When shifting from individual
-to cohort-level analysis, businesses typically face a methodological trilemma:
+For many decision-making processes, companies and senior management (think of a C-level executive) mostly need to understand
+behaviors at the cohort level—groups (e.g. cohorts of customers who joined during the same time period). In this paper we
+focus on this level of granularity. When shifting from individual to cohort-level analysis, businesses typically face a
+methodological trilemma:
 
 \begin{enumerate}
     \item \textbf{Complete pooling}: Aggregate all cohorts together and model retention and revenue as a collective whole,
@@ -105,17 +110,109 @@ lifetime value, the reality for many business models is that seasonal fluctuatio
 engagement, and retention decisions. Beyond the methodological challenges, businesses face practical hurdles in translating
 retention and revenue models into actionable insights. Static models that fail to adapt to changing market dynamics or
 consumer preferences quickly become outdated. Moreover, point estimates without associated uncertainty measures can lead to
-misplaced confidence in business forecasts, potentially resulting in suboptimal resource allocation and strategic planning. \\
+misplaced confidence in business forecasts, potentially resulting in suboptimal resource allocation and strategic planning.
+The Bayesian cohort-revenue-retention framework presented in this paper addresses these challenges and has been successfully
+applied to real-world business datasets (both in contractual and non-contractual settings). As we will describe below, the
+model structure is flexible enough to incorporate extensive business specific prior knowledge through priors and convenient
+parametrizations. Most importantly, the framework provides a straightforward way to add custom covariates in both the retention
+and revenue components (and even in the coupling mechanism) which can vary over time. This is a fundamental advantage of this work,
+as in other classical probabilistic models like BG/NBD and Pareto/NBD, covariates can be added but are computationally expensive
+(and actually, the time-varying covariates require significant amoutn of work to implement in a way that scales).
 
-This work introduces a Bayesian approach that addresses these challenges by modeling cohort-level retention rates from a
-top-down perspective. Instead of building up from individual purchase patterns—a process that can become computationally
-intensive and complex for large customer bases—we directly model aggregate retention and revenue at the cohort level.
-to get a visual intuition of the data we want to model, Figure \ref{fig:retention_matrix} shows an example of a retention
-matrix. Here we encode the cohort retention as a function of time. Note that we exclude the diagonal as it is
-uninformative (always containing ones). Observe that older cohorts have more data (obviously), so we would like to use
-this information to improve the estimation of retention for younger cohorts. Hence, we do not want to model each cohort
-independently but rather the {\em whole retention matrix} (we will do the same for the revenue matrix and couple them
-together). \\
+
+\subsection*{Why Cohort-Level Modeling?}
+
+Before proceeding further, let's come back to the beginning and address an important question: why focus on cohort-level
+rather than individual-level modeling? While individual-level models can provide granular predictions for specific customers,
+cohort-level analysis offers several strategic advantages that make it particularly well-suited for many business
+decision-making contexts.
+
+\begin{itemize}
+
+    \item First, cohort-level aggregation substantially reduces noise inherent in individual transaction data. Individual purchase
+          patterns are often highly variable and influenced by idiosyncratic factors that average out when aggregating to the cohort
+          level. This noise reduction leads to more stable parameter estimates and more reliable forecasts, particularly valuable for
+          strategic planning where robustness is paramount.
+
+    \item Second, cohort-level models align naturally with how many business decisions are actually made. Marketing strategies, budget
+          allocations, and resource planning typically target customer segments rather than individuals. Financial forecasting and
+          business planning operate at aggregate levels. A model that directly addresses these cohort-level questions provides more
+          immediately actionable insights than individual-level predictions that must subsequently be aggregated. This alignment
+          enhances accessibility for marketing stakeholders and strategic decision-makers who may not require customer-specific
+          granularity but need to understand temporal patterns and cohort dynamics. For example, the model presented in this paper
+          sucessfully enabeled data-driven decisions at a company operating in multiple countries where user-level predictions
+          were hard to understand and make actionable. It was strategically better to segment the cohorts (adding other dimensions
+          like marketing aquisition channel) to extract relevant signals and insights for senior management.
+
+    \item Third, from a computational and practical perspective, cohort-level models scale more favorably than individual-level
+          approaches, particularly as customer bases grow into millions. While modern Bayesian methods can handle large individual-level
+          datasets, the computational requirements and implementation complexity increase substantially. Cohort-level modeling offers
+          an efficient path to actionable insights without sacrificing the flexibility to incorporate rich covariate information when
+          needed.
+
+\end{itemize}
+
+Importantly, the cohort-level focus does not preclude the incorporation of customer characteristics. As we demonstrate in our
+framework, additional covariates—such as acquisition channel, geographic location, or customer segment—can be seamlessly
+integrated into our model. To capture complex patterns in retention behavior without requiring explicit specification of
+functional forms, we employ Bayesian Additive Regression Trees (BART) \cite{chipman2010bart}. BART is a flexible non-parametric
+method that represents the unknown function as a sum of regression trees, allowing it to automatically learn non-linear
+relationships and interactions between features. This flexibility is particularly valuable for cohort retention modeling, where
+relationships between temporal features (cohort age, calendar time, seasonality) may be complex and difficult to specify
+a priori. The non-parametric nature of BART allows it to scale effectively with many features, enabling the model to capture
+heterogeneous effects across different customer types while maintaining the interpretability advantages of cohort-level
+aggregation through tools like partial dependence plots. Thus, our approach strikes a balance: operating at the cohort level
+for strategic clarity while retaining the flexibility to incorporate individual-level characteristics when they provide
+additional explanatory power. Moreover, as we can additional imporse a hierarchical structure across markets or subset
+of covariates, we can efficiently pool information across different cohorts and markets. Trying to do this pooling at
+the individual level is essentially impossible to a scale of millions of customers (which is more the norm than the exception).
+
+\subsection*{Related Work and Literature}
+
+Our approach sits at the intersection of several research streams in customer analytics, survival analysis, and cohort
+modeling. Understanding how our contribution relates to and extends existing methodologies is crucial for appreciating its
+novelty and practical value.
+
+\subsubsection*{Age-Period-Cohort Models.} The statistical literature on age-period-cohort (APC) modeling provides a rich
+framework for understanding temporal patterns in grouped data. As comprehensively reviewed by \cite{fannon2018apc}, APC models
+decompose outcomes into effects attributable to age (time since an event), period (calendar time effects), and cohort (group
+membership defined by a common temporal characteristic). These models have found extensive application in demography,
+epidemiology, and social sciences. However, traditional APC approaches face the well-known identification problem: age, period,
+and cohort are linearly dependent (cohort + age = period), making their individual effects non-identifiable without additional
+constraints. Moreover, standard APC models are typically specified for a single outcome variable, with additive decomposition
+of age, period, and cohort effects. While APC models have been extended to multivariate settings in some contexts, the standard
+framework and most applications focus on univariate outcomes. Our framework shares with APC models the recognition that outcomes
+depend on age (time since cohort formation), period (calendar time), and cohort identity. However, rather than focusing on
+decomposing and identifying separate age, period, and cohort effects—which requires imposing constraints or noting that only
+non-linear components are identifiable—we use flexible non-parametric modeling with BART that captures the joint functional
+relationship between these temporal dimensions without requiring explicit decomposition. Furthermore, we extend to joint
+modeling of two related outcomes (retention and revenue) through a principled coupling mechanism.
+
+\subsubsection*{Survival Analysis and Retention Modeling.} Recently, \cite{hubbard2021beta} introduced Beta Survival Models
+that use non-parametric methods to model discrete-time survival probabilities with a beta-logistic formulation.
+Their work demonstrates the value of flexible, non-parametric approaches for capturing heterogeneous survival patterns and
+forecasting beyond observed horizons—capabilities that are particularly relevant for retention modeling
+particularly relevant for retention modeling in business contexts. Our retention component shares the motivation of using
+flexible non-parametric methods (BART in our case) to model time-to-churn patterns. However, we extend this foundation in
+two critical directions. First, while \cite{hubbard2021beta} focus solely on survival/retention, we introduce a novel
+coupling mechanism that connects retention to revenue through the number of active users, enabling joint forecasting of
+both business-critical metrics. Second, our framework explicitly incorporates cohort structure and temporal effects in a
+way that facilitates information sharing across cohorts—a feature absent from standard survival models but essential for
+business applications where newer cohorts have limited historical data.
+
+\subsubsection*{Customer Lifetime Value Models.} The customer lifetime value literature, pioneered by the work of Fader and
+Hardie on buy-till-you-die (BTYD) models \cite{FaderHardie2005, FaderHardie2007}, provides powerful frameworks for
+individual-level customer behavior modeling. These approaches, particularly the BG/NBD and Pareto/NBD models, have become
+standard tools in marketing analytics. Modern Bayesian implementations in packages like PyMC-Marketing \cite{pymc_marketing}
+have made these models more accessible and extended their capabilities. However, as previously noted, BTYD models operate
+primarily at the individual level and can face scalability challenges. While \cite{FaderHardieNote2007} demonstrates that
+covariates can be incorporated, and \cite{FaderHardieNote2017} discusses multi-cohort fitting strategies
+(Shifted Beta Geometric model), these extensions still work within the constraints of the original parametric model structures.
+We want to emphasize that we are not claiming that our approach is better than the BTYD models, but rather that in many
+applications where the seasonal componets and additional covariates are important, for the mid-term decision making, our approach
+tends to be more accurate and flexible.
+
+\subsection*{The Cohort-Revenue-Retention Modeling Strategy}
 
 \begin{figure}
     \centering
@@ -129,12 +226,6 @@ together). \\
     \label{fig:retention_matrix}
 \end{figure}
 
-In addition, as we want to understand the monetary contribution of each cohort, we can consider the revenue matrix as shown
-in Figure \ref{fig:revenue_matrix}. As in the retention case, we want to make sure we use all the information available to
-improve the estimation of revenue for younger cohorts. Moreover, as we will discuss below, we will couple the retention and
-revenue matrices through the number of active users, making the model structure very transparent for the business users
-and stakeholders.
-
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_23_0.png}
@@ -144,34 +235,35 @@ and stakeholders.
     \label{fig:revenue_matrix}
 \end{figure}
 
-This approach offers several distinct advantages:
+Having established the motivation and positioned our work within the broader literature, we now turn to describing the
+modeling approach in detail. To get a visual intuition of the data we want to model, Figure \ref{fig:retention_matrix}
+shows an example of a cohort-level retention matrix. These cohorts are tipically defined by business rules, e.g.
+customers who registered, donwloaded the app or did their first purchase during the same month.
+Here we encode the cohort retention as a function of time (period). Note that we exclude
+the diagonal as it is uninformative (always containing ones). Observe that older cohorts have more data (obviously), so
+we would like to use this information to improve the estimation of retention for younger cohorts. That is, we do not want
+to model each cohort independently but rather the {\em whole retention matrix} (we will do the same for the revenue
+matrix and couple them together). As in most customer lifetime value models, we do not only want to model the retention matrix,
+but also the corresponding revenue matrix, shown in Figure \ref{fig:revenue_matrix}. As in the retention case, we want to
+make sure we use all the information available to improve the estimation of revenue for younger cohorts. How can we do this?
+We start with a non-parametric approach to model the retention matrix. Namely, we use Bayesian additive regression trees
+(implementation in PyMC following \cite{quiroga2022bart}) to model the retention matrix, capturing the probability that a
+customer from a given cohort remains active in subsequent periods. Then, we couple this model with an additional linear model
+to model the revenue matrix, predicting how much revenue active customers will generate. This dual approach balances the
+flexibility needed to capture complex retention patterns with the interpretability desired for revenue forecasting. That being said,
+this framework is flexible enough to incorporate additional parametrizations for the revenue component. The true key ingredients are:
+having a Bayesian model with two likelihoods (retention and revenue) that are coupled through the number of active users and
+the ability to add additional covariates to the model.
 
-\begin{itemize}
-    \item \textbf{Flexibility in relationship modeling}: By employing Bayesian additive regression trees (BART)
-          \cite{quiroga2022bart}, our approach can capture complex non-linear relationships between cohorts, time periods,
-          and behavioral metrics without requiring explicit specification of these relationships.
+An important strength of this modular framework is its extensibility to more complex structures. Namely, we also present
+a hierarchical extension that models multiple markets simultaneously, pooling information across them. This is particularly
+valuable when some markets have limited data: by sharing information through hierarchical priors, we can generate reliable
+forecasts for young markets that would be impossible to model in isolation. The hierarchical implementation, detailed in
+Section 6, demonstrates how naturally the framework accommodates such extensions without fundamental redesign.
 
-    \item \textbf{Integrated seasonality}: The model naturally incorporates seasonal patterns without requiring separate
-          components or preprocessing steps.
+\subsection*{Cohort Age and Period Features}
 
-    \item \textbf{Extensibility}: Additional covariates—from macroeconomic indicators to marketing campaign intensities—can
-          be seamlessly integrated into the model.
-
-    \item \textbf{Uncertainty quantification}: The Bayesian framework provides natural uncertainty estimates around all
-          predictions, enabling risk-aware decision making.
-
-    \item \textbf{Information sharing across cohorts}: Newer cohorts with limited historical data benefit from patterns
-          learned from more established cohorts.
-\end{itemize}
-
-Specifically, we use Bayesian additive regression trees to model the retention component, capturing the probability that a
-customer from a given cohort remains active in subsequent periods. We couple this with a linear model for the revenue
-component, predicting how much revenue active customers will generate. This dual approach balances the flexibility needed to
-capture complex retention patterns with the interpretability desired for revenue forecasting. Next we describe the main
-ingredients of our model: the features and the model specification. We will delve into the details in the next sections.
-
-\subsection*{Features}
-
+Before going into the details of the model specification, we need to define the core features that are be used in the model.
 Typical purchase databases contain transactional history at user level. We want an approach general enough to benefit
 from the most common features instead of heavy feature engineering. Going back to Figure \ref{fig:retention_matrix}, it
 is natural to consider the following features to model the retention and revenue matrices:
@@ -193,26 +285,28 @@ these covariates must be available for future observation periods.
 
 \subsection*{Model Specification}
 
-The main idea behind the specification is to model each revenue and retention matrices, using the features above, and
-couple them together. Specifically, we have:
+As mentioned above, the main idea behind the specification is to model each revenue and retention matrices, using the core
+features above, and couple them together. Specifically, we have the following components:
 
 \begin{itemize}
     \item {\bf Retention Component}: We model the number of active users $N_{\text{active}}$ in each cohort as a binomial random
           variable $\text{Binomial}(N_{\text{total}}, p)$, where the parameter $p$ represents the retention probability
           (see Figure \ref{fig:active_users}, from a synthetic example described below). We model the latent variable $p$
-          using a BART model with features cohort age, age, and month. This flexible approach allows the model to
-          capture non-linear relationships and interactions between features.
+          using a BART model with features cohort age, age, and month. This last feature is crucial to capture the seasonal patterns.
+          This flexible approach allows the model to capture non-linear relationships and interactions between features.
 
-    \item {\bf Revenue Component}: We model the revenue matrix (see Figure \ref{fig:revenue_matrix}) through a gamma random variable
-          $\text{Gamma}(N_{\text{active}}, \lambda)$, as we want to ensure non-negative values. We model the rate parameter
-          $\lambda$ through a linear model with features cohort age, age, and a multiplicative interaction term (using a
-          $\log$ link function). We do not explicitly add a seasonality component to this part of the model, as we typically
-          observe that most seasonality effects are already captured by the retention component. However, seasonal features
-          could be added if needed (plus additional features and different parametrizations, for example multiplicative
-          effects).
+    \item {\bf Revenue Component}: We model the revenue matrix through a gamma random variable
+          $\text{Gamma}(N_{\text{active}}, \lambda)$, as we want to ensure non-negative values (Gamma distributions have been used
+          widely to model monetary components, e.g. the Gamma-Gamma model from \cite{fader2005rfm}).
+          We model the rate parameter $\lambda$ through a linear model with features cohort age, age, and a multiplicative
+          interaction term (using a $\log$ link function). We do not explicitly add a seasonality component to this part of
+          the model, as we typically observe that most seasonality effects are already captured by the retention component.
+          However, seasonal features could be added if needed (plus additional features and different parametrizations,
+          for example multiplicative effects).
 
-    \item {\bf Coupling}: The retention and revenue coupling is the most interesting (and novel) part of this work. We
-          couple the two components through the number of active users. Here is the full model specification:
+    \item {\bf Coupling Mechanism}: The retention and revenue coupling is a key feature of this work. We couple the two components
+          through the number of active users, extending decomposition ideas similar to those in the Gamma-Gamma model,
+          which separates transaction frequency from monetary value. The full model specification is as follows:
 
           \begin{align*}
               \text{Revenue}    & \sim \text{Gamma}(N_{\text{active}}, \lambda)                                             \\
@@ -237,33 +331,65 @@ couple them together. Specifically, we have:
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{images/revenue_retention_33_0.png}
-    \caption{Cohort-revenue-retention model structure. This diagram illustrates the two coupled components of our model:
-        the retention component (left) using BART to model the probability of customers remaining active, and the
-        revenue component (right) using a gamma distribution with parameters informed by the retention model. The arrows
-        show the flow of information, demonstrating how the estimated number of active users from the retention model
-        directly feeds into the revenue model.}
+    \caption{Cohort-revenue-retention model structure. This diagram illustrates the coupling mechanism that connects
+        the two components of our framework. On the left, the retention component models the number of active users
+        $N_{\text{active}}$ as a binomial random variable, where the retention probability $p$ is modeled using BART with
+        features including cohort age, age (cohort identifier), and month (seasonality). On the right, the revenue component
+        models total revenue as a gamma-distributed random variable, with the shape parameter directly determined by
+        $N_{\text{active}}$ from the retention model. This coupling through active users provides a natural connection:
+        changes in retention patterns automatically propagate to revenue predictions, ensuring consistency between the two
+        metrics while allowing each component to use appropriate distributional assumptions and feature sets.}
     \label{fig:revenue_retention_model}
 \end{figure}
 
-Figure \ref{fig:revenue_retention_model} illustrates the complete model structure. Our goal is to simultaneously estimate
-the BART parameters and the beta coefficients (including the intercept) of the linear component. We want to do this to
-understand the contribution of each feature to the retention and revenue over time. Additionally, to operationalize the
-model, we will use the retention and revenue matrices to make out-of-sample predictions. This can be extremely important
-for scenario and business planning. A typical application is to use this model to generate {\em counterfactuals} for
-global interventions where we expect different cohorts to react differently. \\
+Figure \ref{fig:revenue_retention_model} shows the complete model structure in plate notation (common in Bayesian graphical models).
+Our goal is to simultaneously estimate the BART parameters and the beta coefficients (including the intercept) of
+the linear component. We want to do this for two reasons. First,to understand the contribution of each feature to the retention
+and revenue over time. Secondly, use the model and inferred parameters to generate out-of-sample predictions of the retention
+and revenue matrices. This is extremely important for scenario and business planning. Typical applications are to use these
+forecasted values to understand the true value of the customer base, financial planning or to generate {\em counterfactuals} for
+market-level interventions where we expect different cohorts to react differently. \\
+
+This modeling strategy offers several distinct advantages:
+
+\begin{itemize}
+    \item \textbf{Flexibility in relationship modeling}: By employing Bayesian additive regression trees (BART), our approach
+          can capture complex non-linear relationships between cohorts, time periods, and behavioral metrics without requiring
+          explicit specification of these relationships. We have also experimented with Bayesian neural networks to model the
+          retention and revenue matrices, and the results were similar.
+
+    \item \textbf{Integrated seasonality}: The model naturally incorporates seasonal patterns without requiring separate
+          components or preprocessing steps.
+
+    \item \textbf{Extensibility}: Additional covariates (e.g. macroeconomic indicators, marketing campaign intensities, etc.) can
+          be seamlessly integrated into the model.
+
+    \item \textbf{Uncertainty quantification}: The Bayesian framework provides natural uncertainty estimates around all
+          predictions, enabling risk-aware decision making.
+
+    \item \textbf{Information sharing across cohorts}: Newer cohorts with limited historical data benefit from patterns
+          learned from more established cohorts.
+\end{itemize}
+
 
 In the rest of the paper, we delve into the details of the model specification and diagnostics. Moreover, we describe
-how to generate out-of-sample predictions for both the retention and revenue matrices. \\
-
-To make the approach more tangible,
+how to generate out-of-sample predictions for both the retention and revenue matrices. To make the approach more tangible,
 we present a synthetic dataset in the next section. This should help the reader to better understand the data and the approach.
 
-\section{Synthetic Data}
+\section{A Synthetic Dataset}\label{sec:synthetic_dataset}
 
-To illustrate our approach, we use a synthetic dataset (available as a {\em csv} file from \cite{orduz_revenue_retention}).
-The code to generate this dataset (deterministically) is publicly available in \cite{orduz_revenue_retention_data_code}.
-Let's begin with exploratory data analysis. Figure \ref{fig:retention_matrix} displays the retention matrix per cohort and
-period. Two key observations stand out:
+Having established the theoretical foundations and positioning of our approach, we now turn to a concrete demonstration using
+synthetic data. While our framework has been successfully applied to real business datasets, we present results using synthetic
+data for reproducibility and to avoid proprietary information concerns. The synthetic dataset is designed to reflect realistic
+business scenarios, incorporating the types of temporal patterns and cohort dynamics commonly observed.
+
+The synthetic dataset is available as a CSV file from \cite{orduz_revenue_retention}, and the code to generate this dataset
+deterministically is publicly available in \cite{orduz_revenue_retention_data_code}. This ensures full reproducibility of
+our results and allows researchers to explore model behavior under controlled conditions. \\
+
+Before fitting our model, we conduct exploratory data analysis to understand the key patterns in the data. This analysis
+motivates our modeling choices and provides a baseline for evaluating model performance. Figure \ref{fig:retention_matrix}
+displays the retention matrix per cohort and period. Two key observations stand out:
 
 \begin{enumerate}
     \item The retention exhibits a clear seasonal pattern with respect to the period, being higher in the last months of the
@@ -300,7 +426,11 @@ we observe the following for the revenue data\footnote{These types of patterns a
           suggesting that older cohorts generate less revenue per active customer. \\
 \end{itemize}
 
-With this exploratory analysis complete, we can proceed to the modeling phase.
+These exploratory findings inform our modeling strategy. The strong seasonality in retention motivates the inclusion of
+month (period) as a feature in the BART component. The heterogeneity across cohort ages suggests that flexible non-parametric
+modeling will be valuable for capturing these varying patterns. The relationship between revenue and active users justifies
+our coupling mechanism, while the patterns in revenue per active user guide the parametric specification of the revenue
+component. With this exploratory understanding established, we now proceed to formalizing and fitting our model.
 
 \begin{figure}
     \centering
@@ -320,7 +450,9 @@ With this exploratory analysis complete, we can proceed to the modeling phase.
 
 \section{Model Structure and Diagnostics}
 
-\subsection{Model Specification}
+\subsection{Model Specification}\label{sec:model_specification}
+
+\subsubsection{Retention Component}
 
 Let's expand on the model structure outlined in the introduction. The core concept is to model the number of active users
 as a binomial random variable $N_{\text{active}} \sim \text{Binomial}(N_{\text{total}}, p)$, where $p$ represents the retention
@@ -332,26 +464,58 @@ month (period) as features.
     \textrm{logit}(p) & = \text{BART}(\text{cohort age}, \text{age}, \text{month})
 \end{align*}
 
-The main parameter we need to specify for the BART model is the number of trees. We typically start with a small number of
-trees and increase it incrementally while monitoring the posterior predictive distribution's quality.
+When we run the inference process (MCMC or SVI), we condition on the number of active users $N_{\text{active}}$ and not
+directly on the observed retention rates. The reason to treat the retention as a latent variable is to have better uncertainty
+estimates for it depending on the cohort size ($N_{\text{total}}$) and the number of active users ($N_{\text{active}}$). Recall
+that the standar error of a proportion is $\sqrt{p(1-p)/N_{\text{total}}}$.\\
 
-\begin{remark}
+The BART component models the unknown retention latent variable as a sum of many regression trees, where
+each tree contributes a small part to the overall prediction \cite{chipman2010bart}. The key advantage is that this ensemble
+automatically learns complex non-linear patterns and interactions without requiring the analyst to specify functional forms.
+The prior specification encourages sparse, shallow trees that collectively capture the data structure while avoiding overfitting.
+We implement BART using the PyMC framework via \cite{quiroga2022bart}, which handles the technical details of tree structure
+priors and parameter estimation. The main tuning parameter is the number of trees $m$. For our retention
+modeling, we typically start with $m = 20$ trees and increase incrementally (e.g., to $50$ or $100$) while monitoring posterior
+predictive fit. BART is relatively insensitive to this choice for sufficiently large $m$, but smaller values offer
+computational efficiency and maintain interpretability through tools like partial dependence plots.
+Readers interested in the mathematical details of BART priors—including tree topology priors, splitting rule distributions,
+and leaf parameter specifications—are referred to the comprehensive treatment in \cite{chipman2010bart} and the implementation
+details in \cite{quiroga2022bart}.
+
+\begin{remark}[Additional Covariates]
     A key advantage of the BART model is its flexibility in incorporating additional covariates. In real business
     applications, we have successfully added customer segmentation features (such as acquisition media channels from
     attribution models). This provides valuable insights into media channel return-on-investment (ROI), allowing businesses
     to consider not just acquisition costs but also estimated customer lifetime value through this combined model.
 \end{remark}
 
-\begin{remark}
-    While one could start with a simpler model, such as a linear model as described in \cite{orduz_revenue_retention},
-    our experience with real datasets shows that such simpler approaches often fail to adequately capture the complex
-    patterns in the data.
+\begin{remark}[Baseline Model]
+    We always recommend starting with a simple baseline, such as a linear model
+    \begin{align*}
+        \text{logit}(p)  = & \left(\text{intercept} + \beta_{\text{cohort age}} \times \text{cohort age} + \beta_{\text{age}} \times \text{age} \right.                        \\
+                           & \left. + \beta_{\text{cohort age} \times \text{age}} \times \text{cohort age} \times \text{age} + \beta_{\text{month}} \times \text{month}\right)
+    \end{align*}
+
+    as described in \cite{orduz_revenue_retention}. In many cases, these baseline models are sufficient for the first
+    iteration to get the decision-making process moving forward. Nevertheles, in many real applications, we have seen that
+    the BART models can significantly improve the performance of the model (in and out of sample predictions).
 \end{remark}
 
+\subsubsection{Revenue Component}
+
 For the revenue component, we employ a gamma random variable $\text{Gamma}(N_{\text{active}}, \lambda)$ (inspired by
-\cite{stucchio2015bayesian}). The mean of this gamma distribution is $N_{\text{active}} / \lambda$, allowing us to interpret
-$1 / \lambda$ as the {\em average revenue per active user}. We model $\log(\lambda)$ using a linear function of cohort age,
-age, and their interaction.
+\cite{stucchio2015bayesian}). The gamma distribution is a natural choice for modeling revenue as it ensures non-negativity
+and provides flexibility in capturing different revenue distributions through its shape and rate parameters. The mean of
+this gamma distribution is $N_{\text{active}} / \lambda$, allowing us to interpret $1 / \lambda$ as the {\em average
+        revenue per active user}. By using $N_{\text{active}}$ as the shape parameter, we ensure that cohorts with more active
+users have lower relative variance (coefficient of variation $1/\sqrt{N_{\text{active}}}$), which aligns with the intuition
+that aggregated revenue from larger cohorts should be more stable. This parametrization also creates a direct connection
+between the retention and revenue components: cohorts with higher retention (larger $N_{\text{active}}$) contribute both
+higher expected revenue and more concentrated revenue distributions. We model $\log(\lambda)$ using a linear function of
+cohort age, age, and their interaction. As a preprocessing step, we standardize these features for the linear model component
+(we keep the same notation for the variables for simplicity). This allows us to specify priors for the regression coefficients
+in terms of the effect of a one-standard-deviation change in the predictor, enabling effective regularization through standard
+normal priors for the coefficients (see \cite{orduz_retention_bart}).
 
 \begin{align*}
     \text{Revenue}    & \sim \text{Gamma}(N_{\text{active}}, \lambda)                                             \\
@@ -362,18 +526,15 @@ age, and their interaction.
 \end{align*}
 
 A key insight from both this synthetic dataset and many real-world applications is that we typically don't need to explicitly
-model seasonality in the revenue component, as seasonal patterns are already captured by the retention component.
+model seasonality in the revenue component, as seasonal patterns are already captured by the retention component. Still,
+if the business model ad hand also has a strong seasonal component in average basket sizes, then an additional seasonal component
+can be added to the revenue model.
 
-\begin{remark}
+\begin{remark}[Chort Age Encoding]
     The {\em age} feature characterizes each cohort's temporal position. While we could replace this numerical encoding with
     a one-hot encoding of cohorts and add hierarchical structure to pool information across cohorts, the numerical encoding
     is more parsimonious under the assumption that temporally proximate cohorts behave more similarly than distant ones.
 \end{remark}
-
-As a preprocessing step, we standardize the features for the linear model component (we keep the same notation for the
-variables for simplicity). This allows us to specify priors for the regression coefficients in terms of the effect of a
-one-standard-deviation change in the predictor, enabling effective regularization through standard normal priors for the
-coefficients (see \cite{orduz_retention_bart}). \\
 
 In summary, our cohort-revenue-retention model is specified as:
 
@@ -393,9 +554,22 @@ In summary, our cohort-revenue-retention model is specified as:
 
 \subsection{Diagnostics}
 
-Once we have the model specification, we can implement and fit it in PyMC (see \cite{orduz_revenue_retention}). Figure
-\ref{fig:posterior_predictive} shows the posterior predictive distribution of both model components. The trace plots for the
-linear terms (Figure \ref{fig:trace}) show good mixing with no divergences or convergence warnings.
+With the model fully specified, we implement and fit it using PyMC \cite{pymc2023}, leveraging the BART implementation
+from \cite{quiroga2022bart}. Complete implementation details and code are available in \cite{orduz_revenue_retention}, where
+we follow the {\em Bayesian workflow} (\cite{gelman2020bayesianworkflow}). After fitting the model using MCMC with the
+computational settings described above, we conduct thorough diagnostics to ensure reliable inference. Figure \ref{fig:posterior_predictive}
+presents a critical diagnostic: the posterior predictive distribution for both model
+components. These plots compare the distribution of observed values against the distribution of values simulated from the
+fitted model's posterior predictive distribution. Close agreement between these distributions indicates that the model
+successfully captures the data-generating process. For both retention and revenue components, we observe excellent agreement,
+with the simulated distributions (red) closely matching the observed distributions (black). This suggests the model
+provides an adequate fit to the data. Beyond the posterior predictive check, we examine convergence diagnostics for
+the model parameters. Figure \ref{fig:trace} displays trace plots for the linear model parameters
+(intercept and regression coefficients). These plots show the evolution of parameter values across MCMC iterations for each chain.
+Good mixing—evidenced by chains that explore the parameter space efficiently without getting stuck—is essential for reliable inference.
+We observe healthy mixing for all parameters, with no divergences or convergence warnings. All $\hat{R}$ statistics are below $1.01$,
+confirming convergence. These diagnostics give us confidence that the MCMC sampling has successfully explored the posterior
+distribution and that our parameter estimates are reliable.
 
 \begin{figure}
     \centering
@@ -415,12 +589,14 @@ linear terms (Figure \ref{fig:trace}) show good mixing with no divergences or co
 
 \subsection{Variable Importance}
 
-The BART component implemented in \cite{quiroga2022bart} provides great tools to understand the importance of the different
-features. Figure \ref{fig:ice_plot} shows the PDP (Partial Dependence Plot) and ICE (Individual Conditional Expectation)
-plots for the retention component. PDP and ICE plots visualize how the model's predictions change as a single feature varies
+A key advantage of using BART over more opaque machine learning methods is the availability of tools for understanding which
+features drive predictions and how they influence outcomes. The BART implementation in \cite{quiroga2022bart} provides
+interpretability tools that allow us to peer inside the model and extract actionable insights about retention drivers.
+Figure \ref{fig:ice_plot} presents {\em Partial Dependence Plot (PDP)} and {\em Individual Conditional Expectation (ICE)} plots for the
+retention component. These visualization techniques reveal how the model's predictions change as each feature varies
 while holding all other features constant. Each line represents a different observation from the dataset, showing how the
-predicted retention probability would change for that observation if we modified only the feature of interest. The PDP
-plot is the average of the ICE plots (solid line). These plots allow us to understand how the retention probability varies
+predicted retention probability would change for that observation if we modified only the feature of interest. The solid line
+represents the PDP plot, which is the average of the ICE plots. These plots allow us to understand how the retention probability varies
 for different values of the features and reveals potential non-linear relationships or interaction effects that might not
 be apparent in aggregate statistics. \\
 
@@ -434,7 +610,7 @@ be apparent in aggregate statistics. \\
 In this specific example, we can extract the following insights:
 
 \begin{itemize}
-    \item The ICE plots show how the retention rate decreases with both cohort age and age. This is not surprising as we saw in the EDA.
+    \item The ICE plots show how the retention rate decreases with both cohort age and age. This is not surprising as we saw in the exploratory data analysis.
     \item We see that the ICE plots have a similar trend to the PDP plots. This hints that the interaction effects are
           not so important in this case. This is also something we saw in the linear model where the interaction coefficient
           was relatively small (see \cite{orduz_retention}).
@@ -456,8 +632,10 @@ These types of plots are very valuable to understand the {\em drivers} of the re
 
 \section{Predictions}
 
-In this section, we present both in-sample and out-of-sample predictions from our model, demonstrating its effectiveness at
-capturing patterns in the data and forecasting future metrics.
+Having established that our model fits the data well and that MCMC sampling has converged, we now examine the model's
+predictive performance. This section evaluates predictions in two contexts: in-sample predictions that assess how well the
+model captures observed patterns, and out-of-sample predictions that test the model's ability to forecast future retention
+and revenue for periods beyond the training data.
 
 \subsection{In-Sample Predictions}
 
@@ -559,16 +737,23 @@ well-calibrated uncertainty using highest density intervals (HDI). The model pro
 distributions, allowing businesses to understand the range of possible outcomes and make risk-aware decisions. The effective
 transfer of information across cohorts is particularly valuable for new cohorts where limited data is available.
 
-\section{Other Non-Parametric Approaches}
+\section{Alternative Non-Parametric Approaches}\label{sec:alternative_approaches}
 
-While Bayesian Additive Regression Trees (BART) provide a powerful non-parametric approach for modeling the retention
-component, there are other flexible methods worth considering. In particular, neural networks coupled with efficient
-Bayesian inference techniques offer an alternative that combines flexibility with computational efficiency.
+The framework we have presented centers on BART for the retention component, a choice motivated by BART's flexibility,
+interpretability through PDP/ICE plots, and relatively straightforward hyperparameter tuning. However, the modular nature
+of our approach means the BART component can be replaced with other flexible function approximators. In this section, we
+briefly discuss one particularly promising alternative: neural networks with Bayesian inference. This discussion serves two
+purposes: first, it demonstrates the framework's flexibility and extensibility; second, it provides practitioners with
+guidance on when alternative implementations might be preferable.
+
+While Bayesian Additive Regression Trees provide a powerful non-parametric approach for modeling the retention component,
+neural networks coupled with efficient Bayesian inference techniques offer an alternative that combines flexibility with
+computational efficiency, albeit with some tradeoffs in interpretability.
 
 \subsection{Neural Networks with NumPyro}
 
 As demonstrated by \cite{orduz_revenue_retention_numpyro}, the BART component in our model can be replaced with a neural
-network implemented using Flax, with inference performed using NumPyro \cite{phan2019composable}. The modified model
+network implemented using Flax (\cite{flax2020github}), with inference performed using NumPyro (\cite{phan2019composable}). The modified model
 structure becomes:
 
 \begin{align*}
@@ -581,7 +766,7 @@ structure becomes:
     \textrm{logit}(p) & = \text{NN}(\text{cohort age}, \text{age}, \text{month})
 \end{align*}
 
-where $\text{NN}$ represents a neural network. Even a simple architecture with one hidden layer containing just 4 units and
+where $\text{NN}$ represents a neural network. Even a simple architecture with one hidden layer containing just $4$ units and
 sigmoid activation functions can capture the complex patterns in retention data effectively.
 
 \subsection{Advantages of the Neural Network Approach}
@@ -638,13 +823,141 @@ The choice between BART and neural network approaches depends on the specific ne
 The implementation details and complete code examples for the neural network approach can be found in
 \cite{orduz_revenue_retention_numpyro}.
 
+\section{Extension to Hierarchical Multi-Market Modeling}
+
+\subsection{Motivation and Approach}
+
+Organizations operating across multiple markets or customer segments frequently encounter an asymmetry in data
+availability: some markets are mature with extensive cohort histories, while others are nascent with only a few observed
+cohorts. Modeling each market independently wastes valuable information that could be shared across markets, while complete
+pooling ignores market-specific dynamics. A hierarchical structure provides an elegant solution to this challenge by enabling
+information pooling while preserving market-specific patterns.
+
+The business motivation for hierarchical modeling is compelling. Consider a company expanding into new geographic regions or
+launching products in new market segments. Early-stage markets lack the data needed for reliable independent forecasts, yet
+business decisions—resource allocation, growth projections, strategic planning—cannot wait years for sufficient data
+accumulation. By borrowing information from more established markets through hierarchical priors, we can generate credible
+forecasts for young markets that would otherwise be impossible to model reliably. \\
+
+We extend the neural network approach from Section \ref{sec:alternative_approaches} to accommodate multiple markets through two key modifications:
+
+\begin{itemize}
+    \item \textbf{Retention component}: We incorporate market identity as an additional feature in the neural network. The
+          network learns market-specific retention patterns while sharing information about temporal dynamics (cohort age,
+          calendar effects, seasonality) across markets.
+
+    \item \textbf{Revenue component}: We implement a hierarchical linear model where market-specific regression coefficients
+          are drawn from common hierarchical priors. This allows each market to have its own revenue dynamics while constraining
+          these parameters to be similar across markets through the prior distribution.
+\end{itemize}
+
+The hierarchical structure naturally addresses the data asymmetry problem: markets with abundant data inform the hierarchical
+priors, which in turn regularize predictions for data-sparse markets toward sensible values. Crucially, the coupling mechanism
+between retention and revenue components remains intact in this hierarchical setting—the number of active users predicted by
+the retention model still informs the revenue model's shape parameter.
+
+\subsection{Synthetic Multi-Market Data}
+
+To demonstrate the hierarchical extension, we extend our synthetic data generation process to create cohort-level observations
+across four markets with varying maturity levels (recall we train until November $2022$ in the synthetic data generation process)\footnote{
+    The code to generate the synthetic data is also available in \cite{orduz_revenue_retention_data_code} to ensure reproducibility.
+}:
+
+\begin{itemize}
+    \item \textbf{Market A}: Starting from January $2020$ (mature, most data)
+    \item \textbf{Market B}: Starting from February $2021$ (moderately mature)
+    \item \textbf{Market C}: Starting from January $2022$ (developing)
+    \item \textbf{Market D}: Starting from July $2022$ (youngest)
+\end{itemize}
+
+The data generation process maintains the same retention and revenue dynamics described in Section \ref{sec:synthetic_dataset}, but now each market has
+its own data realization. We apply the same train/test split strategy, holding out the most recent periods for validation.
+Figure \ref{fig:hierarchical_data} visualizes the data structure, showing cohort availability and revenue patterns across the
+four markets.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/hierarchical_revenue_retention_13_2.png}
+    \caption{Retention matrix for Market $C$. We just have $10$ cohorts of data available for this market.}
+    \label{fig:hierarchical_data}
+\end{figure}
+
+This multi-market setup creates a realistic challenge: can we forecast revenue for Market $C$, which has limited data,
+by leveraging patterns learned from Markets $A$, $B$, and $D$?
+
+\subsection{Results and Information Pooling}
+
+The hierarchical model achieves strong predictive performance across all markets. Figure \ref{fig:hierarchical_predictions}
+shows revenue predictions for Market $C$ by leveraging patterns learned from Markets $A$, $B$, and $D$, demonstrating that the
+model successfully borrows strength from more mature markets to generate accurate forecasts despite having only $10$ cohorts
+and less of a year of data.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/hierarchical_revenue_retention_75_0.png}
+    \caption{Revenue predictions for four selected cohorts in Market $C$.}
+    \label{fig:hierarchical_predictions}
+\end{figure}
+
+Several key findings emerge from the hierarchical implementation:
+
+\begin{itemize}
+    \item \textbf{Successful information pooling}: Market $C$ achieves prediction accuracy that would be impossible with
+          independent modeling. Note that the forecast contains the seasonal component, which would be impossible to capture
+          with a single model on Market $C$ as we do not even have a complete year of data.
+          The hierarchical priors effectively transfer knowledge about retention decay patterns and revenue
+          dynamics from mature markets.
+
+    \item \textbf{Market-specific adaptation}: While borrowing information, the model still captures market-specific patterns.
+          Each market's predictions reflect its own data when available, rather than being dominated by the larger markets.
+
+    \item \textbf{Appropriate uncertainty quantification}: The highest density intervals are wider for Market $C$ than for more
+          established markets (e.g. Market $A$, for which the results look almost the same as in Section \ref{sec:model_specification}),
+          correctly reflecting the greater uncertainty due to limited data. This honest uncertainty quantification is crucial
+          for business decision-making.
+
+    \item \textbf{Coupling mechanism preserved}: The connection between retention and revenue components functions effectively in
+          the hierarchical setting. Active user predictions from the retention model inform revenue forecasts across all markets.
+\end{itemize}
+
+The hierarchical extension demonstrates that the framework's core architecture—the coupling between retention and revenue—
+naturally extends to more complex settings. This extensibility is not accidental but rather a consequence of the modular
+design: the coupling mechanism operates at the cohort-observation level and is agnostic to whether those observations come from
+a single market or multiple markets with hierarchical structure.
+
+\subsection{Implementation Notes}
+
+For computational efficiency with multiple markets, we implement the hierarchical model using SVI in NumPyro rather than MCMC sampling.
+SVI provides approximate posterior distributions through optimization, enabling the model to scale to tens or hundreds of markets
+where full MCMC would be computationally prohibitive\footnote{
+    SVI is knows to underestimate the uncertainty, but it is still a valid approximation for the posterior distribution.
+}. For applications with fewer markets (say, $5-10$), MCMC remains a viable
+alternative that may provide more accurate uncertainty quantification. The complete implementation, including data generation,
+model specification, and visualization code, is available at \cite{orduz_hierarchical_revenue_retention}.
+The implementation demonstrates that extending the base framework to hierarchical structures requires modest additional
+complexity—primarily the specification of hierarchical priors and the inclusion of market
+identifiers in the feature set. That being said, inference on hierarchical models is in general more challenging becuase of the
+non-linear geometry of the parameter space. Fortunately, NumPyro offers automatic mechanism to reparameterize the model
+to make it more amenable to SVI (\cite{gorinova2020automatic}).
+
 \section{Conclusion and Future Directions}
 
+\subsection{Broader Implications and Future Directions}
+
 The ability to accurately forecast retention and revenue metrics represents a significant competitive advantage in today's
-business environment. In this paper, we have presented a novel Bayesian approach to modeling cohort-level retention and
-revenue that addresses many of the limitations inherent in traditional methodologies. By combining the flexibility of
-Bayesian additive regression trees with the interpretability of linear models, our approach offers both analytical power and
-practical utility. Our framework provides several distinctive advantages that merit highlighting:
+business environment. Having addressed practical considerations, we now turn to broader implications of this work. In this
+paper, we have presented a Bayesian framework for jointly modeling cohort-level retention and revenue that addresses critical
+gaps in the existing literature on customer lifetime value and cohort analysis. As
+discussed in our review of related work, traditional approaches—whether individual-level BTYD models, linear age-period-cohort
+frameworks, or single-outcome survival models—face limitations in flexibility, computational scalability, joint modeling of
+related outcomes, and principled uncertainty quantification. Our contribution directly addresses these gaps through a coupled
+retention-revenue architecture that balances sophisticated non-parametric modeling with practical interpretability.
+
+By combining the flexibility of Bayesian additive regression trees with the interpretability of linear models, our approach
+offers both analytical power and practical utility. The choice to operate at the cohort level is not a limitation but rather
+a deliberate strategic decision that aligns with how many business decisions are made, reduces noise through aggregation,
+and provides computational efficiency—while still allowing for the incorporation of rich covariate information when needed.
+Our framework provides several distinctive advantages that merit highlighting:
 
 \begin{enumerate}
     \item \textbf{Adaptive complexity}: The BART component automatically adjusts its complexity to match the underlying
@@ -665,7 +978,10 @@ practical utility. Our framework provides several distinctive advantages that me
 
     \item \textbf{Customizable architecture}: The modular design allows for straightforward extensions to incorporate
           business-specific factors and external variables. Whether integrating marketing channel information, product usage
-          metrics, or macroeconomic indicators, the model can adapt to diverse business contexts without fundamental redesign.
+          metrics, or macroeconomic indicators, the model can adapt to diverse business contexts without fundamental redesign. As
+          demonstrated in Section 6, the framework naturally extends to hierarchical structures for multi-market modeling, where
+          information pooling across markets enables reliable forecasts even for data-sparse segments—a critical capability for
+          growing businesses operating across multiple geographies or customer segments.
 \end{enumerate}
 
 Our experiments with synthetic data demonstrate the model's effectiveness, but the real value of this approach emerges in
@@ -686,16 +1002,19 @@ highest density intervals (HDI), this methodology enables more informed decision
           trajectories, potentially intervening at critical points to improve outcomes.
 \end{itemize}
 
-Despite these advantages, we acknowledge some limitations that present opportunities for future research. First, while our
-top-down approach efficiently models cohort-level patterns, it cannot provide individual-level predictions or personalized
-insights. Businesses requiring customer-specific forecasts would need to complement this approach with individual-level
-models. Second, the current framework assumes that cohort behavior patterns remain relatively stable over time, with seasonal
-variations occurring around consistent trends. In rapidly evolving markets or during significant disruptions, this assumption
-may not hold. Future work could explore regime-switching models or online learning approaches that adapt more quickly to
-fundamental shifts in customer behavior. Third, our model currently treats cohorts as distinct entities defined solely
-by their start date. An interesting extension would be incorporating cohort formation factors—such as acquisition channel,
-initial product selection, or demographic characteristics—directly into the model structure, potentially uncovering more
-nuanced retention and revenue patterns.
+Despite these advantages, we acknowledge some limitations and boundary conditions that present opportunities for future
+research. First, while our cohort-level approach offers strategic value and practical advantages as discussed earlier, it
+naturally does not provide individual-level predictions. Organizations requiring customer-specific forecasts for
+personalization or targeting would need to complement this approach with individual-level models—though as we have argued,
+many strategic business decisions operate precisely at the cohort level where our framework excels. Second, the current
+framework assumes that cohort behavior patterns remain relatively stable over time, with seasonal variations occurring around
+consistent trends. In rapidly evolving markets or during significant disruptions (e.g., major product changes, economic
+shocks), this assumption may not hold. Future work could explore regime-switching models or online learning approaches that
+adapt more quickly to fundamental shifts in customer behavior. Third, while we have demonstrated that individual-level
+covariates can be incorporated into the BART component, our synthetic data examples use only temporal features. Empirical
+validation with real datasets incorporating rich customer characteristics—acquisition channel, geographic location,
+demographic attributes—would provide additional evidence of the framework's flexibility and the scalability advantages of
+BART with many features.
 
 Looking ahead, several promising research directions emerge:
 
@@ -706,19 +1025,23 @@ Looking ahead, several promising research directions emerge:
     \item \textbf{Multi-product ecosystems}: Extending the framework to handle customers who engage with multiple products or
           services, capturing cross-product effects on retention and spending.
 
-    \item \textbf{Hierarchical structures}: Implementing full hierarchical Bayesian models to more formally represent the
-          relationships between cohorts and potentially incorporate prior business knowledge. For instance, we can have
-          retention and revenue matrices per country and we would like to model them all together through a hierarchical
-          structure on both components.
+    \item \textbf{Advanced hierarchical structures}: While Section 6 demonstrates hierarchical modeling across markets, further
+          extensions could address more complex nested structures (e.g., markets within regions, products within categories) or
+          time-varying hierarchical parameters that adapt to evolving market dynamics.
 \end{enumerate}
 
-The methodology presented in this paper represents a significant step forward in cohort-based retention and revenue modeling.
-By embracing the complexity inherent in customer behavior while maintaining analytical tractability, our approach bridges the
-gap between sophisticated statistical techniques and practical business applications. As companies continue to recognize the
-strategic importance of customer retention and lifetime value, flexible and accessible modeling approaches like the one presented
-here will become increasingly essential tools in the modern business analytics toolkit.
+The methodology presented in this paper represents a significant step forward in cohort-based retention and revenue modeling,
+addressing specific gaps in the age-period-cohort, survival analysis, and customer lifetime value literatures through
+principled Bayesian coupling of retention and revenue outcomes. By embracing the complexity inherent in customer behavior
+while maintaining analytical tractability and interpretability, our approach bridges the gap between sophisticated statistical
+techniques and practical business applications. The framework's flexibility—demonstrated through both BART and neural network
+implementations—combined with its focus on cohort-level strategic insights positions it as a valuable complement to existing
+individual-level CLV models. As companies continue to recognize the strategic importance of customer retention and lifetime
+value, flexible and accessible modeling approaches like the one presented here will become increasingly essential tools in
+the modern business analytics toolkit, particularly for strategic decision-making contexts where aggregate patterns and
+well-calibrated uncertainty estimates drive resource allocation and planning.
 
-\bibliographystyle{acm}
+\bibliographystyle{apalike}
 \bibliography{references}
 
 \end{document}
