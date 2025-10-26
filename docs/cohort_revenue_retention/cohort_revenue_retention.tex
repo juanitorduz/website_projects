@@ -376,7 +376,7 @@ In the rest of the paper, we delve into the details of the model specification a
 how to generate out-of-sample predictions for both the retention and revenue matrices. To make the approach more tangible,
 we present a synthetic dataset in the next section. This should help the reader to better understand the data and the approach.
 
-\section{A Synthetic Dataset}
+\section{A Synthetic Dataset}\label{sec:synthetic_dataset}
 
 Having established the theoretical foundations and positioning of our approach, we now turn to a concrete demonstration using
 synthetic data. While our framework has been successfully applied to real business datasets, we present results using synthetic
@@ -450,7 +450,7 @@ component. With this exploratory understanding established, we now proceed to fo
 
 \section{Model Structure and Diagnostics}
 
-\subsection{Model Specification}
+\subsection{Model Specification}\label{sec:model_specification}
 
 \subsubsection{Retention Component}
 
@@ -635,9 +635,7 @@ These types of plots are very valuable to understand the {\em drivers} of the re
 Having established that our model fits the data well and that MCMC sampling has converged, we now examine the model's
 predictive performance. This section evaluates predictions in two contexts: in-sample predictions that assess how well the
 model captures observed patterns, and out-of-sample predictions that test the model's ability to forecast future retention
-and revenue for periods beyond the training data. The distinction is crucial: in-sample fit demonstrates that the model
-adequately represents the data-generating process, while out-of-sample performance reveals whether the model generalizes to
-new data—the ultimate test for any predictive framework intended for business forecasting.
+and revenue for periods beyond the training data.
 
 \subsection{In-Sample Predictions}
 
@@ -739,60 +737,7 @@ well-calibrated uncertainty using highest density intervals (HDI). The model pro
 distributions, allowing businesses to understand the range of possible outcomes and make risk-aware decisions. The effective
 transfer of information across cohorts is particularly valuable for new cohorts where limited data is available.
 
-\subsection{Business Value and Decision Impact}
-
-Having demonstrated the model's predictive performance, we now discuss how these forecasts translate into business value
-and inform concrete decisions. The practical utility of any forecasting method ultimately depends on whether it enables
-better decision-making than available alternatives.
-
-\paragraph{Probabilistic Forecasting for Risk Management.} A key differentiator of our approach is the provision of complete
-posterior distributions rather than point estimates. Consider a marketing team planning acquisition budgets for the coming
-quarter. With point estimates alone, they might allocate resources based on expected customer lifetime value, but would lack
-information about downside risks. Our framework's 94\% HDI provides explicit quantification of uncertainty: for instance,
-if a cohort's predicted 6-month revenue has a median of \$50,000 but a 94\% HDI of [\$35,000, \$68,000], decision-makers
-can assess whether the acquisition cost justifies this range of outcomes. Risk-averse organizations might base budgets on
-lower quantiles (e.g., 25th percentile) to ensure profitability even in pessimistic scenarios, while growth-focused
-companies might optimize for median expectations. Point estimates obscure this crucial risk dimension.
-
-\paragraph{Seasonal Strategy Optimization.} The model's explicit capture of seasonality enables month-specific strategic
-adjustments. The out-of-sample predictions reveal that retention peaks in November-December and dips mid-year—a pattern that
-persists across cohorts. Marketing teams can leverage this insight by timing customer acquisition campaigns to coincide with
-high-retention periods, maximizing long-term value per acquisition dollar. Conversely, they might implement targeted retention
-interventions during low-retention months to counteract natural attrition patterns. Financial planning can also benefit:
-quarterly revenue forecasts should account for seasonal fluctuations rather than assuming constant monthly patterns, avoiding
-systematic over- or under-estimation.
-
-\paragraph{New Cohort Forecasting and Launch Planning.} The information-sharing mechanism proves particularly valuable when
-evaluating new product launches or expansion into new markets. Consider a company launching a product variant or entering a
-new geographic region: the first cohort will have extremely limited data, but our model can generate reasonable forecasts by
-leveraging patterns from existing cohorts. While these predictions carry greater uncertainty (reflected in wider HDIs), they
-still provide actionable guidance for initial resource allocation. As data accumulates, forecasts automatically improve and
-uncertainty narrows—a dynamic that deterministic models cannot capture. This supports iterative decision-making: initial
-cautious investment based on high-uncertainty forecasts, followed by scaled investment as evidence accumulates.
-
-\paragraph{Portfolio-Level Resource Allocation.} Organizations managing multiple customer segments or product lines can use
-the framework to optimize resource allocation at the portfolio level. By generating forecasts for each cohort or segment,
-decision-makers can identify which groups merit increased retention investment versus which would benefit more from improved
-acquisition efficiency. For example, if older cohorts show declining revenue-per-active-user but stable retention, product
-enhancements targeting monetization might yield better returns than generic retention campaigns. Conversely, cohorts with
-strong monetization but declining retention would benefit from engagement initiatives. The model's coupled structure ensures
-that these strategic choices account for interdependencies between retention and revenue.
-
-\paragraph{Threshold-Based Decision Rules.} Many business decisions involve threshold rules: whether to continue a product
-line, expand to a region, or modify a pricing tier. Our probabilistic forecasts enable threshold-based analysis: what is
-the probability that a cohort's 12-month revenue exceeds the break-even point? For a new subscription tier, what is the
-probability retention exceeds the target of 60\% at 6 months? These questions map naturally to posterior probabilities that
-our framework provides directly. Deterministic forecasts force organizations to treat inherently uncertain outcomes as
-binary decisions, potentially leading to premature termination of promising initiatives or continued investment in
-underperforming ones.
-
-In summary, the business value of our approach extends beyond improved forecast accuracy (relative to simpler baselines,
-though we do not quantify this here). The combination of well-calibrated uncertainty, explicit seasonality, and cohort-level
-granularity enables a richer set of business decisions than point-estimate forecasting allows. Organizations can move from
-asking "what will happen?" to "what might happen, with what probabilities?"—a fundamental shift that supports more nuanced
-and risk-aware strategic planning.
-
-\section{Alternative Non-Parametric Approaches}
+\section{Alternative Non-Parametric Approaches}\label{sec:alternative_approaches}
 
 The framework we have presented centers on BART for the retention component, a choice motivated by BART's flexibility,
 interpretability through PDP/ICE plots, and relatively straightforward hyperparameter tuning. However, the modular nature
@@ -808,7 +753,7 @@ computational efficiency, albeit with some tradeoffs in interpretability.
 \subsection{Neural Networks with NumPyro}
 
 As demonstrated by \cite{orduz_revenue_retention_numpyro}, the BART component in our model can be replaced with a neural
-network implemented using Flax, with inference performed using NumPyro \cite{phan2019composable}. The modified model
+network implemented using Flax (\cite{flax2020github}), with inference performed using NumPyro (\cite{phan2019composable}). The modified model
 structure becomes:
 
 \begin{align*}
@@ -821,7 +766,7 @@ structure becomes:
     \textrm{logit}(p) & = \text{NN}(\text{cohort age}, \text{age}, \text{month})
 \end{align*}
 
-where $\text{NN}$ represents a neural network. Even a simple architecture with one hidden layer containing just 4 units and
+where $\text{NN}$ represents a neural network. Even a simple architecture with one hidden layer containing just $4$ units and
 sigmoid activation functions can capture the complex patterns in retention data effectively.
 
 \subsection{Advantages of the Neural Network Approach}
@@ -892,9 +837,9 @@ The business motivation for hierarchical modeling is compelling. Consider a comp
 launching products in new market segments. Early-stage markets lack the data needed for reliable independent forecasts, yet
 business decisions—resource allocation, growth projections, strategic planning—cannot wait years for sufficient data
 accumulation. By borrowing information from more established markets through hierarchical priors, we can generate credible
-forecasts for young markets that would otherwise be impossible to model reliably.
+forecasts for young markets that would otherwise be impossible to model reliably. \\
 
-We extend the neural network approach from Section 5 to accommodate multiple markets through two key modifications:
+We extend the neural network approach from Section \ref{sec:alternative_approaches} to accommodate multiple markets through two key modifications:
 
 \begin{itemize}
     \item \textbf{Retention component}: We incorporate market identity as an additional feature in the neural network. The
@@ -914,7 +859,9 @@ the retention model still informs the revenue model's shape parameter.
 \subsection{Synthetic Multi-Market Data}
 
 To demonstrate the hierarchical extension, we extend our synthetic data generation process to create cohort-level observations
-across four markets with varying maturity levels (recall we train until November $2022$ in the synthetic data generation process):
+across four markets with varying maturity levels (recall we train until November $2022$ in the synthetic data generation process)\footnote{
+    The code to generate the synthetic data is also available in \cite{orduz_revenue_retention_data_code} to ensure reproducibility.
+}:
 
 \begin{itemize}
     \item \textbf{Market A}: Starting from January $2020$ (mature, most data)
@@ -923,7 +870,7 @@ across four markets with varying maturity levels (recall we train until November
     \item \textbf{Market D}: Starting from July $2022$ (youngest)
 \end{itemize}
 
-The data generation process maintains the same retention and revenue dynamics described in Section 2, but now each market has
+The data generation process maintains the same retention and revenue dynamics described in Section \ref{sec:synthetic_dataset}, but now each market has
 its own data realization. We apply the same train/test split strategy, holding out the most recent periods for validation.
 Figure \ref{fig:hierarchical_data} visualizes the data structure, showing cohort availability and revenue patterns across the
 four markets.
@@ -942,7 +889,8 @@ by leveraging patterns learned from Markets $A$, $B$, and $D$?
 
 The hierarchical model achieves strong predictive performance across all markets. Figure \ref{fig:hierarchical_predictions}
 shows revenue predictions for Market $C$ by leveraging patterns learned from Markets $A$, $B$, and $D$, demonstrating that the
-model successfully borrows strength from more mature markets to generate accurate forecasts despite having only $10$ cohorts.
+model successfully borrows strength from more mature markets to generate accurate forecasts despite having only $10$ cohorts
+and less of a year of data.
 
 \begin{figure}[H]
     \centering
@@ -954,16 +902,19 @@ model successfully borrows strength from more mature markets to generate accurat
 Several key findings emerge from the hierarchical implementation:
 
 \begin{itemize}
-    \item \textbf{Successful information pooling}: Market D achieves prediction accuracy that would be impossible with
-          independent modeling. The hierarchical priors effectively transfer knowledge about retention decay patterns and revenue
+    \item \textbf{Successful information pooling}: Market $C$ achieves prediction accuracy that would be impossible with
+          independent modeling. Note that the forecast contains the seasonal component, which would be impossible to capture
+          with a single model on Market $C$ as we do not even have a complete year of data.
+          The hierarchical priors effectively transfer knowledge about retention decay patterns and revenue
           dynamics from mature markets.
 
     \item \textbf{Market-specific adaptation}: While borrowing information, the model still captures market-specific patterns.
           Each market's predictions reflect its own data when available, rather than being dominated by the larger markets.
 
-    \item \textbf{Appropriate uncertainty quantification}: The highest density intervals are wider for Market D than for more
-          established markets, correctly reflecting the greater uncertainty due to limited data. This honest uncertainty
-          quantification is crucial for business decision-making.
+    \item \textbf{Appropriate uncertainty quantification}: The highest density intervals are wider for Market $C$ than for more
+          established markets (e.g. Market $A$, for which the results look almost the same as in Section \ref{sec:model_specification}),
+          correctly reflecting the greater uncertainty due to limited data. This honest uncertainty quantification is crucial
+          for business decision-making.
 
     \item \textbf{Coupling mechanism preserved}: The connection between retention and revenue components functions effectively in
           the hierarchical setting. Active user predictions from the retention model inform revenue forecasts across all markets.
@@ -976,20 +927,18 @@ a single market or multiple markets with hierarchical structure.
 
 \subsection{Implementation Notes}
 
-For computational efficiency with multiple markets, we implement the hierarchical model using Stochastic Variational Inference
-(SVI) in NumPyro rather than MCMC sampling. SVI provides approximate posterior distributions through optimization, enabling the
-model to scale to tens or hundreds of markets where full MCMC would be computationally prohibitive. For applications with fewer
-markets (say, 5-10), MCMC remains a viable alternative that may provide more accurate uncertainty quantification.
-
-The hierarchical priors on revenue model parameters follow standard conventions: market-specific coefficients are drawn from
-normal distributions whose means and variances are themselves parameters with hyperpriors. The neural network component for
-retention incorporates market identity through one-hot encoding, allowing the network to learn market-specific functions while
-sharing the learned representations across markets.
-
-The complete implementation, including data generation, model specification, and visualization code, is available at
-\cite{orduz_hierarchical_revenue_retention}. The implementation demonstrates that extending the base framework to hierarchical
-structures requires modest additional complexity—primarily the specification of hierarchical priors and the inclusion of market
-identifiers in the feature set.
+For computational efficiency with multiple markets, we implement the hierarchical model using SVI in NumPyro rather than MCMC sampling.
+SVI provides approximate posterior distributions through optimization, enabling the model to scale to tens or hundreds of markets
+where full MCMC would be computationally prohibitive\footnote{
+    SVI is knows to underestimate the uncertainty, but it is still a valid approximation for the posterior distribution.
+}. For applications with fewer markets (say, $5-10$), MCMC remains a viable
+alternative that may provide more accurate uncertainty quantification. The complete implementation, including data generation,
+model specification, and visualization code, is available at \cite{orduz_hierarchical_revenue_retention}.
+The implementation demonstrates that extending the base framework to hierarchical structures requires modest additional
+complexity—primarily the specification of hierarchical priors and the inclusion of market
+identifiers in the feature set. That being said, inference on hierarchical models is in general more challenging becuase of the
+non-linear geometry of the parameter space. Fortunately, NumPyro offers automatic mechanism to reparameterize the model
+to make it more amenable to SVI (\cite{gorinova2020automatic}).
 
 \section{Conclusion and Future Directions}
 
