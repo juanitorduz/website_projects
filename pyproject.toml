@@ -32,5 +32,5 @@ target-version = "py313"
 
 extend-include = ["*.ipynb"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "Python/bg_nbd_pymc.ipynb" = ["N"]
