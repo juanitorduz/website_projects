@@ -66,6 +66,8 @@
 
 \maketitle
 
+\tableofcontents
+
 \addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
 
 \section{Introduction}
@@ -940,35 +942,25 @@ identifiers in the feature set. That being said, inference on hierarchical model
 non-linear geometry of the parameter space. Fortunately, NumPyro offers automatic mechanism to reparameterize the model
 to make it more amenable to SVI (\cite{gorinova2020automatic}).
 
-\section{A Real-Dataset Application}
+\section{A Real-Dataset Application: The H\&M Transactions Dataset}
 
 Having demonstrated our framework on synthetic data with known ground truth, we now validate its practical applicability
-using a large-scale real-world dataset. This application addresses a key requirement for any proposed methodology:
-demonstrating performance on actual business data where ground truth patterns are unknown and must be discovered.
-
-\subsection{The H\&M Transactions Dataset}
-
+using a large-scale real-world dataset.
 We apply our cohort-revenue-retention model to the H\&M Personalized Fashion Recommendations dataset \cite{hm_kaggle2022},
 a publicly available dataset from a Kaggle competition containing transaction records from the H\&M retail chain.
 This dataset provides an excellent testbed for our methodology due to its scale, temporal coverage, and the presence
 of realistic patterns in customer purchasing behavior.
-
 The dataset contains approximately $31$ million transactions from over $1.36$ million unique customers, spanning
 from September $2018$ to September $2020$. For our cohort analysis, we aggregate customers into monthly cohorts based
 on their first purchase date, resulting in $18$ cohorts from November $2018$ to April $2020$. We use a train/test split
 at May $2020$, holding out $3$ months of data (June--August 2020) for out-of-sample evaluation. This split allows us
 to assess the model's forecasting ability while ensuring sufficient training data for each cohort.
-
-\subsection{Exploratory Analysis}
-
 Figures \ref{fig:hm_retention_matrix} and \ref{fig:hm_revenue_matrix} present the retention and revenue matrices
 for the H\&M dataset. Several patterns emerge that are characteristic of real retail data:
 
 \begin{itemize}
     \item Retention rates show a clear decay pattern as cohort age increases, with the steepest decline occurring
           in the first few months after customer acquisition.
-    \item Older cohorts (e.g., November--December $2018$) exhibit higher retention rates, likely reflecting a
-          selection effect where customers acquired earlier have demonstrated longer-term engagement.
     \item Revenue patterns closely track the number of active users, consistent with our modeling assumption that
           revenue can be decomposed into active user counts and revenue per active user.
 \end{itemize}
@@ -976,101 +968,59 @@ for the H\&M dataset. Several patterns emerge that are characteristic of real re
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{images/hm-transactions_16_0.png}
-    \caption{Retention matrix for the H\&M dataset (training period). Each cell shows the proportion of customers
-        from a given cohort (row) who made at least one purchase in each subsequent period (column). The characteristic
-        decay pattern with cohort age is evident, along with some seasonal variation.}
+    \caption{Retention matrix for the H\&M dataset (training period).}
     \label{fig:hm_retention_matrix}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{images/hm-transactions_17_0.png}
-    \caption{Revenue matrix for the H\&M dataset (training period). Revenue values are shown for each cohort-period
-        combination, with color intensity indicating magnitude. The strong correlation with active user counts
-        (reflected in the retention matrix) supports our coupled modeling approach.}
+        \caption{Revenue matrix for the H\&M dataset (training period).}
     \label{fig:hm_revenue_matrix}
 \end{figure}
 
-\subsection{Model Comparison with Baseline Approaches}
-
-To address the reviewer's request for comparison with existing frameworks, we benchmark our Bayesian cohort-revenue-retention
-model against three established approaches commonly used for time series forecasting in business contexts:
+We benchmark our Bayesian cohort-revenue-retention model against three established approaches commonly used for time series
+forecasting in business contexts (using tow established data science libraries: the Nixtla forecasting framework \cite{nixtla} and the
+\texttt{scikit-learn} library \cite{scikit-learn}):\footnote{The notebook to reproduce the benchmark results is available at \url{https://github.com/juanitorduz/website_projects/blob/master/Python/cohort-revenue-retention/hm-transactions.ipynb}.}
 
 \begin{enumerate}
-    \item \textbf{AutoMFLES}: An automated multiple seasonal-trend decomposition model from the StatsForecast library
+    \item \textbf{AutoMFLES}: An automated multiple seasonal-trend decomposition model from the `StatsForecast` library
           that automatically detects and models multiple seasonalities.
     \item \textbf{Simple Exponential Smoothing (SES)}: A classical time series method that produces forecasts as
           weighted averages of past observations, with weights decaying exponentially.
-    \item \textbf{HistGradientBoostingRegressor}: A gradient boosting machine learning model from scikit-learn,
+    \item \textbf{HistGradientBoostingRegressor}: A gradient boosting machine learning model from `scikit-learn`,
           representing modern ML approaches to time series forecasting.
 \end{enumerate}
 
-These baselines represent the spectrum of approaches typically considered for cohort-level forecasting: classical
-statistical methods (SES), automated time series decomposition (AutoMFLES), and machine learning (gradient boosting).
-Importantly, these methods treat each cohort's time series independently, without the information sharing across
-cohorts that our framework provides.
-
-Figure \ref{fig:hm_retention_predictions} shows retention predictions for selected cohorts, demonstrating that our
-model successfully captures the retention dynamics with well-calibrated $94\%$ highest density intervals that
-contain the observed test values.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{images/hm-transactions_58_0.png}
-    \caption{Out-of-sample retention predictions for selected cohorts from the H\&M dataset. The blue shaded region
-        shows the $94\%$ HDI for training data, while the orange region shows the $94\%$ HDI for test predictions.
-        The vertical dashed line indicates the train/test split. Observed retention values (points) fall within
-        the predicted intervals, demonstrating well-calibrated uncertainty quantification.}
-    \label{fig:hm_retention_predictions}
-\end{figure}
-
-Figure \ref{fig:hm_revenue_predictions} presents the key comparison for revenue forecasting. The results reveal
-a striking pattern: while the baseline methods (AutoMFLES, SES, and HistGradientBoostingRegressor) provide reasonable
-fits to historical data, they fail dramatically in out-of-sample prediction, particularly for newer cohorts with
-limited history. In contrast, our Bayesian model produces accurate forecasts with appropriate uncertainty bounds
-across all cohorts.
+These baselines represent the spectrum of approaches typically considered for cohort-level revenue forecasting.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{images/hm-transactions_64_0.png}
-    \caption{Revenue predictions comparing the Bayesian model against baseline approaches. Each panel shows a different
-        cohort, with the Bayesian model's $94\%$ HDI (shaded regions) compared to point forecasts from AutoMFLES (green),
-        SES (magenta), and HistGradientBoostingRegressor (brown). The baseline methods fail catastrophically for newer
-        cohorts (bottom panels), while our model maintains accurate predictions by borrowing strength across cohorts.}
+    \caption{Revenue predictions comparing the Bayesian model against other benchmark approaches for a selected set of cohorts.}
     \label{fig:hm_revenue_predictions}
 \end{figure}
 
-The failure of baseline methods is particularly pronounced for cohorts with limited training history (e.g., the
-March 2020 and April 2020 cohorts, which have only $2$--$3$ observations before the test period). These methods
+
+Figure \ref{fig:hm_revenue_predictions} shows revenue predictions for selected cohorts for the Bayesian cohort-revenue-retention model
+against the other benchmark model. One can clearly see that the Bayesian model is able to capture the dynamics with well-calibrated 
+$94\%$ highest density intervals, while the other benchmark models fail to efficiently use the data to generate accurate predictions.
+The reason is that the coupling between retention and revenue provides
+key signals to the revenue model that are hard to get from the revenue data, even if we allow arbitrary non-linear relationships
+such that the gradient boosting model \texttt{HistGradientBoostingRegressor} can learn.
+The failure of other benchmark methods is particularly pronounced for cohorts with limited training history (e.g., the
+March $2020$ and April $2020$ cohorts, which have only $2$--$3$ observations before the test period). These methods
 cannot extrapolate meaningful patterns from such sparse data. Our framework, by contrast, leverages the shared
-structure across all cohorts—learning that retention decays with cohort age, that revenue correlates with active
+structure across all cohorts, learning that retention decays with cohort age, that revenue correlates with active
 users, and that seasonal patterns affect all cohorts similarly—to generate reliable predictions even for data-sparse
-cohorts.
-
-Figure \ref{fig:hm_total_revenue} aggregates predictions across all training cohorts to show total revenue forecasting
-performance. The Bayesian model's predictions (with $50\%$ and $94\%$ HDI bands) track the actual revenue trajectory,
-while baseline methods diverge substantially in the test period.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{images/hm-transactions_65_0.png}
-    \caption{Total revenue predictions (aggregated across all training cohorts) comparing the Bayesian model with
-        baselines. The black line shows observed total revenue, while colored lines show model predictions. The
-        Bayesian model's uncertainty bands (blue/orange shading for train/test periods) appropriately capture
-        the observed values, while point forecasts from baseline methods miss the actual revenue trajectory.}
-    \label{fig:hm_total_revenue}
-\end{figure}
-
-\subsection{Quantitative Evaluation}
-
-Table \ref{tab:hm_metrics} presents quantitative evaluation metrics comparing out-of-sample prediction accuracy
+cohorts. Table \ref{tab:hm_metrics} presents quantitative evaluation metrics comparing out-of-sample prediction accuracy
 across all models. We report Mean Absolute Error (MAE), Root Mean Squared Error (RMSE), and Mean Absolute
 Percentage Error (MAPE) computed on the held-out test set.
 
 \begin{table}[H]
     \centering
     \caption{Out-of-sample evaluation metrics for revenue prediction on the H\&M dataset. Lower values indicate
-        better predictive performance. The Bayesian model substantially outperforms all baseline approaches.}
+        better predictive performance. The Bayesian model substantially outperforms all other approaches.}
     \label{tab:hm_metrics}
     \begin{tabular}{lccc}
         \hline
@@ -1092,34 +1042,35 @@ magnitudes. The MAE and RMSE metrics tell a similar story: the Bayesian model's 
 that of the best-performing baseline (SES at $157.92$), demonstrating substantial improvements in absolute
 prediction accuracy.
 
-\subsection{Key Insights from the Real-Data Application}
+Finally, Figure \ref{fig:hm_total_revenue} aggregates predictions across all training cohorts to show total revenue forecasting
+performance. The Bayesian model's predictions (with $50\%$ and $94\%$ HDI bands) track the actual revenue trajectory,
+while baseline methods diverge substantially in the test period.
 
-This application to the H\&M dataset yields several important insights:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/hm-transactions_65_0.png}
+    \caption{Total revenue predictions (aggregated across all training cohorts) comparing the Bayesian model with
+        baselines. The black line shows observed total revenue, while colored lines show model predictions. The
+        Bayesian model's uncertainty bands (blue/orange shading for train/test periods) appropriately capture
+        the observed values, while point forecasts from baseline methods miss the actual revenue trajectory.}
+    \label{fig:hm_total_revenue}
+\end{figure}
 
-\begin{enumerate}
-    \item \textbf{Information pooling is critical}: The dramatic failure of per-cohort baseline methods underscores
-          the importance of sharing information across cohorts. Our framework's ability to learn common patterns
-          (retention decay, seasonality, revenue-per-user dynamics) while allowing cohort-specific variation
-          enables reliable predictions even for data-sparse cohorts.
+\begin{remark}
+It is worth noting that individual-level probabilistic models, such as the Shifted Beta Geometric (sBG) model
+\cite{FaderHardie2007} implemented in PyMC-Marketing \cite{pymc_marketing}, provide an alternative framework
+for modeling customer retention in contractual settings. However, fitting such models using MCMC on datasets
+of this scale—with over $1.36$ million unique customers and $31$ million transactions is computationally
+prohibitive without substantial investment in specialized hardware infrastructure (e.g., high-end GPUs).
+While stochastic variational inference can improve scalability, the cohort-level approach presented in this
+paper offers a practical and effective alternative: by aggregating to the cohort level, we dramatically
+reduce the computational burden while retaining the ability to capture complex temporal patterns and
+provide well-calibrated uncertainty estimates. The benchmark results above demonstrate that this
+cohort-level framework not only scales gracefully but also delivers superior predictive performance
+compared to standard time series and machine learning baselines.
+\end{remark}t 
 
-    \item \textbf{Coupled modeling improves accuracy}: By jointly modeling retention and revenue through the
-          number of active users, our approach captures the fundamental business relationship between customer
-          engagement and revenue generation. This coupling provides more stable predictions than modeling
-          revenue in isolation.
-
-    \item \textbf{Uncertainty quantification enables better decisions}: The baseline methods provide only point
-          forecasts, offering no guidance on prediction reliability. Our Bayesian framework's well-calibrated
-          uncertainty intervals allow decision-makers to appropriately weight predictions and plan for a range
-          of scenarios.
-
-    \item \textbf{The framework scales to real-world data}: With over a million customers and $18$ cohorts,
-          this application demonstrates that our methodology handles realistic data volumes while maintaining
-          computational tractability.
-\end{enumerate}
-
-\section{Conclusion and Future Directions}
-
-\subsection{Broader Implications and Future Directions}
+\section{Conclusion}
 
 The ability to accurately forecast retention and revenue metrics represents a significant competitive advantage in today's
 business environment. Having addressed practical considerations, we now turn to broader implications of this work. In this
@@ -1130,93 +1081,10 @@ frameworks, or single-outcome survival models—face limitations in flexibility,
 related outcomes, and principled uncertainty quantification. Our contribution directly addresses these gaps through a coupled
 retention-revenue architecture that balances sophisticated non-parametric modeling with practical interpretability.
 
-By combining the flexibility of Bayesian additive regression trees with the interpretability of linear models, our approach
+By combining the flexibility of Bayesian additive regression trees (or neural networks) with the interpretability of linear models, our approach
 offers both analytical power and practical utility. The choice to operate at the cohort level is not a limitation but rather
 a deliberate strategic decision that aligns with how many business decisions are made, reduces noise through aggregation,
 and provides computational efficiency—while still allowing for the incorporation of rich covariate information when needed.
-Our framework provides several distinctive advantages that merit highlighting:
-
-\begin{enumerate}
-    \item \textbf{Adaptive complexity}: The BART component automatically adjusts its complexity to match the underlying
-          patterns in the retention data, capturing non-linear relationships and interactions that would be difficult to
-          specify manually. Meanwhile, the linear component for revenue provides clear interpretability of key drivers,
-          offering the best of both worlds—sophisticated modeling where needed and transparency where possible.
-
-    \item \textbf{Principled uncertainty quantification}: Unlike deterministic approaches that provide only point estimates,
-          our Bayesian framework generates complete posterior distributions for all quantities of interest. This allows
-          decision-makers to understand the full range of potential outcomes through $94\%$ highest density intervals (HDI) and
-          tailor their strategies to their risk preferences. For instance, a risk-averse business might base resource
-          allocation decisions on lower quantiles of the revenue prediction distribution rather than mean estimates.
-
-    \item \textbf{Knowledge transfer across cohorts}: The model's structure enables effective information sharing between
-          cohorts, leveraging patterns from data-rich older cohorts to improve predictions for newer cohorts with limited
-          history. This is particularly valuable in fast-growing businesses where the latest cohorts often represent
-          significant portions of the customer base yet have the least historical data.
-
-    \item \textbf{Customizable architecture}: The modular design allows for straightforward extensions to incorporate
-          business-specific factors and external variables. Whether integrating marketing channel information, product usage
-          metrics, or macroeconomic indicators, the model can adapt to diverse business contexts without fundamental redesign. As
-          demonstrated in Section 6, the framework naturally extends to hierarchical structures for multi-market modeling, where
-          information pooling across markets enables reliable forecasts even for data-sparse segments—a critical capability for
-          growing businesses operating across multiple geographies or customer segments.
-\end{enumerate}
-
-Our experiments with synthetic data demonstrate the model's effectiveness, but the real value of this approach emerges in
-practical business applications. By providing both accurate forecasts and well-calibrated uncertainty estimates through
-highest density intervals (HDI), this methodology enables more informed decision-making across multiple business functions:
-
-\begin{itemize}
-    \item \textbf{Marketing teams} can optimize acquisition spending based on expected customer lifetime value, potentially
-          varying their strategies seasonally based on predicted retention patterns.
-
-    \item \textbf{Product teams} can prioritize features that target high-value cohorts or address specific drop-off points
-          in the customer lifecycle.
-
-    \item \textbf{Financial planning} becomes more robust with probabilistic forecasts that account for the inherent
-          uncertainty in future customer behavior.
-
-    \item \textbf{Customer success initiatives} can be tailored to specific cohorts based on their predicted retention
-          trajectories, potentially intervening at critical points to improve outcomes.
-\end{itemize}
-
-Despite these advantages, we acknowledge some limitations and boundary conditions that present opportunities for future
-research. First, while our cohort-level approach offers strategic value and practical advantages as discussed earlier, it
-naturally does not provide individual-level predictions. Organizations requiring customer-specific forecasts for
-personalization or targeting would need to complement this approach with individual-level models—though as we have argued,
-many strategic business decisions operate precisely at the cohort level where our framework excels. Second, the current
-framework assumes that cohort behavior patterns remain relatively stable over time, with seasonal variations occurring around
-consistent trends. In rapidly evolving markets or during significant disruptions (e.g., major product changes, economic
-shocks), this assumption may not hold. Future work could explore regime-switching models or online learning approaches that
-adapt more quickly to fundamental shifts in customer behavior. Third, while we have demonstrated that individual-level
-covariates can be incorporated into the BART component, our synthetic data examples use only temporal features. Empirical
-validation with real datasets incorporating rich customer characteristics—acquisition channel, geographic location,
-demographic attributes—would provide additional evidence of the framework's flexibility and the scalability advantages of
-BART with many features.
-
-Looking ahead, several promising research directions emerge:
-
-\begin{enumerate}
-    \item \textbf{Causal modeling extensions}: Incorporating causal inference techniques to estimate the impact of
-          interventions on retention and revenue would enhance the model's utility for decision support.
-
-    \item \textbf{Multi-product ecosystems}: Extending the framework to handle customers who engage with multiple products or
-          services, capturing cross-product effects on retention and spending.
-
-    \item \textbf{Advanced hierarchical structures}: While Section 6 demonstrates hierarchical modeling across markets, further
-          extensions could address more complex nested structures (e.g., markets within regions, products within categories) or
-          time-varying hierarchical parameters that adapt to evolving market dynamics.
-\end{enumerate}
-
-The methodology presented in this paper represents a significant step forward in cohort-based retention and revenue modeling,
-addressing specific gaps in the age-period-cohort, survival analysis, and customer lifetime value literatures through
-principled Bayesian coupling of retention and revenue outcomes. By embracing the complexity inherent in customer behavior
-while maintaining analytical tractability and interpretability, our approach bridges the gap between sophisticated statistical
-techniques and practical business applications. The framework's flexibility—demonstrated through both BART and neural network
-implementations—combined with its focus on cohort-level strategic insights positions it as a valuable complement to existing
-individual-level CLV models. As companies continue to recognize the strategic importance of customer retention and lifetime
-value, flexible and accessible modeling approaches like the one presented here will become increasingly essential tools in
-the modern business analytics toolkit, particularly for strategic decision-making contexts where aggregate patterns and
-well-calibrated uncertainty estimates drive resource allocation and planning.
 
 \bibliographystyle{apalike}
 \bibliography{references}
