@@ -72,66 +72,74 @@
 % =============================================================================
 \section{Introduction}
 
-Time series forecasting is fundamental to decision-making across industries, from supply chain optimization to
-energy demand prediction. While point forecasts provide single estimates of future values, probabilistic forecasting
-goes further by quantifying uncertainty---a critical capability for risk assessment and robust decision-making.
+Forecasting is a critical component of business planning across industries---from retail inventory management
+to financial market analysis, from energy demand prediction to marketing budget allocation. Traditionally,
+businesses have relied on point forecasts that provide a single estimate of future values. While these
+approaches can work reasonably well under stable conditions, they often fail to capture the inherent
+uncertainty in real-world systems and can lead to suboptimal decisions when confronted with volatile
+or complex environments.
 
-NumPyro \cite{phan2019composable} is a lightweight probabilistic programming library that provides a NumPy backend
-for Pyro \cite{bingham2019pyro}. It relies on JAX \cite{jax2018github} for automatic differentiation and JIT
-compilation to GPU/CPU, enabling efficient inference on large-scale problems. This combination of expressiveness
-and performance makes NumPyro particularly well-suited for time series forecasting applications.
+Consider a retailer deciding how much inventory to stock. A point forecast of 100 units tells them
+nothing about whether true demand might be 80 or 120. If they stock exactly 100 units and demand
+turns out to be 120, they lose 20 sales. If demand is only 80, they're stuck with 20 units of excess
+inventory. The \emph{cost} of these errors is often asymmetric---lost sales may damage customer
+relationships permanently, while excess inventory merely ties up capital. Without understanding the
+full distribution of possible outcomes, the retailer cannot make an informed decision that accounts
+for these asymmetric risks.
 
-\subsection*{Why Probabilistic Forecasting?}
+\subsection*{The Paradigm Shift: From Point Estimates to Distributions}
 
-The advantages of probabilistic forecasting extend across multiple dimensions:
+Probabilistic forecasting addresses these limitations by generating complete probability distributions
+over possible future outcomes rather than single-point predictions. This paradigm shift provides
+decision-makers with a more comprehensive view of potential scenarios, enabling robust planning
+that accounts for risk and uncertainty.
 
-\begin{itemize}
-    \item \textbf{Interpretability}: Explicit model structure with clear assumptions enables trust in results
-          and facilitates communication with stakeholders.
+But probabilistic forecasting offers more than just uncertainty quantification. As we will demonstrate
+throughout this article, probabilistic programming frameworks enable us to directly incorporate
+business constraints, domain knowledge, and even causal relationships into our models. When sales
+data is censored by stockouts, we can model the censoring mechanism explicitly. When we have
+experimental results from lift tests, we can inject that knowledge as calibration constraints.
+When different product categories share common seasonality patterns, we can let them borrow
+statistical strength from each other through hierarchical structures.
 
-    \item \textbf{Uncertainty quantification}: Full predictive distributions enable risk assessment and
-          inform decision-making under uncertainty.
+This flexibility is what sets probabilistic forecasting apart from traditional methods. Classical
+approaches treat the model as a black box that maps inputs to outputs. Probabilistic programming
+inverts this relationship: we specify \emph{how we believe the data was generated}, and the
+inference machinery works backward to learn the parameters consistent with our observations.
+This generative perspective makes it natural to encode domain expertise directly into the model
+structure.
 
-    \item \textbf{Customization}: Probabilistic programming frameworks allow encoding domain knowledge through
-          custom likelihoods, priors, and model structures.
+\subsection*{NumPyro and the JAX Ecosystem}
 
-    \item \textbf{Scale}: Modern inference algorithms combined with GPU acceleration enable fitting models
-          to thousands of time series efficiently.
-\end{itemize}
+NumPyro \cite{phan2019composable} is a lightweight probabilistic programming library that provides
+a NumPy backend for Pyro \cite{bingham2019pyro}. It relies on JAX \cite{jax2018github} for automatic
+differentiation and JIT compilation to GPU/CPU, enabling efficient inference on large-scale problems.
+This combination of expressiveness and performance makes NumPyro particularly well-suited for time
+series forecasting applications where we may need to fit models to thousands of related time series.
 
-\subsection*{Industry Applications}
-
-Probabilistic forecasting finds applications across diverse domains:
-
-\begin{itemize}
-    \item \textbf{Supply chain forecasting}: Demand forecasting with stockout constraints, availability
-          considerations, and inventory optimization for long-tail products.
-
-    \item \textbf{Energy forecasting}: Weather-dependent electricity demand modeling with peak load
-          prediction and uncertainty quantification.
-
-    \item \textbf{Price elasticity modeling}: Hierarchical models for SKU-level pricing decisions
-          and promotional effectiveness measurement.
-
-    \item \textbf{Marketing mix modeling}: Measuring media effectiveness with lift test calibration
-          and scenario planning for marketing spend optimization.
-\end{itemize}
+The integration with the broader JAX ecosystem---including Optax for gradient-based optimization
+and Flax for neural network components---enables sophisticated hybrid architectures that combine
+the interpretability of state-space models with the flexibility of deep learning. Modern inference
+algorithms like Stochastic Variational Inference (SVI) allow scaling to datasets that would be
+computationally infeasible with traditional Markov Chain Monte Carlo methods.
 
 \subsection*{Article Overview}
 
-This article presents a progression from simple to complex forecasting models:
+This article presents a progression from foundational concepts to advanced techniques, with emphasis
+on the \emph{motivation} behind each approach and the business problems they solve. We begin with
+the \texttt{scan} function, the computational building block that enables efficient implementation
+of recursive time series models. We then develop exponential smoothing and ARIMA models, demonstrating
+the basic patterns for state-space modeling in NumPyro.
 
-\begin{enumerate}
-    \item We begin with the \texttt{scan} function, the foundational building block for time series models in NumPyro.
-    \item We then introduce exponential smoothing models, demonstrating the basic pattern for state-space models.
-    \item ARIMA and VAR models extend this framework to autoregressive structures.
-    \item Hierarchical models enable sharing information across related time series.
-    \item Specialized models address intermittent demand, censored observations, and price elasticity estimation.
-    \item Two showcase sections demonstrate advanced techniques: availability-constrained forecasting and
-          model calibration with Hilbert Space Gaussian Processes.
-    \item We conclude with stochastic variational inference for scalable inference and hybrid deep
-          state-space models that integrate neural network components.
-\end{enumerate}
+The middle sections address specialized challenges that arise in real-world forecasting: hierarchical
+models for sharing information across related time series, intermittent demand models for products
+with sporadic sales, and censored demand models for situations where stockouts mask true demand.
+Two showcase sections demonstrate the unique power of probabilistic programming: an availability-constrained
+TSB model that encodes business logic directly into the transition function, and a model calibration
+technique that injects domain expertise through additional likelihood terms.
+
+We conclude with stochastic variational inference for scalable training and hybrid deep state-space
+models that integrate neural network components for learning complex patterns across many time series.
 
 % =============================================================================
 % SECTION 2: LITERATURE REVIEW
@@ -205,9 +213,22 @@ and transparent model specification. NumPyro addresses these gaps by providing:
 % =============================================================================
 \section{Technical Foundation: The Scan Function}
 
-The \texttt{scan} function is the fundamental building block for time series models in NumPyro. It provides an
-efficient implementation of sequential computations, essential for models with recursive relationships of the
-form $y_t \mapsto y_{t+1}$.
+Time series models are fundamentally about \emph{sequential dependence}---each observation depends on what
+came before it. The current sales level depends on yesterday's level. Today's forecast error depends on
+yesterday's forecast error. The seasonal pattern at time $t$ depends on the seasonal pattern from one
+period ago. This recursive structure, where the present depends on the past, is what distinguishes time
+series from cross-sectional data.
+
+In most programming languages, we would express this dependence with a simple \texttt{for} loop. But
+\texttt{for} loops are problematic in the context of automatic differentiation and GPU computation.
+They execute sequentially in Python, preventing parallelization, and frameworks like JAX cannot
+efficiently compute gradients through them. The \texttt{scan} function solves this problem by
+expressing sequential computation in a form that JAX can compile and differentiate efficiently.
+
+The \texttt{scan} function takes a transition function that describes how to move from one time step
+to the next, an initial state, and a sequence of inputs. It returns the final state and all intermediate
+outputs---exactly what we need for time series forecasting where we want to track latent states
+(level, trend, seasonality) and generate predictions at each step.
 
 \begin{lstlisting}[caption={Pure Python implementation of the scan function}]
 def scan(f, init, xs):
@@ -245,12 +266,28 @@ output. This pattern naturally maps to state-space model formulations where the 
 % =============================================================================
 \section{Exponential Smoothing Models}
 
-Exponential smoothing provides a natural starting point for probabilistic forecasting with NumPyro. We begin
-with simple exponential smoothing and progressively add complexity.
+Consider a retailer whose sales patterns shift gradually over time. Last month's average sales provide
+useful information about this month's expected level, but not perfect information---consumer preferences
+evolve, competitors enter the market, and economic conditions change. The retailer faces a fundamental
+tradeoff: rely too heavily on recent observations and the forecast becomes noisy, overreacting to
+random fluctuations; rely too heavily on distant history and the forecast becomes sluggish, slow to
+adapt to genuine changes in the underlying pattern.
+
+Exponential smoothing elegantly resolves this tradeoff through a single parameter $\alpha$ that controls
+the balance between \emph{memory} and \emph{responsiveness}. When $\alpha$ is close to 1, the model
+places most weight on the most recent observation, adapting quickly to changes but potentially
+overreacting to noise. When $\alpha$ is close to 0, the model averages over a long history, providing
+stability but potentially missing genuine shifts in the pattern.
+
+What makes exponential smoothing particularly appealing as a starting point is its interpretability.
+Unlike black-box machine learning models, exponential smoothing has a clear structure: it maintains
+an estimate of the current ``level'' of the series (and optionally trend and seasonality), updating
+this estimate as new observations arrive. This transparency makes it easier to diagnose problems
+and communicate results to stakeholders.
 
 \subsection{Simple Exponential Smoothing}
 
-The level equations for simple exponential smoothing are:
+The level equations for simple exponential smoothing capture this intuition mathematically:
 \begin{align*}
     \hat{y}_{t+h|t} & = l_t                                 \\
     l_t             & = \alpha y_t + (1 - \alpha) l_{t-1}
@@ -284,29 +321,12 @@ def transition_fn(carry, t):
     return level, pred
 \end{lstlisting}
 
-The full model specifies priors for the smoothing parameter, initial level, and observation noise:
-
-\begin{lstlisting}[caption={Complete simple exponential smoothing model}]
-def level_model(y: ArrayLike, future: int = 0) -> None:
-    t_max = y.shape[0]
-
-    # Priors
-    level_smoothing = numpyro.sample(
-        "level_smoothing", dist.Beta(concentration1=1, concentration0=1)
-    )
-    level_init = numpyro.sample("level_init", dist.Normal(loc=0, scale=1))
-    noise = numpyro.sample("noise", dist.HalfNormal(scale=1))
-
-    def transition_fn(carry, t):
-        # ... as above ...
-
-    # Run scan with conditioning
-    with numpyro.handlers.condition(data={"pred": y}):
-        _, preds = scan(transition_fn, level_init, jnp.arange(t_max + future))
-
-    if future > 0:
-        numpyro.deterministic("y_forecast", preds[-future:])
-\end{lstlisting}
+The full model wraps this transition function with appropriate priors. We place a $\text{Beta}(1, 1)$
+prior on the smoothing parameter $\alpha$, allowing the data to determine how quickly the model
+should adapt to new observations. The initial level receives a weakly informative normal prior,
+and the observation noise receives a half-normal prior ensuring positivity. NumPyro's \texttt{scan}
+function then iterates the transition function through time, with \texttt{handlers.condition}
+linking the model's predictions to the observed data.
 
 \begin{figure}[H]
     \centering
@@ -352,12 +372,28 @@ seasonal period.
 % =============================================================================
 \section{ARIMA Models}
 
-Autoregressive integrated moving average (ARIMA) models provide an alternative framework for time series
-modeling. The NumPyro implementation follows the same \texttt{scan} pattern.
+While exponential smoothing models the \emph{level} of a series directly, ARIMA models take a different
+perspective: they model the \emph{autocorrelation structure} of the data. The key insight is that
+many time series exhibit predictable patterns in how current values relate to past values and past
+forecast errors.
+
+Consider financial returns, where today's movement often partially reverses yesterday's movement
+(mean reversion), or manufacturing processes, where a machine running hot yesterday tends to run
+hot today (persistence). ARIMA models capture these patterns through two mechanisms: the
+\emph{autoregressive} component models how the current value depends on past values directly, while
+the \emph{moving average} component models how the current value depends on past forecast errors.
+
+The distinction matters in practice. Autoregressive terms capture persistent deviations from the mean,
+while moving average terms capture transient shocks that fade quickly. A series dominated by AR terms
+will show long-memory behavior; a series dominated by MA terms will show short-memory behavior with
+quick reversion to the mean.
+
+In the NumPyro framework, ARIMA models follow the same \texttt{scan} pattern as exponential smoothing,
+demonstrating the flexibility of this computational approach.
 
 \subsection{ARMA(1,1) Model}
 
-The ARMA(1,1) model combines autoregressive and moving average components:
+The ARMA(1,1) model combines one autoregressive and one moving average term:
 \begin{equation*}
     y_t = \mu + \phi y_{t-1} + \theta \varepsilon_{t-1} + \varepsilon_t
 \end{equation*}
@@ -399,14 +435,32 @@ relationships between multiple time series. A key application is computing impul
 % =============================================================================
 \section{Hierarchical Models}
 
-When forecasting multiple related time series, hierarchical models enable sharing information across
-series while respecting individual heterogeneity. This approach is particularly valuable when some
-series have limited historical data.
+Imagine you are forecasting tourism volumes for 308 combinations of Australian states, regions, and
+travel purposes. Some combinations---say, business travel to Sydney---have abundant historical data.
+Others---perhaps holiday travel to a small regional town---have only a handful of observations.
+How should you approach this problem?
+
+One option is \emph{complete pooling}: fit a single model to all data, assuming all regions behave
+identically. This approach gains statistical power but ignores meaningful regional differences.
+Another option is \emph{no pooling}: fit a separate model to each region independently. This
+respects heterogeneity but suffers from data sparsity---how can you reliably estimate seasonality
+for a region with only 8 quarterly observations?
+
+Hierarchical models offer a third way: \emph{partial pooling}. The key insight is that related
+time series often share common structure while exhibiting individual variation. All Australian
+regions might share a similar seasonal pattern (more tourism in summer), but the amplitude and
+timing may differ. By modeling these shared patterns explicitly, hierarchical models allow
+data-rich series to ``lend strength'' to data-poor series, improving estimates across the board.
+
+This is where Bayesian methods truly shine. The hierarchical structure is naturally expressed
+through the prior distribution: individual parameters are drawn from a population distribution
+whose parameters are themselves unknown and learned from data. Classical frequentist methods
+have no natural analog to this information-sharing mechanism.
 
 \subsection{Hierarchical Exponential Smoothing}
 
-We demonstrate hierarchical modeling using Australian tourism data, where visitor counts are organized
-by region and purpose of travel.
+We demonstrate this concept using the quarterly Australian tourism dataset, where visitor counts
+are organized by state, region, and purpose of travel.
 
 \begin{figure}[H]
     \centering
@@ -462,17 +516,31 @@ Fourier seasonality and external covariates:
 % =============================================================================
 \section{Intermittent Demand Forecasting}
 
-Intermittent demand---characterized by sporadic, often zero observations---requires specialized
-forecasting approaches. Standard methods that assume continuous demand systematically fail on such data.
+In retail, intermittent time series are the norm rather than the exception. While top-selling products
+might show regular daily sales patterns, the vast majority of items in a typical retail catalog exhibit
+sporadic demand---many days showing zero sales followed by occasional purchases. This pattern is
+particularly common for niche products, seasonal items, spare parts, or products with long replacement
+cycles. A hardware store might sell a specialized plumbing fitting once every two weeks; an auto parts
+retailer might see demand for a particular gasket only a few times per month.
+
+Standard forecasting methods, designed for continuous demand streams, struggle with these patterns.
+Exponential smoothing applied directly to intermittent data will produce forecasts that are pulled
+toward zero by the many zero observations, systematically underestimating demand when it does occur.
+The fundamental problem is that these methods conflate two distinct phenomena: \emph{whether} demand
+will occur and \emph{how much} demand will occur given that it happens.
+
+The insight behind specialized intermittent demand methods is to separate these two questions.
+Instead of modeling the raw demand series directly, we decompose it into a \emph{demand size}
+component (how much is demanded when demand occurs) and a \emph{demand occurrence} component
+(how often demand occurs). Each component can then be forecast using standard techniques, and
+the final forecast is their product.
 
 \subsection{Croston's Method}
 
-Croston's method \cite{croston1972forecasting} separates the demand size $z_t$ and inter-arrival
-period $p_t$, forecasting each separately using simple exponential smoothing:
-
-\begin{equation*}
-    \hat{y}_{t+h} = \frac{\hat{z}_{t+h}}{\hat{p}_{t+h}}
-\end{equation*}
+Croston's method \cite{croston1972forecasting} pioneered this decomposition approach. The idea is
+simple: extract the non-zero demand values into a ``demand size'' series $z_t$, and extract the
+intervals between demand occurrences into an ``inter-arrival period'' series $p_t$. Apply exponential
+smoothing to each series separately, then combine the forecasts as $\hat{y}_{t+h} = \hat{z}_{t+h} / \hat{p}_{t+h}$.
 
 \begin{figure}[H]
     \centering
@@ -514,12 +582,12 @@ def croston_model(z: ArrayLike, p_inv: ArrayLike, future: int = 0) -> None:
 
 \subsection{TSB Method}
 
-The Teunter-Syntetos-Babai (TSB) method \cite{teunter2011intermittent} replaces the inter-arrival
-period with a demand probability $p_t$, providing potentially better-calibrated forecasts:
-
-\begin{equation*}
-    \hat{y}_{t+h} = \hat{z}_{t+h} \cdot \hat{p}_{t+h}
-\end{equation*}
+The Teunter-Syntetos-Babai (TSB) method \cite{teunter2011intermittent} takes a slightly different
+approach: instead of modeling inter-arrival periods, it directly models the \emph{probability} that
+demand occurs in each period. The forecast becomes $\hat{y}_{t+h} = \hat{z}_{t+h} \cdot \hat{p}_{t+h}$,
+where $p_t$ now represents the probability of non-zero demand rather than the inverse of the inter-arrival
+time. This formulation often provides more stable forecasts and forms the foundation for the
+availability-constrained model we develop in the next section.
 
 \begin{figure}[H]
     \centering
@@ -565,22 +633,31 @@ def transition_fn(carry, t):
 % =============================================================================
 \section{Availability-Constrained TSB: A Custom Probabilistic Model}
 
-This section showcases one of the key advantages of probabilistic programming: the ability to
-encode domain knowledge directly into model structure. The problem of distinguishing between
-true zero demand and availability-induced zeros motivates a novel modification to the TSB model.
+This section showcases one of the most powerful capabilities of probabilistic programming: the
+ability to encode domain knowledge directly into the model structure through a simple modification
+to the transition function. The solution we present here would be difficult or impossible to
+implement in a traditional forecasting package, yet in NumPyro it requires changing just a few
+lines of code.
 
 \subsection{The Problem: Why Zeros Happen}
 
 As discussed by Svetunkov \cite{svetunkov_zeros}, zeros in intermittent time series can arise
-from two fundamentally different causes:
+from two fundamentally different causes. A zero might represent \emph{true zero demand}---no
+customer wanted the product that day. Or it might represent an \emph{availability constraint}---the
+product was out of stock, so no sales were recorded even though customers may have wanted to buy.
 
-\begin{enumerate}
-    \item \textbf{True zero demand}: No customer wanted the product
-    \item \textbf{Availability constraint}: Product was out of stock or unavailable
-\end{enumerate}
+This distinction has profound implications for forecasting. If a product shows three consecutive
+zeros because nobody wanted it, the model should reasonably conclude that demand probability has
+declined---future forecasts should be lower. But if those three zeros occurred because the product
+was out of stock, the model should \emph{not} update its demand probability at all. The zeros
+contain no information about underlying demand; they merely reflect a supply constraint.
 
-Standard TSB models treat all zeros equally, causing the non-zero probability to decay regardless
-of the cause. This leads to systematic underforecasting after stockouts.
+Standard TSB models cannot make this distinction. They treat all zeros equally, causing the estimated
+demand probability to decay regardless of the cause. The business consequence is severe: after a
+stockout, the model systematically underforecasts future demand. This creates a vicious cycle where
+low forecasts lead to low inventory orders, which lead to more stockouts, which further suppress
+forecasts. The retailer may conclude that a product is dying when in fact it remains popular---they
+just keep running out of it.
 
 \begin{figure}[H]
     \centering
@@ -644,19 +721,27 @@ def transition_fn(carry, t):
     \label{fig:avail_result}
 \end{figure}
 
-\subsection{Why This Matters}
+\subsection{Why This Matters: The Power of Custom Probabilistic Models}
 
-This example illustrates several key advantages of probabilistic programming:
+This example illustrates what makes probabilistic programming fundamentally different from using
+off-the-shelf forecasting packages. In a traditional tool, you are limited to the models the
+developers anticipated. If the standard TSB model doesn't handle availability constraints---and
+no standard implementation does---you are stuck. Your only options are to ignore the problem
+(and accept biased forecasts) or to abandon the tool entirely and code a custom solution from scratch.
 
-\begin{enumerate}
-    \item \textbf{Domain knowledge integration}: The modification directly encodes business logic
-          into the model structure.
-    \item \textbf{Minimal change, maximum impact}: A single-line change in the transition function
-          fundamentally alters model behavior.
-    \item \textbf{Scenario planning enabled}: Setting future availability = 1 forecasts unconstrained demand.
-    \item \textbf{Preserves model structure}: No new parameters, same inference procedure.
-    \item \textbf{Scalable}: 1,000 series $\times$ 60 time steps in approximately 10 seconds with SVI.
-\end{enumerate}
+In NumPyro, the modification required just a few lines of code. We changed how the probability
+updates when a zero is observed, conditioning on availability. The rest of the model---the priors,
+the likelihood, the inference procedure---remained unchanged. This is the essence of composable
+probabilistic programming: you specify the generative process, and the framework handles inference.
+
+The business implications extend beyond forecast accuracy. Because the model explicitly separates
+demand from availability, we can now perform \emph{scenario planning}. What would demand look like
+if we maintained full availability? Simply set the future availability mask to 1 and generate
+forecasts. This capability is invaluable for inventory planning and capacity decisions.
+
+The approach also scales efficiently. Using stochastic variational inference, we can fit this
+model to 1,000 time series with 60 observations each in approximately 10 seconds---fast enough
+for operational use in a real retail environment.
 
 \begin{figure}[H]
     \centering
@@ -671,9 +756,28 @@ This example illustrates several key advantages of probabilistic programming:
 % =============================================================================
 \section{Censored Demand Forecasting}
 
-Stockouts create a different challenge: observed sales are censored---we know demand was \textit{at least}
-the observed quantity, but true demand may have been higher. Standard models that ignore censoring
-underestimate true demand.
+Sales data lies. When a product is out of stock, you observe sales of zero---but true demand may have
+been substantial. When inventory is limited to 100 units and you sell all 100, you observe 100 sales---but
+true demand may have been 150. In both cases, the observed data \emph{systematically understates}
+actual demand. Classical forecasting methods, which take observed values at face value, will
+systematically underestimate future demand.
+
+This problem is pervasive in retail and supply chain contexts. Stockouts are common, especially for
+popular products and during demand spikes. Inventory constraints limit what can be sold regardless of
+underlying demand. Promotional periods may exhaust stock quickly. In all these cases, the historical
+data record is \emph{censored}---we observe a lower bound on demand, not demand itself.
+
+\subsection*{Why Probabilistic Methods Excel Here}
+
+Classical forecasting methods have no mechanism for handling censoring. They treat 100 observed sales
+as evidence that demand was 100. A probabilistic framework, by contrast, can model the \emph{data-generating
+process} explicitly. We don't model ``sales'' directly; we model ``demand'' and then account for the
+censoring mechanism that transforms demand into observed sales.
+
+This is a profound conceptual shift. Instead of asking ``what is my forecast given the observed data?''
+we ask ``what demand process could have generated the observed data, accounting for the fact that
+demand above the inventory level gets recorded as exactly the inventory level?'' The inference
+machinery then finds demand parameters consistent with this generative story.
 
 \begin{figure}[H]
     \centering
@@ -784,56 +888,69 @@ allowing products with rich data to deviate from the category mean.
 % =============================================================================
 \section{Model Calibration with Additional Likelihoods}
 
-This section showcases a powerful technique for incorporating domain knowledge: treating prior beliefs
-as additional likelihood terms. The key inspiration comes from the Pyro DLM tutorial \cite{pyro_dlm_tutorial}.
+What if you have domain expertise that the historical data doesn't fully capture? Perhaps you know
+from physics that a certain relationship should be approximately linear in a particular regime,
+even though your data is too sparse in that region to reveal the pattern. Perhaps you have
+experimental results---a randomized controlled trial, an A/B test, a lift test---that provide
+ground truth about a causal relationship that observational data alone cannot identify.
+
+Traditional forecasting methods have no mechanism for incorporating such knowledge. You can
+adjust priors in a Bayesian model, but priors influence the entire parameter space uniformly.
+What if you need to constrain the model only in specific regimes, at specific time points,
+or for specific relationships?
+
+This section showcases a powerful technique that addresses exactly this need: treating domain
+knowledge as additional likelihood terms. The insight, inspired by the Pyro DLM tutorial
+\cite{pyro_dlm_tutorial}, is that in probabilistic programming, there is no fundamental
+distinction between ``data we observed'' and ``constraints we want to impose.'' Both are
+expressed as likelihood contributions that pull the posterior toward values consistent with
+our information.
 
 \subsection{The Core Insight: Priors as Likelihoods}
 
-The fundamental technique is elegant: in probabilistic programming, we can inject constraints at
-specific points by adding observed sample statements. From the Pyro DLM tutorial:
+The technique is elegant in its simplicity. To constrain a latent variable to be approximately
+equal to some known value at specific points, we add an ``observation'' of that latent variable
+with appropriate uncertainty. The inference machinery then balances this constraint against the
+actual data, finding parameter values consistent with both.
 
-\begin{lstlisting}[caption={Calibration pattern from Pyro DLM tutorial}]
-# Inject prior terms as if they were likelihoods
-for tp, prior in zip(time_points, priors):
-    pyro.sample("weight_prior_{}".format(tp),
-                dist.Normal(prior, 0.5).to_event(1),
-                obs=weight[..., tp:tp+1, 1:])
-\end{lstlisting}
-
-This allows:
-\begin{enumerate}
-    \item Setting informative priors for coefficients at specific time points
-    \item Incorporating experimental results (e.g., lift tests)
-    \item Constraining model behavior in specific regimes
-    \item \textbf{Calibrating any latent component, including Gaussian Processes}
-\end{enumerate}
+This approach is remarkably flexible. We can calibrate coefficients at specific time points
+when we have experimental data from those periods. We can constrain model behavior in specific
+regimes where we have domain knowledge but sparse data. And as we will demonstrate, we can
+calibrate \emph{any} latent component---including flexible nonparametric components like
+Gaussian Processes.
 
 \subsection{Key Application: HSGP Calibration for Electricity Demand}
 
-Our primary calibration example demonstrates calibrating a Hilbert Space Gaussian Process (HSGP)
-latent component for electricity demand forecasting \cite{orduz_electricity_priors}.
+Consider the problem of forecasting electricity demand as a function of temperature
+\cite{orduz_electricity_priors}. The relationship is clearly non-linear: at mild temperatures,
+demand is low (no heating or cooling needed); as temperature rises, air conditioning loads
+increase demand; at very high temperatures, this effect may saturate as most air conditioners
+reach maximum capacity.
 
-\textbf{Model structure}:
-\begin{itemize}
-    \item Linear model for demand with temperature as regressor
-    \item Hour and day-of-week seasonal effects (ZeroSumNormal)
-    \item Mat\'{e}rn 5/2 kernel via HSGP approximation for temperature effect
-    \item Heteroscedastic noise (scale varies with $\sqrt{\text{temperature}}$)
-    \item Student-t likelihood for robustness
-\end{itemize}
+We model this non-linear relationship using a Hilbert Space Gaussian Process (HSGP)---an efficient
+approximation to a full Gaussian Process that scales well with data size. The model also includes
+hour-of-day and day-of-week seasonal effects, heteroscedastic noise (demand variance increases
+with temperature), and a Student-t likelihood for robustness to outliers.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{images/electricity_forecast_6_0.png}
     \caption{Electricity demand data showing the non-linear relationship with temperature.
-        Domain knowledge suggests the effect should stabilize at high temperatures.}
+        At extreme high temperatures, the relationship appears to flatten, but data is sparse
+        in this regime, making the pattern difficult to estimate from observations alone.}
     \label{fig:electricity_data}
 \end{figure}
 
-\textbf{The problem}: At extreme temperatures ($>32$°C), historical data is sparse, and domain
-knowledge suggests the temperature effect should stabilize around 0.13.
+The challenge arises at extreme temperatures above 32°C. Historical data in this regime is sparse---heat
+waves are rare events. Yet this is precisely where accurate forecasts matter most, because heat waves
+strain the electrical grid and accurate demand prediction is critical for preventing blackouts.
 
-\textbf{The solution}: Calibrate the HSGP latent component:
+Domain knowledge suggests the temperature effect should stabilize around 0.13 in this high-temperature
+regime: once most air conditioners are running at full capacity, additional temperature increases
+have diminishing marginal effect on demand. But the uncalibrated model, lacking sufficient data,
+produces uncertain and oscillating estimates in this region.
+
+The solution is to inject this domain knowledge as a calibration constraint:
 
 \begin{lstlisting}[caption={HSGP calibration for electricity demand}]
 # Temperature effect as HSGP (Matern 5/2 approximation)
@@ -872,18 +989,33 @@ if temperature_prior_idx is not None:
 
 \subsection{Why HSGP Calibration is Novel}
 
-Most calibration examples focus on simple linear coefficients. This example demonstrates:
-\begin{itemize}
-    \item Calibration works for \textbf{any latent component}, including Gaussian Processes
-    \item HSGP provides efficient GP approximation; calibration refines specific regimes
-    \item Combines GP flexibility with domain knowledge interpretability
-    \item Forecast accuracy preserved while improving coefficient estimates
-\end{itemize}
+Most calibration examples in the literature focus on simple linear coefficients. What makes this
+example particularly powerful is that it demonstrates calibration of a \emph{flexible nonparametric
+component}. The Gaussian Process can learn arbitrary smooth functions of temperature, yet we can
+still inject domain knowledge at specific regimes where we have expertise but sparse data.
+
+This combination---flexibility where data is abundant, constraint where data is sparse---is exactly
+what practitioners need. The model retains the ability to discover unexpected nonlinear relationships
+in temperature ranges with good data coverage. But in the extreme high-temperature regime, where data
+is scarce and forecasts are most critical, the domain knowledge provides stability.
+
+Point estimation methods have no natural analog to this capability. You cannot ``inject knowledge at
+specific regimes'' into a maximum likelihood estimate or a gradient-boosted tree. The probabilistic
+framework's explicit representation of uncertainty and the generative modeling perspective make this
+calibration approach possible.
 
 \subsection{Application: MMM Calibration with Lift Tests}
 
-Marketing Mix Models (MMM) suffer from unobserved confounders. Lift tests provide experimental
-ground truth that can be incorporated as calibration likelihoods \cite{pymc_marketing_lift}:
+The same calibration principle applies to Marketing Mix Models (MMM), where the challenge is even
+more acute. MMM attempts to estimate the causal effect of advertising spend on sales from observational
+data. But observational data is confounded: companies spend more on advertising during periods when
+they expect high sales anyway. Lift tests---randomized experiments that measure the true causal effect
+of advertising---provide ground truth that can break this confounding.
+
+By incorporating lift test results as calibration likelihoods, we constrain the model's media
+effectiveness estimates to be consistent with experimental evidence \cite{pymc_marketing_lift}.
+The model learns from both the observational data (which provides information about trends, seasonality,
+and relative effects) and the experimental data (which provides unconfounded estimates of absolute effects):
 
 \begin{figure}[H]
     \centering
@@ -1074,53 +1206,141 @@ For simpler problems, pure state-space models often suffice and provide better i
 % =============================================================================
 \section{Conclusion}
 
-This article has presented a comprehensive guide to probabilistic time series forecasting with NumPyro,
-progressing from foundational concepts to advanced hybrid architectures.
+\subsection{The Paradigm Shift}
 
-\subsection{Key Contributions}
+Throughout this article, we have explored a fundamental shift in how we approach time series forecasting.
+Traditional methods ask: ``Given historical data, what is my best guess for future values?'' Probabilistic
+forecasting asks a different question: ``What is the full distribution of possible future values, and
+how confident should I be in different outcomes?''
 
-We demonstrated several powerful techniques:
+This shift from point estimates to distributions has profound implications for decision-making.
+A retailer deciding on inventory levels needs to know not just the expected demand, but the
+probability of demand exceeding various thresholds. An energy grid operator planning for peak
+load needs to understand the range of possible demand scenarios, not just the central forecast.
+A marketing team allocating budget needs to quantify uncertainty in media effectiveness estimates,
+not just obtain a single ``best'' number.
 
-\begin{enumerate}
-    \item \textbf{The scan pattern}: A universal foundation for state-space models in NumPyro, enabling
-          efficient implementation of recursive relationships.
+But probabilistic forecasting offers more than uncertainty quantification. As we have demonstrated
+throughout this article, probabilistic programming enables us to directly incorporate business
+constraints, domain knowledge, and potentially causal relationships into our models. When sales
+data is censored by stockouts, we model the censoring mechanism. When different regions share
+common patterns, we let them borrow statistical strength through hierarchical structures. When
+we have experimental evidence about causal effects, we inject it as calibration constraints.
+This flexibility to encode domain expertise directly into model structure is what makes
+probabilistic forecasting truly transformative for business applications.
 
-    \item \textbf{Hierarchical modeling}: Sharing information across related time series while respecting
-          individual heterogeneity, particularly valuable for sparse data.
+\subsection{Matching Problems to Solutions}
 
-    \item \textbf{Custom likelihoods}: Censored and zero-inflated distributions that accurately model
-          real-world data generating processes.
+A key theme of this article has been matching the right technique to the right problem.
+Not every forecasting challenge requires sophisticated methods---sometimes a simple exponential
+smoothing model suffices. The value of understanding the full toolkit is knowing when each
+approach provides genuine advantage.
 
-    \item \textbf{Domain knowledge integration}: Two showcase applications---availability-constrained TSB
-          and HSGP calibration---demonstrate how probabilistic programming enables encoding business logic
-          directly into model structure.
+\textbf{When data is sparse across related series}, hierarchical models shine. The tourism
+forecasting example demonstrated how regions with limited history can borrow strength from
+data-rich regions. Classical methods, which treat each series independently, cannot achieve
+this information sharing.
 
-    \item \textbf{Scalable inference}: SVI with Optax integration enables training on thousands of time
-          series efficiently.
+\textbf{When stockouts mask true demand}, censored likelihoods are essential. Standard methods
+treat observed sales as ground truth, systematically underestimating demand. Only by modeling
+the data-generating process---including the censoring mechanism---can we recover unbiased
+demand estimates.
 
-    \item \textbf{Neural network integration}: Hybrid models combine interpretable state-space structure
-          with flexible neural network components.
-\end{enumerate}
+\textbf{When zeros arise from availability constraints rather than lack of demand}, the
+availability-constrained TSB model provides the solution. By modifying a single line in the
+transition function, we encode the distinction between true zero demand and supply-constrained
+zeros directly into the model structure.
 
-\subsection{Practical Recommendations}
+\textbf{When domain expertise exceeds what historical data can reveal}, calibration via
+additional likelihoods enables injecting that knowledge. The HSGP calibration example showed
+how to constrain a flexible Gaussian Process in specific regimes where we have expertise but
+sparse data.
 
-Based on our experience applying these methods in production:
+\textbf{When scale matters}---thousands of time series to forecast---stochastic variational
+inference with GPU acceleration makes probabilistic methods practical. What would take hours
+with MCMC can run in minutes with SVI, enabling rapid iteration and operational deployment.
 
-\begin{itemize}
-    \item Start simple: exponential smoothing models often provide strong baselines.
-    \item Use hierarchical structure when data is sparse for individual series.
-    \item Encode domain knowledge explicitly through model structure or calibration.
-    \item Validate uncertainty calibration, not just point forecast accuracy.
-    \item Use SVI for development iteration, MCMC for final inference when feasible.
-\end{itemize}
+\subsection{Limitations and When to Use Simpler Methods}
+
+Intellectual honesty requires acknowledging when probabilistic methods are \emph{not} the right
+choice. Strong baseline models are often hard to beat, and the additional complexity of
+probabilistic programming may not be justified for every forecasting task.
+
+\textbf{Computational cost}: Probabilistic methods are more computationally expensive than
+simple exponential smoothing or ARIMA models. If you need to forecast millions of time series
+and point forecasts suffice, simpler methods may be more practical.
+
+\textbf{Expertise required}: Specifying a probabilistic model requires understanding of
+statistical modeling, prior selection, and inference diagnostics. Teams without this expertise
+may be better served by automated tools like AutoETS or Prophet that make reasonable default
+choices.
+
+\textbf{When baselines suffice}: For stable, well-behaved time series with abundant historical
+data and no special constraints, classical methods often perform comparably. The advantages of
+probabilistic forecasting emerge most clearly when data has quirks (censoring, intermittency,
+hierarchical structure) or when domain knowledge needs to be incorporated.
+
+\textbf{Model misspecification risk}: A misspecified probabilistic model can produce confidently
+wrong forecasts with misleadingly narrow uncertainty bands. Proper model checking, posterior
+predictive checks, and out-of-sample validation are essential but require additional effort.
+
+The pragmatic recommendation is to start simple, establish strong baselines, and add complexity
+only when it demonstrably improves performance on held-out data or enables incorporating domain
+knowledge that simpler methods cannot capture.
+
+\subsection{Future Directions}
+
+The field of probabilistic forecasting continues to evolve rapidly. Several directions hold
+particular promise:
+
+\textbf{State space models in PyMC-Extras}: Recent development of structural time series
+components in PyMC provides composable building blocks (local linear trend, seasonal components,
+regression effects) with Kalman filter-based inference.
+
+\textbf{Foundation models for time series}: Large pre-trained models like Chronos and TimeGPT
+offer zero-shot forecasting capabilities. How to combine these with domain-specific probabilistic
+structure remains an open question.
+
+\textbf{Causal extensions}: The calibration technique we demonstrated with lift tests is a step
+toward causal forecasting. Methods like Causal DeepAR extend these ideas to deep learning
+architectures, enabling counterfactual prediction.
+
+\textbf{Integration with decision optimization}: The natural next step after probabilistic
+forecasting is decision-making under uncertainty. Connecting forecast distributions to
+optimization objectives (inventory costs, energy dispatch, marketing ROI) closes the loop
+from prediction to action.
+
+\subsection{Broader Impact}
+
+The techniques presented in this article enable a different kind of relationship between
+forecasters and decision-makers. Instead of delivering a single number that stakeholders
+must trust or reject, probabilistic forecasting delivers a range of scenarios with associated
+probabilities. This transparency enables more informed decision-making and more honest
+communication about uncertainty.
+
+Perhaps more importantly, the ability to encode domain knowledge directly into models
+changes the role of subject matter experts. In traditional forecasting, domain knowledge
+enters informally---an analyst might ``adjust'' a model's output based on intuition.
+In probabilistic programming, domain knowledge enters formally---as priors, constraints,
+or structural assumptions that become part of the model itself. This formalization makes
+assumptions explicit, auditable, and updatable as understanding evolves.
+
+The combination of rigorous uncertainty quantification, flexible model specification,
+and the ability to incorporate domain expertise makes probabilistic forecasting a powerful
+tool for any organization serious about data-driven decision-making under uncertainty.
 
 \subsection{Acknowledgments}
 
-We gratefully acknowledge the NumPyro core developers---Du Phan, Neeraj Pradhan, and Martin Jankowiak---for
-creating and maintaining this excellent library. The Pyro team at Uber AI Labs, including Eli Bingham,
-Fritz Obermeyer, and Noah Goodman, laid the foundation with Pyro \cite{bingham2019pyro}. The JAX team at
-Google enables the performance that makes these methods practical. Finally, the open-source community's
-contributions through issues, discussions, and pull requests continuously improve these tools.
+We gratefully acknowledge the NumPyro core developers---Du Phan, Neeraj Pradhan, and Martin
+Jankowiak---for creating and maintaining this excellent library. The Pyro team at Uber AI Labs,
+including Eli Bingham, Fritz Obermeyer, and Noah Goodman, laid the foundation with Pyro
+\cite{bingham2019pyro}. The JAX team at Google enables the performance that makes these
+methods practical.
+
+We also thank the broader probabilistic programming community, whose contributions through
+blog posts, tutorials, and open-source code have made these techniques accessible to
+practitioners. Special thanks to the PyMC Labs team for their work on probabilistic
+forecasting for business applications, which inspired many of the examples in this article.
 
 \bibliographystyle{acm}
 \bibliography{references}
