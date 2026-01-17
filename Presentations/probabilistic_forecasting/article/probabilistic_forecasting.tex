@@ -1,0 +1,1128 @@
+\documentclass[11pt]{amsart}
+\usepackage[all]{xy}
+\usepackage[dvips]{graphicx}
+\usepackage{amsfonts}
+\usepackage{amssymb,latexsym,amsmath}
+\usepackage{amsthm}
+\usepackage{color}
+\usepackage{empheq}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{mathrsfs}
+\usepackage{slashed}
+\usepackage{tikz}
+\usepackage{svg}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\theoremstyle{definition}
+\newtheorem{remark}{Remark}
+
+\lstset{frame=tb,
+    language=python,
+    aboveskip=3mm,
+    belowskip=3mm,
+    showstringspaces=false,
+    columns=flexible,
+    basicstyle={\small\ttfamily},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    keywordstyle=\color{blue},
+    commentstyle=\color{dkgreen},
+    stringstyle=\color{mauve},
+    breaklines=true,
+    breakatwhitespace=true,
+    tabsize=3
+}
+
+\textwidth = 420pt
+\oddsidemargin = 18pt
+\evensidemargin = 18pt
+
+\begin{document}
+\title{Probabilistic Time Series Forecasting with NumPyro: A Practical Guide}
+\author{Juan Camilo Orduz}
+\email{juanitorduz@gmail.com}
+\urladdr{\href{https://juanitorduz.github.io/}{https://juanitorduz.github.io/}}
+\address{Berlin, Germany}
+\date{\today}
+
+\begin{abstract}
+    This article presents a comprehensive guide to probabilistic time series forecasting using NumPyro, a lightweight
+    probabilistic programming library built on JAX. We demonstrate a progression from simple exponential smoothing models
+    to sophisticated hybrid deep state-space models, emphasizing practical implementation patterns and scalability
+    considerations. Through concrete examples, we illustrate key concepts including the \texttt{scan} function for
+    recursive relationships, hierarchical model structures for sharing information across time series, custom likelihoods
+    for censored and intermittent demand data, and model calibration techniques using additional likelihood terms. Two
+    showcase applications---availability-constrained TSB models and Hilbert Space Gaussian Process calibration---highlight
+    the flexibility of probabilistic programming for encoding domain knowledge directly into forecasting models.
+    The integration with the broader JAX ecosystem, including Optax for optimization and Flax for neural network
+    components, enables scalable inference via stochastic variational inference (SVI) on thousands of time series.
+\end{abstract}
+
+\maketitle
+
+\addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
+
+% =============================================================================
+% SECTION 1: INTRODUCTION
+% =============================================================================
+\section{Introduction}
+
+Time series forecasting is fundamental to decision-making across industries, from supply chain optimization to
+energy demand prediction. While point forecasts provide single estimates of future values, probabilistic forecasting
+goes further by quantifying uncertainty---a critical capability for risk assessment and robust decision-making.
+
+NumPyro \cite{phan2019composable} is a lightweight probabilistic programming library that provides a NumPy backend
+for Pyro \cite{bingham2019pyro}. It relies on JAX \cite{jax2018github} for automatic differentiation and JIT
+compilation to GPU/CPU, enabling efficient inference on large-scale problems. This combination of expressiveness
+and performance makes NumPyro particularly well-suited for time series forecasting applications.
+
+\subsection*{Why Probabilistic Forecasting?}
+
+The advantages of probabilistic forecasting extend across multiple dimensions:
+
+\begin{itemize}
+    \item \textbf{Interpretability}: Explicit model structure with clear assumptions enables trust in results
+          and facilitates communication with stakeholders.
+
+    \item \textbf{Uncertainty quantification}: Full predictive distributions enable risk assessment and
+          inform decision-making under uncertainty.
+
+    \item \textbf{Customization}: Probabilistic programming frameworks allow encoding domain knowledge through
+          custom likelihoods, priors, and model structures.
+
+    \item \textbf{Scale}: Modern inference algorithms combined with GPU acceleration enable fitting models
+          to thousands of time series efficiently.
+\end{itemize}
+
+\subsection*{Industry Applications}
+
+Probabilistic forecasting finds applications across diverse domains:
+
+\begin{itemize}
+    \item \textbf{Supply chain forecasting}: Demand forecasting with stockout constraints, availability
+          considerations, and inventory optimization for long-tail products.
+
+    \item \textbf{Energy forecasting}: Weather-dependent electricity demand modeling with peak load
+          prediction and uncertainty quantification.
+
+    \item \textbf{Price elasticity modeling}: Hierarchical models for SKU-level pricing decisions
+          and promotional effectiveness measurement.
+
+    \item \textbf{Marketing mix modeling}: Measuring media effectiveness with lift test calibration
+          and scenario planning for marketing spend optimization.
+\end{itemize}
+
+\subsection*{Article Overview}
+
+This article presents a progression from simple to complex forecasting models:
+
+\begin{enumerate}
+    \item We begin with the \texttt{scan} function, the foundational building block for time series models in NumPyro.
+    \item We then introduce exponential smoothing models, demonstrating the basic pattern for state-space models.
+    \item ARIMA and VAR models extend this framework to autoregressive structures.
+    \item Hierarchical models enable sharing information across related time series.
+    \item Specialized models address intermittent demand, censored observations, and price elasticity estimation.
+    \item Two showcase sections demonstrate advanced techniques: availability-constrained forecasting and
+          model calibration with Hilbert Space Gaussian Processes.
+    \item We conclude with stochastic variational inference for scalable inference and hybrid deep
+          state-space models that integrate neural network components.
+\end{enumerate}
+
+% =============================================================================
+% SECTION 2: LITERATURE REVIEW
+% =============================================================================
+\section{Literature Review and Related Work}
+
+Probabilistic forecasting has a rich history spanning classical statistical methods and modern deep learning approaches.
+This section surveys key developments and positions the NumPyro-based approach within this landscape.
+
+\subsection{Classical Statistical Methods}
+
+\textbf{State space models and ETS}: Hyndman et al. \cite{hyndman2002state, hyndman2008forecasting} reformulated
+exponential smoothing as innovations state space models, enabling likelihood estimation and automatic model selection.
+The ETS (Error-Trend-Seasonality) taxonomy provides a systematic framework for exponential smoothing variants.
+
+\textbf{ARIMA family}: The Box-Jenkins methodology established autoregressive integrated moving average models as
+a cornerstone of time series analysis. Extensions include seasonal ARIMA (SARIMA) and vector autoregressive (VAR)
+models for multivariate forecasting.
+
+\textbf{Structural time series}: Harvey \cite{harvey1989forecasting} and Durbin \& Koopman \cite{durbin2012time}
+developed comprehensive frameworks for state space modeling with Kalman filtering, providing the theoretical
+foundation for many modern approaches.
+
+\subsection{Deep Learning Approaches}
+
+\textbf{DeepAR} \cite{salinas2020deepar}: A seminal work in probabilistic deep learning for forecasting, DeepAR
+trains a global autoregressive RNN model across many related time series. The key innovation is learning to share
+patterns across series while producing probabilistic forecasts through parametric output distributions.
+
+\textbf{Temporal Fusion Transformers} \cite{lim2021temporal}: Attention-based architectures for multi-horizon
+forecasting with interpretable attention weights and handling of static and dynamic covariates.
+
+\textbf{N-BEATS and N-HiTS} \cite{oreshkin2020nbeats}: Pure deep learning approaches without time series-specific
+components, using basis expansion for interpretability.
+
+\subsection{Probabilistic Programming Frameworks}
+
+\textbf{Pyro Forecasting Module}: Built on Pyro/PyTorch, this module provides hierarchical models with global-local
+structure and SVI for scalable inference. The Dynamic Linear Model tutorial \cite{pyro_dlm_tutorial} demonstrates
+powerful calibration techniques that we extend in this work.
+
+\textbf{Prophet} \cite{taylor2018forecasting}: Facebook's decomposable model combining trend, seasonality, and
+holiday effects, designed for business forecasting at scale with Stan backend for uncertainty quantification.
+
+\textbf{GluonTS} \cite{alexandrov2020gluonts}: A unified Python interface for probabilistic time series modeling,
+implementing DeepAR, Transformers, and many other methods.
+
+\subsection{Recent Advances}
+
+\textbf{LGT/SGT Models} \cite{smyl2024local}: Bayesian exponential smoothing with flexible trend components
+between linear and exponential, using Student-t errors for robustness.
+
+\textbf{ADAM} \cite{svetunkov2023adam}: The Augmented Dynamic Adaptive Model provides a comprehensive state
+space framework with extensive treatment of intermittent demand and censored observations.
+
+\subsection{Gap Addressed by This Work}
+
+Existing tools often lack easy customization of model components, direct integration of domain knowledge,
+and transparent model specification. NumPyro addresses these gaps by providing:
+
+\begin{itemize}
+    \item Composable model building with \texttt{scan} for time series
+    \item Custom likelihoods (censored, zero-inflated, availability-constrained)
+    \item JAX ecosystem integration for GPU acceleration
+    \item SVI for scalable inference on thousands of series
+    \item Neural network integration via Flax NNX
+\end{itemize}
+
+% =============================================================================
+% SECTION 3: THE SCAN FUNCTION
+% =============================================================================
+\section{Technical Foundation: The Scan Function}
+
+The \texttt{scan} function is the fundamental building block for time series models in NumPyro. It provides an
+efficient implementation of sequential computations, essential for models with recursive relationships of the
+form $y_t \mapsto y_{t+1}$.
+
+\begin{lstlisting}[caption={Pure Python implementation of the scan function}]
+def scan(f, init, xs):
+    """Pure Python implementation of scan.
+
+    Parameters
+    ----------
+    f : callable
+        A function to be scanned: (carry, x) -> (carry, y)
+    init : any
+        Initial loop carry value
+    xs : array
+        Values over which to scan along leading axis
+    """
+    carry = init
+    ys = []
+    for x in xs:
+        carry, y = f(carry, x)
+        ys.append(y)
+    return carry, np.stack(ys)
+\end{lstlisting}
+
+The transition function \texttt{f} takes the current carry state and input, returning an updated carry and
+output. This pattern naturally maps to state-space model formulations where the carry represents latent states
+(level, trend, seasonality) and the output represents predictions.
+
+\begin{remark}
+    In JAX, \texttt{jax.lax.scan} compiles the loop efficiently, avoiding Python overhead and enabling
+    automatic differentiation through the entire sequence. NumPyro's \texttt{contrib.control\_flow.scan}
+    extends this with proper handling of probabilistic primitives.
+\end{remark}
+
+% =============================================================================
+% SECTION 4: EXPONENTIAL SMOOTHING
+% =============================================================================
+\section{Exponential Smoothing Models}
+
+Exponential smoothing provides a natural starting point for probabilistic forecasting with NumPyro. We begin
+with simple exponential smoothing and progressively add complexity.
+
+\subsection{Simple Exponential Smoothing}
+
+The level equations for simple exponential smoothing are:
+\begin{align*}
+    \hat{y}_{t+h|t} & = l_t                                 \\
+    l_t             & = \alpha y_t + (1 - \alpha) l_{t-1}
+\end{align*}
+
+where $y_t$ is the observed value, $l_t$ is the level, and $\alpha \in (0, 1)$ is the smoothing parameter.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/exponential_smoothing_numpyro_16_1.png}
+    \caption{Example time series data for exponential smoothing. The data exhibits a clear trend component
+        that simple exponential smoothing must capture through the level dynamics.}
+    \label{fig:exp_smooth_data}
+\end{figure}
+
+The NumPyro implementation uses the \texttt{scan} pattern:
+
+\begin{lstlisting}[caption={Transition function for simple exponential smoothing}]
+def transition_fn(carry, t):
+    previous_level = carry
+
+    level = jnp.where(
+        t < t_max,
+        level_smoothing * y[t] + (1 - level_smoothing) * previous_level,
+        previous_level,  # Forecast: no update
+    )
+
+    mu = previous_level
+    pred = numpyro.sample("pred", dist.Normal(loc=mu, scale=noise))
+
+    return level, pred
+\end{lstlisting}
+
+The full model specifies priors for the smoothing parameter, initial level, and observation noise:
+
+\begin{lstlisting}[caption={Complete simple exponential smoothing model}]
+def level_model(y: ArrayLike, future: int = 0) -> None:
+    t_max = y.shape[0]
+
+    # Priors
+    level_smoothing = numpyro.sample(
+        "level_smoothing", dist.Beta(concentration1=1, concentration0=1)
+    )
+    level_init = numpyro.sample("level_init", dist.Normal(loc=0, scale=1))
+    noise = numpyro.sample("noise", dist.HalfNormal(scale=1))
+
+    def transition_fn(carry, t):
+        # ... as above ...
+
+    # Run scan with conditioning
+    with numpyro.handlers.condition(data={"pred": y}):
+        _, preds = scan(transition_fn, level_init, jnp.arange(t_max + future))
+
+    if future > 0:
+        numpyro.deterministic("y_forecast", preds[-future:])
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/exponential_smoothing_numpyro_29_1.png}
+    \caption{Posterior distributions of model parameters. The smoothing parameter $\alpha$ concentrates
+        around 0.8, indicating relatively fast adaptation to recent observations.}
+    \label{fig:exp_smooth_params}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/exponential_smoothing_numpyro_36_1.png}
+    \caption{In-sample fit and forecast with 94\% highest density intervals. The model captures the
+        underlying trend while appropriately quantifying forecast uncertainty.}
+    \label{fig:exp_smooth_forecast}
+\end{figure}
+
+\subsection{Extensions: Trend, Seasonality, and Damping}
+
+The exponential smoothing framework extends naturally to include trend and seasonal components. The
+Holt-Winters model with damped trend combines:
+
+\begin{align*}
+    \hat{y}_{t+h|t} & = l_t + (\phi + \phi^2 + \cdots + \phi^h) b_t + s_{t+h-m(k+1)} \\
+    l_t             & = \alpha (y_t - s_{t-m}) + (1 - \alpha)(l_{t-1} + \phi b_{t-1}) \\
+    b_t             & = \beta (l_t - l_{t-1}) + (1 - \beta) \phi b_{t-1}              \\
+    s_t             & = \gamma (y_t - l_{t-1} - \phi b_{t-1}) + (1 - \gamma) s_{t-m}
+\end{align*}
+
+where $b_t$ is the trend, $s_t$ is the seasonal component, $\phi$ is the damping factor, and $m$ is the
+seasonal period.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/exponential_smoothing_numpyro_78_1.png}
+    \caption{Damped trend seasonal model forecast. The model captures both the trend decay and seasonal
+        patterns, with uncertainty bands widening appropriately into the forecast horizon.}
+    \label{fig:exp_smooth_damped}
+\end{figure}
+
+% =============================================================================
+% SECTION 5: ARIMA MODELS
+% =============================================================================
+\section{ARIMA Models}
+
+Autoregressive integrated moving average (ARIMA) models provide an alternative framework for time series
+modeling. The NumPyro implementation follows the same \texttt{scan} pattern.
+
+\subsection{ARMA(1,1) Model}
+
+The ARMA(1,1) model combines autoregressive and moving average components:
+\begin{equation*}
+    y_t = \mu + \phi y_{t-1} + \theta \varepsilon_{t-1} + \varepsilon_t
+\end{equation*}
+
+\begin{lstlisting}[caption={Transition function for ARMA(1,1) model}]
+def transition_fn(carry, t):
+    y_prev, error_prev = carry
+    ar_part = phi * y_prev
+    ma_part = theta * error_prev
+    pred = mu + ar_part + ma_part
+    error = y[t] - pred
+    return (y[t], error), error
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/arma_numpyro_40_1.png}
+    \caption{ARMA(1,1) model fit showing the in-sample predictions and residuals. The model effectively
+        captures the short-term autocorrelation structure in the data.}
+    \label{fig:arma_fit}
+\end{figure}
+
+\subsection{VAR Models and Impulse Response Functions}
+
+Vector autoregressive (VAR) models extend ARMA to multivariate settings, enabling analysis of dynamic
+relationships between multiple time series. A key application is computing impulse response functions
+(IRFs) that trace the effect of a shock to one variable through the system.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/var_irf.png}
+    \caption{Impulse response functions from a Bayesian VAR model. The posterior distributions over
+        IRFs quantify uncertainty in the dynamic relationships between variables.}
+    \label{fig:var_irf}
+\end{figure}
+
+% =============================================================================
+% SECTION 6: HIERARCHICAL MODELS
+% =============================================================================
+\section{Hierarchical Models}
+
+When forecasting multiple related time series, hierarchical models enable sharing information across
+series while respecting individual heterogeneity. This approach is particularly valuable when some
+series have limited historical data.
+
+\subsection{Hierarchical Exponential Smoothing}
+
+We demonstrate hierarchical modeling using Australian tourism data, where visitor counts are organized
+by region and purpose of travel.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/hierarchical_exponential_smoothing_45_0.png}
+    \caption{Australian tourism data showing multiple time series organized hierarchically by region.
+        The data exhibits both shared seasonal patterns and region-specific characteristics.}
+    \label{fig:hier_data}
+\end{figure}
+
+The hierarchical structure places priors on the smoothing parameters that allow information sharing:
+
+\begin{align*}
+    \alpha_i                       & \sim \text{Beta}(\mu_\alpha \kappa, (1-\mu_\alpha) \kappa) \\
+    \mu_\alpha                     & \sim \text{Beta}(2, 2)                                     \\
+    \kappa                         & \sim \text{HalfNormal}(10)
+\end{align*}
+
+where $\mu_\alpha$ is the population mean smoothing parameter and $\kappa$ controls the concentration
+around this mean.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/hierarchical_exponential_smoothing_47_0.png}
+    \caption{Posterior distributions of smoothing parameters across regions. The hierarchical structure
+        shrinks extreme estimates toward the population mean while preserving meaningful heterogeneity.}
+    \label{fig:hier_params}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/hierarchical_exponential_smoothing_69_0.png}
+    \caption{Hierarchical forecasts for selected regions with 94\% HDIs. The model appropriately
+        quantifies uncertainty, with wider intervals for regions with higher volatility.}
+    \label{fig:hier_forecast}
+\end{figure}
+
+\subsection{Baseline Production Model}
+
+For large-scale applications, we developed a baseline model combining local level dynamics with
+Fourier seasonality and external covariates:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/baseline_covariates.png}
+    \caption{Production baseline model architecture: local level for trend, Fourier modes for
+        seasonality, covariates for promotions/discounts, and a global availability factor.
+        This model scales to approximately 40,000 time series in under 10 minutes on GPU.}
+    \label{fig:baseline}
+\end{figure}
+
+% =============================================================================
+% SECTION 7: INTERMITTENT DEMAND
+% =============================================================================
+\section{Intermittent Demand Forecasting}
+
+Intermittent demand---characterized by sporadic, often zero observations---requires specialized
+forecasting approaches. Standard methods that assume continuous demand systematically fail on such data.
+
+\subsection{Croston's Method}
+
+Croston's method \cite{croston1972forecasting} separates the demand size $z_t$ and inter-arrival
+period $p_t$, forecasting each separately using simple exponential smoothing:
+
+\begin{equation*}
+    \hat{y}_{t+h} = \frac{\hat{z}_{t+h}}{\hat{p}_{t+h}}
+\end{equation*}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/croston_numpyro_6_1.png}
+    \caption{Example intermittent demand series showing sporadic non-zero values. The long stretches
+        of zeros interspersed with variable demand sizes motivate the separation approach.}
+    \label{fig:croston_data}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/croston_numpyro_10_1.png}
+    \caption{Decomposition into demand size (top) and inter-arrival time (bottom) series.
+        Each component can now be modeled with standard exponential smoothing.}
+    \label{fig:croston_decomp}
+\end{figure}
+
+The NumPyro implementation uses \texttt{scope} to combine two exponential smoothing models:
+
+\begin{lstlisting}[caption={Croston's method using scoped models}]
+def croston_model(z: ArrayLike, p_inv: ArrayLike, future: int = 0) -> None:
+    z_forecast = scope(level_model, "demand")(z, future)
+    p_inv_forecast = scope(level_model, "period_inv")(p_inv, future)
+
+    if future > 0:
+        numpyro.deterministic("z_forecast", z_forecast)
+        numpyro.deterministic("p_inv_forecast", p_inv_forecast)
+        numpyro.deterministic("forecast", z_forecast * p_inv_forecast)
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/croston_numpyro_39_1.png}
+    \caption{Croston's method forecast with uncertainty quantification. The probabilistic
+        formulation provides credible intervals that appropriately reflect the high uncertainty
+        inherent in intermittent demand forecasting.}
+    \label{fig:croston_forecast}
+\end{figure}
+
+\subsection{TSB Method}
+
+The Teunter-Syntetos-Babai (TSB) method \cite{teunter2011intermittent} replaces the inter-arrival
+period with a demand probability $p_t$, providing potentially better-calibrated forecasts:
+
+\begin{equation*}
+    \hat{y}_{t+h} = \hat{z}_{t+h} \cdot \hat{p}_{t+h}
+\end{equation*}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/tsb_numpyro_36_1.png}
+    \caption{TSB method cross-validation results showing one-step-ahead forecasts. The probability
+        formulation often provides more stable forecasts than the period-based Croston approach.}
+    \label{fig:tsb_cv}
+\end{figure}
+
+\subsection{Zero-Inflated TSB Model}
+
+For count data with excess zeros, we can modify the TSB model to use a zero-inflated negative
+binomial distribution:
+
+\begin{lstlisting}[caption={Zero-inflated TSB transition function}]
+def transition_fn(carry, t):
+    z_prev, p_prev = carry
+    z_next = ...  # Demand size update
+    p_next = ...  # Probability update
+
+    mu = z_next
+    gate = 1 - p_next
+    pred = numpyro.sample(
+        "pred",
+        dist.ZeroInflatedNegativeBinomial2(
+            mean=mu, concentration=concentration, gate=gate
+        ),
+    )
+    return (z_next, p_next), pred
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/zi_tsb_numpyro_35_1.png}
+    \caption{Zero-inflated TSB model cross-validation. The explicit zero-inflation component
+        better captures the two-stage nature of intermittent demand: first whether demand occurs,
+        then the demand size conditional on occurrence.}
+    \label{fig:zi_tsb}
+\end{figure}
+
+% =============================================================================
+% SECTION 8: AVAILABILITY-CONSTRAINED TSB (SHOWCASE)
+% =============================================================================
+\section{Availability-Constrained TSB: A Custom Probabilistic Model}
+
+This section showcases one of the key advantages of probabilistic programming: the ability to
+encode domain knowledge directly into model structure. The problem of distinguishing between
+true zero demand and availability-induced zeros motivates a novel modification to the TSB model.
+
+\subsection{The Problem: Why Zeros Happen}
+
+As discussed by Svetunkov \cite{svetunkov_zeros}, zeros in intermittent time series can arise
+from two fundamentally different causes:
+
+\begin{enumerate}
+    \item \textbf{True zero demand}: No customer wanted the product
+    \item \textbf{Availability constraint}: Product was out of stock or unavailable
+\end{enumerate}
+
+Standard TSB models treat all zeros equally, causing the non-zero probability to decay regardless
+of the cause. This leads to systematic underforecasting after stockouts.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/availability_tsb_12_0.png}
+    \caption{Simulated data with availability mask. The red regions indicate periods of
+        unavailability where zeros are not informative about true demand.}
+    \label{fig:avail_data}
+\end{figure}
+
+\subsection{The Elegant Mathematical Modification}
+
+The key insight is to modify the probability update equation to account for availability:
+
+\textbf{Standard TSB} (when $y_t = 0$):
+\begin{align*}
+    z_{t+1} & = z_t                \\
+    p_{t+1} & = (1 - \beta) \cdot p_t
+\end{align*}
+
+\textbf{Availability-Constrained TSB} (when $y_t = 0$):
+\begin{align*}
+    z_{t+1} & = z_t                         \\
+    p_{t+1} & = (1 - a_t \cdot \beta) \cdot p_t
+\end{align*}
+
+where $a_t \in \{0, 1\}$ indicates availability. When $a_t = 0$ (unavailable), the probability
+does not decay. Additionally, the forecast incorporates availability:
+\begin{equation*}
+    \hat{y}_{t+1} = a_t \cdot z_t \cdot p_t
+\end{equation*}
+
+\begin{lstlisting}[caption={Availability-constrained TSB transition function}]
+def transition_fn(carry, t):
+    z_prev, p_prev = carry
+
+    z_next = jnp.where(
+        counts[t] > 0,
+        z_smoothing * counts[t] + (1 - z_smoothing) * z_prev,
+        z_prev,
+    )
+
+    p_next = jnp.where(
+        counts[t] > 0,
+        p_smoothing + (1 - p_smoothing) * p_prev,
+        (1 - available[t] * p_smoothing) * p_prev,  # Key modification
+    )
+
+    mu = z_next * p_next
+    pred = numpyro.sample("pred", dist.Normal(loc=mu, scale=noise))
+    pred = numpyro.deterministic("pred_obs", available[t] * pred)
+
+    return (z_next, p_next), pred
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/availability_tsb_30_0.png}
+    \caption{Key result: forecast comparison after zeros with availability=0. The standard TSB
+        (left) incorrectly decays the demand probability, while the availability-constrained
+        model (right) maintains the probability, correctly anticipating demand recovery.}
+    \label{fig:avail_result}
+\end{figure}
+
+\subsection{Why This Matters}
+
+This example illustrates several key advantages of probabilistic programming:
+
+\begin{enumerate}
+    \item \textbf{Domain knowledge integration}: The modification directly encodes business logic
+          into the model structure.
+    \item \textbf{Minimal change, maximum impact}: A single-line change in the transition function
+          fundamentally alters model behavior.
+    \item \textbf{Scenario planning enabled}: Setting future availability = 1 forecasts unconstrained demand.
+    \item \textbf{Preserves model structure}: No new parameters, same inference procedure.
+    \item \textbf{Scalable}: 1,000 series $\times$ 60 time steps in approximately 10 seconds with SVI.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/availability_tsb_38_0.png}
+    \caption{Cross-validation results demonstrating the model's ability to adapt forecasts
+        based on availability information across multiple series.}
+    \label{fig:avail_cv}
+\end{figure}
+
+% =============================================================================
+% SECTION 9: CENSORED DEMAND
+% =============================================================================
+\section{Censored Demand Forecasting}
+
+Stockouts create a different challenge: observed sales are censored---we know demand was \textit{at least}
+the observed quantity, but true demand may have been higher. Standard models that ignore censoring
+underestimate true demand.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/demand_8_0.png}
+    \caption{Demand data with stockout periods (shaded). During stockouts, observed sales represent
+        a lower bound on true demand, not demand itself.}
+    \label{fig:censored_data}
+\end{figure}
+
+\subsection{Censored Likelihood}
+
+The censored normal likelihood accounts for observations that are right-censored:
+
+\begin{lstlisting}[caption={Censored normal likelihood implementation}]
+def censored_normal(loc, scale, y, censored):
+    distribution = dist.Normal(loc=loc, scale=scale)
+    ccdf = 1 - distribution.cdf(y)
+    numpyro.sample(
+        "censored_label",
+        dist.Bernoulli(probs=ccdf).mask(censored == 1),
+        obs=censored
+    )
+    return numpyro.sample("pred", distribution.mask(censored != 1))
+\end{lstlisting}
+
+For uncensored observations, we use the standard normal likelihood. For censored observations, we
+contribute only the survival function $P(Y > y)$ to the likelihood.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/censoring_5_0.png}
+    \caption{Illustration of censoring: when inventory is limited, we observe the inventory
+        level but not the true demand that exceeded it.}
+    \label{fig:censoring_concept}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{tabular}{cc}
+        \includegraphics[width=0.45\textwidth]{images/censoring_12_0.png} &
+        \includegraphics[width=0.45\textwidth]{images/censoring_15_0.png}
+    \end{tabular}
+    \caption{Left: Standard model ignoring censoring underestimates parameters. Right: Censored
+        likelihood recovers true parameters, correctly accounting for truncated observations.}
+    \label{fig:censoring_comparison}
+\end{figure}
+
+\subsection{Censored Time Series Model}
+
+Integrating the censored likelihood into a time series model requires modifying the transition function:
+
+\begin{lstlisting}[caption={AR(2) transition with censored likelihood}]
+def transition_fn(carry, t):
+    y_prev_1, y_prev_2 = carry
+    ar_part = phi_1 * y_prev_1 + phi_2 * y_prev_2
+    pred_mean = mu + ar_part + seasonal[t]
+    # Censored likelihood
+    pred = censored_normal(pred_mean, sigma, y[t], censored[t])
+    return (pred, y_prev_1), pred
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/demand_25_0.png}
+    \caption{Standard ARIMA forecast ignoring censoring. The model underestimates demand during
+        stockout periods and produces biased forecasts.}
+    \label{fig:arima_nocensor}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/demand_48_0.png}
+    \caption{Censored ARIMA forecast correctly inferring latent demand. The model produces
+        unbiased forecasts by properly accounting for the censoring mechanism.}
+    \label{fig:arima_censored}
+\end{figure}
+
+% =============================================================================
+% SECTION 10: PRICE ELASTICITIES
+% =============================================================================
+\section{Hierarchical Price Elasticity Models}
+
+Price elasticity estimation---measuring how demand responds to price changes---benefits from
+hierarchical modeling when data is sparse at the individual product level but abundant across
+products.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/elasticities_58_0.png}
+    \caption{Posterior distributions of price elasticities across SKUs. The hierarchical
+        structure shrinks extreme estimates toward the category mean while preserving
+        meaningful product-level heterogeneity.}
+    \label{fig:elasticities}
+\end{figure}
+
+The hierarchical prior on elasticities takes the form:
+\begin{align*}
+    \beta_{\text{price}, i} & \sim \text{Normal}(\mu_\beta, \sigma_\beta) \\
+    \mu_\beta               & \sim \text{Normal}(-1, 0.5)                 \\
+    \sigma_\beta            & \sim \text{HalfNormal}(0.5)
+\end{align*}
+
+This structure regularizes elasticity estimates for products with limited price variation while
+allowing products with rich data to deviate from the category mean.
+
+% =============================================================================
+% SECTION 11: MODEL CALIBRATION (SHOWCASE)
+% =============================================================================
+\section{Model Calibration with Additional Likelihoods}
+
+This section showcases a powerful technique for incorporating domain knowledge: treating prior beliefs
+as additional likelihood terms. The key inspiration comes from the Pyro DLM tutorial \cite{pyro_dlm_tutorial}.
+
+\subsection{The Core Insight: Priors as Likelihoods}
+
+The fundamental technique is elegant: in probabilistic programming, we can inject constraints at
+specific points by adding observed sample statements. From the Pyro DLM tutorial:
+
+\begin{lstlisting}[caption={Calibration pattern from Pyro DLM tutorial}]
+# Inject prior terms as if they were likelihoods
+for tp, prior in zip(time_points, priors):
+    pyro.sample("weight_prior_{}".format(tp),
+                dist.Normal(prior, 0.5).to_event(1),
+                obs=weight[..., tp:tp+1, 1:])
+\end{lstlisting}
+
+This allows:
+\begin{enumerate}
+    \item Setting informative priors for coefficients at specific time points
+    \item Incorporating experimental results (e.g., lift tests)
+    \item Constraining model behavior in specific regimes
+    \item \textbf{Calibrating any latent component, including Gaussian Processes}
+\end{enumerate}
+
+\subsection{Key Application: HSGP Calibration for Electricity Demand}
+
+Our primary calibration example demonstrates calibrating a Hilbert Space Gaussian Process (HSGP)
+latent component for electricity demand forecasting \cite{orduz_electricity_priors}.
+
+\textbf{Model structure}:
+\begin{itemize}
+    \item Linear model for demand with temperature as regressor
+    \item Hour and day-of-week seasonal effects (ZeroSumNormal)
+    \item Mat\'{e}rn 5/2 kernel via HSGP approximation for temperature effect
+    \item Heteroscedastic noise (scale varies with $\sqrt{\text{temperature}}$)
+    \item Student-t likelihood for robustness
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/electricity_forecast_6_0.png}
+    \caption{Electricity demand data showing the non-linear relationship with temperature.
+        Domain knowledge suggests the effect should stabilize at high temperatures.}
+    \label{fig:electricity_data}
+\end{figure}
+
+\textbf{The problem}: At extreme temperatures ($>32$°C), historical data is sparse, and domain
+knowledge suggests the temperature effect should stabilize around 0.13.
+
+\textbf{The solution}: Calibrate the HSGP latent component:
+
+\begin{lstlisting}[caption={HSGP calibration for electricity demand}]
+# Temperature effect as HSGP (Matern 5/2 approximation)
+beta_temperature = numpyro.deterministic(
+    "beta_temperature",
+    hsgp_matern(x=temperature, nu=5/2, alpha=alpha,
+                length=length_scale, ell=ell, m=m)
+)
+
+# Calibrate GP for high temperatures (>32C)
+temperature_prior_idx = jnp.where(temperature > 32.0)[0]
+if temperature_prior_idx is not None:
+    numpyro.sample(
+        "temperature_prior",
+        dist.Normal(loc=0.13, scale=0.01),  # Domain knowledge
+        obs=beta_temperature[temperature_prior_idx]
+    )
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/electricity_forecast_46_0.png}
+    \caption{Uncalibrated temperature effect from the baseline model. The effect oscillates
+        between 0.11 and 0.15 in the high-temperature regime due to data sparsity.}
+    \label{fig:electricity_uncalibrated}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/electricity_forecast_with_priors_32_0.png}
+    \caption{Calibrated temperature effect. The domain knowledge constraint stabilizes
+        the effect around 0.13 for temperatures above 32°C while maintaining flexibility
+        elsewhere. Forecast metrics (CRPS) remain essentially unchanged.}
+    \label{fig:electricity_calibrated}
+\end{figure}
+
+\subsection{Why HSGP Calibration is Novel}
+
+Most calibration examples focus on simple linear coefficients. This example demonstrates:
+\begin{itemize}
+    \item Calibration works for \textbf{any latent component}, including Gaussian Processes
+    \item HSGP provides efficient GP approximation; calibration refines specific regimes
+    \item Combines GP flexibility with domain knowledge interpretability
+    \item Forecast accuracy preserved while improving coefficient estimates
+\end{itemize}
+
+\subsection{Application: MMM Calibration with Lift Tests}
+
+Marketing Mix Models (MMM) suffer from unobserved confounders. Lift tests provide experimental
+ground truth that can be incorporated as calibration likelihoods \cite{pymc_marketing_lift}:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/pymc-marketing-lift-1.png}
+    \caption{MMM calibration with lift tests. Experimental results constrain media effectiveness
+        estimates, addressing the unobserved confounders problem common in marketing attribution.}
+    \label{fig:mmm_lift}
+\end{figure}
+
+% =============================================================================
+% SECTION 12: STOCHASTIC VARIATIONAL INFERENCE
+% =============================================================================
+\section{Stochastic Variational Inference}
+
+Markov Chain Monte Carlo (MCMC) can be computationally expensive for large-scale forecasting problems
+involving thousands of time series. Stochastic Variational Inference (SVI) \cite{blei2017variational}
+transforms posterior inference into an optimization problem, enabling scalable inference.
+
+\subsection{Core Concepts}
+
+\textbf{Variational family}: Approximate the complex posterior $p(\theta | y)$ with a simpler
+distribution $q_\phi(\theta)$ parameterized by $\phi$.
+
+\textbf{ELBO}: The Evidence Lower Bound serves as the optimization target:
+\begin{equation*}
+    \text{ELBO}(\phi) = \mathbb{E}_{q_\phi}[\log p(y | \theta)] - \text{KL}[q_\phi(\theta) \| p(\theta)]
+\end{equation*}
+
+The first term encourages the approximation to explain the data well; the second term regularizes
+toward the prior.
+
+\subsection{NumPyro SVI Workflow}
+
+\begin{lstlisting}[caption={SVI setup with Optax optimizer}]
+from numpyro.infer import SVI, Trace_ELBO
+from numpyro.infer.autoguide import AutoNormal
+import optax
+
+# Define guide (variational family)
+guide = AutoNormal(model)
+
+# Define optimizer with Optax
+scheduler = optax.linear_onecycle_schedule(
+    transition_steps=num_steps,
+    peak_value=0.01,
+    pct_start=0.1
+)
+optimizer = optax.chain(
+    optax.clip_by_global_norm(1.0),
+    optax.adam(learning_rate=scheduler)
+)
+
+# Initialize SVI
+svi = SVI(model=model, guide=guide, optim=optimizer, loss=Trace_ELBO())
+
+# Run optimization
+svi_result = svi.run(rng_key, num_steps, y=data)
+\end{lstlisting}
+
+\subsection{JAX Ecosystem Integration}
+
+NumPyro integrates seamlessly with the broader JAX ecosystem:
+
+\begin{itemize}
+    \item \textbf{Optax}: Composable gradient transformations including Adam, learning rate schedulers,
+          and gradient clipping.
+    \item \textbf{Flax NNX}: Neural network modules that can be integrated into probabilistic models
+          (see Section~\ref{sec:hybrid}).
+    \item \textbf{JAX JIT}: Automatic compilation for efficient execution on GPU/TPU.
+\end{itemize}
+
+\subsection{AutoGuides}
+
+NumPyro provides automatic guide construction:
+
+\begin{itemize}
+    \item \texttt{AutoNormal}: Mean-field approximation with independent Normal for each parameter
+    \item \texttt{AutoMultivariateNormal}: Full covariance approximation
+    \item \texttt{AutoLowRankMultivariateNormal}: Low-rank approximation for high-dimensional problems
+\end{itemize}
+
+The automatic handling of constraints and transformations makes SVI accessible without deep
+expertise in variational inference.
+
+% =============================================================================
+% SECTION 13: HYBRID DEEP STATE-SPACE MODELS
+% =============================================================================
+\section{Hybrid Deep State-Space Models}
+\label{sec:hybrid}
+
+The final advancement combines neural network components with probabilistic state-space models,
+enabling learning of complex patterns while maintaining interpretable structure \cite{orduz_hierarchical_3}.
+
+\subsection{Neural Network Components}
+
+We define embedding and transition networks using Flax NNX:
+
+\begin{lstlisting}[caption={Neural network components for hybrid model}]
+class StationEmbedding(nnx.Module):
+    def __init__(self, n_stations: int, embedding_dim: int, rngs: nnx.Rngs):
+        self.embedding = nnx.Embed(
+            num_embeddings=n_stations,
+            features=embedding_dim,
+            rngs=rngs
+        )
+
+    def __call__(self, station_idx):
+        return self.embedding(station_idx)
+
+
+class TransitionNetwork(nnx.Module):
+    def __init__(self, embedding_dim: int, hidden_dim: int, rngs: nnx.Rngs):
+        self.dense1 = nnx.Linear(embedding_dim + 1, hidden_dim, rngs=rngs)
+        self.dense2 = nnx.Linear(hidden_dim, 1, rngs=rngs)
+
+    def __call__(self, embedding, level):
+        x = jnp.concatenate([embedding, level[..., None]], axis=-1)
+        x = nnx.relu(self.dense1(x))
+        return self.dense2(x).squeeze(-1)
+\end{lstlisting}
+
+\subsection{Hybrid Model Structure}
+
+The hybrid model augments a local level state-space model with neural network corrections:
+
+\begin{lstlisting}[caption={Hybrid transition function with NN component}]
+def transition_fn(carry, t):
+    level_prev = carry
+
+    # Station embedding
+    embedding = station_embedding(station_idx)
+
+    # NN correction to drift
+    nn_correction = transition_network(embedding, level_prev)
+
+    # Local level update with NN correction
+    level = level_prev + drift + nn_correction
+    level = jnp.where(
+        t < t_max,
+        level_smoothing * y[:, t] + (1 - level_smoothing) * level,
+        level
+    )
+
+    mu = level
+    pred = numpyro.sample("pred", dist.Normal(loc=mu, scale=noise))
+
+    return level, pred
+\end{lstlisting}
+
+The neural network learns station-specific adjustments to the level dynamics that cannot be
+captured by the simple local level model alone.
+
+\subsection{SVI Training}
+
+Training hybrid models requires SVI due to the non-conjugate neural network parameters:
+
+\begin{lstlisting}[caption={SVI training for hybrid model}]
+# Initialize neural network
+nn_params = nnx.state(transition_network)
+
+# AutoNormal guide for probabilistic parameters
+guide = AutoNormal(hybrid_model, init_loc_fn=init_to_mean)
+
+# Optax optimizer with OneCycle schedule
+scheduler = optax.linear_onecycle_schedule(
+    transition_steps=20000,
+    peak_value=0.005
+)
+optimizer = optax.adam(learning_rate=scheduler)
+
+svi = SVI(hybrid_model, guide, optimizer, Trace_ELBO())
+svi_result = svi.run(rng_key, 20000, y=data, station_idx=stations)
+\end{lstlisting}
+
+\subsection{When Neural Networks Help}
+
+Neural network corrections are most valuable when:
+\begin{itemize}
+    \item Multiple related time series share complex non-linear patterns
+    \item Standard state-space models leave systematic residual structure
+    \item Sufficient data exists to learn embeddings without overfitting
+\end{itemize}
+
+For simpler problems, pure state-space models often suffice and provide better interpretability.
+
+% =============================================================================
+% SECTION 14: CONCLUSION
+% =============================================================================
+\section{Conclusion}
+
+This article has presented a comprehensive guide to probabilistic time series forecasting with NumPyro,
+progressing from foundational concepts to advanced hybrid architectures.
+
+\subsection{Key Contributions}
+
+We demonstrated several powerful techniques:
+
+\begin{enumerate}
+    \item \textbf{The scan pattern}: A universal foundation for state-space models in NumPyro, enabling
+          efficient implementation of recursive relationships.
+
+    \item \textbf{Hierarchical modeling}: Sharing information across related time series while respecting
+          individual heterogeneity, particularly valuable for sparse data.
+
+    \item \textbf{Custom likelihoods}: Censored and zero-inflated distributions that accurately model
+          real-world data generating processes.
+
+    \item \textbf{Domain knowledge integration}: Two showcase applications---availability-constrained TSB
+          and HSGP calibration---demonstrate how probabilistic programming enables encoding business logic
+          directly into model structure.
+
+    \item \textbf{Scalable inference}: SVI with Optax integration enables training on thousands of time
+          series efficiently.
+
+    \item \textbf{Neural network integration}: Hybrid models combine interpretable state-space structure
+          with flexible neural network components.
+\end{enumerate}
+
+\subsection{Practical Recommendations}
+
+Based on our experience applying these methods in production:
+
+\begin{itemize}
+    \item Start simple: exponential smoothing models often provide strong baselines.
+    \item Use hierarchical structure when data is sparse for individual series.
+    \item Encode domain knowledge explicitly through model structure or calibration.
+    \item Validate uncertainty calibration, not just point forecast accuracy.
+    \item Use SVI for development iteration, MCMC for final inference when feasible.
+\end{itemize}
+
+\subsection{Acknowledgments}
+
+We gratefully acknowledge the NumPyro core developers---Du Phan, Neeraj Pradhan, and Martin Jankowiak---for
+creating and maintaining this excellent library. The Pyro team at Uber AI Labs, including Eli Bingham,
+Fritz Obermeyer, and Noah Goodman, laid the foundation with Pyro \cite{bingham2019pyro}. The JAX team at
+Google enables the performance that makes these methods practical. Finally, the open-source community's
+contributions through issues, discussions, and pull requests continuously improve these tools.
+
+\bibliographystyle{acm}
+\bibliography{references}
+
+\end{document}
