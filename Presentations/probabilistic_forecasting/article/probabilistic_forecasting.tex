@@ -23,8 +23,8 @@
 
 \lstset{frame=tb,
     language=python,
-    aboveskip=3mm,
-    belowskip=3mm,
+    aboveskip=10pt,
+    belowskip=5pt,
     showstringspaces=false,
     columns=flexible,
     basicstyle={\small\ttfamily},
@@ -35,7 +35,9 @@
     stringstyle=\color{mauve},
     breaklines=true,
     breakatwhitespace=true,
-    tabsize=3
+    tabsize=3,
+    captionpos=b,
+    belowcaptionskip=10pt
 }
 
 \textwidth = 420pt
@@ -65,7 +67,9 @@
 
 \maketitle
 
-\addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
+\tableofcontents
+
+\addtocontents{toc}{\protect\setcounter{tocdepth}{2}}
 
 % =============================================================================
 % SECTION 1: INTRODUCTION
@@ -279,11 +283,21 @@ places most weight on the most recent observation, adapting quickly to changes b
 overreacting to noise. When $\alpha$ is close to 0, the model averages over a long history, providing
 stability but potentially missing genuine shifts in the pattern.
 
-What makes exponential smoothing particularly appealing as a starting point is its interpretability.
-Unlike black-box machine learning models, exponential smoothing has a clear structure: it maintains
-an estimate of the current ``level'' of the series (and optionally trend and seasonality), updating
-this estimate as new observations arrive. This transparency makes it easier to diagnose problems
-and communicate results to stakeholders.
+\subsection{The ETS Framework}
+
+Modern exponential smoothing is unified under the ETS (Error, Trend, Seasonality) framework, popularized
+by Hyndman et al. \cite{hyndman2008forecasting}. This framework classifies models based on how they
+handle three components:
+\begin{itemize}
+    \item \textbf{Error}: How the observation noise enters the model (Additive or Multiplicative).
+    \item \textbf{Trend}: The long-term progression of the series (None, Additive, or Additive Damped).
+    \item \textbf{Seasonality}: Recurring patterns over fixed periods (None, Additive, or Multiplicative).
+\end{itemize}
+
+By viewing exponential smoothing as an \emph{innovations state space model}, we move beyond simple
+recursive formulas to a probabilistic generative model. This perspective is what allows us to
+implement these methods in NumPyro, utilizing likelihood-based estimation and obtaining full
+predictive distributions.
 
 \subsection{Simple Exponential Smoothing}
 
@@ -377,19 +391,29 @@ perspective: they model the \emph{autocorrelation structure} of the data. The ke
 many time series exhibit predictable patterns in how current values relate to past values and past
 forecast errors.
 
-Consider financial returns, where today's movement often partially reverses yesterday's movement
-(mean reversion), or manufacturing processes, where a machine running hot yesterday tends to run
-hot today (persistence). ARIMA models capture these patterns through two mechanisms: the
-\emph{autoregressive} component models how the current value depends on past values directly, while
-the \emph{moving average} component models how the current value depends on past forecast errors.
+\subsection{Stationarity, Differencing, and Model Specification}
 
-The distinction matters in practice. Autoregressive terms capture persistent deviations from the mean,
-while moving average terms capture transient shocks that fade quickly. A series dominated by AR terms
-will show long-memory behavior; a series dominated by MA terms will show short-memory behavior with
-quick reversion to the mean.
+A fundamental concept in ARIMA modeling is \emph{stationarity}. A stationary time series is one whose
+statistical properties---mean, variance, and autocorrelation---are constant over time. Most real-world
+time series, however, exhibit trends or seasonality and are therefore non-stationary.
 
-In the NumPyro framework, ARIMA models follow the same \texttt{scan} pattern as exponential smoothing,
-demonstrating the flexibility of this computational approach.
+The ``I'' in ARIMA stands for \emph{Integrated}, referring to the process of \emph{differencing}
+the data to achieve stationarity. If a series has a trend, we take the first difference:
+$y'_t = y_t - y_{t-1}$. If it has a seasonal pattern, we might take a seasonal difference.
+
+An ARIMA model is typically specified by three parameters $(p, d, q)$:
+\begin{itemize}
+    \item $p$: The order of the \textbf{autoregressive} (AR) part. It tells us how many lagged
+          observations to include as predictors.
+    \item $d$: The degree of \textbf{differencing} required to make the series stationary.
+    \item $q$: The order of the \textbf{moving average} (MA) part. It tells us how many lagged
+          forecast errors to include as predictors.
+\end{itemize}
+
+In practice, we use tools like the Autocorrelation Function (ACF) and Partial Autocorrelation
+Function (PACF) to identify the appropriate values for $p$ and $q$. In the NumPyro framework,
+these models follow the same \texttt{scan} pattern as exponential smoothing, demonstrating the
+flexibility of this computational approach.
 
 \subsection{ARMA(1,1) Model}
 
@@ -430,8 +454,91 @@ relationships between multiple time series. A key application is computing impul
     \label{fig:var_irf}
 \end{figure}
 
+While the models discussed so far are powerful, fitting them to large datasets with many related time
+series poses significant computational challenges. In the next section, we introduce the inference
+machinery that allows us to scale these probabilistic models to thousands of series.
+
 % =============================================================================
-% SECTION 6: HIERARCHICAL MODELS
+% SECTION 6: STOCHASTIC VARIATIONAL INFERENCE
+% =============================================================================
+\section{Stochastic Variational Inference}
+
+Markov Chain Monte Carlo (MCMC) can be computationally expensive for large-scale forecasting problems
+involving thousands of time series. Stochastic Variational Inference (SVI) \cite{blei2017variational}
+transforms posterior inference into an optimization problem, enabling scalable inference. Establishing
+this foundation early is critical for understanding how we scale the more complex models presented
+in the subsequent sections.
+
+\subsection{Core Concepts}
+
+\textbf{Variational family}: Approximate the complex posterior $p(\theta | y)$ with a simpler
+distribution $q_\phi(\theta)$ parameterized by $\phi$.
+
+\textbf{ELBO}: The Evidence Lower Bound serves as the optimization target:
+\begin{equation*}
+    \text{ELBO}(\phi) = \mathbb{E}_{q_\phi}[\log p(y | \theta)] - \text{KL}[q_\phi(\theta) \| p(\theta)]
+\end{equation*}
+
+The first term encourages the approximation to explain the data well; the second term regularizes
+toward the prior.
+
+\subsection{NumPyro SVI Workflow}
+
+\begin{lstlisting}[caption={SVI setup with Optax optimizer}]
+from numpyro.infer import SVI, Trace_ELBO
+from numpyro.infer.autoguide import AutoNormal
+import optax
+
+# Define guide (variational family)
+guide = AutoNormal(model)
+
+# Define optimizer with Optax
+scheduler = optax.linear_onecycle_schedule(
+    transition_steps=num_steps,
+    peak_value=0.01,
+    pct_start=0.1
+)
+optimizer = optax.chain(
+    optax.clip_by_global_norm(1.0),
+    optax.adam(learning_rate=scheduler)
+)
+
+# Initialize SVI
+svi = SVI(model=model, guide=guide, optim=optimizer, loss=Trace_ELBO())
+
+# Run optimization
+svi_result = svi.run(rng_key, num_steps, y=data)
+\end{lstlisting}
+
+\subsection{JAX Ecosystem Integration}
+
+NumPyro integrates seamlessly with the broader JAX ecosystem:
+
+\begin{itemize}
+    \item \textbf{Optax}: Composable gradient transformations including Adam, learning rate schedulers,
+          and gradient clipping.
+    \item \textbf{Flax NNX}: Neural network modules that can be integrated into probabilistic models
+          (see Section~\ref{sec:hybrid}).
+    \item \textbf{JAX JIT}: Automatic compilation for efficient execution on GPU/TPU.
+\end{itemize}
+
+\subsection{AutoGuides}
+
+NumPyro provides automatic guide construction:
+
+\begin{itemize}
+    \item \texttt{AutoNormal}: Mean-field approximation with independent Normal for each parameter
+    \item \texttt{AutoMultivariateNormal}: Full covariance approximation
+    \item \texttt{AutoLowRankMultivariateNormal}: Low-rank approximation for high-dimensional problems
+\end{itemize}
+
+The automatic handling of constraints and transformations makes SVI accessible without deep
+expertise in variational inference. With this scalable inference toolset in place, we now turn
+to models that exploit relationships across multiple time series, beginning with the foundational
+concept of hierarchical modeling.
+
+% =============================================================================
+% SECTION 7: HIERARCHICAL MODELS
 % =============================================================================
 \section{Hierarchical Models}
 
@@ -491,7 +598,7 @@ around this mean.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{images/hierarchical_exponential_smoothing_69_0.png}
+    \includegraphics[width=0.85\textwidth]{images/hierarchical_exponential_smoothing_69_0.png}
     \caption{Hierarchical forecasts for selected regions with 94\% HDIs. The model appropriately
         quantifies uncertainty, with wider intervals for regions with higher volatility.}
     \label{fig:hier_forecast}
@@ -499,20 +606,61 @@ around this mean.
 
 \subsection{Baseline Production Model}
 
-For large-scale applications, we developed a baseline model combining local level dynamics with
-Fourier seasonality and external covariates:
+For large-scale applications, we developed a baseline model that serves as a robust production-ready
+solution. This model combines local level dynamics with seasonal features and external covariates,
+structured as a hierarchical state-space model.
+
+\subsubsection{Mathematical Structure}
+
+The model for each time series $i$ at time $t$ is formulated as:
+\begin{align*}
+    y_{i,t} & \sim \text{Normal}(\mu_{i,t}, \sigma) \\
+    \mu_{i,t} & = l_{i,t} + s_{i,t} + \mathbf{x}_{i,t}^\top \boldsymbol{\beta}_i \\
+    l_{i,t} & = l_{i,t-1} + \delta_{i,t} \\
+    \delta_{i,t} & \sim \text{Normal}(0, \sigma_\delta)
+\end{align*}
+where $l_{i,t}$ is the local level (a random walk), $s_{i,t}$ is the seasonal component, and
+$\mathbf{x}_{i,t}^\top \boldsymbol{\beta}_i$ represents the effect of external covariates
+(e.g., promotions, holidays).
+
+\subsubsection{Implementation Details in NumPyro}
+
+A key challenge in fitting hierarchical models like this is the geometry of the posterior distribution,
+often referred to as ``Neal's funnel.'' When the group-level variance $\sigma_\delta$ is small, the
+drift parameters $\delta_{i,t}$ become highly constrained, making it difficult for inference
+algorithms to explore the parameter space effectively.
+
+To address this, we use \emph{non-centered parameterization}. Instead of sampling $\delta_{i,t}$
+directly from $\text{Normal}(0, \sigma_\delta)$, we sample a standardized variable $\tilde{\delta}_{i,t} \sim \text{Normal}(0, 1)$
+and then set $\delta_{i,t} = \tilde{\delta}_{i,t} \cdot \sigma_\delta$. NumPyro provides the
+\texttt{LocScaleReparam} handler \cite{gorinova2019automatic} to automate this transformation:
+
+\begin{lstlisting}[caption={Hierarchical drift with LocScaleReparam}]
+with numpyro.handlers.reparam(config={"drift": LocScaleReparam(centered=0)}):
+    drift = numpyro.sample("drift", dist.Normal(0, drift_scale))
+\end{lstlisting}
+
+This reparameterization is critical for both MCMC stability and SVI convergence. The model
+utilizes global-local structure where scales like $\sigma_\delta$ and $\sigma$ are shared across
+all series, while the drift and seasonal components are local. This allows the model to
+``borrow strength'' across the entire dataset while remaining flexible enough to capture
+individual series behavior \cite{orduz_hierarchical_1}.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{images/baseline_covariates.png}
-    \caption{Production baseline model architecture: local level for trend, Fourier modes for
-        seasonality, covariates for promotions/discounts, and a global availability factor.
-        This model scales to approximately 40,000 time series in under 10 minutes on GPU.}
+    \caption{Production baseline model architecture. The local level captures trend shifts via a random
+        walk, while Fourier modes or repeated features handle seasonality. External covariates provide
+        the model with information about planned interventions like promotions.}
     \label{fig:baseline}
 \end{figure}
 
+The hierarchical models discussed so far assume a continuous demand stream. However, in
+many retail environments, we encounter products with sporadic sales, requiring a shift in how we
+model the demand generation process.
+
 % =============================================================================
-% SECTION 7: INTERMITTENT DEMAND
+% SECTION 8: INTERMITTENT DEMAND
 % =============================================================================
 \section{Intermittent Demand Forecasting}
 
@@ -584,9 +732,24 @@ def croston_model(z: ArrayLike, p_inv: ArrayLike, future: int = 0) -> None:
 
 The Teunter-Syntetos-Babai (TSB) method \cite{teunter2011intermittent} takes a slightly different
 approach: instead of modeling inter-arrival periods, it directly models the \emph{probability} that
-demand occurs in each period. The forecast becomes $\hat{y}_{t+h} = \hat{z}_{t+h} \cdot \hat{p}_{t+h}$,
-where $p_t$ now represents the probability of non-zero demand rather than the inverse of the inter-arrival
-time. This formulation often provides more stable forecasts and forms the foundation for the
+demand occurs in each period. This is particularly advantageous because it updates the demand
+probability at \emph{every} time step, not just when demand occurs.
+
+The TSB model maintains two latent states: the demand size $z_t$ and the demand probability $p_t$.
+The update equations are:
+\begin{align*}
+    z_t & = \begin{cases} 
+                \alpha y_t + (1 - \alpha) z_{t-1} & \text{if } y_t > 0 \\
+                z_{t-1} & \text{if } y_t = 0
+            \end{cases} \\
+    p_t & = \beta I(y_t > 0) + (1 - \beta) p_{t-1}
+\end{align*}
+where $I(\cdot)$ is the indicator function. Notice that when $y_t = 0$, the probability $p_t$
+decays by a factor of $(1 - \beta)$. This allows the model to quickly adapt to obsolescence
+or long periods of zero demand. The forecast is then the product of the two components:
+$\hat{y}_{t+h} = \hat{z}_{t+h} \cdot \hat{p}_{t+h}$.
+
+This formulation often provides more stable forecasts and forms the foundation for the
 availability-constrained model we develop in the next section.
 
 \begin{figure}[H]
@@ -628,8 +791,11 @@ def transition_fn(carry, t):
     \label{fig:zi_tsb}
 \end{figure}
 
+Building on the TSB framework, we can now address one of the most common challenges in
+retail forecasting: accounting for the impact of product availability on observed demand patterns.
+
 % =============================================================================
-% SECTION 8: AVAILABILITY-CONSTRAINED TSB (SHOWCASE)
+% SECTION 9: AVAILABILITY-CONSTRAINED TSB (SHOWCASE)
 % =============================================================================
 \section{Availability-Constrained TSB: A Custom Probabilistic Model}
 
@@ -751,8 +917,12 @@ for operational use in a real retail environment.
     \label{fig:avail_cv}
 \end{figure}
 
+While the availability-constrained TSB model handles zeros during stockouts, we also need
+tools to handle situations where demand is \emph{partially} met but still higher than recorded
+sales---a problem known as demand censoring.
+
 % =============================================================================
-% SECTION 9: CENSORED DEMAND
+% SECTION 10: CENSORED DEMAND
 % =============================================================================
 \section{Censored Demand Forecasting}
 
@@ -855,36 +1025,70 @@ def transition_fn(carry, t):
     \label{fig:arima_censored}
 \end{figure}
 
+Correctly inferring latent demand is the first step toward effective revenue management.
+Next, we explore how to estimate price sensitivity in a hierarchical framework, where these demand
+insights are put into action.
+
 % =============================================================================
-% SECTION 10: PRICE ELASTICITIES
+% SECTION 11: PRICE ELASTICITIES
 % =============================================================================
 \section{Hierarchical Price Elasticity Models}
 
-Price elasticity estimation---measuring how demand responds to price changes---benefits from
-hierarchical modeling when data is sparse at the individual product level but abundant across
-products.
+Price elasticity estimation---measuring how demand responds to price changes---is a cornerstone of
+revenue management and promotional strategy. Estimating these elasticities at the individual product
+(SKU) level is challenging because many products have limited price variation or short histories.
+Hierarchical modeling allows us to share information across products, regularizing estimates
+for data-poor SKUs while allowing data-rich SKUs to express their unique sensitivities.
+
+\subsection{Controlling for Fixed Effects}
+
+To obtain unbiased estimates of price elasticity, it is crucial to control for factors that
+simultaneously influence price and demand. We specify a log-log model with two types of fixed effects:
+
+\begin{equation*}
+    \log(d_{i,t}) = \alpha_i + \tau_t + \beta_i \log(p_{i,t}) + \epsilon_{i,t}
+\end{equation*}
+
+\begin{itemize}
+    \item \textbf{Product Fixed Effects ($\alpha_i$)}: These intercepts account for time-invariant
+          characteristics of each product, such as brand equity, quality, and typical pack size.
+          By including $\alpha_i$, we ensure that $\beta_i$ captures the effect of \emph{price changes}
+          rather than baseline demand differences between expensive and cheap products.
+    \item \textbf{Time Fixed Effects ($\tau_t$)}: These account for unobserved shocks that affect
+          all products simultaneously, such as macroeconomic shifts, holiday effects, or general
+          inflation. Without time fixed effects, we might incorrectly attribute a seasonal demand
+          surge to a coincidental price drop.
+\end{itemize}
+
+\subsection{Hierarchical Structure}
+
+We place a hierarchical prior on the elasticity parameters $\beta_i$, allowing the model to learn
+ the category-level distribution:
+\begin{align*}
+    \beta_i      & \sim \text{Normal}(\mu_\beta, \sigma_\beta) \\
+    \mu_\beta    & \sim \text{Normal}(-1, 0.5)                 \\
+    \sigma_\beta & \sim \text{HalfNormal}(0.5)
+\end{align*}
+
+This structure ensures that for products with little price variation, the estimate shrinks toward the
+category mean $\mu_\beta$. For products with rich data, the posterior for $\beta_i$ will be driven
+primarily by the product's own price-demand relationship.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{images/elasticities_58_0.png}
     \caption{Posterior distributions of price elasticities across SKUs. The hierarchical
-        structure shrinks extreme estimates toward the category mean while preserving
-        meaningful product-level heterogeneity.}
+        structure effectively handles the diversity of products while providing stable estimates
+        across the entire category.}
     \label{fig:elasticities}
 \end{figure}
 
-The hierarchical prior on elasticities takes the form:
-\begin{align*}
-    \beta_{\text{price}, i} & \sim \text{Normal}(\mu_\beta, \sigma_\beta) \\
-    \mu_\beta               & \sim \text{Normal}(-1, 0.5)                 \\
-    \sigma_\beta            & \sim \text{HalfNormal}(0.5)
-\end{align*}
-
-This structure regularizes elasticity estimates for products with limited price variation while
-allowing products with rich data to deviate from the category mean.
+Estimating elasticities from observational data often requires additional constraints
+to ensure results remain within physically or economically plausible bounds. We now introduce
+a general technique for injecting such domain expertise directly into the inference process.
 
 % =============================================================================
-% SECTION 11: MODEL CALIBRATION (SHOWCASE)
+% SECTION 12: MODEL CALIBRATION (SHOWCASE)
 % =============================================================================
 \section{Model Calibration with Additional Likelihoods}
 
@@ -1025,80 +1229,10 @@ and relative effects) and the experimental data (which provides unconfounded est
     \label{fig:mmm_lift}
 \end{figure}
 
-% =============================================================================
-% SECTION 12: STOCHASTIC VARIATIONAL INFERENCE
-% =============================================================================
-\section{Stochastic Variational Inference}
-
-Markov Chain Monte Carlo (MCMC) can be computationally expensive for large-scale forecasting problems
-involving thousands of time series. Stochastic Variational Inference (SVI) \cite{blei2017variational}
-transforms posterior inference into an optimization problem, enabling scalable inference.
-
-\subsection{Core Concepts}
-
-\textbf{Variational family}: Approximate the complex posterior $p(\theta | y)$ with a simpler
-distribution $q_\phi(\theta)$ parameterized by $\phi$.
-
-\textbf{ELBO}: The Evidence Lower Bound serves as the optimization target:
-\begin{equation*}
-    \text{ELBO}(\phi) = \mathbb{E}_{q_\phi}[\log p(y | \theta)] - \text{KL}[q_\phi(\theta) \| p(\theta)]
-\end{equation*}
-
-The first term encourages the approximation to explain the data well; the second term regularizes
-toward the prior.
-
-\subsection{NumPyro SVI Workflow}
-
-\begin{lstlisting}[caption={SVI setup with Optax optimizer}]
-from numpyro.infer import SVI, Trace_ELBO
-from numpyro.infer.autoguide import AutoNormal
-import optax
-
-# Define guide (variational family)
-guide = AutoNormal(model)
-
-# Define optimizer with Optax
-scheduler = optax.linear_onecycle_schedule(
-    transition_steps=num_steps,
-    peak_value=0.01,
-    pct_start=0.1
-)
-optimizer = optax.chain(
-    optax.clip_by_global_norm(1.0),
-    optax.adam(learning_rate=scheduler)
-)
-
-# Initialize SVI
-svi = SVI(model=model, guide=guide, optim=optimizer, loss=Trace_ELBO())
-
-# Run optimization
-svi_result = svi.run(rng_key, num_steps, y=data)
-\end{lstlisting}
-
-\subsection{JAX Ecosystem Integration}
-
-NumPyro integrates seamlessly with the broader JAX ecosystem:
-
-\begin{itemize}
-    \item \textbf{Optax}: Composable gradient transformations including Adam, learning rate schedulers,
-          and gradient clipping.
-    \item \textbf{Flax NNX}: Neural network modules that can be integrated into probabilistic models
-          (see Section~\ref{sec:hybrid}).
-    \item \textbf{JAX JIT}: Automatic compilation for efficient execution on GPU/TPU.
-\end{itemize}
-
-\subsection{AutoGuides}
-
-NumPyro provides automatic guide construction:
-
-\begin{itemize}
-    \item \texttt{AutoNormal}: Mean-field approximation with independent Normal for each parameter
-    \item \texttt{AutoMultivariateNormal}: Full covariance approximation
-    \item \texttt{AutoLowRankMultivariateNormal}: Low-rank approximation for high-dimensional problems
-\end{itemize}
-
-The automatic handling of constraints and transformations makes SVI accessible without deep
-expertise in variational inference.
+The models discussed so far rely on hand-engineered features and explicit state-space
+structures. In our final showcase, we explore how to integrate the representative power of
+neural networks with the interpretability of state-space models to capture complex, non-linear
+patterns in high-dimensional datasets.
 
 % =============================================================================
 % SECTION 13: HYBRID DEEP STATE-SPACE MODELS
