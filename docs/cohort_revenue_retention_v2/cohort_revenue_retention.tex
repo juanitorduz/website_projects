@@ -44,14 +44,14 @@
 \begin{document}
 \title{Cohort Revenue \& Retention Analysis: A Bayesian Approach}
 
-\author{Daniel Guhl}
-\email{daniel.guhl@hu-berlin.de}
-\address{Humboldt-Universit\"{a}t zu Berlin, Germany}
-
 \author{Juan Camilo Orduz}
 \email{juanitorduz@gmail.com}
 \urladdr{\href{https://juanitorduz.github.io/}{https://juanitorduz.github.io/}}
 \address{Berlin, Germany}
+
+\author{Daniel Guhl}
+\email{daniel.guhl@hu-berlin.de}
+\address{Humboldt-Universit\"{a}t zu Berlin, Germany}
 
 \date{\today}
 
@@ -77,7 +77,6 @@
 \addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
 
 \section{Introduction}
-
 Understanding and predicting customer behavior directly impacts business profitability through improved retention strategies
 and resource allocation. Among the metrics that define business success, retention and customer lifetime value
 estimation stand at the forefront, serving as critical indicators of a company's ability to not only attract but maintain a
@@ -1009,7 +1008,7 @@ This dataset provides an excellent testbed for our methodology due to its scale,
 of realistic patterns in customer purchasing behavior.
 The dataset contains approximately $31$ million transactions from over $1.36$ million unique customers, spanning
 from September $2018$ to September $2020$. For our cohort analysis, we aggregate customers into monthly cohorts based
-on their first purchase date, resulting in $18$ cohorts from November $2018$ to April $2020$. We use a train/test split
+on their first purchase date, resulting in $20$ cohorts from November $2018$ to June $2020$. We use a train/test split
 at May $2020$, holding out $3$ months of data (June--August 2020) for out-of-sample evaluation. This split allows us
 to assess the model's forecasting ability while ensuring sufficient training data for each cohort.
 Figures \ref{fig:hm_retention_matrix} and \ref{fig:hm_revenue_matrix} present the retention and revenue matrices
@@ -1126,6 +1125,91 @@ provide well-calibrated uncertainty estimates. The benchmark results above demon
 cohort-level framework not only scales gracefully but also delivers superior predictive performance
 compared to standard time series and machine learning baselines.
 \end{remark}
+
+\subsection{Comparison with Classical CLV Models}\label{sec:clv_comparison}
+
+To provide a comprehensive evaluation of our proposed framework, we compare it against classical buy-till-you-die (BTYD)
+models from the customer lifetime value literature. Specifically, we implement the BG/NBD model \cite{FaderHardie2005}
+for modeling purchase frequency and dropout, combined with the Gamma-Gamma model \cite{fader2005rfm} for monetary value
+estimation. These models represent the standard approach for CLV estimation in non-contractual settings and are
+implemented in PyMC-Marketing \cite{pymc_marketing}\footnote{The complete implementation code for this comparison
+is available at \url{https://github.com/juanitorduz/website_projects/blob/master/Python/cohort-revenue-retention/hm-pymc-marketing.ipynb}.}.
+
+\subsubsection{Cohort-Based Fitting Approach}
+
+A key challenge when applying BG/NBD models to retail datasets is their assumption of stationary purchase rates.
+The model assumes that each customer's underlying transaction rate remains constant over time, which conflicts
+with the strong seasonal patterns observed in fashion retail data. The H\&M dataset exhibits clear seasonality
+in both retention and revenue (as shown in Figures \ref{fig:hm_retention_matrix} and \ref{fig:hm_revenue_matrix}),
+making a single global BG/NBD model inappropriate.
+
+To address this limitation, we adopt a cohort-based fitting strategy: instead of fitting a single model to all
+$1.36$ million customers, we fit separate BG/NBD and Gamma-Gamma model pairs for each of the $20$ monthly cohorts.
+This approach implicitly captures some seasonal effects by allowing each cohort to have its own parameter estimates,
+reflecting the purchasing patterns of customers acquired during different times of the year. We use maximum a
+posteriori (MAP) estimation because full MCMC sampling at this scale, with over one million customers, is
+computationally infeasible in practice. Moreover, given the model's inherent limitations (stationarity assumption,
+lack of seasonality flexibility), investing substantial computational resources in full Bayesian inference would
+not address the fundamental modeling constraints.
+
+\subsubsection{Implementation Challenges and Solutions}
+
+Fitting BG/NBD models via MAP estimation proved challenging for several cohorts with extreme data characteristics.
+The optimizer can produce NaN parameter estimates when cohorts exhibit:
+
+\begin{itemize}
+    \item \textbf{High repeat rates} ($>90\%$): The optimizer pushes the dropout parameters ($a$ and $b$ in the
+          Beta distribution governing dropout probability) toward extreme values, causing numerical instability.
+    \item \textbf{Low recency/T ratios} ($<0.25$): Customers who made their last purchase long before the
+          observation end appear ``dormant,'' leading to extreme estimates for the dropout shape parameter.
+\end{itemize}
+
+To address these convergence issues, we implemented a progressive prior tightening strategy with three tiers
+of increasingly informative priors:
+
+\begin{enumerate}
+    \item \textbf{Default priors} ($\sigma = 5$): Moderately informative HalfNormal priors that work for
+          typical cohorts with balanced repeat rates.
+    \item \textbf{Tight priors} ($\sigma = 2$): Used as a fallback for cohorts with high-frequency customers
+          (mean frequency $> 20$), constraining the parameter space to avoid extreme values.
+    \item \textbf{Very tight priors} ($\sigma = 1$): A final fallback for cohorts with low recency/T ratios,
+          strongly constraining parameters near typical values.
+\end{enumerate}
+
+The fitting algorithm attempts each configuration in sequence, with multiple random seeds per configuration,
+until a valid (non-NaN) fit is obtained. This strategy successfully fitted all $20$ cohorts, though we note
+the trade-off: tighter priors stabilize MAP estimation but may introduce bias in parameter estimates.
+
+\subsubsection{Results and Discussion}
+
+Figure \ref{fig:cohort_bg_nbd} presents the revenue predictions from the cohort-based BG/NBD + Gamma-Gamma
+models for the same cohorts shown in Figure \ref{fig:hm_revenue_predictions}. Several qualitative observations
+emerge from comparing this approach with our BART-based framework:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/cohort_bg_nbd.png}
+    \caption{Revenue predictions using cohort-based BG/NBD + Gamma-Gamma models for selected cohorts.
+        Blue lines show observed training revenue, orange lines show model predictions, and orange dots
+        indicate observed test revenue.}
+    \label{fig:cohort_bg_nbd}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{Flat predictions}: The BG/NBD predictions are essentially flat across the test period due to
+          the stationarity assumption, unable to capture seasonal patterns visible in the actual data.
+    \item \textbf{No cross-cohort information sharing}: Each cohort's model is fitted independently, which is
+          particularly problematic for young cohorts with limited training data.
+\end{itemize}
+
+Classical BTYD models remain valuable tools for individual-level CLV estimation in stationary settings.
+However, for cohort-level and aggregate revenue forecasting, the focus of this paper, our framework offers
+practical advantages: it is more accurate for seasonal data, simpler to implement (a single model versus
+$20$ separate model pairs), and more interpretable through tools like partial dependence plots. The ability
+to naturally incorporate calendar effects and share information across cohorts makes it well-suited for
+the business decision-making contexts we target. We could of course think about a fully Bayesian 
+hierarchical model where we pool in the parameters of the BG/NBD and Gamma-Gamma models across cohorts,
+but this would be computationally prohibitive for the scale of the dataset (which is not uncommon for many businesses).
 
 \subsection{Limitations and Future Work}\label{sec:limitations}
 
