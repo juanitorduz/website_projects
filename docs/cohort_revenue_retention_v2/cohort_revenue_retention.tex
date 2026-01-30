@@ -1082,20 +1082,20 @@ Percentage Error (MAPE) computed on the held-out test set.
         \hline
         \textbf{Model}                & \textbf{MAE} & \textbf{RMSE} & \textbf{MAPE (\%)} \\
         \hline
-        Bayesian (BART)               & 97.70        & 169.64        & 10.77              \\
-        AutoMFLES                     & 212.61       & 297.81        & 28.07              \\
-        SES                           & 157.92       & 230.42        & 17.14              \\
-        HistGradientBoostingRegressor & 204.51       & 282.49        & 31.63              \\
+        Bayesian (BART)               & 82.46        & 135.64        & 10.03              \\
+        AutoMFLES                     & 190.39       & 256.97        & 28.07              \\
+        SES                           & 142.64       & 193.19        & 17.78              \\
+        HistGradientBoostingRegressor & 161.90       & 218.32        & 25.12              \\
         \hline
     \end{tabular}
 \end{table}
 
 The quantitative results confirm what the visual comparisons suggest: our Bayesian cohort-revenue-retention model
 dramatically outperforms standard time series and machine learning approaches. The improvement is most pronounced
-in MAPE, where the Bayesian model achieves $10.77\%$ compared to $17.14\%$--$31.63\%$ for the baselines, reflecting
+in MAPE, where the Bayesian model achieves $10.03\%$ compared to $17.78\%$--$28.07\%$ for the baselines, reflecting
 the model's ability to maintain proportionally accurate predictions across cohorts of varying sizes and revenue
-magnitudes. The MAE and RMSE metrics tell a similar story: the Bayesian model's MAE of $97.70$ is roughly half
-that of the best-performing baseline (SES at $157.92$), demonstrating substantial improvements in absolute
+magnitudes. The MAE and RMSE metrics tell a similar story: the Bayesian model's MAE of $82.46$ is roughly half
+that of the best-performing baseline (SES at $142.64$), demonstrating substantial improvements in absolute
 prediction accuracy.
 
 Finally, Figure \ref{fig:hm_total_revenue} aggregates predictions across all training cohorts to show total revenue forecasting
@@ -1106,9 +1106,7 @@ while baseline methods diverge substantially in the test period.
     \centering
     \includegraphics[width=\textwidth]{images/hm-transactions_65_0.png}
     \caption{Total revenue predictions (aggregated across all training cohorts) comparing the Bayesian model with
-        baselines. The black line shows observed total revenue, while colored lines show model predictions. The
-        Bayesian model's uncertainty bands (blue/orange shading for train/test periods) appropriately capture
-        the observed values, while point forecasts from baseline methods miss the actual revenue trajectory.}
+        baselines. The black line shows observed total revenue, while colored lines show model predictions.}
     \label{fig:hm_total_revenue}
 \end{figure}
 
