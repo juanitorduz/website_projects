@@ -80,7 +80,7 @@
 Understanding and predicting customer behavior directly impacts business profitability through improved retention strategies
 and resource allocation. Among the metrics that define business success, retention and customer lifetime value
 estimation stand at the forefront, serving as critical indicators of a company's ability to not only attract but maintain a
-loyal customer base. These metrics transcend mere financial accounting—they represent the foundation upon which long-term
+loyal customer base. These metrics transcend mere financial accounting they represent the foundation upon which long-term
 business strategies are built and refined. Seminal work by Fader and Hardie has established frameworks for both contractual
 settings \cite{FaderHardie2007}, where subscription-based relationships predominate, and non-contractual settings
 \cite{FaderHardie2005}, where customers may come and go without formal notification\footnote{Our definition of retention
@@ -92,7 +92,7 @@ often struggle to scale effectively. They can definitively be scaled with modern
 stochastic variational inference, as described below). Nevertheless, this requires non-trivial work and effort.\\
 
 For many decision-making processes, companies and senior management (think of a C-level executive) mostly need to understand
-behaviors at the cohort level—groups (e.g. cohorts of customers who joined during the same time period). In this paper we
+behaviors at the cohort level groups (e.g. cohorts of customers who joined during the same time period). In this paper we
 focus on this level of granularity. When shifting from individual to cohort-level analysis, businesses typically face a
 methodological trilemma:
 
@@ -111,7 +111,7 @@ As detailed by \cite{FaderHardieNote2017}, each approach offers distinct advanta
 challenge persists across these traditional methodologies: they typically lack the flexibility to efficiently incorporate
 seasonality patterns and external regressors\footnote{Although, one can add regressors in some cases as described in
     \cite{FaderHardieNote2007} for the non-contractual case.}. This limitation becomes particularly problematic for businesses
-with highly seasonal customer behavior—from retail operations affected by holiday shopping patterns to subscription services
+with highly seasonal customer behavior from retail operations affected by holiday shopping patterns to subscription services
 influenced by annual promotional cycles. While some might argue that seasonality is secondary when estimating customer
 lifetime value, the reality for many business models is that seasonal fluctuations significantly impact customer acquisition,
 engagement, and retention decisions. Beyond the methodological challenges, businesses face practical hurdles in translating
@@ -160,7 +160,7 @@ decision-making contexts.
 \end{itemize}
 
 Importantly, the cohort-level focus does not preclude the incorporation of customer characteristics. As we demonstrate in our
-framework, additional covariates—such as acquisition channel, geographic location, or customer segment—can be seamlessly
+framework, additional covariates such as acquisition channel, geographic location, or customer segment can be seamlessly
 integrated into our model. To capture complex patterns in retention behavior without requiring explicit specification of
 functional forms, we employ Bayesian Additive Regression Trees (BART) \cite{chipman2010bart}. BART is a flexible non-parametric
 method that represents the unknown function as a sum of regression trees, allowing it to automatically learn non-linear
@@ -246,8 +246,8 @@ constraints. Moreover, standard APC models are typically specified for a single 
 of age, period, and cohort effects. While APC models have been extended to multivariate settings in some contexts, the standard
 framework and most applications focus on univariate outcomes. Our framework shares with APC models the recognition that outcomes
 depend on age (time since cohort formation), period (calendar time), and cohort identity. However, rather than focusing on
-decomposing and identifying separate age, period, and cohort effects—which requires imposing constraints or noting that only
-non-linear components are identifiable—we use flexible non-parametric modeling that captures the joint functional
+decomposing and identifying separate age, period, and cohort effects which requires imposing constraints or noting that only
+non-linear components are identifiable we use flexible non-parametric modeling that captures the joint functional
 relationship between these temporal dimensions without requiring explicit decomposition. Furthermore, we extend to joint
 modeling of two related outcomes (retention and revenue) through a principled coupling mechanism.
 
@@ -256,13 +256,13 @@ modeling of two related outcomes (retention and revenue) through a principled co
 Recently, \cite{hubbard2021beta} introduced Beta Survival Models
 that use non-parametric methods to model discrete-time survival probabilities with a beta-logistic formulation.
 Their work demonstrates the value of flexible, non-parametric approaches for capturing heterogeneous survival patterns and
-forecasting beyond observed horizons—capabilities that are particularly relevant for retention modeling
+forecasting beyond observed horizons capabilities that are particularly relevant for retention modeling
 in business contexts. Our retention component shares the motivation of using
 flexible non-parametric methods to model time-to-churn patterns. However, we extend this foundation in
 two critical directions. First, while \cite{hubbard2021beta} focus solely on survival/retention, we introduce a novel
 coupling mechanism that connects retention to revenue through the number of active users, enabling joint forecasting of
 both business-critical metrics. Second, our framework explicitly incorporates cohort structure and temporal effects in a
-way that facilitates information sharing across cohorts—a feature absent from standard survival models but essential for
+way that facilitates information sharing across cohorts a feature absent from standard survival models but essential for
 business applications where newer cohorts have limited historical data.
 
 \subsection{Customer Lifetime Value Models}
@@ -302,8 +302,8 @@ denote the cohort age (time since acquisition). We model:
 
 where $p_{i,j}$ represents the retention probability and $\lambda_{i,j}$ is the rate parameter for revenue. This coupling extends 
 decomposition ideas similar to those in the Gamma-Gamma model \cite{fader2005rfm}, which separates transaction frequency 
-from monetary value. The key insight is that the number of active users $N_{\text{active}, i,j}$—a latent quantity we estimate 
-through the retention model—directly informs the revenue model as its shape parameter.
+from monetary value. The key insight is that the number of active users $N_{\text{active}, i,j}$ a latent quantity we estimate 
+through the retention model directly informs the revenue model as its shape parameter.
 
 This formulation offers several important properties:
 
@@ -567,8 +567,8 @@ priors and parameter estimation. The main tuning parameter is the number of tree
 modeling, we typically start with $m = 20$ trees and increase incrementally (e.g., to $50$ or $100$) while monitoring posterior
 predictive fit. BART is relatively insensitive to this choice for sufficiently large $m$, but smaller values offer
 computational efficiency and maintain interpretability through tools like partial dependence plots.
-Readers interested in the mathematical details of BART priors—including tree topology priors, splitting rule distributions,
-and leaf parameter specifications—are referred to the comprehensive treatment in \cite{chipman2010bart} and the implementation
+Readers interested in the mathematical details of BART priors including tree topology priors, splitting rule distributions,
+and leaf parameter specifications are referred to the comprehensive treatment in \cite{chipman2010bart} and the implementation
 details in \cite{quiroga2022bart}.
 
 \begin{remark}[Additional Covariates]
@@ -654,7 +654,7 @@ provides an adequate fit to the data.
 Beyond the posterior predictive check, we examine convergence diagnostics for
 the model parameters. Figure \ref{fig:trace} displays trace plots for the linear model parameters
 (intercept and regression coefficients). These plots show the evolution of parameter values across MCMC iterations for each chain.
-Good mixing—evidenced by chains that explore the parameter space efficiently without getting stuck—is essential for reliable inference.
+Good mixing evidenced by chains that explore the parameter space efficiently without getting stuck is essential for reliable inference.
 We observe healthy mixing for all parameters, with no divergences or convergence warnings. All $\hat{R}$ statistics are below $1.01$,
 confirming convergence. These diagnostics give us confidence that the MCMC sampling has successfully explored the posterior
 distribution and that our parameter estimates are reliable.
@@ -904,7 +904,7 @@ The choice between BART and neural network approaches depends on the specific ne
     \item For large-scale applications where inference speed is essential or when rapid model iteration is needed, the neural
           network approach with SVI offers significant advantages.
 
-    \item In some cases, a hybrid approach might be valuable—using the faster neural network model for initial exploration
+    \item In some cases, a hybrid approach might be valuable using the faster neural network model for initial exploration
           and prototyping, then moving to BART for final analysis when interpretability is needed.
 \end{itemize}
 
@@ -923,7 +923,7 @@ information pooling while preserving market-specific patterns.
 
 The business motivation for hierarchical modeling is compelling. Consider a company expanding into new geographic regions or
 launching products in new market segments. Early-stage markets lack the data needed for reliable independent forecasts, yet
-business decisions—resource allocation, growth projections, strategic planning—cannot wait years for sufficient data
+business decisions resource allocation, growth projections, strategic planning cannot wait years for sufficient data
 accumulation. By borrowing information from more established markets through hierarchical priors, we can generate credible
 forecasts for young markets that would otherwise be impossible to model reliably. \\
 
@@ -941,7 +941,7 @@ We extend the neural network approach from Section \ref{sec:alternative_approach
 
 The hierarchical structure naturally addresses the data asymmetry problem: markets with abundant data inform the hierarchical
 priors, which in turn regularize predictions for data-sparse markets toward sensible values. Crucially, the coupling mechanism
-between retention and revenue components remains intact in this hierarchical setting—the number of active users predicted by
+between retention and revenue components remains intact in this hierarchical setting the number of active users predicted by
 the retention model still informs the revenue model's shape parameter.
 
 \subsection{Synthetic Multi-Market Data}
@@ -1008,7 +1008,7 @@ Several key findings emerge from the hierarchical implementation:
           the hierarchical setting. Active user predictions from the retention model inform revenue forecasts across all markets.
 \end{itemize}
 
-The hierarchical extension demonstrates that the framework's core architecture—the coupling between retention and revenue—
+The hierarchical extension demonstrates that the framework's core architecture the coupling between retention and revenue 
 naturally extends to more complex settings. This extensibility is not accidental but rather a consequence of the modular
 design: the coupling mechanism operates at the cohort-observation level and is agnostic to whether those observations come from
 a single market or multiple markets with hierarchical structure.
@@ -1023,7 +1023,7 @@ where full MCMC would be computationally prohibitive\footnote{
 alternative that may provide more accurate uncertainty quantification. The complete implementation, including data generation,
 model specification, and visualization code, is available at \cite{orduz_hierarchical_revenue_retention}.
 The implementation demonstrates that extending the base framework to hierarchical structures requires modest additional
-complexity—primarily the specification of hierarchical priors and the inclusion of market
+complexity primarily the specification of hierarchical priors and the inclusion of market
 identifiers in the feature set. That being said, inference on hierarchical models is in general more challenging becuase of the
 non-linear geometry of the parameter space. Fortunately, NumPyro offers automatic mechanism to reparameterize the model
 to make it more amenable to SVI (\cite{gorinova2020automatic}).
@@ -1098,7 +1098,7 @@ The failure of other benchmark methods is particularly pronounced for cohorts wi
 March $2020$ and April $2020$ cohorts, which have only $2$--$3$ observations before the test period). These methods
 cannot extrapolate meaningful patterns from such sparse data. Our framework, by contrast, leverages the shared
 structure across all cohorts, learning that retention decays with cohort age, that revenue correlates with active
-users, and that seasonal patterns affect all cohorts similarly—to generate reliable predictions even for data-sparse
+users, and that seasonal patterns affect all cohorts similarly to generate reliable predictions even for data-sparse
 cohorts. Table \ref{tab:hm_metrics} presents quantitative evaluation metrics comparing out-of-sample prediction accuracy
 across all models. We report Mean Absolute Error (MAE), Root Mean Squared Error (RMSE), and Mean Absolute
 Percentage Error (MAPE) computed on the held-out test set.
@@ -1144,7 +1144,7 @@ while baseline methods diverge substantially in the test period.
 It is worth noting that individual-level probabilistic models, such as the Shifted Beta Geometric (sBG) model
 \cite{FaderHardie2007} implemented in PyMC-Marketing \cite{pymc_marketing}, provide an alternative framework
 for modeling customer retention in contractual settings. However, fitting such models using MCMC on datasets
-of this scale—with over $1.36$ million unique customers and $31$ million transactions is computationally
+of this scale with over $1.36$ million unique customers and $31$ million transactions is computationally
 prohibitive without substantial investment in specialized hardware infrastructure (e.g., high-end GPUs).
 While stochastic variational inference can improve scalability, the cohort-level approach presented in this
 paper offers a practical and effective alternative: by aggregating to the cohort level, we dramatically
@@ -1245,8 +1245,8 @@ While the proposed framework offers significant advantages in terms of flexibili
 important to acknowledge its limitations and potential areas for future development.
 
 First, by operating at the cohort level, the model necessarily sacrifices individual-level granularity. While this 
-aggregation reduces noise and improves computational efficiency, it also means that specific customer-level behaviors—
-such as individual product preferences or idiosyncratic purchase triggers—are not explicitly captured. For applications 
+aggregation reduces noise and improves computational efficiency, it also means that specific customer-level behaviors 
+such as individual product preferences or idiosyncratic purchase triggers are not explicitly captured. For applications 
 requiring highly personalized interventions, this framework should be seen as a complement to, rather than a 
 replacement for, individual-level models.
 
@@ -1272,7 +1272,7 @@ contribution is the coupling mechanism:
     R_{i,j}         & \sim \text{Gamma}(N_{\text{active}, i,j}, \lambda_{i,j}) \\
     N_{\text{active}, i,j} & \sim \text{Binomial}(N_{\text{total}, i}, p_{i,j})
 \end{align*}
-where the number of active users $N_{\text{active}, i,j}$—estimated through the retention model—directly informs the revenue 
+where the number of active users $N_{\text{active}, i,j}$ estimated through the retention model directly informs the revenue 
 model as its shape parameter. This coupling provides consistent uncertainty propagation, natural variance scaling, and 
 an interpretable mean structure where $1/\lambda_{i,j}$ represents the average revenue per active user.
 
@@ -1282,13 +1282,13 @@ component due to its interpretability through PDP/ICE plots, but also showed tha
 computationally efficient alternative for large-scale applications. The framework naturally extends to hierarchical 
 multi-market settings, enabling information pooling across markets with varying data availability.
 
-As discussed in our review of related work (Section \ref{sec:related_work}), traditional approaches—whether individual-level 
-BTYD models, linear age-period-cohort frameworks, or single-outcome survival models—face limitations in flexibility, 
+As discussed in our review of related work (Section \ref{sec:related_work}), traditional approaches whether individual-level 
+BTYD models, linear age-period-cohort frameworks, or single-outcome survival models face limitations in flexibility, 
 computational scalability, joint modeling of related outcomes, and principled uncertainty quantification. Our contribution 
 directly addresses these gaps through the coupled retention-revenue architecture.
 
 The choice to operate at the cohort level is not a limitation but rather a deliberate strategic decision that aligns with 
-how many business decisions are made, reduces noise through aggregation, and provides computational efficiency—while still 
+how many business decisions are made, reduces noise through aggregation, and provides computational efficiency while still 
 allowing for the incorporation of rich covariate information when needed. The validation on the H\&M dataset 
 (Section \ref{sec:hm_application}) demonstrates that this cohort-level framework delivers superior predictive performance 
 compared to standard time series and machine learning baselines, particularly for cohorts with limited training history 
