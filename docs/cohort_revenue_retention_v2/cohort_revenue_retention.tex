@@ -335,6 +335,36 @@ This formulation offers several important properties:
 
 Figure \ref{fig:revenue_retention_model} shows the complete model structure in plate notation (common in Bayesian graphical models).
 
+\subsubsection{Numerical Evidence: Uncertainty Propagation}
+
+To demonstrate the importance of the coupling mechanism for uncertainty quantification, we compare two model variants:
+a \emph{non-coupled} model that uses observed active user counts directly, and the \emph{coupled} model that propagates 
+uncertainty through the estimated $N_{\text{active}}$ from the retention component.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{images/no_coupling.png}
+    \caption{Revenue 94\% HDI for the non-coupled model using observed active user counts. Younger cohorts (bottom panels) 
+        with smaller sample sizes show HDIs that are too narrow and fail to capture observed values near zero.}
+    \label{fig:no_coupling}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{images/coupling.png}
+    \caption{Revenue 94\% HDI for the coupled model with uncertainty propagation through $N_{\text{active}}$. 
+        The wider HDIs provide better coverage across all cohorts, demonstrating proper uncertainty propagation.}
+    \label{fig:coupling}
+\end{figure}
+
+Figures \ref{fig:no_coupling} and \ref{fig:coupling} reveal a critical difference in uncertainty quantification. The non-coupled model 
+(Figure \ref{fig:no_coupling}) produces HDIs that are systematically too narrow, particularly for younger cohorts where sample sizes are smaller. 
+When revenue values approach zero, the non-coupled model's intervals frequently fail to contain the observed values, 
+indicating poor calibration. In contrast, the coupled model (Figure \ref{fig:coupling}) produces wider, more realistic HDIs that maintain 
+proper coverage across all cohorts. This demonstrates that the coupling mechanism not only provides a principled 
+connection between retention and revenue but also ensures that uncertainty in retention estimates appropriately 
+propagates to revenue predictions.
+
 \subsection{Features: Cohort Age and Period}
 
 Before going into the details of modeling the latent variables $p$ and $\lambda$, we define the core features used in the model.
@@ -1126,7 +1156,7 @@ compared to standard time series and machine learning baselines.
 
 \subsection{Comparison with Classical CLV Models}\label{sec:clv_comparison}
 
-To provide a comprehensive evaluation of our proposed framework, we compare it against classical buy-till-you-die (BTYD)
+To provide a comprehensive evaluation of our proposed framework, we compare it against the classical buy-till-you-die (BTYD)
 models from the customer lifetime value literature. Specifically, we implement the BG/NBD model \cite{FaderHardie2005}
 for modeling purchase frequency and dropout, combined with the Gamma-Gamma model \cite{fader2005rfm} for monetary value
 estimation. These models represent the standard approach for CLV estimation in non-contractual settings and are
@@ -1205,7 +1235,7 @@ However, for cohort-level and aggregate revenue forecasting, the focus of this p
 practical advantages: it is more accurate for seasonal data, simpler to implement (a single model versus
 $20$ separate model pairs), and more interpretable through tools like partial dependence plots. The ability
 to naturally incorporate calendar effects and share information across cohorts makes it well-suited for
-the business decision-making contexts we target. We could of course think about a fully Bayesian 
+the business decision-making contexts we target. We could, of course, think about a fully Bayesian 
 hierarchical model where we pool in the parameters of the BG/NBD and Gamma-Gamma models across cohorts,
 but this would be computationally prohibitive for the scale of the dataset (which is not uncommon for many businesses).
 
@@ -1215,10 +1245,10 @@ While the proposed framework offers significant advantages in terms of flexibili
 important to acknowledge its limitations and potential areas for future development.
 
 First, by operating at the cohort level, the model necessarily sacrifices individual-level granularity. While this 
-aggregation reduces noise and improves computational efficiency, it also means that specific customer-level behaviors—such 
-as individual product preferences or idiosyncratic purchase triggers—are not explicitly captured. For applications 
-requiring highly personalized interventions, this framework should be seen as a complement to, rather than a replacement 
-for, individual-level models.
+aggregation reduces noise and improves computational efficiency, it also means that specific customer-level behaviors—
+such as individual product preferences or idiosyncratic purchase triggers—are not explicitly captured. For applications 
+requiring highly personalized interventions, this framework should be seen as a complement to, rather than a 
+replacement for, individual-level models.
 
 Second, the current coupling mechanism assumes that the average revenue per active user follows a relatively stable 
 functional form $\lambda(x)$. While we demonstrated that this holds well in both synthetic and real-world datasets, 
