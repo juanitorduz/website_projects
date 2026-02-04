@@ -222,7 +222,7 @@ Section \ref{sec:synthetic_example} instantiates the framework using synthetic d
 in-sample/out-of-sample predictive performance evaluation.
 Section \ref{sec:alternative_approaches} discusses alternative non-parametric approaches using neural networks. 
 Section \ref{sec:hierarchical} extends the framework to hierarchical multi-market settings. Section \ref{sec:hm_application} 
-validates the approach on real-world H\&M transaction data, followed by a discussion of model limitations and trade-offs in Subsection \ref{sec:limitations}. Finally, Section \ref{sec:conclusion} concludes.
+validates the approach on real-world H\&M transaction data, followed by a discussion of model limitations and trade-offs in Subsection \ref{sec:limitations}. Section \ref{sec:kt_application} provides a second real-world validation using German grocery transaction data with weekly granularity. Finally, Section \ref{sec:conclusion} concludes.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SECTION 2: RELATED WORK
@@ -1028,7 +1028,7 @@ identifiers in the feature set. That being said, inference on hierarchical model
 non-linear geometry of the parameter space. Fortunately, NumPyro offers automatic mechanism to reparameterize the model
 to make it more amenable to SVI (\cite{gorinova2020automatic}).
 
-\section{A Real-Dataset Application: The H\&M Transactions Dataset}\label{sec:hm_application}
+\section{Real-Dataset Application: The H\&M Transactions Dataset}\label{sec:hm_application}
 
 Having demonstrated our framework on synthetic data with known ground truth, we now validate its practical applicability
 using a large-scale real-world dataset.
@@ -1264,6 +1264,123 @@ Finally, we have primarily focused on Gamma and Binomial likelihoods. While thes
 contexts, exploring other distributional assumptions (e.g., Zero-Inflated models for markets with many non-purchasers) 
 could further extend the framework's reach.
 
+\section{Real-Dataset Application: Grocery Transactions Dataset}\label{sec:kt_application}
+
+To further validate our framework's generalizability across different retail contexts, we apply it to a grocery
+transactions dataset from Germany\footnote{The complete implementation code is available at 
+\url{https://github.com/juanitorduz/website_projects/blob/master/Python/cohort-revenue-retention/kt_weekly.ipynb}.}.
+While the H\&M dataset (Section \ref{sec:hm_application}) represents fashion retail with monthly purchasing cycles,
+grocery retail exhibits distinct characteristics: higher purchase frequency, different seasonality patterns driven
+by holidays rather than fashion seasons, and typically smaller basket sizes with more regular replenishment behavior.
+This application demonstrates the framework's flexibility in adapting to different temporal granularities and
+seasonality structures.
+
+\subsection{Dataset and Analysis Period}
+
+The dataset contains transaction records from a German grocery retailer. For our analysis, we focus on the period
+from July $2015$ to December $2016$, representing approximately $18$ months of data. Unlike the H\&M analysis
+which used monthly cohorts, we aggregate transactions at the \emph{weekly} level, creating weekly cohorts based
+on each customer's first purchase week. This finer temporal granularity is appropriate for grocery retail where
+purchase cycles are shorter than in fashion retail. The train/test split is set at the end of August $2016$,
+holding out approximately $4$ months of data for out-of-sample evaluation.
+
+\subsection{Modeling Seasonality with Gaussian Bump Features}
+
+A key methodological contribution of this application is the use of Gaussian bump features to capture holiday-driven
+seasonality, as an alternative to the categorical month encoding used in the synthetic and H\&M examples. Grocery
+retail revenue exhibits sharp spikes around specific holidays rather than gradual monthly patterns. We model three
+major holiday effects:
+
+\begin{itemize}
+    \item \textbf{Black Friday}: A Gaussian bump centered on late November (November $27$, $2015$ and November $25$, $2016$)
+          with a narrow bandwidth ($\sigma = 5$ days) to capture the concentrated shopping period.
+    \item \textbf{Christmas}: A broader Gaussian bump centered on December $21$ ($\sigma = 7$ days) reflecting the
+          extended holiday shopping season.
+    \item \textbf{Easter}: A wider Gaussian bump ($\sigma = 14$ days) centered on the variable Easter date
+          (April $5$, $2015$ and March $27$, $2016$), accounting for the more diffuse purchasing pattern around this holiday.
+\end{itemize}
+
+The Gaussian bump for a holiday date $d_0$ with bandwidth $\sigma$ is defined as:
+\begin{align*}
+    g(t; d_0, \sigma) = \exp\left(-\frac{(t - d_0)^2}{\sigma^2}\right)
+\end{align*}
+where $t$ is the observation date. This functional form provides smooth, localized features that capture the
+intensity of holiday effects without the discontinuities of indicator variables. Figure \ref{fig:kt_revenue_per_week}
+shows the weekly revenue time series with the analysis period highlighted and the three Gaussian bump features overlaid,
+illustrating how these features align with observed revenue peaks.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/kt_revenue_per_week.png}
+    \caption{Weekly revenue for the grocery dataset. The shaded blue region indicates the analysis period
+        (July $2015$ to December $2016$). The colored curves show the Gaussian bump features for Christmas (blue),
+        Easter (orange), and Black Friday (green), which capture holiday-driven seasonality. Note how the
+        revenue peaks around Christmas $2015$ and the end-of-year $2016$ period align with the bump features.}
+    \label{fig:kt_revenue_per_week}
+\end{figure}
+
+\subsection{Model Specification}
+
+We apply the same coupled retention-revenue framework from Section \ref{sec:model_framework}, with the retention
+component modeled using BART and the revenue component using a linear model. The key modifications for this
+application are:
+
+\begin{enumerate}
+    \item \textbf{Weekly granularity}: Features are computed at the weekly level (cohort age in days, age in days)
+          rather than monthly.
+    \item \textbf{Gaussian bump features}: The BART model for retention includes the three holiday bump features
+          alongside cohort age, age, and month indicators. Similarly, the revenue rate $\lambda$ includes
+          coefficients for each bump feature.
+    \item \textbf{Larger BART ensemble}: We use $m = 200$ trees to capture the more complex weekly patterns.
+    \item \textbf{Seasonality effects}: We add seasonality effects to the revenue component.
+\end{enumerate}
+
+\subsection{Results}
+
+Figure \ref{fig:kt_revenue_predictions} presents out-of-sample revenue predictions for six selected cohorts spanning
+different periods of the analysis window. Several key observations emerge:
+
+\begin{itemize}
+    \item \textbf{Well-calibrated uncertainty}: The $94\%$ HDI bands (orange shaded regions) consistently contain
+          the observed test values (black lines), demonstrating proper uncertainty quantification even at the
+          weekly granularity where variance is higher than monthly aggregates.
+    \item \textbf{Decay pattern captured}: The model successfully captures the characteristic revenue decay as
+          cohorts age, with older cohorts (e.g., $2015$-$07$-$06$) showing lower absolute revenue levels than
+          younger cohorts.
+    \item \textbf{Seasonal effects}: The predictions show appropriate seasonal variation in the test period,
+          particularly the uptick toward the end of $2016$ corresponding to the holiday season.
+    \item \textbf{Information transfer}: Even for the youngest cohort shown ($2016$-$08$-$22$), which has only
+          a few weeks of training data, the model produces reasonable predictions by leveraging patterns learned
+          from older cohorts.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/kt_revenue_predictions.png}
+    \caption{Revenue predictions for six selected cohorts from the grocery dataset.}
+    \label{fig:kt_revenue_predictions}
+\end{figure}
+
+\subsection{Discussion}
+
+This grocery retail application demonstrates several important aspects of our framework's flexibility:
+
+\begin{itemize}
+    \item \textbf{Temporal granularity}: The framework adapts seamlessly from monthly (H\&M) to weekly aggregation
+          without structural changes, simply by adjusting the feature definitions.
+    \item \textbf{Alternative seasonality encoding}: Gaussian bump features provide a principled alternative to
+          categorical month indicators when seasonality is driven by specific events rather than calendar months.
+          This approach is particularly valuable when holidays fall on different dates across years (e.g., Easter)
+          or when the effect is concentrated in a narrow time window (e.g., Black Friday).
+    \item \textbf{Domain transferability}: The coupled retention-revenue mechanism proves effective across different
+          retail contexts, from fashion (lower frequency, higher basket) to grocery (higher frequency, lower basket),
+          suggesting broad applicability of the framework.
+\end{itemize}
+
+The success on this grocery dataset, combined with the H\&M results, provides evidence that our Bayesian
+cohort-revenue-retention framework generalizes well across different retail domains, temporal granularities,
+and seasonality structures.
+
 \section{Conclusion}\label{sec:conclusion}
 
 In this paper, we have presented a Bayesian framework for jointly modeling cohort-level retention and revenue. The core 
@@ -1289,10 +1406,11 @@ directly addresses these gaps through the coupled retention-revenue architecture
 
 The choice to operate at the cohort level is not a limitation but rather a deliberate strategic decision that aligns with 
 how many business decisions are made, reduces noise through aggregation, and provides computational efficiency while still 
-allowing for the incorporation of rich covariate information when needed. The validation on the H\&M dataset 
-(Section \ref{sec:hm_application}) demonstrates that this cohort-level framework delivers superior predictive performance 
-compared to standard time series and machine learning baselines, particularly for cohorts with limited training history 
-where the coupling mechanism provides crucial information transfer.
+allowing for the incorporation of rich covariate information when needed. The validations on both the H\&M fashion retail dataset 
+(Section \ref{sec:hm_application}) and the German grocery dataset (Section \ref{sec:kt_application}) demonstrate that this 
+cohort-level framework delivers superior predictive performance compared to standard time series and machine learning baselines, 
+generalizing across different retail domains, temporal granularities (monthly vs.\ weekly), and seasonality structures. 
+The coupling mechanism provides crucial information transfer, particularly for cohorts with limited training history.
 
 \bibliographystyle{apalike}
 \bibliography{references}
