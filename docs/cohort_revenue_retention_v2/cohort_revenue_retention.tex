@@ -125,6 +125,10 @@ parametrizations. Most importantly, the framework provides a straightforward way
 and revenue components (and even in the coupling mechanism) which can vary over time. This is a fundamental advantage of this work,
 as in other classical probabilistic models like BG/NBD and Pareto/NBD, covariates can be added but are computationally expensive
 (and actually, the time-varying covariates require a significant amount of work to implement in a way that scales).
+Furthermore, because the model is formulated as a probabilistic graphical model, it naturally supports causal
+interventions via Pearl's $\text{do}$-operator \cite{pearl2009causality}, enabling counterfactual analyses that
+quantify the revenue impact of hypothetical retention scenarios---a capability we demonstrate on a real-world
+dataset in Section~\ref{sec:kt_application}.
 
 
 \subsection*{Why Cohort-Level Modeling?}
@@ -453,6 +457,14 @@ This modeling strategy offers several distinct advantages:
 
     \item \textbf{Information sharing across cohorts}: Newer cohorts with limited historical data benefit from patterns
           learned from more established cohorts.
+
+    \item \textbf{Counterfactual analysis}: Because the model is specified as a directed graphical model with
+          latent retention, one can apply Pearl's $\text{do}$-operator \cite{pearl2009causality} to perform
+          interventions---for example, fixing retention to a target level and computing the resulting revenue
+          impact. This is fundamentally different from simply changing an input feature in a standard machine
+          learning model, as the retention variable $p$ is latent and its downstream effects propagate through
+          the coupling mechanism. We illustrate this capability on a real-world grocery dataset in
+          Section~\ref{sec:kt_application}.
 \end{itemize}
 
 \begin{remark}[Conditioning on Active Users]
@@ -1011,7 +1023,7 @@ Several key findings emerge from the hierarchical implementation:
 The hierarchical extension demonstrates that the framework's core architecture the coupling between retention and revenue 
 naturally extends to more complex settings. This extensibility is not accidental but rather a consequence of the modular
 design: the coupling mechanism operates at the cohort-observation level and is agnostic to whether those observations come from
-a single market or multiple markets with hierarchical structure.
+a single market or multiple markets with a hierarchical structure.
 
 \subsection{Implementation Notes}
 
@@ -1360,6 +1372,59 @@ different periods of the analysis window. Several key observations emerge:
     \caption{Revenue predictions for six selected cohorts from the grocery dataset.}
     \label{fig:kt_revenue_predictions}
 \end{figure}
+
+\subsection{Counterfactual Analysis}
+
+A key advantage of formulating our cohort-revenue-retention model as a probabilistic graphical model is the
+ability to perform \emph{counterfactual analysis} using Pearl's $\text{do}$-operator \cite{pearl2009causality}.
+The $\text{do}(X = x)$ operator, central to Pearl's causal inference formalism, performs an \emph{intervention}
+on the model graph: it fixes a variable $X$ to a specific value $x$ and severs the influence of its parents
+in the directed acyclic graph. In the language of graphical models, this corresponds to \emph{graph surgery},
+where the incoming edges to the intervened node are removed and the node is replaced by a constant. This
+operator is available in both PyMC \cite{pymc2023} and NumPyro \cite{phan2019composable}, making it directly
+applicable to models built with either framework.
+
+A crucial observation is that the retention probability $p$ in our model is a \emph{latent} variable, it is
+not directly observed but rather inferred from the data through the Binomial likelihood conditioning on the
+number of active users $N_{\text{active}}$. This is fundamentally different from a standard machine learning
+setting where one might simply change the value of an observed input feature (e.g., modifying a column in a
+feature matrix for a gradient boosting model). In our framework, the $\text{do}$-operator intervenes directly
+on the model graph, replacing the functional relationship $p = f(\text{cohort age}, \text{age}, \text{month})$
+learned by the BART or neural network component with a fixed constant value. The downstream variables, the
+number of active users $N_{\text{active}}$ and, through the coupling mechanism, revenue are then recomputed
+under this intervention. This is a principled causal operation that would not be possible with a conventional
+predictive model where the relationship between retention and revenue is not explicitly encoded in a generative
+graphical structure.
+
+To illustrate this capability, we perform an intervention on the grocery dataset by setting the retention
+probability to a constant value $\text{do}(p = 0.15)$ for a specific cohort (2015-12-28). This corresponds to
+the counterfactual question: ``What would the revenue have been if retention had remained constant at $15\%$?''
+The intervened model propagates this fixed retention through the coupling mechanism: the number of active users
+$N_{\text{active}} \sim \text{Binomial}(N_{\text{total}}, 0.15)$ is resampled under the intervention, and
+the revenue $R \sim \text{Gamma}(N_{\text{active}}, \lambda)$ is computed accordingly, with the rate parameter
+$\lambda$ remaining unchanged as it depends on cohort characteristics rather than retention.
+Figure~\ref{fig:kt_retention_intervention} shows the results.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/kt_retention_intervention.png}
+    \caption{Counterfactual analysis for cohort 2015-12-28 in the grocery dataset using $\text{do}(p = 0.15)$.
+        The top panel shows the retention $94\%$ HDI for the training period (blue) and the intervened constant
+        retention value of $0.15$ (magenta horizontal line) applied during the test period. The bottom panel
+        shows the resulting counterfactual revenue $94\%$ HDI (orange) compared to the observed revenue (black line)
+        in the test period. The posterior predictive mean (orange dots) reflects the revenue that would be expected
+        under the hypothetical constant retention scenario. The dashed vertical line indicates the train/test split.}
+    \label{fig:kt_retention_intervention}
+\end{figure}
+
+This type of counterfactual analysis is essential for strategic and financial decision-making. It enables
+business stakeholders to answer ``what-if'' questions about retention scenarios and their downstream revenue
+impact. For example, one can evaluate the expected revenue effect of achieving a target retention level through
+a marketing campaign, or quantify the financial cost of a decline in retention due to competitive pressure.
+These insights directly support resource allocation decisions, retention program evaluation, and financial
+planning. Importantly, because the analysis is grounded in a causal intervention on the model graph rather
+than a naive input perturbation, the resulting estimates are structurally consistent with the generative
+process and account for uncertainty propagation through the coupling mechanism.
 
 \subsection{Discussion}
 
