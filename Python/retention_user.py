@@ -81,10 +81,10 @@ class BGNBDParams(BaseModel, frozen=True):
         Second shape parameter for the Beta-distributed dropout probability.
     """
 
-    r: float = 0.5
-    alpha: float = 5.0
-    a: float = 1.0
-    b: float = 3.0
+    r: float = 1.5
+    alpha: float = 3.0
+    a: float = 0.5
+    b: float = 6.0
 
 
 class GammaGammaParams(BaseModel, frozen=True):
@@ -665,6 +665,8 @@ def aggregate_transactions_to_cohort(
         - ``revenue`` (float) -- sum of transaction amounts in the period.
         - ``retention`` (float) -- ``n_active_users / n_users``.
         - ``cohort_age`` (int) -- months elapsed since cohort start.
+        - ``age`` (int) -- days from cohort start to the last period
+          in the dataset (cohort maturity at observation end).
     """
     cohort_user_counts = users_df.group_by("cohort").agg(
         pl.col("user_id").count().alias("n_users")
@@ -709,8 +711,10 @@ def aggregate_transactions_to_cohort(
         .alias("n_active_users")
     )
 
+    max_period = result["period"].max()
     result = result.with_columns(
-        (pl.col("n_active_users") / pl.col("n_users")).alias("retention")
+        (max_period - pl.col("cohort")).dt.total_days().alias("age"),
+        (pl.col("n_active_users") / pl.col("n_users")).alias("retention"),
     )
 
     return result.select(
@@ -721,6 +725,7 @@ def aggregate_transactions_to_cohort(
         "revenue",
         "retention",
         "cohort_age",
+        "age",
     ).sort("cohort", "period")
 
 
