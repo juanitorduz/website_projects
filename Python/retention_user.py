@@ -748,26 +748,40 @@ if __name__ == "__main__":
         discount_start_date=datetime(2022, 4, 1, tzinfo=UTC),
     )
 
-    generator = UserLevelCohortDataGenerator(
-        rng=rng,
-        date_range_config=date_range,
-    )
+    scenarios: list[tuple[str, SeasonalityConfig]] = [
+        ("no_season", SeasonalityConfig(strength=0.0)),
+        ("strong_season", SeasonalityConfig(strength=1.5)),
+    ]
 
-    logging.info("Generating user-level transaction data...")
-    transactions_df, users_df = generator.run()
-    logging.info(
-        f"Transactions shape: {transactions_df.shape}, Users shape: {users_df.shape}"
-    )
+    child_rngs = rng.spawn(len(scenarios))
 
-    logging.info("Aggregating to cohort level...")
-    cohort_df = aggregate_transactions_to_cohort(transactions_df, users_df)
-    logging.info(f"Cohort summary shape: {cohort_df.shape}")
+    for (label, seasonality_cfg), child_rng in zip(scenarios, child_rngs, strict=True):
+        logging.info(f"=== Scenario: {label} (strength={seasonality_cfg.strength}) ===")
 
-    transactions_df.write_csv("data/retention_user_transactions.csv")
-    logging.info("Saved transactions to data/retention_user_transactions.csv")
+        generator = UserLevelCohortDataGenerator(
+            rng=child_rng,
+            date_range_config=date_range,
+            seasonality_config=seasonality_cfg,
+        )
 
-    cohort_df.write_csv("data/retention_user_cohort.csv")
-    logging.info("Saved cohort summary to data/retention_user_cohort.csv")
+        transactions_df, users_df = generator.run()
+        logging.info(
+            f"Transactions shape: {transactions_df.shape},"
+            f" Users shape: {users_df.shape}"
+        )
 
-    logging.info("Done!")
-    logging.info(f"\n{cohort_df.head(10)}")
+        cohort_df = aggregate_transactions_to_cohort(transactions_df, users_df)
+        logging.info(f"Cohort summary shape: {cohort_df.shape}")
+
+        txn_path = f"data/retention_user_{label}_transactions.csv"
+        cohort_path = f"data/retention_user_{label}_cohort.csv"
+
+        transactions_df.write_csv(txn_path)
+        logging.info(f"Saved transactions to {txn_path}")
+
+        cohort_df.write_csv(cohort_path)
+        logging.info(f"Saved cohort summary to {cohort_path}")
+
+        logging.info(f"\n{cohort_df.head(10)}")
+
+    logging.info("Done! All scenarios generated.")
