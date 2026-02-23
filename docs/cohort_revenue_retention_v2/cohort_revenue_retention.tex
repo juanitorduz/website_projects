@@ -1350,7 +1350,7 @@ application are:
 \subsection{Results}
 
 Figure \ref{fig:kt_revenue_predictions} presents out-of-sample revenue predictions for six selected cohorts spanning
-different periods of the analysis window. Several key observations emerge:
+different periods of the analysis window. Several key observations emerge: % \NeedsTeXFormat{LaTeX2e}
 
 \begin{itemize}
     \item \textbf{Well-calibrated uncertainty}: The $94\%$ HDI bands (orange shaded regions) consistently contain
@@ -1446,6 +1446,75 @@ The success on this grocery dataset, combined with the H\&M results, provides ev
 cohort-revenue-retention framework generalizes well across different retail domains, temporal granularities,
 and seasonality structures.
 
+\section{Real-Dataset Application: KOD Dataset}\label{sec:kod_application}
+
+As a complementary evaluation, we apply our framework to the KOD dataset, a non-seasonal retail dataset.
+\textbf{[TBA: Detailed dataset description.]}
+Unlike the H\&M fashion retail dataset (Section \ref{sec:hm_application}) and the German grocery dataset
+(Section \ref{sec:kt_application}), which exhibit pronounced seasonal patterns, the KOD dataset lacks strong
+seasonality. This makes it a particularly interesting testbed: in the absence of seasonal effects, the stationarity
+assumption underlying classical BTYD models (BG/NBD + Gamma-Gamma) is well-suited to the data, and we expect
+both approaches to perform comparably.
+
+We benchmark our Bayesian cohort-revenue-retention model (with BART for the retention component) against the same
+set of baselines used in previous sections, as well as the BG/NBD + Gamma-Gamma model implemented in
+PyMC-Marketing \cite{pymc_marketing}. Figure \ref{fig:kod_cohort_predictions} shows the cohort-level revenue
+predictions from the Bayesian model alongside the benchmark approaches, and Figure \ref{fig:kod_btyd} presents
+the corresponding predictions from the BTYD model.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/kod_cohort_predictions.png}
+    \caption{Revenue predictions comparing the Bayesian cohort-revenue-retention model (with $94\%$ HDI) against
+        benchmark approaches for selected cohorts of the KOD dataset.}
+    \label{fig:kod_cohort_predictions}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/kod_btyd.png}
+    \caption{Revenue predictions using the BG/NBD + Gamma-Gamma model (PyMC-Marketing) for selected cohorts
+        of the KOD dataset.}
+    \label{fig:kod_btyd}
+\end{figure}
+
+Table \ref{tab:kod_metrics} presents the out-of-sample evaluation metrics for all models.
+
+\begin{table}[H]
+    \centering
+    \caption{Out-of-sample evaluation metrics for revenue prediction on the KOD dataset. Lower values indicate
+        better predictive performance.}
+    \label{tab:kod_metrics}
+    \begin{tabular}{lccc}
+        \hline
+        \textbf{Model}                        & \textbf{MAE} & \textbf{RMSE} & \textbf{MAPE (\%)} \\
+        \hline
+        Bayesian (BART)                       & 453.89       & 570.30        & 20.19              \\
+        AutoMFLES                             & 1731.88      & 2054.91       & 73.42              \\
+        SES                                   & 1320.75      & 1861.45       & 54.27              \\
+        HistGradientBoostingRegressor         & 745.79       & 864.66        & 35.75              \\
+        BG/NBD + Gamma-Gamma                  & 514.61       & 830.05        & 19.28              \\
+        \hline
+    \end{tabular}
+\end{table}
+
+The results confirm our expectation: the Bayesian cohort model and the BTYD model achieve comparable MAPE
+($20.19\%$ vs.\ $19.28\%$), with both substantially outperforming the time series and machine learning baselines.
+The Bayesian model achieves a lower MAE ($453.89$ vs.\ $514.61$) and RMSE ($570.30$ vs.\ $830.05$), while
+the BTYD model edges ahead in MAPE. This near-parity is consistent with the non-seasonal nature of the data:
+without calendar-driven patterns to capture, the stationarity assumption of the BG/NBD model is appropriate,
+and the cohort framework's ability to model seasonal effects does not confer an additional advantage.
+
+\begin{remark}
+This result complements the grocery dataset application (Section \ref{sec:kt_application}), where the
+cohort-level framework substantially outperforms BTYD models due to the strong seasonality component in
+grocery retail. The KOD dataset, lacking such seasonality, represents a setting where the stationarity
+assumption of the BG/NBD model is appropriate, and accordingly the two approaches yield comparable
+performance. Together, these two applications illustrate the framework's versatility: it matches BTYD
+models in their favorable regime (non-seasonal data) while significantly outperforming them when
+seasonality is present.
+\end{remark}
+
 \section{Conclusion}\label{sec:conclusion}
 
 In this paper, we have presented a Bayesian framework for jointly modeling cohort-level retention and revenue. The core 
@@ -1471,11 +1540,14 @@ directly addresses these gaps through the coupled retention-revenue architecture
 
 The choice to operate at the cohort level is not a limitation but rather a deliberate strategic decision that aligns with 
 how many business decisions are made, reduces noise through aggregation, and provides computational efficiency while still 
-allowing for the incorporation of rich covariate information when needed. The validations on both the H\&M fashion retail dataset 
-(Section \ref{sec:hm_application}) and the German grocery dataset (Section \ref{sec:kt_application}) demonstrate that this 
-cohort-level framework delivers superior predictive performance compared to standard time series and machine learning baselines, 
-generalizing across different retail domains, temporal granularities (monthly vs.\ weekly), and seasonality structures. 
-The coupling mechanism provides crucial information transfer, particularly for cohorts with limited training history.
+allowing for the incorporation of rich covariate information when needed. The validations on the H\&M fashion retail dataset 
+(Section \ref{sec:hm_application}), the German grocery dataset (Section \ref{sec:kt_application}), and the KOD dataset 
+(Section \ref{sec:kod_application}) demonstrate that this cohort-level framework delivers superior predictive performance 
+compared to standard time series and machine learning baselines, generalizing across different retail domains, temporal 
+granularities (monthly vs.\ weekly), and seasonality structures. Moreover, the KOD application shows that in non-seasonal 
+settings the framework performs comparably to classical BTYD models, while the grocery application confirms its clear 
+advantage when seasonality is present. The coupling mechanism provides crucial information transfer, particularly for 
+cohorts with limited training history.
 
 \bibliographystyle{apalike}
 \bibliography{references}
