@@ -44,7 +44,6 @@ import numpy as np
 import polars as pl
 import pymc as pm
 import pytensor.tensor as pt
-import seaborn as sns
 from pymc.model.transform.conditioning import do, observe
 from scipy.special import expit
 
@@ -106,7 +105,7 @@ for ax, col in zip(axes.flatten(), data_df.columns):
         ax.hist(data_df[col].to_numpy(), bins=20, edgecolor="white")
     ax.set_title(col)
 
-fig.suptitle("Marginal Distributions", fontsize=16, fontweight="bold");
+fig.suptitle("Marginal Distributions", fontsize=16, fontweight="bold")
 
 # %%
 binary_vars = ["fam_int", "dev_peer", "sub_exp", "sub_disorder"]
@@ -274,7 +273,7 @@ for ax, var in zip(axes.flatten(), target_vars, strict=True):
     az.plot_dist(prior_samples, ax=ax)
     ax.set(title=var)
 
-fig.suptitle("Prior Predictive Checks", fontsize=16, fontweight="bold");
+fig.suptitle("Prior Predictive Checks", fontsize=16, fontweight="bold")
 
 # %% [markdown]
 # ## Model Conditioning and MCMC Fit
@@ -320,7 +319,7 @@ axes = az.plot_trace(
     compact=True,
     backend_kwargs={"figsize": (12, 21), "layout": "constrained"},
 )
-plt.gcf().suptitle("Trace Plots", fontsize=18, fontweight="bold");
+plt.gcf().suptitle("Trace Plots", fontsize=18, fontweight="bold")
 
 # %% [markdown]
 # ## Posterior Predictive Checks
@@ -370,7 +369,7 @@ az.plot_posterior(
     ref_val=0,
     ax=ax,
 )
-ax.set_title("Total Effect via do Operator", fontsize=18, fontweight="bold");
+ax.set_title("Total Effect via do Operator", fontsize=18, fontweight="bold")
 
 # %% [markdown]
 # ## Mediation Decomposition: Analytical Computation
@@ -519,33 +518,161 @@ for ax, (name, samples) in zip(axes.flatten(), effects.items()):
 fig.suptitle("Mediation Decomposition (Analytical)", fontsize=16, fontweight="bold")
 
 # %% [markdown]
-# ## Cross-validation: Total Effect
+# ## Mediation Decomposition via `do` Operator
 #
-# Let's verify that the total effect computed via the `do` operator agrees with the analytical
-# computation from posterior parameters.
-
-# %%
-te_do_samples = te_do.values.flatten()
-te_analytical_samples = te_analytical
-
-fig, ax = plt.subplots(figsize=(10, 5))
-ax.hist(
-    te_do_samples, bins=50, alpha=0.5, density=True, label="do operator (Monte Carlo)"
-)
-ax.hist(te_analytical_samples, bins=50, alpha=0.5, density=True, label="Analytical")
-ax.axvline(0, color="grey", linestyle="--", alpha=0.5)
-ax.legend()
-ax.set_xlabel("Total Effect")
-ax.set_ylabel("Density")
-ax.set_title("Total Effect: do Operator vs Analytical", fontsize=16, fontweight="bold")
-
-# %%
-print(f"Total Effect (do operator):  mean = {te_do_samples.mean():.4f}")
-print(f"Total Effect (analytical):   mean = {te_analytical_samples.mean():.4f}")
+# The analytical decomposition above required extracting posterior parameters and manually constructing the logistic functions. As an alternative, we can compute all the building blocks using the `do` operator directly. This approach is more general: it works with any model structure without requiring closed-form marginalization, and it only requires that we can enumerate (or sample from) the mediator support.
+#
+# **Strategy:** We compute `E_{t,t',t''}` by combining two ingredients from the `do` operator:
+#
+# 1. **Mediator probabilities**: `mu_dev_peer` and `mu_sub_exp` from `do(fam_int=t)` models give us $P(M_k=1 \mid do(T=t))$ for each posterior draw and observation.
+# 2. **Outcome corner values**: For each combination $(t, m_1, m_2)$ with $m_k \in \{0,1\}$, we intervene on all three variables via `do(fam_int=t, dev_peer=m_1, sub_exp=m_2)` to get $q(t, m_1, m_2) = P(Y=1 \mid T=t, M_1=m_1, M_2=m_2, X)$.
+#
+# Then: $E_{t,t',t''} = \sum_{m_1, m_2} P(M_1=m_1 \mid do(T=t'))\, P(M_2=m_2 \mid do(T=t''))\, q(t, m_1, m_2)$
 
 # %% [markdown]
-# The analytical computation is more precise (no Monte Carlo noise from mediator sampling)
-# but both approaches agree on the posterior mean and spread, confirming correctness.
+# ### Step 1: Mediator probabilities under each treatment level
+
+# %%
+with do_0_model:
+    do_0_mediators = pm.sample_posterior_predictive(
+        idata, random_seed=rng, var_names=["mu_dev_peer", "mu_sub_exp"]
+    )
+
+with do_1_model:
+    do_1_mediators = pm.sample_posterior_predictive(
+        idata, random_seed=rng, var_names=["mu_dev_peer", "mu_sub_exp"]
+    )
+
+mu_dp_do = {
+    0: do_0_mediators["posterior_predictive"]["mu_dev_peer"],
+    1: do_1_mediators["posterior_predictive"]["mu_dev_peer"],
+}
+mu_se_do = {
+    0: do_0_mediators["posterior_predictive"]["mu_sub_exp"],
+    1: do_1_mediators["posterior_predictive"]["mu_sub_exp"],
+}
+
+# %% [markdown]
+# ### Step 2: Outcome probabilities for all $(t, m_1, m_2)$ corners
+
+# %%
+q_do = {}
+for t in [0, 1]:
+    for m1 in [0, 1]:
+        for m2 in [0, 1]:
+            model_tmm = do(
+                conditioned_model,
+                {
+                    "fam_int": np.full(n_obs, t, dtype=np.int32),
+                    "dev_peer": np.full(n_obs, m1, dtype=np.int32),
+                    "sub_exp": np.full(n_obs, m2, dtype=np.int32),
+                },
+            )
+            with model_tmm:
+                pp = pm.sample_posterior_predictive(
+                    idata, random_seed=rng, var_names=["mu_sub_disorder"]
+                )
+            q_do[(t, m1, m2)] = pp["posterior_predictive"]["mu_sub_disorder"]
+
+# %% [markdown]
+# ### Step 3: Compute all interventional expectations and effects
+
+
+# %%
+def E_do_op(t, t_m1, t_m2):
+    """Compute E_{t,t',t''} via do operator building blocks."""
+    p1 = mu_dp_do[t_m1]
+    p2 = mu_se_do[t_m2]
+    return (
+        p1 * p2 * q_do[(t, 1, 1)]
+        + p1 * (1 - p2) * q_do[(t, 1, 0)]
+        + (1 - p1) * p2 * q_do[(t, 0, 1)]
+        + (1 - p1) * (1 - p2) * q_do[(t, 0, 0)]
+    ).mean(dim="obs_idx")
+
+
+E_do_000 = E_do_op(0, 0, 0)
+E_do_111 = E_do_op(1, 1, 1)
+E_do_100 = E_do_op(1, 0, 0)
+E_do_010 = E_do_op(0, 1, 0)
+E_do_001 = E_do_op(0, 0, 1)
+E_do_011 = E_do_op(0, 1, 1)
+
+te_do_decomp = E_do_111 - E_do_000
+de_do = E_do_100 - E_do_000
+iie_m1_do = E_do_010 - E_do_000
+iie_m2_do = E_do_001 - E_do_000
+interaction_do = E_do_011 - E_do_010 - E_do_001 + E_do_000
+dependence_do = te_do_decomp - de_do - iie_m1_do - iie_m2_do - interaction_do
+
+prop_m1_do = iie_m1_do / te_do_decomp
+prop_m2_do = iie_m2_do / te_do_decomp
+
+# %%
+effects_do = {
+    "Indirect through dev_peer (M1)": iie_m1_do,
+    "Indirect through sub_exp (M2)": iie_m2_do,
+    "Interaction between mediators": interaction_do,
+    "Dependence between mediators": dependence_do,
+    "Direct effect": de_do,
+    "Total effect": te_do_decomp,
+}
+
+fig, axes = plt.subplots(
+    nrows=3, ncols=2, figsize=(14, 12), layout="constrained", sharex=True
+)
+
+for ax, (name, samples) in zip(axes.flatten(), effects_do.items()):
+    az.plot_posterior(samples, hdi_prob=0.95, ax=ax, kind="hist", bins=50)
+    ax.axvline(0, color="grey", linestyle="--", alpha=0.5)
+    ax.set_title(name, fontsize=12)
+
+fig.suptitle("Mediation Decomposition (do Operator)", fontsize=16, fontweight="bold")
+
+# %% [markdown]
+# ## Cross-validation: Analytical vs `do` Operator
+#
+# Since both approaches compute the same interventional expectations from the same posterior, they should agree exactly (up to floating-point precision). Let's verify this for all 6 effects.
+
+# %%
+effects_comparison = {
+    "Indirect through dev_peer (M1)": (iie_m1, iie_m1_do),
+    "Indirect through sub_exp (M2)": (iie_m2, iie_m2_do),
+    "Interaction between mediators": (interaction, interaction_do),
+    "Dependence between mediators": (dependence, dependence_do),
+    "Direct effect": (de, de_do),
+    "Total effect": (te_analytical, te_do_decomp),
+}
+
+fig, axes = plt.subplots(
+    nrows=3, ncols=2, figsize=(14, 12), layout="constrained", sharex=True
+)
+
+for ax, (name, (analytical_s, do_s)) in zip(axes.flatten(), effects_comparison.items()):
+    ax.hist(analytical_s, bins=50, alpha=0.5, density=True, label="Analytical")
+    ax.hist(
+        do_s.values.flatten(), bins=50, alpha=0.5, density=True, label="do operator"
+    )
+    ax.axvline(0, color="grey", linestyle="--", alpha=0.5)
+    ax.legend(fontsize=8)
+    ax.set_title(name, fontsize=12)
+
+fig.suptitle(
+    "Cross-validation: Analytical vs do Operator",
+    fontsize=16,
+    fontweight="bold",
+)
+
+# %%
+print("Effect comparison (posterior mean): Analytical vs do operator")
+print("=" * 70)
+for name, (analytical_s, do_s) in effects_comparison.items():
+    a_mean = np.mean(analytical_s)
+    d_mean = float(do_s.mean())
+    print(f"  {name:40s}: {a_mean:+.5f} vs {d_mean:+.5f}")
+
+# %% [markdown]
+# Both approaches yield identical results, confirming correctness. The `do` operator approach is more general: it does not require manually extracting posterior parameters or constructing logistic functions. All building blocks come from `sample_posterior_predictive` on appropriately intervened models.
 
 # %% [markdown]
 # ## Summary: Comparison with Blogpost Results
@@ -682,15 +809,20 @@ fig.tight_layout()
 #    structural equations as a joint PyMC model, we can use the `do` operator to intervene on
 #    any variable and compute counterfactual outcomes.
 #
-# 2. **Analytical decomposition for binary mediators.** When mediators are binary and
-#    conditionally independent, the interventional expectations can be computed analytically
-#    from posterior parameters, avoiding Monte Carlo noise in the decomposition.
+# 2. **Two complementary decomposition approaches.** We computed all mediation effects both
+#    analytically (extracting posterior parameters) and via the `do` operator (intervening on
+#    variables and forward-sampling). Both yield identical results, cross-validating each other.
 #
-# 3. **Bayesian uncertainty quantification.** Unlike the frequentist approach in the blogpost,
+# 3. **The `do` operator as a general-purpose tool.** The `do` operator approach does not
+#    require manually constructing logistic functions from posterior parameters. It works by
+#    composing interventions on the generative model, making it applicable even when analytical
+#    marginalization is intractable (e.g., continuous mediators, nonlinear interactions).
+#
+# 4. **Bayesian uncertainty quantification.** Unlike the frequentist approach in the blogpost,
 #    our Bayesian framework provides full posterior distributions over each mediation effect,
 #    giving a richer picture of uncertainty.
 #
-# 4. **Qualitative agreement with the blogpost.** Despite methodological differences (Bayesian
+# 5. **Qualitative agreement with the blogpost.** Despite methodological differences (Bayesian
 #    vs. frequentist, dropping NAs vs. multiple imputation), our estimates are in the same
 #    direction and order of magnitude as the blogpost results.
 #
@@ -698,7 +830,8 @@ fig.tight_layout()
 #
 # - **Multiple imputation**: Handle missing data using PyMC's built-in capabilities or
 #   external imputation before fitting.
-# - **Non-binary mediators**: For continuous or ordinal mediators, the analytical decomposition
-#   would need Monte Carlo integration over the mediator distributions.
+# - **Non-binary mediators**: For continuous or ordinal mediators, the `do` operator approach
+#   generalizes naturally — replace the exhaustive enumeration over mediator corners with Monte
+#   Carlo samples from the mediator distributions under `do(T=t)`.
 # - **Sensitivity analysis**: Assess robustness to unmeasured confounding between mediators
 #   and outcome.
