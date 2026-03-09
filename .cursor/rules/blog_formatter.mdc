@@ -1,0 +1,39 @@
+---
+description: Transform markdown image references into centered HTML image tags for blog posts
+globs: **/*.md
+alwaysApply: false
+---
+
+# Blog Image Formatter
+
+When processing markdown blog posts, replace all markdown image references with centered HTML image tags.
+
+## Transformation
+
+`![png](<PATH>)` and `![svg](<PATH>)` become:
+
+```html
+<center>
+  <img src="/images/<PATH>" style="width: 800px;"/>
+</center>
+```
+
+The `<PATH>` follows the pattern `<BLOG_NAME>_files/<IMAGE_NAME>.png` or `<BLOG_NAME>_files/<IMAGE_NAME>.svg`.
+
+## Example
+
+Before:
+
+```markdown
+![png](bayesian_power_ab_testing_files/bayesian_power_ab_testing_5_0.png)
+```
+
+After:
+
+```html
+<center>
+  <img src="/images/bayesian_power_ab_testing_files/bayesian_power_ab_testing_5_0.png" style="width: 800px;"/>
+</center>
+```
+
+Apply this to every `![png](...)` and `![svg](...)` occurrence in the file.
