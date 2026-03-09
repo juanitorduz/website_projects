@@ -5,8 +5,10 @@
 #     text_representation:
 #       extension: .py
 #       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.19.1
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: default
 #     language: python
 #     name: python3
 # ---
@@ -14,34 +16,13 @@
 # %% [markdown]
 # # Mediation Analysis and (In)Direct Effects with PyMC
 #
-# Mediation analysis goes beyond asking *"does the treatment work?"* to ask *"how does the
-# treatment work?"* Understanding the mechanisms by which an intervention achieves its effect
-# can have serious consequences for what treatments or policy changes are preferable. For
-# instance, a family intervention program during adolescence might reduce substance use disorder
-# in young adulthood — but through which pathways? Does it work by reducing engagement with
-# deviant peer groups? By reducing experimentation with drugs? Or does it have a direct effect
-# independent of these mediators?
+# Mediation analysis goes beyond asking *"does the treatment work?"* to ask *"how does the treatment work?"* Understanding the mechanisms by which an intervention achieves its effect can have serious consequences for what treatments or policy changes are preferable. For instance, a family intervention program during adolescence might reduce substance use disorder in young adulthood — but through which pathways? Does it work by reducing engagement with deviant peer groups? By reducing experimentation with drugs? Or does it have a direct effect independent of these mediators?
 #
-# This notebook demonstrates how to perform **causal mediation analysis** using
-# [PyMC](https://docs.pymc.io/en/stable/) and the `do` operator. We decompose the total causal
-# effect of a treatment into direct and indirect components, quantifying each pathway's
-# contribution with full Bayesian uncertainty.
+# This notebook demonstrates how to perform **causal mediation analysis** using [PyMC](https://docs.pymc.io/en/stable/) and the `do` operator. We decompose the total causal effect of a treatment into direct and indirect components, quantifying each pathway's contribution with full Bayesian uncertainty.
 #
 # ## Approach
 #
-# This notebook ports the
-# [ChiRho mediation analysis example](https://basisresearch.github.io/chirho/mediation.html)
-# to PyMC, following the same style as our
-# [backdoor adjustment tutorial](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/).
-# For the mediation decomposition, we follow the
-# [StatsNotebook causal mediation analysis](https://statsnotebook.io/blog/analysis/mediation/)
-# blogpost, which implements the **interventional effects** framework
-# (Vansteelandt and Daniel, 2017; Chan and Leung, 2020).
-#
-# **Key difference from ChiRho**: The ChiRho example does not include a direct edge from the
-# treatment (`fam_int`) to the outcome (`sub_disorder`), and computes the natural direct effect
-# with respect to only one mediator (`sub_exp`). Our model follows the blogpost specification,
-# which includes the direct path and decomposes effects through **both** mediators simultaneously.
+# This notebook ports the [ChiRho mediation analysis example](https://basisresearch.github.io/chirho/mediation.html) to PyMC, following the same style as our [backdoor adjustment tutorial](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/). For the mediation decomposition, we follow the [StatsNotebook causal mediation analysis](https://statsnotebook.io/blog/analysis/mediation/) blogpost, which implements the **interventional effects** framework (Vansteelandt and Daniel, 2017; Chan and Leung, 2020).
 #
 # ## References
 #
@@ -60,31 +41,30 @@ import arviz as az
 import graphviz as gr
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
+import polars as pl
 import pymc as pm
+import pytensor.tensor as pt
 import seaborn as sns
 from pymc.model.transform.conditioning import do, observe
 from scipy.special import expit
-
-seed: int = 42
-rng: np.random.Generator = np.random.default_rng(seed=seed)
 
 az.style.use("arviz-darkgrid")
 plt.rcParams["figure.figsize"] = [10, 6]
 plt.rcParams["figure.dpi"] = 100
 plt.rcParams["figure.facecolor"] = "white"
 
-%load_ext autoreload
-%autoreload 2
-%config InlineBackend.figure_format = "retina"
+# %load_ext autoreload
+# %autoreload 2
+# %config InlineBackend.figure_format = "retina"
+
+# %%
+seed: int = 42
+rng: np.random.Generator = np.random.default_rng(seed=seed)
 
 # %% [markdown]
 # ## Read and Preprocess Data
 #
-# We use a synthetic dataset with 553 simulated individuals studying the effect of family
-# intervention during adolescence on future substance use disorder. The dataset was discussed in a
-# [StatsNotebook blogpost](https://statsnotebook.io/blog/analysis/mediation/) and the data can be
-# found [here](https://statsnotebook.io/blog/data_management/example_data/substance.csv).
+# We use a synthetic dataset with 553 simulated individuals studying the effect of family intervention during adolescence on future substance use disorder. The dataset was discussed in a [StatsNotebook blogpost](https://statsnotebook.io/blog/analysis/mediation/) and the data can be found [here](https://statsnotebook.io/blog/data_management/example_data/substance.csv).
 #
 # **Variables:**
 #
@@ -95,42 +75,22 @@ plt.rcParams["figure.facecolor"] = "white"
 # - `sub_exp`: experimentation with drugs (binary, mediator 2)
 # - `sub_disorder`: diagnosis of substance use disorder in young adulthood (binary, outcome)
 #
-# **Note on missing data:** The original blogpost handles missing data using multiple imputation
-# (20 imputations via MICE). For simplicity, we drop rows with any missing values. This reduces
-# the sample from 553 to ~410 observations. Results will be qualitatively similar to the blogpost
-# but not numerically identical.
+# **Note on missing data:** The original blogpost handles missing data using multiple imputation (20 imputations via MICE). For simplicity, we drop rows with any missing values. This reduces the sample from 553 to ~410 observations. Results will be qualitatively similar to the blogpost but not numerically identical.
 
 # %%
 data_url = "https://statsnotebook.io/blog/data_management/example_data/substance.csv"
-raw_df = pd.read_csv(data_url)
+raw_df = pl.read_csv(data_url, null_values="NA")
+
 print(f"Number of individuals: {len(raw_df)}")
 
-raw_df = raw_df.dropna()
-n_obs = len(raw_df)
-print(f"Number of individuals without missing values: {n_obs}")
-
-raw_df.head()
-
-# %%
-raw_df["gender_enc"] = (raw_df["gender"] == "Male").astype(int)
-
-df = raw_df[["gender_enc", "conflict", "fam_int", "dev_peer", "sub_exp", "sub_disorder"]].copy()
-df = df.rename(columns={"gender_enc": "gender"})
-
-df = df.astype(
-    {
-        "gender": int,
-        "fam_int": int,
-        "dev_peer": int,
-        "sub_exp": int,
-        "sub_disorder": int,
-    }
+data_df = raw_df.drop_nulls().with_columns(
+    pl.col("gender").eq(pl.lit("Male")).cast(pl.Int64)
 )
 
-df.head()
+n_obs = len(data_df)
+print(f"Number of individuals without missing values: {n_obs}")
 
-# %%
-df.describe()
+data_df.head()
 
 # %% [markdown]
 # ## Exploratory Data Analysis
@@ -138,25 +98,28 @@ df.describe()
 # %%
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(14, 8), layout="constrained")
 
-for ax, col in zip(axes.flatten(), df.columns):
-    if df[col].nunique() <= 2:
-        df[col].value_counts().sort_index().plot.bar(ax=ax, color=["C0", "C1"])
+for ax, col in zip(axes.flatten(), data_df.columns):
+    if data_df[col].n_unique() <= 2:
+        vc = data_df[col].value_counts().sort(col)
+        ax.bar(vc[col].to_list(), vc["count"].to_list(), color=["C0", "C1"])
     else:
-        ax.hist(df[col], bins=20, edgecolor="white")
+        ax.hist(data_df[col].to_numpy(), bins=20, edgecolor="white")
     ax.set_title(col)
 
-fig.suptitle("Marginal Distributions", fontsize=16, fontweight="bold")
+fig.suptitle("Marginal Distributions", fontsize=16, fontweight="bold");
 
 # %%
 binary_vars = ["fam_int", "dev_peer", "sub_exp", "sub_disorder"]
 
-cross_tabs = {}
-for var in binary_vars:
-    cross_tabs[var] = df.groupby("fam_int")[var].mean()
+cross_tab_df = (
+    data_df.group_by("fam_int")
+    .agg([pl.col(v).mean() for v in binary_vars if v != "fam_int"])
+    .sort("fam_int")
+)
 
-cross_tab_df = pd.DataFrame(cross_tabs)
-cross_tab_df.index = ["No intervention (fam_int=0)", "Intervention (fam_int=1)"]
-cross_tab_df.style.format("{:.3f}").background_gradient(cmap="Blues", axis=0)
+cross_tab_pdf = cross_tab_df.to_pandas().set_index("fam_int")
+cross_tab_pdf.index = ["No intervention (fam_int=0)", "Intervention (fam_int=1)"]
+cross_tab_pdf.style.format("{:.3f}").background_gradient(cmap="Blues", axis=0)
 
 # %% [markdown]
 # ## Causal DAG
@@ -174,12 +137,12 @@ cross_tab_df.style.format("{:.3f}").background_gradient(cmap="Blues", axis=0)
 # %%
 dag = gr.Digraph()
 
-dag.node("gender", style="filled", color="#9ecae180")
-dag.node("conflict", style="filled", color="#9ecae180")
+dag.node("gender")
+dag.node("conflict")
 dag.node("fam_int", style="filled", color="#2a2eec80")
 dag.node("dev_peer", style="filled", color="#ff7f0e80")
 dag.node("sub_exp", style="filled", color="#ff7f0e80")
-dag.node("sub_disorder", style="filled", color="#d6272880")
+dag.node("sub_disorder", style="filled", color="#328c0680")
 
 for target in ["fam_int", "dev_peer", "sub_exp", "sub_disorder"]:
     dag.edge("gender", target)
@@ -196,28 +159,25 @@ dag
 # %% [markdown]
 # ## PyMC Model Specification
 #
-# We build a joint generative model with **four Bernoulli likelihoods**, each using a logistic
-# link function. The model encodes the causal structure from the DAG above:
+# We build a joint generative model with **four Bernoulli likelihoods**, each using a logistic link function. The model encodes the causal structure from the DAG above:
 #
 # 1. `fam_int ~ Bernoulli(logistic(gender, conflict))`
 # 2. `dev_peer ~ Bernoulli(logistic(gender, conflict, fam_int))`
 # 3. `sub_exp ~ Bernoulli(logistic(gender, conflict, fam_int))`
 # 4. `sub_disorder ~ Bernoulli(logistic(gender, conflict, dev_peer, sub_exp, fam_int))`
 #
-# This corresponds to the three regression models described in the blogpost, plus a model for
-# the treatment assignment mechanism. All four are needed for the full generative model that
-# enables counterfactual reasoning via the `do` operator.
+# This corresponds to the three regression models described in the blogpost, plus a model for the treatment assignment mechanism. All four are needed for the full generative model that enables counterfactual reasoning via the `do` operator.
 
 # %%
-gender_obs = df["gender"].values
-conflict_obs = df["conflict"].values
-fam_int_obs = df["fam_int"].values
-dev_peer_obs = df["dev_peer"].values
-sub_exp_obs = df["sub_exp"].values
-sub_disorder_obs = df["sub_disorder"].values
+gender_obs = data_df["gender"].to_numpy()
+conflict_obs = data_df["conflict"].to_numpy()
+fam_int_obs = data_df["fam_int"].to_numpy()
+dev_peer_obs = data_df["dev_peer"].to_numpy()
+sub_exp_obs = data_df["sub_exp"].to_numpy()
+sub_disorder_obs = data_df["sub_disorder"].to_numpy()
 
 # %%
-coords = {"obs_idx": df.index}
+coords = {"obs_idx": range(len(data_df))}
 
 with pm.Model(coords=coords) as mediation_model:
     # --- Covariates as Data ---
@@ -225,17 +185,17 @@ with pm.Model(coords=coords) as mediation_model:
     conflict_data = pm.Data("conflict_data", conflict_obs, dims=("obs_idx",))
 
     # --- (1) fam_int model: logistic(gender, conflict) ---
-    intercept_fi = pm.Normal("intercept_fi", mu=0, sigma=10)
+    intercept_fi = pm.Normal("intercept_fi", mu=0, sigma=1)
     beta_gender_fi = pm.Normal("beta_gender_fi", mu=0, sigma=1)
     beta_conflict_fi = pm.Normal("beta_conflict_fi", mu=0, sigma=1)
-    logit_fi = intercept_fi + beta_gender_fi * gender_data + beta_conflict_fi * conflict_data
-    mu_fam_int = pm.Deterministic(
-        "mu_fam_int", pm.math.sigmoid(logit_fi), dims=("obs_idx",)
+    logit_fi = (
+        intercept_fi + beta_gender_fi * gender_data + beta_conflict_fi * conflict_data
     )
+    mu_fam_int = pm.Deterministic("mu_fam_int", pt.expit(logit_fi), dims=("obs_idx",))
     fam_int = pm.Bernoulli("fam_int", p=mu_fam_int, dims=("obs_idx",))
 
     # --- (2) dev_peer model: logistic(gender, conflict, fam_int) ---
-    intercept_dp = pm.Normal("intercept_dp", mu=0, sigma=10)
+    intercept_dp = pm.Normal("intercept_dp", mu=0, sigma=1)
     beta_gender_dp = pm.Normal("beta_gender_dp", mu=0, sigma=1)
     beta_conflict_dp = pm.Normal("beta_conflict_dp", mu=0, sigma=1)
     beta_fi_dp = pm.Normal("beta_fi_dp", mu=0, sigma=1)
@@ -245,13 +205,11 @@ with pm.Model(coords=coords) as mediation_model:
         + beta_conflict_dp * conflict_data
         + beta_fi_dp * fam_int
     )
-    mu_dev_peer = pm.Deterministic(
-        "mu_dev_peer", pm.math.sigmoid(logit_dp), dims=("obs_idx",)
-    )
+    mu_dev_peer = pm.Deterministic("mu_dev_peer", pt.expit(logit_dp), dims=("obs_idx",))
     dev_peer = pm.Bernoulli("dev_peer", p=mu_dev_peer, dims=("obs_idx",))
 
     # --- (3) sub_exp model: logistic(gender, conflict, fam_int) ---
-    intercept_se = pm.Normal("intercept_se", mu=0, sigma=10)
+    intercept_se = pm.Normal("intercept_se", mu=0, sigma=1)
     beta_gender_se = pm.Normal("beta_gender_se", mu=0, sigma=1)
     beta_conflict_se = pm.Normal("beta_conflict_se", mu=0, sigma=1)
     beta_fi_se = pm.Normal("beta_fi_se", mu=0, sigma=1)
@@ -261,13 +219,11 @@ with pm.Model(coords=coords) as mediation_model:
         + beta_conflict_se * conflict_data
         + beta_fi_se * fam_int
     )
-    mu_sub_exp = pm.Deterministic(
-        "mu_sub_exp", pm.math.sigmoid(logit_se), dims=("obs_idx",)
-    )
+    mu_sub_exp = pm.Deterministic("mu_sub_exp", pt.expit(logit_se), dims=("obs_idx",))
     sub_exp = pm.Bernoulli("sub_exp", p=mu_sub_exp, dims=("obs_idx",))
 
-    # --- (4) sub_disorder model: logistic(gender, conflict, dev_peer, sub_exp, fam_int) ---
-    intercept_sd = pm.Normal("intercept_sd", mu=0, sigma=10)
+    # --- (4) sub_disorder model: logistic(gender, conflict, dev_peer, sub_exp, fam_int) --- # noqa: E501
+    intercept_sd = pm.Normal("intercept_sd", mu=0, sigma=1)
     beta_gender_sd = pm.Normal("beta_gender_sd", mu=0, sigma=1)
     beta_conflict_sd = pm.Normal("beta_conflict_sd", mu=0, sigma=1)
     beta_dp_sd = pm.Normal("beta_dp_sd", mu=0, sigma=1)
@@ -282,11 +238,9 @@ with pm.Model(coords=coords) as mediation_model:
         + beta_fi_sd * fam_int
     )
     mu_sub_disorder = pm.Deterministic(
-        "mu_sub_disorder", pm.math.sigmoid(logit_sd), dims=("obs_idx",)
+        "mu_sub_disorder", pt.expit(logit_sd), dims=("obs_idx",)
     )
-    sub_disorder = pm.Bernoulli(
-        "sub_disorder", p=mu_sub_disorder, dims=("obs_idx",)
-    )
+    sub_disorder = pm.Bernoulli("sub_disorder", p=mu_sub_disorder, dims=("obs_idx",))
 
 pm.model_to_graphviz(mediation_model)
 
@@ -298,18 +252,29 @@ with mediation_model:
     prior_idata = pm.sample_prior_predictive(samples=2_000, random_seed=rng)
 
 # %%
-fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(12, 8), layout="constrained")
+target_vars = [
+    "fam_int",
+    "dev_peer",
+    "sub_exp",
+    "sub_disorder",
+]
 
-for ax, var in zip(axes.flatten(), ["fam_int", "dev_peer", "sub_exp", "sub_disorder"]):
+fig, axes = plt.subplots(
+    nrows=len(target_vars) // 2,
+    ncols=2,
+    figsize=(10, 6),
+    sharex=True,
+    sharey=True,
+    layout="constrained",
+)
+
+
+for ax, var in zip(axes.flatten(), target_vars, strict=True):
     prior_samples = prior_idata["prior"][var].values.flatten()
-    prior_mean = prior_samples.mean()
-    obs_mean = df[var].mean()
-    ax.hist(prior_samples, bins=2, density=True, alpha=0.5, label="prior predictive")
-    ax.axvline(obs_mean, color="black", linestyle="--", label=f"observed mean={obs_mean:.2f}")
-    ax.set_title(var)
-    ax.legend(fontsize=8)
+    az.plot_dist(prior_samples, ax=ax)
+    ax.set(title=var)
 
-fig.suptitle("Prior Predictive Checks", fontsize=16, fontweight="bold")
+fig.suptitle("Prior Predictive Checks", fontsize=16, fontweight="bold");
 
 # %% [markdown]
 # ## Model Conditioning and MCMC Fit
@@ -335,7 +300,6 @@ sample_kwargs = {
     "tune": 1_000,
     "chains": 4,
     "nuts_sampler": "nutpie",
-    "idata_kwargs": {"log_likelihood": True},
     "random_seed": rng,
 }
 
@@ -346,18 +310,17 @@ with conditioned_model:
 # ## Diagnostics
 
 # %%
-var_names = [v for v in idata.posterior.data_vars if v.startswith(("intercept_", "beta_"))]
+var_names = [
+    v for v in idata.posterior.data_vars if v.startswith(("intercept_", "beta_"))
+]
 
 axes = az.plot_trace(
     data=idata,
     var_names=var_names,
     compact=True,
-    backend_kwargs={"figsize": (12, 20), "layout": "constrained"},
+    backend_kwargs={"figsize": (12, 21), "layout": "constrained"},
 )
-plt.gcf().suptitle("Trace Plots", fontsize=18, fontweight="bold")
-
-# %%
-az.summary(idata, var_names=var_names)
+plt.gcf().suptitle("Trace Plots", fontsize=18, fontweight="bold");
 
 # %% [markdown]
 # ## Posterior Predictive Checks
@@ -365,54 +328,6 @@ az.summary(idata, var_names=var_names)
 # %%
 with conditioned_model:
     pm.sample_posterior_predictive(idata, extend_inferencedata=True, random_seed=rng)
-
-# %%
-fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(12, 8), layout="constrained")
-
-for ax, var in zip(axes.flatten(), ["fam_int", "dev_peer", "sub_exp", "sub_disorder"]):
-    pp_mean = idata["posterior_predictive"][var].mean(dim=("chain", "draw")).values
-    obs_values = df[var].values
-    ax.scatter(range(len(obs_values)), obs_values, alpha=0.3, s=10, label="observed")
-    ax.scatter(range(len(pp_mean)), pp_mean, alpha=0.3, s=10, label="posterior predictive mean")
-    ax.set_title(var)
-    ax.legend(fontsize=8)
-
-fig.suptitle("Posterior Predictive Checks", fontsize=16, fontweight="bold")
-
-# %% [markdown]
-# ## Results from Regression Models
-#
-# Before computing mediation effects, let's examine the posterior distributions of the key
-# regression coefficients. The blogpost displays odds ratios from the three regression models.
-# Here we show the posterior distributions of the coefficients on the log-odds (logit) scale
-# and compute odds ratios for comparison.
-
-# %%
-key_coefs = ["beta_fi_dp", "beta_fi_se", "beta_dp_sd", "beta_se_sd", "beta_fi_sd"]
-
-axes = az.plot_forest(
-    idata,
-    var_names=key_coefs,
-    combined=True,
-    hdi_prob=0.95,
-    figsize=(8, 5),
-)
-axes[0].set_title(
-    "Key Regression Coefficients (log-odds scale, 95% HDI)",
-    fontsize=14,
-    fontweight="bold",
-)
-axes[0].axvline(0, color="grey", linestyle="--", alpha=0.5)
-
-# %%
-print("Odds Ratios (posterior mean and 95% HDI):")
-print("=" * 60)
-for coef in key_coefs:
-    samples = idata.posterior[coef].values.flatten()
-    or_samples = np.exp(samples)
-    or_mean = or_samples.mean()
-    or_hdi = az.hdi(or_samples, hdi_prob=0.95)
-    print(f"  {coef:20s}: OR = {or_mean:.3f}  95% HDI [{or_hdi[0]:.3f}, {or_hdi[1]:.3f}]")
 
 # %% [markdown]
 # ## Total Effect via the `do` Operator
@@ -426,14 +341,9 @@ for coef in key_coefs:
 # [backdoor adjustment tutorial](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/).
 
 # %%
-do_0_model = do(
-    conditioned_model, {"fam_int": np.zeros(n_obs, dtype=np.int32)}
-)
-do_1_model = do(
-    conditioned_model, {"fam_int": np.ones(n_obs, dtype=np.int32)}
-)
+do_0_model = do(conditioned_model, {"fam_int": np.zeros(n_obs, dtype=np.int32)})
+do_1_model = do(conditioned_model, {"fam_int": np.ones(n_obs, dtype=np.int32)})
 
-pm.model_to_graphviz(do_0_model)
 
 # %%
 with do_0_model:
@@ -453,19 +363,19 @@ mu_sd_do_1 = do_1_idata["posterior_predictive"]["mu_sub_disorder"]
 te_do = (mu_sd_do_1 - mu_sd_do_0).mean(dim="obs_idx")
 
 # %%
-fig, ax = plt.subplots(figsize=(10, 5))
-az.plot_posterior(te_do.rename("Total Effect (do operator)"), hdi_prob=0.95, ax=ax)
-ax.axvline(0, color="grey", linestyle="--", alpha=0.5)
-ax.set_title(
-    "Total Effect via do Operator", fontsize=16, fontweight="bold"
+fig, ax = plt.subplots()
+az.plot_posterior(
+    te_do.rename("Total Effect (do operator)"),
+    hdi_prob=0.95,
+    ref_val=0,
+    ax=ax,
 )
+ax.set_title("Total Effect via do Operator", fontsize=18, fontweight="bold");
 
 # %% [markdown]
 # ## Mediation Decomposition: Analytical Computation
 #
-# Since all mediators are binary and conditionally independent given the treatment and
-# covariates, we can compute the interventional expectations **analytically** from the
-# posterior parameter samples. This avoids Monte Carlo noise in the decomposition.
+# Since all mediators are binary and conditionally independent given the treatment and covariates, we can compute the interventional expectations **analytically** from the posterior parameter samples. This avoids Monte Carlo noise in the decomposition.
 #
 # ### Setup
 #
@@ -606,9 +516,7 @@ for ax, (name, samples) in zip(axes.flatten(), effects.items()):
     ax.axvline(0, color="grey", linestyle="--", alpha=0.5)
     ax.set_title(name, fontsize=12)
 
-fig.suptitle(
-    "Mediation Decomposition (Analytical)", fontsize=16, fontweight="bold"
-)
+fig.suptitle("Mediation Decomposition (Analytical)", fontsize=16, fontweight="bold")
 
 # %% [markdown]
 # ## Cross-validation: Total Effect
@@ -621,15 +529,15 @@ te_do_samples = te_do.values.flatten()
 te_analytical_samples = te_analytical
 
 fig, ax = plt.subplots(figsize=(10, 5))
-ax.hist(te_do_samples, bins=50, alpha=0.5, density=True, label="do operator (Monte Carlo)")
+ax.hist(
+    te_do_samples, bins=50, alpha=0.5, density=True, label="do operator (Monte Carlo)"
+)
 ax.hist(te_analytical_samples, bins=50, alpha=0.5, density=True, label="Analytical")
 ax.axvline(0, color="grey", linestyle="--", alpha=0.5)
 ax.legend()
 ax.set_xlabel("Total Effect")
 ax.set_ylabel("Density")
-ax.set_title(
-    "Total Effect: do Operator vs Analytical", fontsize=16, fontweight="bold"
-)
+ax.set_title("Total Effect: do Operator vs Analytical", fontsize=16, fontweight="bold")
 
 # %%
 print(f"Total Effect (do operator):  mean = {te_do_samples.mean():.4f}")
@@ -648,7 +556,7 @@ print(f"Total Effect (analytical):   mean = {te_analytical_samples.mean():.4f}")
 # similar results.
 
 # %%
-blogpost_results = pd.DataFrame(
+blogpost_results = pl.DataFrame(
     {
         "effect": [
             "Indirect through dev_peer (M1)",
@@ -661,8 +569,26 @@ blogpost_results = pd.DataFrame(
             "Proportion through M2",
         ],
         "blogpost_est": [-0.018, -0.007, 0.001, 0.000, -0.055, -0.077, 0.218, 0.078],
-        "blogpost_ci_lower": [-0.037, -0.021, -0.002, -0.009, -0.120, -0.143, np.nan, np.nan],
-        "blogpost_ci_upper": [-0.004, 0.004, 0.005, 0.009, 0.010, -0.016, np.nan, np.nan],
+        "blogpost_ci_lower": [
+            -0.037,
+            -0.021,
+            -0.002,
+            -0.009,
+            -0.120,
+            -0.143,
+            None,
+            None,
+        ],
+        "blogpost_ci_upper": [
+            -0.004,
+            0.004,
+            0.005,
+            0.009,
+            0.010,
+            -0.016,
+            None,
+            None,
+        ],
     }
 )
 
@@ -681,7 +607,7 @@ pymc_means = []
 pymc_hdi_lower = []
 pymc_hdi_upper = []
 
-for name in blogpost_results["effect"]:
+for name in blogpost_results["effect"].to_list():
     samples = all_effects[name]
     mean_val = np.mean(samples)
     hdi = az.hdi(samples, hdi_prob=0.95)
@@ -689,11 +615,13 @@ for name in blogpost_results["effect"]:
     pymc_hdi_lower.append(hdi[0])
     pymc_hdi_upper.append(hdi[1])
 
-blogpost_results["pymc_mean"] = pymc_means
-blogpost_results["pymc_hdi_lower"] = pymc_hdi_lower
-blogpost_results["pymc_hdi_upper"] = pymc_hdi_upper
+blogpost_results = blogpost_results.with_columns(
+    pl.Series("pymc_mean", pymc_means),
+    pl.Series("pymc_hdi_lower", pymc_hdi_lower),
+    pl.Series("pymc_hdi_upper", pymc_hdi_upper),
+)
 
-blogpost_results.style.format(
+blogpost_results.to_pandas().style.format(
     {
         "blogpost_est": "{:.3f}",
         "blogpost_ci_lower": "{:.3f}",
@@ -726,17 +654,22 @@ for i, name in enumerate(effect_names):
         capsize=4,
         label="PyMC (95% HDI)" if i == 0 else None,
     )
-    bp_est = blogpost_results.loc[blogpost_results["effect"] == name, "blogpost_est"].values[0]
-    ax.plot(bp_est, i + 0.15, "s", color="C1", markersize=7, label="Blogpost" if i == 0 else None)
+    bp_est = blogpost_results.filter(pl.col("effect") == name)["blogpost_est"][0]
+    ax.plot(
+        bp_est,
+        i + 0.15,
+        "s",
+        color="C1",
+        markersize=7,
+        label="Blogpost" if i == 0 else None,
+    )
 
 ax.axvline(0, color="grey", linestyle="--", alpha=0.5)
 ax.set_yticks(y_positions)
 ax.set_yticklabels(effect_names)
 ax.set_xlabel("Effect (probability scale)")
 ax.legend(loc="lower left")
-ax.set_title(
-    "Mediation Effects: PyMC vs Blogpost", fontsize=16, fontweight="bold"
-)
+ax.set_title("Mediation Effects: PyMC vs Blogpost", fontsize=16, fontweight="bold")
 fig.tight_layout()
 
 # %% [markdown]
