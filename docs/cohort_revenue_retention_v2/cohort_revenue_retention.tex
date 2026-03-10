@@ -1549,6 +1549,43 @@ settings the framework performs comparably to classical BTYD models, while the g
 advantage when seasonality is present. The coupling mechanism provides crucial information transfer, particularly for 
 cohorts with limited training history.
 
+Table \ref{tab:unified_dataset_metrics} provides a unified out-of-sample comparison of all evaluated datasets and benchmark models,
+highlighting robust Bayesian performance across seasonal and non-seasonal settings.
+Here, SES (Simple Exponential Smoothing) is a classical level-based time-series baseline, AutoMFLES is an automated
+multiple-seasonality forecasting model, and HistGradientBoostingRegressor is a tree-based gradient boosting machine-learning baseline.
+
+\begin{table}[H]
+    \centering
+\caption{Unified out-of-sample evaluation metrics for revenue prediction across the H\&M, Grocery, and KOD datasets.
+        Lower values indicate better predictive performance. Across these three datasets, the Bayesian BART model
+        dominates overall, with only one near-exception where BG/NBD + Gamma-Gamma is slightly better on KOD MAPE.
+        This is consistent with KOD being relatively uniform, with weak seasonality and no additional covariates,
+        a setting where classical BTYD models typically perform well.}
+    \label{tab:unified_dataset_metrics}
+    \begin{tabular}{llccc}
+        \hline
+        \textbf{Dataset} & \textbf{Model}                & \textbf{MAE} & \textbf{RMSE} & \textbf{MAPE (\%)} \\
+        \hline
+        H\&M             & \textbf{Bayesian (BART)}      & \textbf{82.46}        & \textbf{135.64}        & \textbf{10.03}              \\
+        H\&M             & AutoMFLES                     & 190.39       & 256.97        & 28.07              \\
+        H\&M             & SES                           & 142.64       & 193.19        & 17.78              \\
+        H\&M             & HistGradientBoostingRegressor & 161.90       & 218.32        & 25.12              \\
+        H\&M             & BG/NBD + Gamma-Gamma          & 405.77       & 632.81        & 65.90              \\
+        \hline
+        Grocery          & \textbf{Bayesian (BART)}      & \textbf{636.24}       & \textbf{831.40}        & \textbf{6.97}               \\
+        Grocery          & AutoMFLES                     & 3705.04      & 4317.04       & 38.99              \\
+        Grocery          & SES                           & 1055.49      & 1352.63       & 12.86              \\
+        Grocery          & HistGradientBoostingRegressor & 944.63       & 1174.86       & 10.77              \\
+        \hline
+        KOD              & \textbf{Bayesian (BART)}      & \textbf{453.89}       & \textbf{570.30}        & 20.19              \\
+        KOD              & AutoMFLES                     & 1731.88      & 2054.91       & 73.42              \\
+        KOD              & SES                           & 1320.75      & 1861.45       & 54.27              \\
+        KOD              & HistGradientBoostingRegressor & 745.79       & 864.66        & 35.75              \\
+        KOD              & BG/NBD + Gamma-Gamma          & 514.61       & 830.05        & \textbf{19.28}              \\
+        \hline
+    \end{tabular}
+\end{table}
+
 \bibliographystyle{apalike}
 \bibliography{references}
 
