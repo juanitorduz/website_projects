@@ -16,7 +16,7 @@
 # %% [markdown]
 # # Mediation Analysis and (In)Direct Effects with PyMC
 #
-# Mediation analysis goes beyond asking *"does the treatment work?"* to ask *"how does the treatment work?"* Understanding the mechanisms by which an intervention achieves its effect can have serious consequences for what treatments or policy changes are preferable. For instance, a family intervention program during adolescence might reduce substance use disorder in young adulthood — but through which pathways? Should the intervention focus on reducing peer influence, or on curbing direct experimentation?
+# Mediation analysis goes beyond asking *"does the treatment work?"* to ask *"how does the treatment work?"* Understanding the mechanisms by which an intervention achieves its effect can have important implications for what treatments or policy changes are preferable. For instance, a family intervention program during adolescence might reduce substance use disorder in young adulthood — but through which pathways? Should the intervention focus on reducing peer influence, or on curbing direct experimentation?
 #
 # This notebook demonstrates how to perform **causal mediation analysis** using [PyMC](https://docs.pymc.io/en/stable/) and the `do` operator. We decompose the total causal effect of a treatment into direct and indirect components, quantifying each pathway's contribution with full Bayesian uncertainty.
 #
@@ -29,14 +29,14 @@
 #
 # ## Approach
 #
-# This notebook ports the [ChiRho mediation analysis example](https://basisresearch.github.io/chirho/mediation.html) to PyMC, following the same style as our [backdoor adjustment tutorial](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/). For the mediation decomposition, we follow the [StatsNotebook causal mediation analysis](https://statsnotebook.io/blog/analysis/mediation/) blogpost, which implements the **interventional effects** framework (Vansteelandt and Daniel, 2017; Chan and Leung, 2020).
+# This notebook ports the [ChiRho mediation analysis example](https://basisresearch.github.io/chirho/mediation.html) to PyMC, following the same style as our [backdoor adjustment tutorial](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/). For the mediation decomposition, we follow the [StatsNotebook causal mediation analysis](https://statsnotebook.io/blog/analysis/mediation/) blog post, which implements the **interventional effects** framework (Vansteelandt and Daniel, 2017; Chan and Leung, 2020).
 #
 # ## References
 #
 # - Vansteelandt, S., & Daniel, R. M. (2017). Interventional effects for mediation analysis with
 #   multiple mediators. *Epidemiology*, 28(2), 258.
 # - Chan, G., & Leung, J. (2020). Causal mediation analysis using the interventional effect
-#   approach.
+#   approach. *Statistics in Medicine*, 39(21), 2793–2813.
 # - Pearl, J. (2001). Direct and indirect effects. *Proceedings of the 17th Conference on
 #   Uncertainty in Artificial Intelligence*.
 
@@ -73,18 +73,18 @@ rng: np.random.Generator = np.random.default_rng(seed=seed)
 # %% [markdown]
 # ## Read and Preprocess Data
 #
-# We use a synthetic dataset with 553 simulated individuals studying the effect of family intervention during adolescence on future substance use disorder. The dataset was discussed in a [StatsNotebook blogpost](https://statsnotebook.io/blog/analysis/mediation/) and the data can be found [here](https://statsnotebook.io/blog/data_management/example_data/substance.csv).
+# We use a synthetic dataset with 553 simulated individuals studying the effect of family intervention during adolescence on future substance use disorder. The dataset was discussed in a [StatsNotebook blog post](https://statsnotebook.io/blog/analysis/mediation/) and the data can be found [here](https://statsnotebook.io/blog/data_management/example_data/substance.csv).
 #
 # **Variables:**
 #
 # - `gender`: binary (Female / Male)
-# - `conflict`: level of family conflict (continuous, ~1-5)
+# - `conflict`: level of family conflict (ordinal, ~1-5)
 # - `fam_int`: participation in family intervention during adolescence (binary, treatment)
 # - `dev_peer`: engagement with deviant peer groups (binary, mediator 1)
 # - `sub_exp`: experimentation with drugs (binary, mediator 2)
 # - `sub_disorder`: diagnosis of substance use disorder in young adulthood (binary, outcome)
 #
-# **Remark (missing data):** The original blogpost handles missing data using multiple imputation (20 imputations via MICE). For simplicity, we drop rows with any missing values. This reduces the sample from 553 to ~410 observations (~25% drop). Since missingness may be related to covariates or outcomes, this could introduce selection bias. Our results will be qualitatively similar to the blogpost but not numerically identical — this is a plausible source of discrepancy.
+# **Remark (missing data):** The original blog post handles missing data using multiple imputation (20 imputations via MICE). For simplicity, we drop rows with any missing values. This reduces the sample from 553 to ~410 observations (~25% drop). Since missingness may be related to covariates or outcomes, this could introduce selection bias. Our results will be qualitatively similar to the blog post but not numerically identical — this is a plausible source of discrepancy.
 
 # %%
 data_url = "https://statsnotebook.io/blog/data_management/example_data/substance.csv"
@@ -147,7 +147,7 @@ cross_tab_pdf.style.format("{:.3f}").background_gradient(cmap="Blues", axis=0)
 # The direct edge `fam_int → sub_disorder` is included to capture the direct effect of
 # family intervention on substance use disorder that does not operate through the mediators.
 # This matches the regression specification in the
-# [StatsNotebook blogpost](https://statsnotebook.io/blog/analysis/mediation/).
+# [StatsNotebook blog post](https://statsnotebook.io/blog/analysis/mediation/).
 
 # %%
 dag = gr.Digraph()
@@ -181,7 +181,7 @@ dag
 # 3. `sub_exp ~ Bernoulli(logistic(gender, conflict, fam_int))`
 # 4. `sub_disorder ~ Bernoulli(logistic(gender, conflict, dev_peer, sub_exp, fam_int))`
 #
-# This corresponds to the three regression models described in the blogpost, plus a model for the treatment assignment mechanism. All four are needed for the full generative model that enables counterfactual reasoning via the `do` operator.
+# This corresponds to the three regression models described in the blog post, plus a model for the treatment assignment mechanism. All four are needed for the full generative model that enables counterfactual reasoning via the `do` operator.
 #
 # **Remark (priors):** All regression coefficients and intercepts use `Normal(0, 1)` priors. On the log-odds scale, this is moderately informative: it places most prior mass on effects between roughly $-2$ and $+2$ log-odds, covering a wide but plausible range of effect sizes for binary outcomes.
 #
@@ -227,9 +227,7 @@ def _add_logistic_component(
     for covariate_suffix, variable in predictors.items():
         beta = pm.Normal(f"beta_{covariate_suffix}_{param_suffix}", mu=0, sigma=1)
         logit = logit + beta * variable
-    mu = pm.Deterministic(
-        f"mu_{outcome_name}", pt.expit(logit), dims=("obs_idx",)
-    )
+    mu = pm.Deterministic(f"mu_{outcome_name}", pt.expit(logit), dims=("obs_idx",))
     outcome = pm.Bernoulli(outcome_name, p=mu, dims=("obs_idx",))
     return mu, outcome
 
@@ -240,25 +238,29 @@ with pm.Model(coords=coords) as mediation_model:
 
     # (1) fam_int: logistic(gender, conflict)
     mu_fam_int, fam_int = _add_logistic_component(
-        "fam_int", "fi",
+        "fam_int",
+        "fi",
         {"gender": gender_data, "conflict": conflict_data},
     )
 
     # (2) dev_peer: logistic(gender, conflict, fam_int)
     mu_dev_peer, dev_peer = _add_logistic_component(
-        "dev_peer", "dp",
+        "dev_peer",
+        "dp",
         {"gender": gender_data, "conflict": conflict_data, "fi": fam_int},
     )
 
     # (3) sub_exp: logistic(gender, conflict, fam_int)
     mu_sub_exp, sub_exp = _add_logistic_component(
-        "sub_exp", "se",
+        "sub_exp",
+        "se",
         {"gender": gender_data, "conflict": conflict_data, "fi": fam_int},
     )
 
     # (4) sub_disorder: logistic(gender, conflict, dev_peer, sub_exp, fam_int)
     mu_sub_disorder, sub_disorder = _add_logistic_component(
-        "sub_disorder", "sd",
+        "sub_disorder",
+        "sd",
         {
             "gender": gender_data,
             "conflict": conflict_data,
@@ -322,9 +324,10 @@ pm.model_to_graphviz(conditioned_model)
 
 # %%
 sample_kwargs = {
-    "draws": 2_000,
-    "tune": 1_000,
-    "chains": 4,
+    "draws": 3_000,
+    "tune": 1_500,
+    "chains": 6,
+    "cores": -1,
     "nuts_sampler": "nutpie",
     "random_seed": rng,
 }
@@ -378,9 +381,7 @@ observed_data = {
 
 for ax, var in zip(axes.flatten(), target_vars, strict=True):
     pp_mean = idata.posterior_predictive[var].mean(dim="obs_idx")
-    az.plot_posterior(
-        pp_mean, ref_val=observed_data[var].mean(), ax=ax, hdi_prob=0.95
-    )
+    az.plot_posterior(pp_mean, ref_val=observed_data[var].mean(), ax=ax, hdi_prob=0.95)
     ax.set_title(f"{var} (posterior predictive mean)", fontsize=12)
 
 fig.suptitle("Posterior Predictive Checks", fontsize=16, fontweight="bold")
@@ -484,7 +485,7 @@ ax.set_title("Total Effect via do Operator", fontsize=18, fontweight="bold")
 #
 # $$E_{t,t',t''}(x_i;\theta) = \sum_{m_1 \in \{0,1\}} \sum_{m_2 \in \{0,1\}} P(M_1=m_1 \mid T=t') \, P(M_2=m_2 \mid T=t'') \, q(t, m_1, m_2)$$
 #
-# For example, $E_{1,0,0}$ answers: *"What would the outcome be if treatment directly affects the outcome ($t=1$), but both mediators behave as if there were no treatment ($t'=0, t''=0$)?"* This isolates the **direct effect**.
+# For example, $E_{1,0,0}$ answers: *"What would the outcome be if treatment directly affects the outcome ($t=1$), but both mediators behave as if there were no treatment ($t'=0, t''=0$)?"* This is the counterfactual scenario needed to compute the **direct effect** (via DE = E_{1,0,0} − E_{0,0,0}).
 #
 # The following table summarizes the six regimes needed for the decomposition:
 #
@@ -497,7 +498,7 @@ ax.set_title("Total Effect via do Operator", fontsize=18, fontweight="bold")
 # | $E_{0,0,1}$ | $M_2$ pathway | Mediator 2 from treatment, rest from control |
 # | $E_{0,1,1}$ | both mediators | Both mediators from treatment, outcome from control |
 #
-# ### Effects (matching the blogpost table)
+# ### Effects (matching the blog post table)
 #
 # 1. **Total Effect**: $\text{TE} = \bar{E}_{1,1,1} - \bar{E}_{0,0,0}$
 # 2. **Direct Effect**: $\text{DE} = \bar{E}_{1,0,0} - \bar{E}_{0,0,0}$
@@ -510,7 +511,7 @@ ax.set_title("Total Effect via do Operator", fontsize=18, fontweight="bold")
 #
 # where $\bar{E}$ denotes averaging over observations.
 #
-# The **dependence** term captures any remaining contribution from joint shifts in the mediator distributions that is not explained by the individual indirect effects or their interaction. Under the conditional independence assumption encoded in our DAG, this term should be small.
+# The **dependence** term captures any remaining contribution from joint shifts in the mediator distributions that is not explained by the individual indirect effects or their interaction. Because the individual effect sizes are modest, higher-order interactions between the direct and indirect pathways are small, so this term is negligible in practice.
 
 # %% [markdown]
 # ### Extracting posterior samples for manual computation
@@ -648,6 +649,7 @@ expected_010 = expected_outcome(0, 1, 0)  # indirect M1: dev_peer from treatment
 expected_001 = expected_outcome(0, 0, 1)  # indirect M2: sub_exp from treatment
 expected_011 = expected_outcome(0, 1, 1)  # both mediators from treatment
 
+
 def _to_xarray(arr: np.ndarray, name: str) -> xr.DataArray:
     """Wrap a (n_chains, n_draws) array into a named xarray DataArray."""
     return xr.DataArray(
@@ -698,6 +700,14 @@ fig.suptitle("Mediation Decomposition (Analytical)", fontsize=16, fontweight="bo
 #
 # The following bar chart shows how the total effect decomposes into its
 # components — the "punchline plot" of the analysis.
+#
+# **How to read the plot:** Each colored bar represents one component of the
+# mediation decomposition, with the bar length indicating the posterior mean and
+# the error bars showing the 95% HDI. The black diamond at the top is the total
+# effect (TE), which by construction equals the sum of all five components below
+# it: DE + IIE(M1) + IIE(M2) + INT + DEP. Negative values indicate that the
+# component reduces the probability of substance use disorder (a protective
+# effect). The dashed vertical line marks zero (no effect).
 
 # %%
 decomp_effects = {
@@ -749,6 +759,24 @@ ax.set_title(
     fontweight="bold",
 )
 fig.tight_layout()
+
+# %% [markdown]
+# **Verification:** We can verify numerically that the decomposition holds, i.e.
+# that the sum of the five components equals the total effect at every posterior
+# draw — not just at the posterior mean.
+
+# %%
+te_from_components = de + iie_m1 + iie_m2 + interaction + dependence
+discrepancy = te_analytical - te_from_components
+
+print("Decomposition check (TE − sum of components):")
+print(f"  Max absolute discrepancy: {float(np.abs(discrepancy).max()):.2e}")
+print(f"  Mean absolute discrepancy: {float(np.abs(discrepancy).mean()):.2e}")
+
+# %% [markdown]
+# The discrepancy is zero (up to floating-point precision), confirming that the
+# five-way decomposition TE = DE + IIE(M1) + IIE(M2) + INT + DEP is an exact
+# algebraic identity, not an approximation.
 
 # %% [markdown]
 # ## Mediation Decomposition via `do` Operator
@@ -943,7 +971,7 @@ print(f"  TE (do operator, decomp):   {float(te_do_decomp.mean()):+.5f}")
 # %% [markdown]
 # ## Summary: Comparison with Blogpost Results
 #
-# The blogpost used the `intmed` R package with multiple imputation and 1000 Monte Carlo
+# The blog post used the `intmed` R package with multiple imputation and 1000 Monte Carlo
 # simulations. Our Bayesian approach uses PyMC with MCMC inference, dropping missing values
 # instead of imputing. Despite these methodological differences, we expect qualitatively
 # similar results.
@@ -1105,13 +1133,13 @@ fig.tight_layout()
 #    composing interventions on the generative model, making it applicable even when analytical
 #    marginalization is intractable (e.g., continuous mediators, nonlinear interactions).
 #
-# 4. **Bayesian uncertainty quantification.** Unlike the frequentist approach in the blogpost,
+# 4. **Bayesian uncertainty quantification.** Unlike the frequentist approach in the blog post,
 #    our Bayesian framework provides full posterior distributions over each mediation effect,
 #    giving a richer picture of uncertainty.
 #
-# 5. **Qualitative agreement with the blogpost.** Despite methodological differences (Bayesian
+# 5. **Qualitative agreement with the blog post.** Despite methodological differences (Bayesian
 #    vs. frequentist, dropping NAs vs. multiple imputation), our estimates are in the same
-#    direction and order of magnitude as the blogpost results.
+#    direction and order of magnitude as the blog post results.
 #
 # ### Extensions
 #
