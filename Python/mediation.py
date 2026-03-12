@@ -16,9 +16,16 @@
 # %% [markdown]
 # # Mediation Analysis and (In)Direct Effects with PyMC
 #
-# Mediation analysis goes beyond asking *"does the treatment work?"* to ask *"how does the treatment work?"* Understanding the mechanisms by which an intervention achieves its effect can have serious consequences for what treatments or policy changes are preferable. For instance, a family intervention program during adolescence might reduce substance use disorder in young adulthood — but through which pathways? Does it work by reducing engagement with deviant peer groups? By reducing experimentation with drugs? Or does it have a direct effect independent of these mediators?
+# Mediation analysis goes beyond asking *"does the treatment work?"* to ask *"how does the treatment work?"* Understanding the mechanisms by which an intervention achieves its effect can have serious consequences for what treatments or policy changes are preferable. For instance, a family intervention program during adolescence might reduce substance use disorder in young adulthood — but through which pathways? Should the intervention focus on reducing peer influence, or on curbing direct experimentation?
 #
 # This notebook demonstrates how to perform **causal mediation analysis** using [PyMC](https://docs.pymc.io/en/stable/) and the `do` operator. We decompose the total causal effect of a treatment into direct and indirect components, quantifying each pathway's contribution with full Bayesian uncertainty.
+#
+# **What you will learn:**
+#
+# - Build a joint generative model encoding a causal DAG with multiple mediators
+# - Decompose total effects into direct, indirect, interaction, and dependence components
+# - Compute interventional effects analytically and via the `do` operator
+# - Cross-validate both approaches
 #
 # ## Approach
 #
@@ -37,6 +44,8 @@
 # ## Prepare Notebook
 
 # %%
+from itertools import product
+
 import arviz as az
 import graphviz as gr
 import matplotlib.pyplot as plt
@@ -44,6 +53,7 @@ import numpy as np
 import polars as pl
 import pymc as pm
 import pytensor.tensor as pt
+import xarray as xr
 from pymc.model.transform.conditioning import do, observe
 from scipy.special import expit
 
@@ -74,7 +84,7 @@ rng: np.random.Generator = np.random.default_rng(seed=seed)
 # - `sub_exp`: experimentation with drugs (binary, mediator 2)
 # - `sub_disorder`: diagnosis of substance use disorder in young adulthood (binary, outcome)
 #
-# **Note on missing data:** The original blogpost handles missing data using multiple imputation (20 imputations via MICE). For simplicity, we drop rows with any missing values. This reduces the sample from 553 to ~410 observations. Results will be qualitatively similar to the blogpost but not numerically identical.
+# **Remark (missing data):** The original blogpost handles missing data using multiple imputation (20 imputations via MICE). For simplicity, we drop rows with any missing values. This reduces the sample from 553 to ~410 observations (~25% drop). Since missingness may be related to covariates or outcomes, this could introduce selection bias. Our results will be qualitatively similar to the blogpost but not numerically identical — this is a plausible source of discrepancy.
 
 # %%
 data_url = "https://statsnotebook.io/blog/data_management/example_data/substance.csv"
@@ -101,8 +111,11 @@ for ax, col in zip(axes.flatten(), data_df.columns):
     if data_df[col].n_unique() <= 2:
         vc = data_df[col].value_counts().sort(col)
         ax.bar(vc[col].to_list(), vc["count"].to_list(), color=["C0", "C1"])
+        ax.set_xlabel("No / Yes" if col != "gender" else "Female / Male")
     else:
         ax.hist(data_df[col].to_numpy(), bins=20, edgecolor="white")
+        ax.set_xlabel(col)
+    ax.set_ylabel("Count")
     ax.set_title(col)
 
 fig.suptitle("Marginal Distributions", fontsize=16, fontweight="bold")
@@ -119,6 +132,9 @@ cross_tab_df = (
 cross_tab_pdf = cross_tab_df.to_pandas().set_index("fam_int")
 cross_tab_pdf.index = ["No intervention (fam_int=0)", "Intervention (fam_int=1)"]
 cross_tab_pdf.style.format("{:.3f}").background_gradient(cmap="Blues", axis=0)
+
+# %% [markdown]
+# Intervention participants have lower rates across all outcomes, consistent with a protective effect.
 
 # %% [markdown]
 # ## Causal DAG
@@ -166,6 +182,10 @@ dag
 # 4. `sub_disorder ~ Bernoulli(logistic(gender, conflict, dev_peer, sub_exp, fam_int))`
 #
 # This corresponds to the three regression models described in the blogpost, plus a model for the treatment assignment mechanism. All four are needed for the full generative model that enables counterfactual reasoning via the `do` operator.
+#
+# **Remark (priors):** All regression coefficients and intercepts use `Normal(0, 1)` priors. On the log-odds scale, this is moderately informative: it places most prior mass on effects between roughly $-2$ and $+2$ log-odds, covering a wide but plausible range of effect sizes for binary outcomes.
+#
+# **Notation:** Throughout this notebook we use $M_1$ = `dev_peer`, $M_2$ = `sub_exp`, $Y$ = `sub_disorder`, and $T$ = `fam_int`.
 
 # %%
 gender_obs = data_df["gender"].to_numpy()
@@ -178,68 +198,75 @@ sub_disorder_obs = data_df["sub_disorder"].to_numpy()
 # %%
 coords = {"obs_idx": range(len(data_df))}
 
+
+def _add_logistic_component(
+    outcome_name: str,
+    param_suffix: str,
+    predictors: dict[str, pt.TensorVariable],
+) -> tuple[pt.TensorVariable, pt.TensorVariable]:
+    """Add a logistic regression sub-model inside a pm.Model context.
+
+    Parameters
+    ----------
+    outcome_name : str
+        Name for the outcome variable (e.g. "fam_int", "dev_peer").
+    param_suffix : str
+        Short suffix used for parameter names (e.g. "fi", "dp").
+    predictors : dict
+        Mapping from covariate suffix → PyMC/tensor variable.
+
+    Returns
+    -------
+    mu : pm.Deterministic
+        Probability (expit of the linear predictor), named ``mu_{outcome_name}``.
+    outcome : pm.Bernoulli
+        Binary outcome variable, named from ``outcome_name``.
+    """
+    intercept = pm.Normal(f"intercept_{param_suffix}", mu=0, sigma=1)
+    logit = intercept
+    for covariate_suffix, variable in predictors.items():
+        beta = pm.Normal(f"beta_{covariate_suffix}_{param_suffix}", mu=0, sigma=1)
+        logit = logit + beta * variable
+    mu = pm.Deterministic(
+        f"mu_{outcome_name}", pt.expit(logit), dims=("obs_idx",)
+    )
+    outcome = pm.Bernoulli(outcome_name, p=mu, dims=("obs_idx",))
+    return mu, outcome
+
+
 with pm.Model(coords=coords) as mediation_model:
-    # --- Covariates as Data ---
     gender_data = pm.Data("gender_data", gender_obs, dims=("obs_idx",))
     conflict_data = pm.Data("conflict_data", conflict_obs, dims=("obs_idx",))
 
-    # --- (1) fam_int model: logistic(gender, conflict) ---
-    intercept_fi = pm.Normal("intercept_fi", mu=0, sigma=1)
-    beta_gender_fi = pm.Normal("beta_gender_fi", mu=0, sigma=1)
-    beta_conflict_fi = pm.Normal("beta_conflict_fi", mu=0, sigma=1)
-    logit_fi = (
-        intercept_fi + beta_gender_fi * gender_data + beta_conflict_fi * conflict_data
+    # (1) fam_int: logistic(gender, conflict)
+    mu_fam_int, fam_int = _add_logistic_component(
+        "fam_int", "fi",
+        {"gender": gender_data, "conflict": conflict_data},
     )
-    mu_fam_int = pm.Deterministic("mu_fam_int", pt.expit(logit_fi), dims=("obs_idx",))
-    fam_int = pm.Bernoulli("fam_int", p=mu_fam_int, dims=("obs_idx",))
 
-    # --- (2) dev_peer model: logistic(gender, conflict, fam_int) ---
-    intercept_dp = pm.Normal("intercept_dp", mu=0, sigma=1)
-    beta_gender_dp = pm.Normal("beta_gender_dp", mu=0, sigma=1)
-    beta_conflict_dp = pm.Normal("beta_conflict_dp", mu=0, sigma=1)
-    beta_fi_dp = pm.Normal("beta_fi_dp", mu=0, sigma=1)
-    logit_dp = (
-        intercept_dp
-        + beta_gender_dp * gender_data
-        + beta_conflict_dp * conflict_data
-        + beta_fi_dp * fam_int
+    # (2) dev_peer: logistic(gender, conflict, fam_int)
+    mu_dev_peer, dev_peer = _add_logistic_component(
+        "dev_peer", "dp",
+        {"gender": gender_data, "conflict": conflict_data, "fi": fam_int},
     )
-    mu_dev_peer = pm.Deterministic("mu_dev_peer", pt.expit(logit_dp), dims=("obs_idx",))
-    dev_peer = pm.Bernoulli("dev_peer", p=mu_dev_peer, dims=("obs_idx",))
 
-    # --- (3) sub_exp model: logistic(gender, conflict, fam_int) ---
-    intercept_se = pm.Normal("intercept_se", mu=0, sigma=1)
-    beta_gender_se = pm.Normal("beta_gender_se", mu=0, sigma=1)
-    beta_conflict_se = pm.Normal("beta_conflict_se", mu=0, sigma=1)
-    beta_fi_se = pm.Normal("beta_fi_se", mu=0, sigma=1)
-    logit_se = (
-        intercept_se
-        + beta_gender_se * gender_data
-        + beta_conflict_se * conflict_data
-        + beta_fi_se * fam_int
+    # (3) sub_exp: logistic(gender, conflict, fam_int)
+    mu_sub_exp, sub_exp = _add_logistic_component(
+        "sub_exp", "se",
+        {"gender": gender_data, "conflict": conflict_data, "fi": fam_int},
     )
-    mu_sub_exp = pm.Deterministic("mu_sub_exp", pt.expit(logit_se), dims=("obs_idx",))
-    sub_exp = pm.Bernoulli("sub_exp", p=mu_sub_exp, dims=("obs_idx",))
 
-    # --- (4) sub_disorder model: logistic(gender, conflict, dev_peer, sub_exp, fam_int) --- # noqa: E501
-    intercept_sd = pm.Normal("intercept_sd", mu=0, sigma=1)
-    beta_gender_sd = pm.Normal("beta_gender_sd", mu=0, sigma=1)
-    beta_conflict_sd = pm.Normal("beta_conflict_sd", mu=0, sigma=1)
-    beta_dp_sd = pm.Normal("beta_dp_sd", mu=0, sigma=1)
-    beta_se_sd = pm.Normal("beta_se_sd", mu=0, sigma=1)
-    beta_fi_sd = pm.Normal("beta_fi_sd", mu=0, sigma=1)
-    logit_sd = (
-        intercept_sd
-        + beta_gender_sd * gender_data
-        + beta_conflict_sd * conflict_data
-        + beta_dp_sd * dev_peer
-        + beta_se_sd * sub_exp
-        + beta_fi_sd * fam_int
+    # (4) sub_disorder: logistic(gender, conflict, dev_peer, sub_exp, fam_int)
+    mu_sub_disorder, sub_disorder = _add_logistic_component(
+        "sub_disorder", "sd",
+        {
+            "gender": gender_data,
+            "conflict": conflict_data,
+            "dp": dev_peer,
+            "se": sub_exp,
+            "fi": fam_int,
+        },
     )
-    mu_sub_disorder = pm.Deterministic(
-        "mu_sub_disorder", pt.expit(logit_sd), dims=("obs_idx",)
-    )
-    sub_disorder = pm.Bernoulli("sub_disorder", p=mu_sub_disorder, dims=("obs_idx",))
 
 pm.model_to_graphviz(mediation_model)
 
@@ -321,12 +348,69 @@ axes = az.plot_trace(
 )
 plt.gcf().suptitle("Trace Plots", fontsize=18, fontweight="bold")
 
+# %%
+az.summary(idata, var_names=var_names, kind="diagnostics")
+
+# %% [markdown]
+# All parameters show R-hat values close to 1 and high effective sample sizes (ESS), indicating good convergence.
+
 # %% [markdown]
 # ## Posterior Predictive Checks
 
 # %%
 with conditioned_model:
     pm.sample_posterior_predictive(idata, extend_inferencedata=True, random_seed=rng)
+
+# %%
+fig, axes = plt.subplots(
+    nrows=2,
+    ncols=2,
+    figsize=(12, 8),
+    layout="constrained",
+)
+
+observed_data = {
+    "fam_int": fam_int_obs,
+    "dev_peer": dev_peer_obs,
+    "sub_exp": sub_exp_obs,
+    "sub_disorder": sub_disorder_obs,
+}
+
+for ax, var in zip(axes.flatten(), target_vars, strict=True):
+    pp_mean = idata.posterior_predictive[var].mean(dim="obs_idx")
+    az.plot_posterior(
+        pp_mean, ref_val=observed_data[var].mean(), ax=ax, hdi_prob=0.95
+    )
+    ax.set_title(f"{var} (posterior predictive mean)", fontsize=12)
+
+fig.suptitle("Posterior Predictive Checks", fontsize=16, fontweight="bold")
+
+# %% [markdown]
+# ### Coefficient Interpretation
+#
+# Before moving to causal effect decomposition, it is worth briefly inspecting the fitted
+# coefficients. The `beta_fi_*` parameters capture the association between family intervention
+# and each downstream variable on the log-odds scale.
+
+# %%
+fi_coefs = [v for v in var_names if v.startswith("beta_fi_")]
+axes = az.plot_forest(
+    idata,
+    var_names=fi_coefs,
+    combined=True,
+    hdi_prob=0.95,
+    figsize=(8, 3),
+)
+plt.gcf().suptitle(
+    "Family Intervention Coefficients (log-odds)", fontsize=14, fontweight="bold"
+)
+plt.tight_layout()
+
+# %% [markdown]
+# The negative coefficients for `beta_fi_dp` and `beta_fi_sd` suggest that family intervention
+# reduces both deviant peer engagement and substance use disorder on the log-odds scale.
+# `beta_fi_se` is smaller and closer to zero. However, these are *associations* conditional on
+# covariates — the causal decomposition below disentangles the direct and indirect pathways.
 
 # %% [markdown]
 # ## Total Effect via the `do` Operator
@@ -340,6 +424,8 @@ with conditioned_model:
 # [backdoor adjustment tutorial](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/).
 
 # %%
+# We apply `do` to the conditioned model so covariates and outcome remain observed
+# while only treatment is intervened upon.
 do_0_model = do(conditioned_model, {"fam_int": np.zeros(n_obs, dtype=np.int32)})
 do_1_model = do(conditioned_model, {"fam_int": np.ones(n_obs, dtype=np.int32)})
 
@@ -372,24 +458,44 @@ az.plot_posterior(
 ax.set_title("Total Effect via do Operator", fontsize=18, fontweight="bold")
 
 # %% [markdown]
+# The total effect tells us that the intervention works, but not *how*. To understand the mechanisms, we decompose TE into contributions from each causal pathway.
+
+# %% [markdown]
 # ## Mediation Decomposition: Analytical Computation
 #
 # Since all mediators are binary and conditionally independent given the treatment and covariates, we can compute the interventional expectations **analytically** from the posterior parameter samples. This avoids Monte Carlo noise in the decomposition.
 #
+# **The core idea:** imagine mixing and matching treatment assignments across different parts of the causal model. What if the outcome equation "sees" treatment, but the mediators behave as if there were no treatment? By comparing these hypothetical scenarios, we isolate each pathway's contribution.
+#
+# **Remark (conditional independence):** The absence of a `dev_peer` $\to$ `sub_exp` edge in the DAG means the two mediators are conditionally independent given treatment and covariates. This makes the joint mediator probability factorize: $P(M_1, M_2 \mid T, X) = P(M_1 \mid T, X) \cdot P(M_2 \mid T, X)$. If this assumption were violated (e.g., peer engagement causally drives experimentation), we would need to model the joint distribution and adjust accordingly.
+#
 # ### Setup
 #
 # For each posterior draw $\theta$ and observation $i$ with covariates
-# $x_i = (\text{gender}_i, \text{conflict}_i)$, define:
+# $x_i = (\text{gender}_i, \text{conflict}_i)$, define (where $\sigma(z) = 1/(1+e^{-z})$ is the logistic sigmoid function):
 #
-# - $p_1(t) = P(\text{dev\_peer}=1 \mid do(\text{fam\_int}=t), x_i;\theta) = \sigma(\alpha_{dp} + \beta_{g,dp}\, \text{gender}_i + \beta_{c,dp}\, \text{conflict}_i + \beta_{f,dp}\, t)$
-# - $p_2(t) = P(\text{sub\_exp}=1 \mid do(\text{fam\_int}=t), x_i;\theta) = \sigma(\alpha_{se} + \beta_{g,se}\, \text{gender}_i + \beta_{c,se}\, \text{conflict}_i + \beta_{f,se}\, t)$
-# - $q(t, m_1, m_2) = P(\text{sub\_disorder}=1 \mid \text{fam\_int}=t, \text{dev\_peer}=m_1, \text{sub\_exp}=m_2, x_i;\theta)$
+# - $p_1(t) = P(M_1=1 \mid do(T=t), x_i;\theta) = \sigma(\alpha_{dp} + \beta_{g,dp}\, \text{gender}_i + \beta_{c,dp}\, \text{conflict}_i + \beta_{f,dp}\, t)$
+# - $p_2(t) = P(M_2=1 \mid do(T=t), x_i;\theta) = \sigma(\alpha_{se} + \beta_{g,se}\, \text{gender}_i + \beta_{c,se}\, \text{conflict}_i + \beta_{f,se}\, t)$
+# - $q(t, m_1, m_2) = P(Y=1 \mid T=t, M_1=m_1, M_2=m_2, x_i;\theta)$
 #
 # The expected outcome under the interventional regime $(t, t', t'')$ — treatment set to $t$,
 # mediator 1 drawn from its $do(T=t')$ distribution, mediator 2 drawn from its $do(T=t'')$
 # distribution — is:
 #
 # $$E_{t,t',t''}(x_i;\theta) = \sum_{m_1 \in \{0,1\}} \sum_{m_2 \in \{0,1\}} P(M_1=m_1 \mid T=t') \, P(M_2=m_2 \mid T=t'') \, q(t, m_1, m_2)$$
+#
+# For example, $E_{1,0,0}$ answers: *"What would the outcome be if treatment directly affects the outcome ($t=1$), but both mediators behave as if there were no treatment ($t'=0, t''=0$)?"* This isolates the **direct effect**.
+#
+# The following table summarizes the six regimes needed for the decomposition:
+#
+# | Notation | Regime | Interpretation |
+# |----------|--------|----------------|
+# | $E_{0,0,0}$ | baseline | No treatment anywhere |
+# | $E_{1,1,1}$ | full treatment | Treatment everywhere |
+# | $E_{1,0,0}$ | direct only | Treatment in outcome eq., mediators from control |
+# | $E_{0,1,0}$ | $M_1$ pathway | Mediator 1 from treatment, rest from control |
+# | $E_{0,0,1}$ | $M_2$ pathway | Mediator 2 from treatment, rest from control |
+# | $E_{0,1,1}$ | both mediators | Both mediators from treatment, outcome from control |
 #
 # ### Effects (matching the blogpost table)
 #
@@ -403,33 +509,63 @@ ax.set_title("Total Effect via do Operator", fontsize=18, fontweight="bold")
 # 8. **Proportion through M2**: $\text{IIE}_2 / \text{TE}$
 #
 # where $\bar{E}$ denotes averaging over observations.
+#
+# The **dependence** term captures any remaining contribution from joint shifts in the mediator distributions that is not explained by the individual indirect effects or their interaction. Under the conditional independence assumption encoded in our DAG, this term should be small.
+
+# %% [markdown]
+# ### Extracting posterior samples for manual computation
+#
+# To compute the interventional expectations analytically, we need to evaluate the
+# logistic regression equations from our model for each posterior draw. We extract
+# all regression coefficients as NumPy arrays with shape `(n_chains, n_draws, 1)` so they
+# broadcast naturally against the covariate arrays of shape `(1, 1, n_obs)`. This
+# gives us `(n_chains, n_draws, n_obs)` arrays — one predicted probability per posterior
+# draw and observation.
 
 # %%
-posterior = idata.posterior.stack(sample=("chain", "draw"))
+posterior = idata.posterior
 
-gender_arr = gender_obs[np.newaxis, :]  # (1, n_obs)
-conflict_arr = conflict_obs[np.newaxis, :]  # (1, n_obs)
-
-intercept_dp_s = posterior["intercept_dp"].values[:, np.newaxis]
-beta_gender_dp_s = posterior["beta_gender_dp"].values[:, np.newaxis]
-beta_conflict_dp_s = posterior["beta_conflict_dp"].values[:, np.newaxis]
-beta_fi_dp_s = posterior["beta_fi_dp"].values[:, np.newaxis]
-
-intercept_se_s = posterior["intercept_se"].values[:, np.newaxis]
-beta_gender_se_s = posterior["beta_gender_se"].values[:, np.newaxis]
-beta_conflict_se_s = posterior["beta_conflict_se"].values[:, np.newaxis]
-beta_fi_se_s = posterior["beta_fi_se"].values[:, np.newaxis]
-
-intercept_sd_s = posterior["intercept_sd"].values[:, np.newaxis]
-beta_gender_sd_s = posterior["beta_gender_sd"].values[:, np.newaxis]
-beta_conflict_sd_s = posterior["beta_conflict_sd"].values[:, np.newaxis]
-beta_dp_sd_s = posterior["beta_dp_sd"].values[:, np.newaxis]
-beta_se_sd_s = posterior["beta_se_sd"].values[:, np.newaxis]
-beta_fi_sd_s = posterior["beta_fi_sd"].values[:, np.newaxis]
+# Covariates: shape (1, 1, n_obs) for broadcasting with (n_chains, n_draws, 1) parameters
+gender_arr = gender_obs[np.newaxis, np.newaxis, :]
+conflict_arr = conflict_obs[np.newaxis, np.newaxis, :]
 
 
-def p_dev_peer(t):
-    """P(dev_peer=1 | do(fam_int=t), X) for each (sample, obs)."""
+def _get_param(name: str) -> np.ndarray:
+    """Extract posterior samples as a (n_chains, n_draws, 1) array for broadcasting."""
+    return posterior[name].values[:, :, np.newaxis]
+
+
+# --- dev_peer sub-model parameters ---
+intercept_dp_s = _get_param("intercept_dp")
+beta_gender_dp_s = _get_param("beta_gender_dp")
+beta_conflict_dp_s = _get_param("beta_conflict_dp")
+beta_fi_dp_s = _get_param("beta_fi_dp")
+
+# --- sub_exp sub-model parameters ---
+intercept_se_s = _get_param("intercept_se")
+beta_gender_se_s = _get_param("beta_gender_se")
+beta_conflict_se_s = _get_param("beta_conflict_se")
+beta_fi_se_s = _get_param("beta_fi_se")
+
+# --- sub_disorder sub-model parameters ---
+intercept_sd_s = _get_param("intercept_sd")
+beta_gender_sd_s = _get_param("beta_gender_sd")
+beta_conflict_sd_s = _get_param("beta_conflict_sd")
+beta_dp_sd_s = _get_param("beta_dp_sd")
+beta_se_sd_s = _get_param("beta_se_sd")
+beta_fi_sd_s = _get_param("beta_fi_sd")
+
+# %% [markdown]
+# ### Mediator and outcome probability functions
+#
+# These three functions reconstruct the logistic regressions from the model,
+# evaluating them at arbitrary treatment / mediator values using the posterior
+# parameter samples. Each returns an `(n_chains, n_draws, n_obs)` array of probabilities.
+
+
+# %%
+def p_dev_peer(t: int) -> np.ndarray:
+    """P(dev_peer=1 | do(fam_int=t), X) for each posterior draw and observation."""
     logit = (
         intercept_dp_s
         + beta_gender_dp_s * gender_arr
@@ -439,8 +575,8 @@ def p_dev_peer(t):
     return expit(logit)
 
 
-def p_sub_exp(t):
-    """P(sub_exp=1 | do(fam_int=t), X) for each (sample, obs)."""
+def p_sub_exp(t: int) -> np.ndarray:
+    """P(sub_exp=1 | do(fam_int=t), X) for each posterior draw and observation."""
     logit = (
         intercept_se_s
         + beta_gender_se_s * gender_arr
@@ -450,8 +586,8 @@ def p_sub_exp(t):
     return expit(logit)
 
 
-def p_sub_disorder(t, m1, m2):
-    """P(sub_disorder=1 | fam_int=t, dev_peer=m1, sub_exp=m2, X) for each (sample, obs)."""
+def p_sub_disorder(t: int, m1: int, m2: int) -> np.ndarray:
+    """P(sub_disorder=1 | fam_int=t, dev_peer=m1, sub_exp=m2, X)."""
     logit = (
         intercept_sd_s
         + beta_gender_sd_s * gender_arr
@@ -463,13 +599,34 @@ def p_sub_disorder(t, m1, m2):
     return expit(logit)
 
 
-def expected_outcome(t, t_m1, t_m2):
-    """E[Y | do(T=t), M1 ~ do(T=t_m1), M2 ~ do(T=t_m2)] for each (sample, obs).
+# %% [markdown]
+# ### Marginalizing over binary mediators
+#
+# The key insight is that because both mediators are **binary**, we can enumerate
+# all four $(m_1, m_2) \in \{0,1\}^2$ combinations and weight the outcome
+# probability by the joint mediator probability. Since the mediators are
+# conditionally independent given treatment and covariates, the joint probability
+# factorizes: $P(M_1=m_1, M_2=m_2) = P(M_1=m_1) \cdot P(M_2=m_2)$.
+#
+# The three subscripts in $E_{t, t', t''}$ control:
+# - $t$: the treatment value plugged into the **outcome** equation
+# - $t'$: the treatment value used to generate the **dev_peer** mediator distribution
+# - $t''$: the treatment value used to generate the **sub_exp** mediator distribution
+#
+# By mixing and matching these subscripts we can isolate each causal pathway.
 
-    Analytically marginalizes over binary mediators.
+
+# %%
+def expected_outcome(t: int, t_m1: int, t_m2: int) -> np.ndarray:
+    """E[Y | do(T=t), M1 ~ do(T=t_m1), M2 ~ do(T=t_m2)].
+
+    Returns an (n_chains, n_draws, n_obs) array. Analytically marginalizes over the
+    four binary mediator combinations, weighted by their interventional
+    probabilities.
     """
-    p1 = p_dev_peer(t_m1)
-    p2 = p_sub_exp(t_m2)
+    p1 = p_dev_peer(t_m1)  # P(dev_peer=1 | do(T=t'))
+    p2 = p_sub_exp(t_m2)  # P(sub_exp=1 | do(T=t''))
+    # Enumerate all (m1, m2) ∈ {0,1}² and weight by joint mediator probability
     return (
         p1 * p2 * p_sub_disorder(t, 1, 1)
         + p1 * (1 - p2) * p_sub_disorder(t, 1, 0)
@@ -478,23 +635,42 @@ def expected_outcome(t, t_m1, t_m2):
     )
 
 
+# %% [markdown]
+# ### Computing all interventional expectations and effects
+#
+# We now evaluate $E_{t,t',t''}$ for the six regimes from the table above.
+
 # %%
-E_000 = expected_outcome(0, 0, 0)  # baseline
-E_111 = expected_outcome(1, 1, 1)  # full treatment
-E_100 = expected_outcome(1, 0, 0)  # direct effect reference
-E_010 = expected_outcome(0, 1, 0)  # indirect through M1
-E_001 = expected_outcome(0, 0, 1)  # indirect through M2
-E_011 = expected_outcome(0, 1, 1)  # interaction reference
+expected_000 = expected_outcome(0, 0, 0)  # baseline: no treatment anywhere
+expected_111 = expected_outcome(1, 1, 1)  # full treatment everywhere
+expected_100 = expected_outcome(1, 0, 0)  # direct: treatment only in outcome equation
+expected_010 = expected_outcome(0, 1, 0)  # indirect M1: dev_peer from treatment
+expected_001 = expected_outcome(0, 0, 1)  # indirect M2: sub_exp from treatment
+expected_011 = expected_outcome(0, 1, 1)  # both mediators from treatment
 
-te_analytical = (E_111 - E_000).mean(axis=1)
-de = (E_100 - E_000).mean(axis=1)
-iie_m1 = (E_010 - E_000).mean(axis=1)
-iie_m2 = (E_001 - E_000).mean(axis=1)
-interaction = (E_011 - E_010 - E_001 + E_000).mean(axis=1)
-dependence = te_analytical - de - iie_m1 - iie_m2 - interaction
+def _to_xarray(arr: np.ndarray, name: str) -> xr.DataArray:
+    """Wrap a (n_chains, n_draws) array into a named xarray DataArray."""
+    return xr.DataArray(
+        arr,
+        dims=("chain", "draw"),
+        coords={"chain": posterior.chain, "draw": posterior.draw},
+        name=name,
+    )
 
-prop_m1 = iie_m1 / te_analytical
-prop_m2 = iie_m2 / te_analytical
+
+te_analytical = _to_xarray((expected_111 - expected_000).mean(axis=-1), "TE")
+de = _to_xarray((expected_100 - expected_000).mean(axis=-1), "DE")
+iie_m1 = _to_xarray((expected_010 - expected_000).mean(axis=-1), "IIE_M1")
+iie_m2 = _to_xarray((expected_001 - expected_000).mean(axis=-1), "IIE_M2")
+interaction = _to_xarray(
+    (expected_011 - expected_010 - expected_001 + expected_000).mean(axis=-1), "INT"
+)
+dependence = (te_analytical - de - iie_m1 - iie_m2 - interaction).rename("DEP")
+
+# Note: proportions can be unstable when TE is near zero for individual
+# posterior draws, producing extreme values. Interpret with caution.
+prop_m1 = (iie_m1 / te_analytical).rename("prop_M1")
+prop_m2 = (iie_m2 / te_analytical).rename("prop_M2")
 
 # %%
 effects = {
@@ -518,16 +694,86 @@ for ax, (name, samples) in zip(axes.flatten(), effects.items()):
 fig.suptitle("Mediation Decomposition (Analytical)", fontsize=16, fontweight="bold")
 
 # %% [markdown]
+# ### Decomposition Summary
+#
+# The following bar chart shows how the total effect decomposes into its
+# components — the "punchline plot" of the analysis.
+
+# %%
+decomp_effects = {
+    "DE": de,
+    "IIE (M1)": iie_m1,
+    "IIE (M2)": iie_m2,
+    "INT": interaction,
+    "DEP": dependence,
+}
+
+fig, ax = plt.subplots(figsize=(10, 5))
+
+names = list(decomp_effects.keys())
+means = []
+lower_err = []
+upper_err = []
+for v in decomp_effects.values():
+    m = float(v.mean())
+    hdi_ds = az.hdi(v, hdi_prob=0.95)
+    lo = float(hdi_ds[v.name].sel(hdi="lower"))
+    hi = float(hdi_ds[v.name].sel(hdi="higher"))
+    means.append(m)
+    lower_err.append(m - lo)
+    upper_err.append(hi - m)
+
+colors = ["C0", "C1", "C2", "C3", "C4"]
+ax.barh(names, means, xerr=[lower_err, upper_err], color=colors, capsize=4)
+ax.axvline(0, color="grey", linestyle="--", alpha=0.5)
+
+te_mean = float(te_analytical.mean())
+te_hdi_ds = az.hdi(te_analytical, hdi_prob=0.95)
+te_lo = float(te_hdi_ds["TE"].sel(hdi="lower"))
+te_hi = float(te_hdi_ds["TE"].sel(hdi="higher"))
+ax.errorbar(
+    te_mean,
+    len(names),
+    xerr=[[te_mean - te_lo], [te_hi - te_mean]],
+    fmt="D",
+    color="black",
+    capsize=4,
+    markersize=8,
+)
+ax.set_yticks(list(range(len(names) + 1)))
+ax.set_yticklabels(names + ["TE (sum)"])
+ax.set_xlabel("Effect (probability scale)")
+ax.set_title(
+    "TE = DE + IIE(M1) + IIE(M2) + INT + DEP",
+    fontsize=14,
+    fontweight="bold",
+)
+fig.tight_layout()
+
+# %% [markdown]
 # ## Mediation Decomposition via `do` Operator
 #
-# The analytical decomposition above required extracting posterior parameters and manually constructing the logistic functions. As an alternative, we can compute all the building blocks using the `do` operator directly. This approach is more general: it works with any model structure without requiring closed-form marginalization, and it only requires that we can enumerate (or sample from) the mediator support.
+# The analytical decomposition above required us to **manually extract** posterior parameters
+# and reconstruct the logistic regression equations in NumPy. This works, but it is tightly
+# coupled to the model specification: if we changed the link function, added interactions, or
+# used continuous mediators, we would need to rewrite the helper functions from scratch.
 #
-# **Strategy:** We compute `E_{t,t',t''}` by combining two ingredients from the `do` operator:
+# The `do` operator offers a **model-agnostic** alternative. Instead of pulling out parameters,
+# we intervene directly on the generative model and let PyMC's `sample_posterior_predictive`
+# compute the quantities we need. The only requirement is that we can enumerate (or sample from)
+# the mediator support — which is trivial for binary mediators.
 #
-# 1. **Mediator probabilities**: `mu_dev_peer` and `mu_sub_exp` from `do(fam_int=t)` models give us $P(M_k=1 \mid do(T=t))$ for each posterior draw and observation.
-# 2. **Outcome corner values**: For each combination $(t, m_1, m_2)$ with $m_k \in \{0,1\}$, we intervene on all three variables via `do(fam_int=t, dev_peer=m_1, sub_exp=m_2)` to get $q(t, m_1, m_2) = P(Y=1 \mid T=t, M_1=m_1, M_2=m_2, X)$.
+# **Strategy:** We assemble $E_{t,t',t''}$ from two ingredients, both obtained via `do`:
 #
-# Then: $E_{t,t',t''} = \sum_{m_1, m_2} P(M_1=m_1 \mid do(T=t'))\, P(M_2=m_2 \mid do(T=t''))\, q(t, m_1, m_2)$
+# 1. **Mediator probabilities** — From `do(fam_int=t)` models we read off `mu_dev_peer` and
+#    `mu_sub_exp`, giving $P(M_k=1 \mid do(T=t))$ per posterior draw and observation.
+# 2. **Outcome corner values** — For each of the 8 combinations $(t, m_1, m_2) \in \{0,1\}^3$,
+#    we intervene on all three variables via `do(fam_int=t, dev_peer=m_1, sub_exp=m_2)` and
+#    read off `mu_sub_disorder`, giving $q(t, m_1, m_2)$.
+#
+# The marginalization formula is the same as before:
+#
+# $$E_{t,t',t''} = \sum_{m_1, m_2} P(M_1=m_1 \mid do(T=t'))\, P(M_2=m_2 \mid do(T=t''))\, q(t, m_1, m_2)$$
 
 # %% [markdown]
 # ### Step 1: Mediator probabilities under each treatment level
@@ -553,56 +799,70 @@ mu_se_do = {
 }
 
 # %% [markdown]
+# We now have `mu_dp_do[t]` and `mu_se_do[t]` — the probability that each mediator
+# equals 1 under `do(fam_int=t)`, for every posterior draw and observation. These are
+# the weights in our marginalization formula. Next we need the **outcome probabilities**
+# at every corner of the mediator space.
+
+# %% [markdown]
 # ### Step 2: Outcome probabilities for all $(t, m_1, m_2)$ corners
 
 # %%
 q_do = {}
-for t in [0, 1]:
-    for m1 in [0, 1]:
-        for m2 in [0, 1]:
-            model_tmm = do(
-                conditioned_model,
-                {
-                    "fam_int": np.full(n_obs, t, dtype=np.int32),
-                    "dev_peer": np.full(n_obs, m1, dtype=np.int32),
-                    "sub_exp": np.full(n_obs, m2, dtype=np.int32),
-                },
-            )
-            with model_tmm:
-                pp = pm.sample_posterior_predictive(
-                    idata, random_seed=rng, var_names=["mu_sub_disorder"]
-                )
-            q_do[(t, m1, m2)] = pp["posterior_predictive"]["mu_sub_disorder"]
+# 8 interventions: all (fam_int, dev_peer, sub_exp) in {0,1}^3
+for t, m1, m2 in product([0, 1], repeat=3):
+    interventions = {
+        "fam_int": np.full(n_obs, t, dtype=np.int32),
+        "dev_peer": np.full(n_obs, m1, dtype=np.int32),
+        "sub_exp": np.full(n_obs, m2, dtype=np.int32),
+    }
+    model_tmm = do(conditioned_model, interventions)
+    with model_tmm:
+        pp = pm.sample_posterior_predictive(
+            idata, random_seed=rng, var_names=["mu_sub_disorder"]
+        )
+    q_do[(t, m1, m2)] = pp["posterior_predictive"]["mu_sub_disorder"]
 
 # %% [markdown]
 # ### Step 3: Compute all interventional expectations and effects
+#
+# We now have all building blocks: mediator probabilities under each treatment level
+# (`mu_dp_do`, `mu_se_do`) and outcome probabilities for every $(t, m_1, m_2)$ corner
+# (`q_do`). We combine them using the same marginalization formula as in the analytical
+# approach — the only difference is that the quantities come from `do` operator
+# interventions rather than manually reconstructed logistic functions.
 
 
 # %%
-def E_do_op(t, t_m1, t_m2):
-    """Compute E_{t,t',t''} via do operator building blocks."""
+def expected_do_op(t: int, t_m1: int, t_m2: int) -> xr.DataArray:
+    """Compute E_{t,t',t''} via do operator building blocks.
+
+    Returns an xarray DataArray with dimensions (chain, draw), averaged over
+    observations.
+    """
     p1 = mu_dp_do[t_m1]
     p2 = mu_se_do[t_m2]
+    # Same enumeration over binary mediator corners, now using xarray DataArrays
     return (
         p1 * p2 * q_do[(t, 1, 1)]
         + p1 * (1 - p2) * q_do[(t, 1, 0)]
         + (1 - p1) * p2 * q_do[(t, 0, 1)]
         + (1 - p1) * (1 - p2) * q_do[(t, 0, 0)]
-    ).mean(dim="obs_idx")
+    ).mean(dim="obs_idx")  # average over individuals
 
 
-E_do_000 = E_do_op(0, 0, 0)
-E_do_111 = E_do_op(1, 1, 1)
-E_do_100 = E_do_op(1, 0, 0)
-E_do_010 = E_do_op(0, 1, 0)
-E_do_001 = E_do_op(0, 0, 1)
-E_do_011 = E_do_op(0, 1, 1)
+expected_do_000 = expected_do_op(0, 0, 0)
+expected_do_111 = expected_do_op(1, 1, 1)
+expected_do_100 = expected_do_op(1, 0, 0)
+expected_do_010 = expected_do_op(0, 1, 0)
+expected_do_001 = expected_do_op(0, 0, 1)
+expected_do_011 = expected_do_op(0, 1, 1)
 
-te_do_decomp = E_do_111 - E_do_000
-de_do = E_do_100 - E_do_000
-iie_m1_do = E_do_010 - E_do_000
-iie_m2_do = E_do_001 - E_do_000
-interaction_do = E_do_011 - E_do_010 - E_do_001 + E_do_000
+te_do_decomp = expected_do_111 - expected_do_000
+de_do = expected_do_100 - expected_do_000
+iie_m1_do = expected_do_010 - expected_do_000
+iie_m2_do = expected_do_001 - expected_do_000
+interaction_do = expected_do_011 - expected_do_010 - expected_do_001 + expected_do_000
 dependence_do = te_do_decomp - de_do - iie_m1_do - iie_m2_do - interaction_do
 
 prop_m1_do = iie_m1_do / te_do_decomp
@@ -649,10 +909,8 @@ fig, axes = plt.subplots(
 )
 
 for ax, (name, (analytical_s, do_s)) in zip(axes.flatten(), effects_comparison.items()):
-    ax.hist(analytical_s, bins=50, alpha=0.5, density=True, label="Analytical")
-    ax.hist(
-        do_s.values.flatten(), bins=50, alpha=0.5, density=True, label="do operator"
-    )
+    az.plot_dist(analytical_s, ax=ax, label="Analytical")
+    az.plot_dist(do_s, ax=ax, label="do operator")
     ax.axvline(0, color="grey", linestyle="--", alpha=0.5)
     ax.legend(fontsize=8)
     ax.set_title(name, fontsize=12)
@@ -667,9 +925,17 @@ fig.suptitle(
 print("Effect comparison (posterior mean): Analytical vs do operator")
 print("=" * 70)
 for name, (analytical_s, do_s) in effects_comparison.items():
-    a_mean = np.mean(analytical_s)
+    a_mean = float(analytical_s.mean())
     d_mean = float(do_s.mean())
     print(f"  {name:40s}: {a_mean:+.5f} vs {d_mean:+.5f}")
+
+# %%
+# Three-way consistency check: compare TE from the initial do operator
+# computation (te_do) against the analytical and do-decomposition TEs.
+print("Three-way TE consistency check (posterior mean):")
+print(f"  TE (do operator, initial):  {float(te_do.mean()):+.5f}")
+print(f"  TE (analytical decomp):     {float(te_analytical.mean()):+.5f}")
+print(f"  TE (do operator, decomp):   {float(te_do_decomp.mean()):+.5f}")
 
 # %% [markdown]
 # Both approaches yield identical results, confirming correctness. The `do` operator approach is more general: it does not require manually extracting posterior parameters or constructing logistic functions. All building blocks come from `sample_posterior_predictive` on appropriately intervened models.
@@ -736,11 +1002,13 @@ pymc_hdi_upper = []
 
 for name in blogpost_results["effect"].to_list():
     samples = all_effects[name]
-    mean_val = np.mean(samples)
-    hdi = az.hdi(samples, hdi_prob=0.95)
+    mean_val = float(samples.mean())
+    hdi_ds = az.hdi(samples, hdi_prob=0.95)
+    hdi_low = float(hdi_ds[samples.name].sel(hdi="lower"))
+    hdi_high = float(hdi_ds[samples.name].sel(hdi="higher"))
     pymc_means.append(mean_val)
-    pymc_hdi_lower.append(hdi[0])
-    pymc_hdi_upper.append(hdi[1])
+    pymc_hdi_lower.append(hdi_low)
+    pymc_hdi_upper.append(hdi_high)
 
 blogpost_results = blogpost_results.with_columns(
     pl.Series("pymc_mean", pymc_means),
@@ -770,26 +1038,43 @@ effect_names = list(causal_effects.keys())
 
 for i, name in enumerate(effect_names):
     samples = causal_effects[name]
-    mean_val = np.mean(samples)
-    hdi = az.hdi(samples, hdi_prob=0.95)
+    mean_val = float(samples.mean())
+    hdi_ds = az.hdi(samples, hdi_prob=0.95)
+    hdi_low = float(hdi_ds[samples.name].sel(hdi="lower"))
+    hdi_high = float(hdi_ds[samples.name].sel(hdi="higher"))
     ax.errorbar(
         mean_val,
         i,
-        xerr=[[mean_val - hdi[0]], [hdi[1] - mean_val]],
+        xerr=[[mean_val - hdi_low], [hdi_high - mean_val]],
         fmt="o",
         color="C0",
         capsize=4,
         label="PyMC (95% HDI)" if i == 0 else None,
     )
-    bp_est = blogpost_results.filter(pl.col("effect") == name)["blogpost_est"][0]
-    ax.plot(
-        bp_est,
-        i + 0.15,
-        "s",
-        color="C1",
-        markersize=7,
-        label="Blogpost" if i == 0 else None,
-    )
+    bp_row = blogpost_results.filter(pl.col("effect") == name)
+    bp_est = bp_row["blogpost_est"][0]
+    bp_lo = bp_row["blogpost_ci_lower"][0]
+    bp_hi = bp_row["blogpost_ci_upper"][0]
+    if bp_lo is not None and bp_hi is not None:
+        ax.errorbar(
+            bp_est,
+            i + 0.15,
+            xerr=[[bp_est - bp_lo], [bp_hi - bp_est]],
+            fmt="s",
+            color="C1",
+            capsize=4,
+            markersize=7,
+            label="Blogpost (95% CI)" if i == 0 else None,
+        )
+    else:
+        ax.plot(
+            bp_est,
+            i + 0.15,
+            "s",
+            color="C1",
+            markersize=7,
+            label="Blogpost" if i == 0 else None,
+        )
 
 ax.axvline(0, color="grey", linestyle="--", alpha=0.5)
 ax.set_yticks(y_positions)
@@ -801,6 +1086,8 @@ fig.tight_layout()
 
 # %% [markdown]
 # ## Conclusion
+#
+# The intervention reduced substance use disorder primarily through its direct effect, with a meaningful indirect pathway through deviant peer engagement but negligible contribution through substance experimentation.
 #
 # In this notebook, we demonstrated how to perform **causal mediation analysis** using PyMC's
 # probabilistic programming framework and the `do` operator. The key takeaways are:
@@ -835,3 +1122,7 @@ fig.tight_layout()
 #   Carlo samples from the mediator distributions under `do(T=t)`.
 # - **Sensitivity analysis**: Assess robustness to unmeasured confounding between mediators
 #   and outcome.
+
+# %%
+# %load_ext watermark
+# %watermark -n -u -v -iv -w -p pymc,pytensor,nutpie
