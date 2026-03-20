@@ -33,7 +33,6 @@ probcast/
 │   ├── intermittent.py          # Croston, TSB, ZI-TSB
 │   ├── arma.py                  # ARMA(p,q)
 │   ├── var.py                   # VAR(p) with IRF
-│   ├── hierarchical.py          # Hierarchical exponential smoothing
 │   └── deepar.py                # Simple DeepAR (RNN-based) probabilistic forecaster
 │
 ├── nn/                          # Neural network building blocks (flax.nnx)
@@ -139,7 +138,7 @@ Models are what users pass to `run_mcmc()` or `run_svi()`. See [03-core-abstract
 
 ### Why This Split?
 
-- **Reuse.** The same level component appears in simple exponential smoothing, Holt-Winters, Croston, UCM, and hierarchical models.
+- **Reuse.** The same level component appears in simple exponential smoothing, Holt-Winters, Croston, and UCM. All panel-capable models support hierarchical priors via `group_mapping` and nested `Prior` objects — hierarchy is a cross-cutting capability, not a separate model.
 - **Testability.** Components can be unit-tested with known inputs. Models require inference to test.
 - **Customization.** Users can mix components to build novel models without touching inference code.
 - **UCM as the canonical example.** The UCM model composes level + trend + seasonality + cycle + AR + regression components. The exponential smoothing models are thin convenience wrappers around specific UCM configurations.

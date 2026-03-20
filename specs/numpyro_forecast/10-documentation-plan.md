@@ -42,6 +42,7 @@ docs/
 ├── examples/               # Adapted from existing notebooks (lighter, focused)
 │   ├── ucm_components.ipynb
 │   ├── exponential_smoothing.ipynb
+│   ├── hierarchical_es.ipynb
 │   ├── sarimax.ipynb
 │   ├── arma.ipynb
 │   ├── var_irf.ipynb
@@ -98,9 +99,9 @@ Shows how the same model works on a single series and a panel of series. Demonst
 
 ### 6. Hierarchical Forecasting (`tutorials/hierarchical.ipynb`)
 
-Multi-series Holt-Winters with group-level pooling via nested `Prior` objects. Demonstrates SVI for scalability and how hierarchy is expressed as a prior configuration rather than a separate model function.
+Demonstrates hierarchical priors as a cross-cutting capability applicable to any panel-capable model. Uses `group_mapping` + nested `Prior` objects for multi-level pooling. The primary worked example is hierarchical Holt-Winters (3-level: global → state → series), with a brief second example showing the same pattern applied to ARMA to prove universality. Demonstrates SVI for scalability.
 
-**Covers:** `holt_winters_model` with nested `Prior` hierarchies, `numpyro.plate`, `LocScaleReparam`, `run_svi`, `forecast_svi`, `prepare_hierarchical_mapping`.
+**Covers:** `group_mapping` parameter, nested `Prior` hierarchies, `numpyro.plate`, `LocScaleReparam`, `run_svi`, `forecast_svi`, `prepare_hierarchical_mapping`. Shows that the same pattern works across model families.
 
 **Adapted from:** `hierarchical_exponential_smoothing.ipynb`.
 
@@ -144,6 +145,7 @@ Lighter versions of the user's existing notebooks, adapted to use the package AP
 |---------|----------------|
 | `ucm_components.ipynb` | New — UCM with various component combinations (local level, trend, cycle, trigonometric seasonal) |
 | `exponential_smoothing.ipynb` | `exponential_smoothing_numpyro.ipynb` |
+| `hierarchical_es.ipynb` | `hierarchical_exponential_smoothing.ipynb` — 3-level hierarchical Holt-Winters (the same `group_mapping` + nested `Prior` pattern applies to ARMA, SARIMAX, etc.) |
 | `arma.ipynb` | `arma_numpyro.ipynb` |
 | `var_irf.ipynb` | `var_numpyro.ipynb` |
 | `croston_tsb.ipynb` | `croston_numpyro.ipynb`, `tsb_numpyro.ipynb` |

@@ -196,11 +196,12 @@ def damped_holt_winters_model(
     n_seasons: int,
     *,
     future: int = 0,
+    group_mapping: Float[Array, "n_series"] | None = None,
     priors: dict[str, Prior] | None = None,
 ) -> None:
     return ucm_model(
         y, future=future, level=True, trend="damped",
-        seasonal=n_seasons, priors=priors,
+        seasonal=n_seasons, group_mapping=group_mapping, priors=priors,
     )
 ```
 
@@ -209,6 +210,8 @@ Valid prior keys: `"level_smoothing"`, `"trend_smoothing"`, `"seasonality_smooth
 **Source:** `exponential_smoothing_numpyro.ipynb`
 
 ## Intermittent Demand (`models/intermittent.py`)
+
+> **Note:** Intermittent models do not currently accept `group_mapping` because their input contract (`z`, `p_inv`) differs from the standard `y` convention and they are typically applied to individual SKUs. Hierarchical intermittent demand (e.g., pooling smoothing parameters across related SKUs) is a future extension.
 
 ### `CROSTON_DEFAULT_PRIORS`
 
@@ -330,6 +333,7 @@ def arma_model(
     q: int = 1,
     *,
     future: int = 0,
+    group_mapping: Float[Array, "n_series"] | None = None,
     priors: dict[str, Prior] | None = None,
 ) -> None:
     resolved = {**ARMA_DEFAULT_PRIORS, **(priors or {})}
@@ -373,6 +377,7 @@ def var_model(
     n_lags: int,
     *,
     future: int = 0,
+    group_mapping: Float[Array, "n_vars"] | None = None,
     priors: dict[str, Prior] | None = None,
 ) -> None:
     resolved = {**VAR_DEFAULT_PRIORS, **(priors or {})}
@@ -450,6 +455,7 @@ def sarimax_model(
     *,
     future: int = 0,
     future_exog: Float[Array, "future n_exog *batch"] | None = None,
+    group_mapping: Float[Array, "n_series"] | None = None,
     priors: dict[str, Prior] | None = None,
 ) -> None:
     resolved = {**SARIMAX_DEFAULT_PRIORS, **(priors or {})}
@@ -465,11 +471,33 @@ def sarimax_model(
 
 Valid prior keys: `"phi"`, `"theta"`, `"seasonal_phi"`, `"seasonal_theta"`, `"beta"`, `"sigma"`.
 
-## Hierarchical Exponential Smoothing (`models/hierarchical.py`)
+## Hierarchical Models (Cross-Cutting Pattern)
 
-Hierarchical models are expressed as **prior configurations**, not separate model functions. The `holt_winters_model` (or `ucm_model`) handles hierarchy when the user passes nested `Prior` objects and the data is panel-shaped. The model function wraps `prior.sample(...)` inside `numpyro.plate` and applies `LocScaleReparam` where needed. An optional `group_mapping` parameter enables intermediate group-level plates for 3-level hierarchies.
+Hierarchical structure is a **cross-cutting capability** supported by all panel-capable models, not a separate model. Any model that accepts `y: (t_max, *batch)` and `priors: dict[str, Prior]` also accepts `group_mapping: Array | None` to enable multi-level hierarchical priors. Hierarchy is expressed entirely through the `Prior` dict: nested `Prior` objects create hyperprior trees, and the model function wraps `prior.sample(...)` inside `numpyro.plate` and applies `LocScaleReparam` where needed.
 
-### Example: 3-level hierarchical Holt-Winters (from `hierarchical_exponential_smoothing.ipynb`)
+### How it works
+
+1. **2-level hierarchy (global → series):** Use nested `Prior` objects. `Prior.sample()` resolves children (hyperpriors) at global scope, then samples the parent inside `plate("series")`.
+2. **3-level hierarchy (global → group → series):** Pass `group_mapping` (an integer array mapping each series to its group index). The model creates an intermediate `plate("groups")` between global and series-level sampling.
+3. **No hierarchy:** Use flat `Prior` objects (no nesting). All parameters are sampled independently per series (or globally for univariate data).
+
+### Models supporting `group_mapping`
+
+| Model | `group_mapping` type | Notes |
+|-------|---------------------|-------|
+| `ucm_model` | `Float[Array, "n_series"]` | Core model — all ES wrappers delegate here |
+| `holt_winters_model` | `Float[Array, "n_series"]` | Forwards to `ucm_model` |
+| `damped_holt_winters_model` | `Float[Array, "n_series"]` | Forwards to `ucm_model` |
+| `local_level_model` etc. | via `**kwargs` | UCM convenience aliases forward `group_mapping` |
+| `sarimax_model` | `Float[Array, "n_series"]` | Standalone — own plate logic |
+| `arma_model` | `Float[Array, "n_series"]` | Standalone — own plate logic |
+| `var_model` | `Float[Array, "n_vars"]` | Groups variables, not series |
+| `deepar_model` | `Float[Array, "n_series"]` | SVI-only — own plate logic |
+| `attention_deepar_model` | `Float[Array, "n_series"]` | SVI-only — own plate logic |
+
+Intermittent models (`croston_model`, `tsb_model`, `zi_tsb_model`) do not currently accept `group_mapping` — see the note in the Intermittent Demand section.
+
+### Example 1: 3-level hierarchical Holt-Winters (from `hierarchical_exponential_smoothing.ipynb`)
 
 This example directly corresponds to the [hierarchical exponential smoothing notebook](Python/hierarchical_exponential_smoothing.ipynb), which fits a Holt-Winters model to 308 Australian tourism series grouped by state/territory. The hierarchy has three levels:
 
@@ -535,11 +563,73 @@ holt_winters_model(
 )
 ```
 
-### Inside the model function
+**Source:** `hierarchical_exponential_smoothing.ipynb`
+
+### Example 2: Hierarchical ARMA (same pattern, different model)
+
+The identical `group_mapping` + nested `Prior` pattern works with any panel-capable model. Here, an ARMA(1,1) pools AR and MA coefficients across groups of related series:
+
+```python
+arma_model(
+    y_panel,  # shape (t_max, n_series)
+    p=1, q=1,
+    future=12,
+    group_mapping=region_mapping_idx,  # shape (n_series,) — maps series to region
+    priors={
+        # AR coefficient: 2-level hierarchy (global -> series)
+        "phi": Prior(
+            "Normal",
+            params={
+                "loc": Prior("Normal", params={"loc": 0.0, "scale": 0.5}),
+                "scale": Prior("HalfNormal", params={"scale": 0.3}),
+            },
+        ),
+        # MA coefficient: flat (no pooling)
+        "theta": Prior("Uniform", params={"low": -1.0, "high": 1.0}),
+        # Noise: 2-level hierarchy
+        "sigma": Prior(
+            "HalfNormal",
+            params={"scale": Prior("Gamma", params={"concentration": 4.0, "rate": 2.0})},
+        ),
+    },
+)
+```
+
+### Example 3: Hierarchical SARIMAX
+
+```python
+sarimax_model(
+    y_panel,  # shape (t_max, n_series)
+    order=(1, 0, 0),
+    seasonal_order=(1, 0, 0, 12),
+    exog=exog_panel,
+    future=12,
+    future_exog=future_exog_panel,
+    group_mapping=store_cluster_idx,  # shape (n_series,) — maps stores to clusters
+    priors={
+        # Seasonal AR: 3-level hierarchy (global -> cluster -> store)
+        "seasonal_phi": Prior(
+            "Normal",
+            params={
+                "loc": Prior(
+                    "Normal",
+                    params={
+                        "loc": Prior("Normal", params={"loc": 0.0, "scale": 0.5}),
+                        "scale": Prior("HalfNormal", params={"scale": 0.3}),
+                    },
+                ),
+                "scale": Prior("HalfNormal", params={"scale": 0.2}),
+            },
+        ),
+    },
+)
+```
+
+### Inside the model function (general pattern)
 
 > **Note:** `Prior.sample()` handles 1-level and 2-level hierarchies automatically. For 3-level hierarchies with `group_mapping`, the model manually decomposes the prior tree to insert `plate('groups')` between global and series scopes. This is the **one case** where manual tree-walking is required (because an intermediate plate must be inserted between levels).
 
-The model accepts an optional `group_mapping` parameter for 3-level hierarchies. When provided, priors with nesting depth >= 3 use an intermediate `plate("groups")` between global and series-level sampling:
+Every model that accepts `group_mapping` follows the same internal logic. Here it is illustrated with `holt_winters_model`, but the pattern applies identically to `arma_model`, `sarimax_model`, `deepar_model`, etc.:
 
 ```python
 def holt_winters_model(y, n_seasons, *, future=0, group_mapping=None, priors=None):
@@ -594,15 +684,13 @@ When a `Prior` has nested children, `prior.sample(name)` recursively samples the
 The model can also apply `numpyro.handlers.reparam` with `LocScaleReparam` for non-centered parameterization when needed.
 
 **Key patterns:**
-- Three-level hierarchy: Global → Group (state) → Series.
+- **Universal:** The `group_mapping` + nested `Prior` pattern works identically across all panel-capable models.
 - `group_mapping: Array | None` — optional mapping from series index to group index, enabling the intermediate plate.
 - `numpyro.plate("groups", n_groups)` for group-level parameters.
 - `numpyro.plate("series", n_series)` for series-level parameters indexed into group params via `group_mapping`.
-- `numpyro.plate("n_seasons", n_seasons, dim=-2)` for seasonal init.
 - Transition operates on `(t_max, n_series)` arrays with vectorized updates.
-- The notebook was validated with both NUTS (~3 min on Mac M3 for 308 series) and SVI (comparable accuracy).
-
-**Source:** `hierarchical_exponential_smoothing.ipynb`
+- Recommend SVI for large hierarchical models (hundreds of series). MCMC is viable for smaller panels.
+- The pattern was validated with both NUTS and SVI on the tourism dataset (308 series, `hierarchical_exponential_smoothing.ipynb`).
 
 ## DeepAR (`models/deepar.py`)
 
@@ -642,6 +730,7 @@ def deepar_model(
     future_covariates: Float[Array, "future n_features"] | None = None,
     likelihood: str = "normal",
     bayesian_nn: bool = False,
+    group_mapping: Float[Array, "n_series"] | None = None,
     priors: dict[str, Prior] | None = None,
 ) -> None:
     resolved = {**DEEPAR_DEFAULT_PRIORS, **(priors or {})}
@@ -766,6 +855,7 @@ def attention_deepar_model(
     n_heads: int = 2,
     likelihood: str = "normal",
     bayesian_nn: bool = False,
+    group_mapping: Float[Array, "n_series"] | None = None,
     priors: dict[str, Prior] | None = None,
 ) -> None:
     # Register NN

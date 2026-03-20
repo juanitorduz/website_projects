@@ -58,18 +58,17 @@ Components are extracted *from* the models. Having the core and inference layer 
 
 ## Phase 3: Pre-built Models (Classical)
 
-**Goal:** Provide ready-to-use model functions with the `priors: dict[str, Prior]` injection pattern. The UCM is the centrepiece; other models are either UCM wrappers or distinct model families. All models must work on both `(t_max,)` and `(t_max, n_series)` shapes. Hierarchical models are expressed as prior configurations (nested `Prior` objects) rather than separate model functions.
+**Goal:** Provide ready-to-use model functions with the `priors: dict[str, Prior]` injection pattern. The UCM is the centrepiece; other models are either UCM wrappers or distinct model families. All models must work on both `(t_max,)` and `(t_max, n_series)` shapes. All panel-capable models accept `group_mapping: Array | None` for hierarchical priors — hierarchy is a cross-cutting capability expressed through nested `Prior` objects, not a separate model.
 
 ### Deliverables
 
-- `models/ucm.py` — **`ucm_model`** (composable: level, trend, seasonal, cycle, AR, regression) + convenience aliases (`local_level_model`, `local_linear_trend_model`, `smooth_trend_model`)
-- `models/exponential_smoothing.py` — `level_model`, `level_trend_model`, `holt_winters_model`, `damped_holt_winters_model` (thin UCM wrappers with ES-style smoothing parameterisation)
-- `models/sarimax.py` — `sarimax_model`
-- `models/intermittent.py` — `croston_model`, `tsb_model`, `zi_tsb_model`
-- `models/arma.py` — `arma_model`
-- `models/var.py` — `var_model`, `compute_irf`
-- `models/hierarchical.py` — hierarchical model support via nested `Prior` objects (hierarchy is a prior configuration, not a separate model function)
-- Integration tests for each model (short MCMC runs, **shape checks for both univariate and panel**)
+- `models/ucm.py` — **`ucm_model`** (composable: level, trend, seasonal, cycle, AR, regression) + convenience aliases (`local_level_model`, `local_linear_trend_model`, `smooth_trend_model`). Accepts `group_mapping`.
+- `models/exponential_smoothing.py` — `level_model`, `level_trend_model`, `holt_winters_model`, `damped_holt_winters_model` (thin UCM wrappers). All forward `group_mapping` to `ucm_model`.
+- `models/sarimax.py` — `sarimax_model`. Accepts `group_mapping`.
+- `models/intermittent.py` — `croston_model`, `tsb_model`, `zi_tsb_model` (hierarchical extension deferred — different input contract).
+- `models/arma.py` — `arma_model`. Accepts `group_mapping`.
+- `models/var.py` — `var_model`, `compute_irf`. Accepts `group_mapping`.
+- Integration tests for each model (short MCMC runs, **shape checks for both univariate and panel**, hierarchical prior tests with `group_mapping`)
 
 ### Why third?
 
@@ -79,7 +78,8 @@ Models compose components + core. They are the user-facing API and need both lay
 
 - Each model has at least one passing short-run integration test.
 - Every model defines a `*_DEFAULT_PRIORS` constant and accepts `priors: dict[str, Prior] | None = None`.
-- Hierarchical behavior is validated via nested `Prior` objects with `numpyro.plate`.
+- All panel-capable models accept `group_mapping` and correctly create `plate("groups")` + `plate("series")` when it is provided.
+- Hierarchical behavior is validated via nested `Prior` objects with `numpyro.plate` on at least two model families (e.g., ES and ARMA).
 - Baseline model docs include identifiability/stability notes where applicable (ARMA/SARIMAX/VAR/HSGP/UCM).
 - Forecast outputs expose stable and documented `return_sites`.
 
@@ -188,7 +188,7 @@ Forward-mode AD is slower than reverse-mode for models with many parameters. Hie
 
 ### 3. Hierarchical tensor shapes
 
-The hierarchical model uses plates with `dim=-1` and `dim=-2` for series and seasons. Getting broadcasting right across transition functions is error-prone.
+All panel-capable models use plates with `dim=-1` and `dim=-2` for series and seasons when `group_mapping` is provided. Getting broadcasting right across transition functions is error-prone.
 
 **Mitigation:** Thorough shape annotations with `jaxtyping`. Integration tests that verify output shapes match expected `(t_max, n_series)`.
 
@@ -204,7 +204,7 @@ Components must broadcast correctly over `...` trailing batch dimensions. This i
 - **Seasonal rotation:** `jnp.roll` and array indexing with batch dims.
 - **Trigonometric seasonality:** State is `(2, n_harmonics, *batch)` — matrix operations must use correct axes.
 - **AR lags:** `update_lags` shifts along axis 0 with batch dims trailing.
-- **Plates vs vmap:** Hierarchical models use `numpyro.plate` (shared priors across series); non-hierarchical models can use `jax.vmap` for independent fits. The choice affects shape conventions.
+- **Plates vs vmap:** Models with `group_mapping` (or nested `Prior` objects) use `numpyro.plate` for shared/pooled priors across series; non-hierarchical models can use `jax.vmap` for independent fits. The choice affects shape conventions.
 
 **Mitigation:** Comprehensive shape tests for every component with `(t_max,)`, `(t_max, 1)`, and `(t_max, n_series)` inputs. Use `jaxtyping` + `beartype` to catch shape mismatches early.
 
@@ -221,7 +221,7 @@ Phase 1: core/ + inference/ + metrics/ + utils/ (features, data)
     ↓
 Phase 2: components/ (core deterministic components)
     ↓
-Phase 3: models/ (UCM core + ES wrappers, SARIMAX, ARMA, VAR, intermittent, hierarchical)
+Phase 3: models/ (UCM core + ES wrappers, SARIMAX, ARMA, VAR, intermittent — all with group_mapping)
     ↓
 Phase 4: cv/ + utils/plotting
     ↓
