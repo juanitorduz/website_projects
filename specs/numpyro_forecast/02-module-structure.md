@@ -161,4 +161,4 @@ core/  ←  components/  ←  models/
         utils/ (features, data, plotting)
 ```
 
-No circular dependencies. `core/` depends on nothing internal. `utils/` is a leaf module used by any layer. `nn/` is optional — only required for DeepAR/attention models.
+No circular dependencies. `core/` depends on nothing internal. `utils/` is a leaf module used by any layer. `nn/` is optional — only required for DeepAR/attention models (uses `flax.nnx`).

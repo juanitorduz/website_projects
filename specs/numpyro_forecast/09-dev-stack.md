@@ -59,7 +59,7 @@ dependencies = [
 [project.optional-dependencies]
 viz = ["arviz>=0.18", "matplotlib>=3.8"]
 cv = ["xarray>=2024.1", "arviz>=0.18"]
-nn = ["flax>=0.8"]  # For DeepAR / attention models
+nn = ["flax>=0.10"]  # For DeepAR / attention models (uses flax.nnx API)
 dev = [
     "pytest>=8.0",
     "pytest-xdist",

@@ -27,7 +27,9 @@ docs/
 │
 ├── tutorials/              # Narrative tutorials as myst-nb notebooks
 │   ├── quickstart.ipynb
+│   ├── ucm_guide.ipynb
 │   ├── custom_model.ipynb
+│   ├── batch_panel.ipynb
 │   ├── hierarchical.ipynb
 │   ├── cv_workflow.ipynb
 │   ├── intermittent.ipynb
@@ -35,12 +37,12 @@ docs/
 │   └── deepar.ipynb
 │
 ├── examples/               # Adapted from existing notebooks (lighter, focused)
+│   ├── ucm_components.ipynb
 │   ├── exponential_smoothing.ipynb
 │   ├── sarimax.ipynb
 │   ├── arma.ipynb
 │   ├── var_irf.ipynb
 │   ├── croston_tsb.ipynb
-│   ├── local_level_fourier.ipynb
 │   └── deepar.ipynb
 │
 └── _static/
@@ -63,17 +65,29 @@ Each API page groups functions by module with cross-references to related tutori
 
 ### 1. Quickstart (`tutorials/quickstart.ipynb`)
 
-End-to-end example: generate data → fit level model → forecast → evaluate CRPS → plot.
+End-to-end example: generate data → fit UCM (local level + trend) → forecast → evaluate CRPS → plot. Shows both univariate and panel data.
 
-**Covers:** `level_model`, `run_mcmc`, `forecast`, `crps_empirical`, `plot_forecast`.
+**Covers:** `ucm_model`, `run_mcmc`, `forecast`, `crps_empirical`, `plot_forecast`, batch dimensions.
 
-### 2. Custom Model (`tutorials/custom_model.ipynb`)
+### 2. UCM Guide (`tutorials/ucm_guide.ipynb`)
+
+Deep dive into the Unobserved Components Model. Shows how to compose level, trend (all variants), seasonality (additive, trigonometric), cycle, AR, and regression components. Compares different configurations on the same dataset.
+
+**Covers:** `ucm_model` with all component combinations, interpreting component decomposition, comparison with statsmodels UCM.
+
+### 3. Custom Model (`tutorials/custom_model.ipynb`)
 
 Build a model from scratch using components. Shows the `scan + condition` pattern, how to add custom priors, and how to use the inference toolkit with a non-standard model.
 
 **Covers:** `components/`, `ModelFn` protocol, `run_mcmc`, `forecast`.
 
-### 3. Hierarchical Forecasting (`tutorials/hierarchical.ipynb`)
+### 4. Batch & Panel Forecasting (`tutorials/batch_panel.ipynb`)
+
+Shows how the same model works on a single series and a panel of series. Demonstrates `numpyro.plate` for shared/hierarchical priors vs `jax.vmap` for independent fits.
+
+**Covers:** Batch dimension convention, `ucm_model` on panel data, `holt_winters_model` on panel data, performance tips.
+
+### 5. Hierarchical Forecasting (`tutorials/hierarchical.ipynb`)
 
 Multi-series Holt-Winters with group-level pooling. Demonstrates SVI for scalability.
 
@@ -81,7 +95,7 @@ Multi-series Holt-Winters with group-level pooling. Demonstrates SVI for scalabi
 
 **Adapted from:** `hierarchical_exponential_smoothing.ipynb`.
 
-### 4. Cross-Validation Workflow (`tutorials/cv_workflow.ipynb`)
+### 6. Cross-Validation Workflow (`tutorials/cv_workflow.ipynb`)
 
 Time-slice CV on intermittent demand data. Shows `prepare_data_fn` pattern and per-fold metrics.
 
@@ -89,7 +103,7 @@ Time-slice CV on intermittent demand data. Shows `prepare_data_fn` pattern and p
 
 **Adapted from:** `tsb_numpyro.ipynb`, `zi_tsb_numpyro.ipynb`.
 
-### 5. Intermittent Demand (`tutorials/intermittent.ipynb`)
+### 7. Intermittent Demand (`tutorials/intermittent.ipynb`)
 
 Comparison of Croston, TSB, and ZI-TSB on the same dataset.
 
@@ -97,15 +111,15 @@ Comparison of Croston, TSB, and ZI-TSB on the same dataset.
 
 **Adapted from:** `croston_numpyro.ipynb`, `tsb_numpyro.ipynb`, `zi_tsb_numpyro.ipynb`.
 
-### 6. HSGP Time-Varying Covariates (`tutorials/hsgp_covariates.ipynb`)
+### 8. HSGP Time-Varying Covariates (`tutorials/hsgp_covariates.ipynb`)
 
 Adding smooth, non-parametric covariate effects to a forecasting model using Hilbert Space GPs.
 
-**Covers:** `hsgp_covariate_effect` component, composing with existing models, interpreting the GP effect.
+**Covers:** `hsgp_covariate_effect` component, composing with UCM or custom models, interpreting the GP effect.
 
-### 7. DeepAR Forecasting (`tutorials/deepar.ipynb`)
+### 9. DeepAR Forecasting (`tutorials/deepar.ipynb`)
 
-Probabilistic forecasting with a simple RNN-based model. Demonstrates SVI training and multi-series forecasting.
+Probabilistic forecasting with a simple RNN-based model (flax.nnx). Demonstrates SVI training and multi-series forecasting.
 
 **Covers:** `deepar_model`, `run_svi`, `forecast_svi`, comparing with classical models via CRPS.
 
@@ -119,12 +133,12 @@ Lighter versions of the user's existing notebooks, adapted to use the package AP
 
 | Example | Source Notebook |
 |---------|----------------|
+| `ucm_components.ipynb` | New — UCM with various component combinations (local level, trend, cycle, trigonometric seasonal) |
 | `exponential_smoothing.ipynb` | `exponential_smoothing_numpyro.ipynb` |
 | `arma.ipynb` | `arma_numpyro.ipynb` |
 | `var_irf.ipynb` | `var_numpyro.ipynb` |
 | `croston_tsb.ipynb` | `croston_numpyro.ipynb`, `tsb_numpyro.ipynb` |
-| `local_level_fourier.ipynb` | `numpyro_forecasting_univariate.ipynb` |
-| `sarimax.ipynb` | New — demonstrates SARIMAX with exogenous regressors |
+| `sarimax.ipynb` | New — SARIMAX with exogenous regressors |
 | `deepar.ipynb` | New — simple DeepAR probabilistic forecasting |
 
 ## `conf.py` Key Settings

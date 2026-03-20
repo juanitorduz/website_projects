@@ -24,17 +24,19 @@ These are the most duplicated pieces across notebooks. Every notebook has its ow
 
 ## Phase 2: Components (Building Blocks)
 
-**Goal:** Extract reusable transition functions from existing models.
+**Goal:** Extract reusable transition functions from existing models. All components must broadcast over batch dimensions from day one.
 
 ### Deliverables
 
-- `components/level.py` — level transition (exponential smoothing core)
-- `components/trend.py` — additive trend, damped trend
-- `components/seasonality.py` — additive seasonality rotation, Fourier seasonality
+- `components/level.py` — level transition (local level / random walk)
+- `components/trend.py` — local linear trend, smooth trend, deterministic trend, damped trend
+- `components/seasonality.py` — additive seasonality rotation, trigonometric (Fourier state-space), Fourier regression
+- `components/cycle.py` — stochastic damped cycle
 - `components/ar.py` — autoregressive transition
 - `components/ma.py` — moving average with error state
+- `components/regression.py` — exogenous regression (static coefficients)
 - `components/intermittent.py` — TSB demand/probability updates
-- Unit tests for each component (deterministic, known-value)
+- Unit tests for each component (deterministic, known-value, **both univariate and batch shapes**)
 
 ### Why second?
 
@@ -42,22 +44,22 @@ Components are extracted *from* the models. Having the core and inference layer 
 
 ## Phase 3: Pre-built Models (Classical)
 
-**Goal:** Provide ready-to-use model functions with injectable priors for classical time series models.
+**Goal:** Provide ready-to-use model functions with injectable priors. The UCM is the centrepiece; other models are either UCM wrappers or distinct model families. All models must work on both `(t_max,)` and `(t_max, n_series)` shapes.
 
 ### Deliverables
 
-- `models/exponential_smoothing.py` — `level_model`, `level_trend_model`, `holt_winters_model`, `damped_holt_winters_model`
+- `models/ucm.py` — **`ucm_model`** (composable: level, trend, seasonal, cycle, AR, regression) + convenience aliases (`local_level_model`, `local_linear_trend_model`, `smooth_trend_model`)
+- `models/exponential_smoothing.py` — `level_model`, `level_trend_model`, `holt_winters_model`, `damped_holt_winters_model` (thin UCM wrappers with ES-style smoothing parameterisation)
 - `models/sarimax.py` — `sarimax_model`
 - `models/intermittent.py` — `croston_model`, `tsb_model`, `zi_tsb_model`
 - `models/arma.py` — `arma_model`
 - `models/var.py` — `var_model`, `compute_irf`
-- `models/local_level.py` — `local_level_fourier_model`
 - `models/hierarchical.py` — `hierarchical_holt_winters_model`
-- Integration tests for each model (short MCMC runs, shape checks)
+- Integration tests for each model (short MCMC runs, **shape checks for both univariate and panel**)
 
 ### Why third?
 
-Models compose components + core. They are the user-facing API and need both layers to be stable before building.
+Models compose components + core. They are the user-facing API and need both layers to be stable before building. The UCM comes first in this phase because the ES wrappers depend on it.
 
 ## Phase 4: Cross-Validation
 
@@ -84,7 +86,7 @@ CV depends on inference + models + metrics. It's the capstone that ties everythi
 - `models/deepar.py` — `deepar_model`, `attention_deepar_model`
 - `components/hsgp.py` — `hsgp_covariate_effect` (wrapping `numpyro.contrib.hsgp`)
 - Integration tests for DeepAR (SVI-only, shape checks) and HSGP component
-- Optional dependency on `flax` for neural network layers
+- Optional dependency on `flax` (nnx API) for neural network layers
 
 ### Why fifth?
 
@@ -117,7 +119,7 @@ Docs are best written against a stable API. Premature docs create maintenance bu
 DeepAR models use neural network weights that are impractical to sample via MCMC. They are SVI-only, which means:
 - `run_mcmc` will not work with DeepAR — this should be documented clearly and raise an informative error.
 - The `ModelFn` protocol still applies, but the inference path is restricted.
-- The `flax` dependency is optional — DeepAR imports should fail gracefully with a clear message if flax is not installed.
+- The `flax` (nnx) dependency is optional — DeepAR imports should fail gracefully with a clear message if flax is not installed.
 
 ### 1. `scan` + `condition` interaction
 
@@ -147,7 +149,17 @@ Croston/TSB models require non-trivial data preprocessing (extracting non-zero d
 
 **Mitigation:** Validate inputs in `prepare_intermittent_data` and `prepare_tsb_data`. Add edge-case tests.
 
-### 5. ARMA error conditioning
+### 5. Batch dimension broadcasting
+
+Components must broadcast correctly over `...` trailing batch dimensions. This is straightforward for element-wise operations (level, trend) but requires care for:
+- **Seasonal rotation:** `jnp.roll` and array indexing with batch dims.
+- **Trigonometric seasonality:** State is `(2, n_harmonics, *batch)` — matrix operations must use correct axes.
+- **AR lags:** `update_lags` shifts along axis 0 with batch dims trailing.
+- **Plates vs vmap:** Hierarchical models use `numpyro.plate` (shared priors across series); non-hierarchical models can use `jax.vmap` for independent fits. The choice affects shape conventions.
+
+**Mitigation:** Comprehensive shape tests for every component with `(t_max,)`, `(t_max, 1)`, and `(t_max, n_series)` inputs. Use `jaxtyping` + `beartype` to catch shape mismatches early.
+
+### 6. ARMA error conditioning
 
 The error conditioning pattern in ARMA is conceptually different from the `scan + condition` pattern. Users building custom ARMA variants need to understand why direct observation conditioning fails for MA terms.
 
@@ -160,7 +172,7 @@ Phase 1: core/ + inference/ + metrics/ + utils/ (features, data)
     ↓
 Phase 2: components/ (including hsgp)
     ↓
-Phase 3: models/ (classical: ES, SARIMAX, ARMA, VAR, intermittent, hierarchical)
+Phase 3: models/ (UCM core + ES wrappers, SARIMAX, ARMA, VAR, intermittent, hierarchical)
     ↓
 Phase 4: cv/ + utils/plotting
     ↓

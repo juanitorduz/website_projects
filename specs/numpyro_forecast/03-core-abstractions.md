@@ -40,10 +40,7 @@ def model(covariates: Float[Array, "t_max feature_dim"], y=None) -> None: ...
 
 The protocol is intentionally loose — it type-checks the common `(y, ..., future=0)` pattern without restricting model-specific arguments.
 
-**Exception: covariate-first models.** The `local_level_fourier_model` (from `numpyro_forecasting_univariate.ipynb`) takes `(covariates, y=None)` instead of `(y, *args, future=0)`. This model does not conform to `ModelFn` because it uses covariates as the primary input and `y` as an optional observation argument. For such models:
-- They cannot be used directly with `time_slice_cv()` — users wrap them with a `functools.partial` or lambda to match the expected signature.
-- The generic `forecast()` and `run_mcmc()` helpers still work since they forward `*model_args` and `**model_kwargs` to the model positionally.
-- This is a deliberate tradeoff: forcing covariates into `*args` would obscure the model's API. Instead, we document the exception and provide usage examples in the model's docstring.
+**Note on covariates.** Models that accept exogenous covariates (UCM with `exog`, SARIMAX, DeepAR) pass them as keyword arguments or additional positional arguments *after* `y`, keeping the `(y, ..., future=0)` contract intact. The original `local_level_fourier_model` (from `numpyro_forecasting_univariate.ipynb`) used a covariate-first `(covariates, y=None)` signature — this pattern is now subsumed by the UCM with trigonometric seasonality and the `exog` argument.
 
 ## Inference Parameter Configs
 

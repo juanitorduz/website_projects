@@ -9,15 +9,86 @@ Pre-built models are **plain functions** that follow the `ModelFn` protocol. Pri
 3. Runs `scan` + `condition` for inference.
 4. Optionally produces forecast deterministics when `future > 0`.
 
+**Batch dimension:** All models accept `y: Float[Array, "t_max *batch"]`. When `*batch` is empty it's univariate; when `(n_series,)` it's panel data. Components broadcast over batch dims automatically.
+
+## Unobserved Components Model (`models/ucm.py`) — **Core Model**
+
+The UCM is the central composable model. It generalizes local level, local linear trend, Holt-Winters, and more into a single function where users enable/disable structural components. This is a Bayesian, JAX-native counterpart to [statsmodels `UnobservedComponents`](https://www.statsmodels.org/stable/generated/statsmodels.tsa.statespace.structural.UnobservedComponents.html).
+
+### `ucm_model`
+
+```python
+def ucm_model(
+    y: Float[Array, "t_max *batch"],
+    future: int = 0,
+    *,
+    # --- Structural component toggles ---
+    level: bool = True,
+    trend: str | None = None,           # "local linear", "smooth", "deterministic", "damped", or None
+    seasonal: int | dict | None = None, # int = additive HW with n_seasons; dict = trigonometric config
+    cycle: bool = False,
+    autoregressive: int = 0,            # AR order on the irregular component
+    exog: Float[Array, "t_max n_exog *batch"] | None = None,
+    future_exog: Float[Array, "future n_exog *batch"] | None = None,
+    # --- Injectable priors (level) ---
+    level_smoothing_prior: dist.Distribution = dist.Beta(1, 1),
+    level_init_prior: dist.Distribution = dist.Normal(0, 1),
+    level_innovation_prior: dist.Distribution | None = None,  # None = no stochastic level innovation (ES-style)
+    # --- Injectable priors (trend) ---
+    trend_smoothing_prior: dist.Distribution = dist.Beta(1, 1),
+    trend_init_prior: dist.Distribution = dist.Normal(0, 1),
+    trend_innovation_prior: dist.Distribution | None = None,
+    damping_prior: dist.Distribution = dist.Beta(8, 2),
+    # --- Injectable priors (seasonality) ---
+    seasonality_smoothing_prior: dist.Distribution = dist.Beta(1, 1),
+    seasonality_init_prior: dist.Distribution = dist.Normal(0, 1),
+    seasonality_innovation_prior: dist.Distribution | None = None,
+    # --- Injectable priors (cycle) ---
+    cycle_frequency_prior: dist.Distribution = dist.Uniform(0.01, jnp.pi),
+    cycle_damping_prior: dist.Distribution = dist.Beta(8, 2),
+    cycle_innovation_prior: dist.Distribution = dist.Normal(0, 0.1),
+    # --- Injectable priors (AR) ---
+    ar_prior: dist.Distribution = dist.Normal(0, 0.5),
+    # --- Injectable priors (regression) ---
+    beta_prior: dist.Distribution = dist.Normal(0, 1),
+    # --- Observation noise ---
+    noise_prior: dist.Distribution = dist.HalfNormal(1),
+    likelihood: str = "normal",  # "normal", "studentt"
+) -> None:
+```
+
+**Key design:**
+- Only samples priors and creates state for **enabled** components — no wasted computation.
+- Transition function composes enabled components additively: `mu = level + trend + seasonal + cycle + ar + regression`.
+- `seasonal` accepts either `int` (additive HW with `n_seasons`) or `dict` for trigonometric: `{"type": "trigonometric", "period": 12, "harmonics": 4}` or a list of dicts for multiple seasonal periods.
+- `trend` accepts string matching statsmodels conventions: `"local linear"`, `"smooth"`, `"deterministic"`, `"damped"`.
+- Works seamlessly on `(t_max,)` or `(t_max, n_series)` via broadcasting.
+
+### Convenience aliases
+
+```python
+# These are thin wrappers calling ucm_model with specific configurations
+def local_level_model(y, future=0, **kwargs):
+    return ucm_model(y, future, level=True, **kwargs)
+
+def local_linear_trend_model(y, future=0, **kwargs):
+    return ucm_model(y, future, level=True, trend="local linear", **kwargs)
+
+def smooth_trend_model(y, future=0, **kwargs):
+    return ucm_model(y, future, level=True, trend="smooth", **kwargs)
+```
+
 ## Exponential Smoothing (`models/exponential_smoothing.py`)
+
+These are **convenience wrappers** around `ucm_model` with specific component configurations and the ES-style smoothing parameterisation (alpha, beta, gamma instead of innovation variances). They accept `y: Float[Array, "t_max *batch"]` and broadcast over batch dimensions.
 
 ### `level_model`
 
-Simple exponential smoothing (level only).
+Simple exponential smoothing (level only). Equivalent to `ucm_model(y, level=True)`.
 
 ```python
 def level_model(
-    y: Float[Array, " t_max"],
+    y: Float[Array, "t_max *batch"],
     future: int = 0,
     *,
     level_smoothing_prior: dist.Distribution = dist.Beta(1, 1),
@@ -30,11 +101,11 @@ def level_model(
 
 ### `level_trend_model`
 
-Exponential smoothing with additive trend.
+Exponential smoothing with additive trend. Equivalent to `ucm_model(y, level=True, trend="local linear")`.
 
 ```python
 def level_trend_model(
-    y: Float[Array, " t_max"],
+    y: Float[Array, "t_max *batch"],
     future: int = 0,
     *,
     level_smoothing_prior: dist.Distribution = dist.Beta(1, 1),
@@ -45,15 +116,13 @@ def level_trend_model(
 ) -> None:
 ```
 
-**Source:** `exponential_smoothing_numpyro.ipynb` — `level_trend_model(y, future=0)`
-
 ### `holt_winters_model`
 
-Additive Holt-Winters with seasonal component.
+Additive Holt-Winters. Equivalent to `ucm_model(y, level=True, trend="local linear", seasonal=n_seasons)`.
 
 ```python
 def holt_winters_model(
-    y: Float[Array, " t_max"],
+    y: Float[Array, "t_max *batch"],
     n_seasons: int,
     future: int = 0,
     *,
@@ -67,15 +136,13 @@ def holt_winters_model(
 ) -> None:
 ```
 
-**Source:** `exponential_smoothing_numpyro.ipynb` — `holt_winters_model(y, n_seasons, future=0)`
-
 ### `damped_holt_winters_model`
 
-Damped trend variant using `fori_loop` for multi-step-ahead damping.
+Damped trend variant. Equivalent to `ucm_model(y, level=True, trend="damped", seasonal=n_seasons)`.
 
 ```python
 def damped_holt_winters_model(
-    y: Float[Array, " t_max"],
+    y: Float[Array, "t_max *batch"],
     n_seasons: int,
     future: int = 0,
     *,
@@ -90,7 +157,7 @@ def damped_holt_winters_model(
 ) -> None:
 ```
 
-**Source:** `exponential_smoothing_numpyro.ipynb` — `damped_holt_winters_model(y, n_seasons, future=0)`. Uses `fori_loop` for the damped cumulative sum: `phi_step = fori_loop(1, step+1, lambda i, val: val + phi**i, 0)`.
+**Source:** `exponential_smoothing_numpyro.ipynb`
 
 ## Intermittent Demand (`models/intermittent.py`)
 
@@ -100,8 +167,8 @@ Croston's method via scoped sub-models for demand sizes and inter-arrival period
 
 ```python
 def croston_model(
-    z: Float[Array, " n_demands"],
-    p_inv: Float[Array, " n_demands"],
+    z: Float[Array, "n_demands *batch"],
+    p_inv: Float[Array, "n_demands *batch"],
     future: int = 0,
     *,
     level_smoothing_prior: dist.Distribution = dist.Beta(2, 20),
@@ -125,7 +192,7 @@ Teunter-Syntetos-Babai method with dual-state (demand level + demand probability
 
 ```python
 def tsb_model(
-    ts_trim: Float[Array, " t_max"],
+    ts_trim: Float[Array, "t_max *batch"],
     z0: float,
     p0: float,
     future: int = 0,
@@ -144,7 +211,7 @@ Zero-inflated TSB with count likelihood.
 
 ```python
 def zi_tsb_model(
-    ts_trim: Float[Array, " t_max"],
+    ts_trim: Float[Array, "t_max *batch"],
     z0: float,
     p0: float,
     future: int = 0,
@@ -167,7 +234,7 @@ ARMA(p,q) model with error conditioning pattern.
 
 ```python
 def arma_model(
-    y: Float[Array, " t_max"],
+    y: Float[Array, "t_max *batch"],
     p: int = 1,
     q: int = 1,
     future: int = 0,
@@ -231,34 +298,21 @@ Computes MA(∞) representation via `lax.scan`. JIT-compilable with `static_argn
 
 **Source:** `var_numpyro.ipynb`
 
-## Local Level + Fourier (`models/local_level.py`)
+## Local Level + Fourier (subsumed by UCM)
 
-### `local_level_fourier_model`
-
-Local level model with Fourier seasonal features and Student-T likelihood.
-
-**Note:** This model uses a covariate-first signature and does not conform to the `ModelFn` protocol (see [03-core-abstractions.md](03-core-abstractions.md) for details). For use with `time_slice_cv`, wrap with `functools.partial` to bind covariates.
+The previous `local_level_fourier_model` from `numpyro_forecasting_univariate.ipynb` is now expressed as a UCM configuration:
 
 ```python
-def local_level_fourier_model(
-    covariates: Float[Array, "t_max feature_dim"],
-    y: Float[Array, "t_max n_series"] | None = None,
-    *,
-    bias_prior: dist.Distribution = dist.Normal(0, 10),
-    weight_prior: dist.Distribution = dist.Normal(0, 0.1),
-    drift_scale_prior: dist.Distribution = dist.LogNormal(-20, 5),
-    nu_prior: dist.Distribution = dist.Gamma(10, 2),
-    sigma_prior: dist.Distribution = dist.LogNormal(-5, 5),
-) -> None:
+# Local level with trigonometric Fourier seasonality and Student-T likelihood
+ucm_model(
+    y, future=12,
+    level=True, trend=None,
+    seasonal={"type": "trigonometric", "period": 365.25, "harmonics": 6},
+    likelihood="studentt",
+)
 ```
 
-**Key patterns:**
-- `LocScaleReparam` with learned `centered` parameter for the drift.
-- `numpyro.plate("time", t_max)` for the drift block.
-- `scan` for computing latent levels from drift.
-- Student-T likelihood for heavy tails.
-
-**Source:** `numpyro_forecasting_univariate.ipynb`
+For the specific pattern using `LocScaleReparam` and Fourier regression covariates (as in the original notebook), users can compose `level_transition` + `fourier_regression` in a custom model function. The UCM provides the common case; the components enable the advanced case.
 
 ## SARIMAX (`models/sarimax.py`)
 
@@ -268,12 +322,12 @@ Seasonal ARIMA with exogenous regressors. Builds on the ARMA components with dif
 
 ```python
 def sarimax_model(
-    y: Float[Array, " t_max"],
+    y: Float[Array, "t_max *batch"],
     order: tuple[int, int, int] = (1, 0, 0),
     seasonal_order: tuple[int, int, int, int] = (0, 0, 0, 1),
-    exog: Float[Array, "t_max n_exog"] | None = None,
+    exog: Float[Array, "t_max n_exog *batch"] | None = None,
     future: int = 0,
-    future_exog: Float[Array, "future n_exog"] | None = None,
+    future_exog: Float[Array, "future n_exog *batch"] | None = None,
     *,
     phi_prior: dist.Distribution = dist.Normal(0, 0.5),
     theta_prior: dist.Distribution = dist.Normal(0, 0.5),
@@ -340,13 +394,13 @@ def deepar_model(
 ```
 
 **Key patterns:**
-- Uses `nn/rnn.py` GRU (or LSTM) cells with `lax.scan` for sequential processing.
+- Uses `nn/rnn.py` GRU (or LSTM) cells implemented with `flax.nnx` and driven by `lax.scan` for sequential processing.
 - At each time step, the RNN takes `[y_{t-1}, covariates_t]` as input and outputs distribution parameters (loc, scale for Normal; or rate for Poisson, etc.).
 - Training via SVI (MCMC is impractical for neural network parameters).
 - The RNN weights are treated as variational parameters, not sampled — the model samples only the emission distribution parameters.
 - `likelihood` controls the output distribution: `"normal"`, `"studentt"`, `"negative_binomial"`.
 
-**Design note:** DeepAR is fundamentally different from the scan+condition pattern used by other models. It uses SVI exclusively and the `ModelFn` protocol is adapted via the `covariates` argument pattern (similar to `local_level_fourier_model`).
+**Design note:** DeepAR is fundamentally different from the scan+condition pattern used by other models. It uses SVI exclusively. Covariates are passed as keyword arguments, keeping the `(y, ..., future=0)` contract.
 
 ### Optional: `attention_deepar_model`
 
