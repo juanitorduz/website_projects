@@ -5,7 +5,7 @@ platforms = ["osx-arm64", "linux-64"]
 
 [dependencies]
 python = ">=3.13,<3.14"
-arviz = ">=0.22.0"
+arviz = "<1.0.0"
 bambi = ">=0.16.0"
 cvxpy = "*"
 econml = "*"
@@ -14,7 +14,7 @@ preliz = "*"
 pymc = ">=5.27.0"
 pymc-bart = ">=0.5.14"
 pymc-extras = "*"
-pymc-marketing = ">=0.17.0"
+pymc-marketing = ">=0.18.2"
 pyproj = "*"
 
 [pypi-dependencies]
