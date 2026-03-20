@@ -8,6 +8,7 @@
 
 - `core/types.py` — `ModelFn` protocol, `ForecastResult`, `CVResult`
 - `core/params.py` — `MCMCParams`, `SVIParams`
+- `core/prior.py` — `Prior` Pydantic class for prior injection and hierarchical composition
 - `inference/mcmc.py` — `run_mcmc()`, `forecast()`
 - `inference/svi.py` — `run_svi()`, `forecast_svi()`
 - `inference/diagnostics.py` — `check_diagnostics()`
@@ -21,6 +22,13 @@
 ### Why first?
 
 These are the most duplicated pieces across notebooks. Every notebook has its own `run_inference`, `forecast`, and `InferenceParams`. Consolidating them provides immediate value and establishes the API patterns that models and CV build on.
+
+### Exit criteria
+
+- Core types/configs compile and are importable from package root.
+- `Prior` class supports flat and nested (hierarchical) prior trees with `sample()`.
+- `future` usage is keyword-only in documented public call patterns.
+- Metrics/utils unit tests pass with deterministic fixtures.
 
 ## Phase 2: Components (Building Blocks)
 
@@ -42,9 +50,15 @@ These are the most duplicated pieces across notebooks. Every notebook has its ow
 
 Components are extracted *from* the models. Having the core and inference layer stable means we can test components by plugging them into real inference pipelines.
 
+### Exit criteria
+
+- Every component has deterministic unit tests for univariate and batch shapes.
+- HSGP exception is explicitly documented as the only component-level sampling exception.
+- No unresolved shape-contract issues remain for component composition.
+
 ## Phase 3: Pre-built Models (Classical)
 
-**Goal:** Provide ready-to-use model functions with injectable priors. The UCM is the centrepiece; other models are either UCM wrappers or distinct model families. All models must work on both `(t_max,)` and `(t_max, n_series)` shapes.
+**Goal:** Provide ready-to-use model functions with the `priors: dict[str, Prior]` injection pattern. The UCM is the centrepiece; other models are either UCM wrappers or distinct model families. All models must work on both `(t_max,)` and `(t_max, n_series)` shapes. Hierarchical models are expressed as prior configurations (nested `Prior` objects) rather than separate model functions.
 
 ### Deliverables
 
@@ -54,12 +68,20 @@ Components are extracted *from* the models. Having the core and inference layer 
 - `models/intermittent.py` — `croston_model`, `tsb_model`, `zi_tsb_model`
 - `models/arma.py` — `arma_model`
 - `models/var.py` — `var_model`, `compute_irf`
-- `models/hierarchical.py` — `hierarchical_holt_winters_model`
+- `models/hierarchical.py` — hierarchical model support via nested `Prior` objects (hierarchy is a prior configuration, not a separate model function)
 - Integration tests for each model (short MCMC runs, **shape checks for both univariate and panel**)
 
 ### Why third?
 
 Models compose components + core. They are the user-facing API and need both layers to be stable before building. The UCM comes first in this phase because the ES wrappers depend on it.
+
+### Exit criteria
+
+- Each model has at least one passing short-run integration test.
+- Every model defines a `*_DEFAULT_PRIORS` constant and accepts `priors: dict[str, Prior] | None = None`.
+- Hierarchical behavior is validated via nested `Prior` objects with `numpyro.plate`.
+- Baseline model docs include identifiability/stability notes where applicable (ARMA/SARIMAX/VAR/HSGP/UCM).
+- Forecast outputs expose stable and documented `return_sites`.
 
 ## Phase 4: Cross-Validation
 
@@ -75,22 +97,35 @@ Models compose components + core. They are the user-facing API and need both lay
 
 CV depends on inference + models + metrics. It's the capstone that ties everything together. Plotting is deferred here because it's only needed for visual validation.
 
+### Exit criteria
+
+- CV routines enforce no-leakage semantics and fold-local data preparation.
+- Per-horizon metrics are emitted and documented.
+- Integration tests cover at least one exogenous and one intermittent workflow.
+
 ## Phase 5: Advanced Models (DeepAR + HSGP)
 
 **Goal:** Add neural-network-based and GP-based models for users who need more flexibility.
 
 ### Deliverables
 
-- `nn/rnn.py` — GRU/LSTM cells for DeepAR
-- `nn/attention.py` — simple temporal attention layer
-- `models/deepar.py` — `deepar_model`, `attention_deepar_model`
+- `nn/rnn.py` — `DeepARCell` (`flax.nnx.Module`) implementing GRU/LSTM cells for DeepAR. Architecture choices (hidden size, layers, cell type) are made at construction time.
+- `nn/attention.py` — simple temporal attention layer (`flax.nnx.Module`)
+- `models/deepar.py` — `deepar_model(y, rnn, ...)`, `attention_deepar_model(y, rnn, ...)`. The NN is a pre-built `flax.nnx.Module` passed as a positional argument and registered inside the model via `numpyro.contrib.module.nnx_module` (deterministic, default) or `random_nnx_module` (Bayesian weights, opt-in via `bayesian_nn=True`).
 - `components/hsgp.py` — `hsgp_covariate_effect` (wrapping `numpyro.contrib.hsgp`)
-- Integration tests for DeepAR (SVI-only, shape checks) and HSGP component
+- Integration tests for DeepAR (SVI-only, shape checks, both `nnx_module` and `random_nnx_module` paths) and HSGP component
 - Optional dependency on `flax` (nnx API) for neural network layers
 
 ### Why fifth?
 
 These are more advanced models that depend on all previous layers being stable. DeepAR requires SVI infrastructure. HSGP is a component that can be composed with any existing model. Both can be shipped as optional features without blocking the core release.
+
+### Exit criteria
+
+- DeepAR SVI-only behavior is documented and validated by tests.
+- Both `nnx_module` (deterministic) and `random_nnx_module` (Bayesian) paths are tested.
+- HSGP integration examples include prior sensitivity guidance.
+- Optional dependency failures produce clear user-facing messages.
 
 ## Phase 6: Documentation + Packaging + CI/CD
 
@@ -112,13 +147,27 @@ These are more advanced models that depend on all previous layers being stable. 
 
 Docs are best written against a stable API. Premature docs create maintenance burden when signatures change.
 
+### Exit criteria
+
+- CI enforces lint, typing, tests, docs strict build, and API docs validation.
+- Release workflow and deprecation/versioning policy are documented.
+- Principal sign-off checklist items are traceable to spec sections.
+
+## Statistical quality gate (cross-phase)
+
+Before a model family is considered complete, baseline examples/integration tests must satisfy:
+- MCMC diagnostics: `R-hat <= 1.01`, adequate ESS bulk/tail, no unexplained divergences.
+- Calibration artifacts: CRPS (or energy score) by horizon, and interval coverage/PIT diagnostics.
+- If checks fail, model is either reparameterized or explicitly marked experimental.
+
 ## Known Challenges
 
 ### 0. DeepAR + SVI-only constraint
 
-DeepAR models use neural network weights that are impractical to sample via MCMC. They are SVI-only, which means:
+DeepAR models use `flax.nnx` modules registered with NumPyro via `nnx_module` / `random_nnx_module`. The NN is built externally and passed into the model function as a positional argument. Key constraints:
 - `run_mcmc` will not work with DeepAR — this should be documented clearly and raise an informative error.
-- The `ModelFn` protocol still applies, but the inference path is restricted.
+- The `ModelFn` protocol still applies (the `rnn` is just the second positional arg), but the inference path is restricted to SVI.
+- With `bayesian_nn=True`, `random_nnx_module` places a prior on all NN weights — this is still SVI-recommended, not MCMC.
 - The `flax` (nnx) dependency is optional — DeepAR imports should fail gracefully with a clear message if flax is not installed.
 
 ### 1. `scan` + `condition` interaction
@@ -170,13 +219,13 @@ The error conditioning pattern in ARMA is conceptually different from the `scan 
 ```
 Phase 1: core/ + inference/ + metrics/ + utils/ (features, data)
     ↓
-Phase 2: components/ (including hsgp)
+Phase 2: components/ (core deterministic components)
     ↓
 Phase 3: models/ (UCM core + ES wrappers, SARIMAX, ARMA, VAR, intermittent, hierarchical)
     ↓
 Phase 4: cv/ + utils/plotting
     ↓
-Phase 5: nn/ + models/deepar + components/hsgp integration
+Phase 5: nn/ + models/deepar + components/hsgp
     ↓
 Phase 6: docs/ + CI/CD + packaging + AGENTS.md + SKILLS.md
 ```

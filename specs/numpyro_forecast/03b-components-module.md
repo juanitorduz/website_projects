@@ -46,7 +46,7 @@ Core exponential smoothing update.
 def level_transition(
     carry: Float[Array, "..."],
     t: int,
-    y: Float[Array, " t_max"],
+    y: Float[Array, "t_max *batch"],
     t_max: int,
     level_smoothing: Float[Array, "..."],
 ) -> Float[Array, "..."]:
@@ -222,10 +222,10 @@ def trigonometric_seasonal_transition(
 
 ```python
 def fourier_regression(
-    covariates: Float[Array, "t_max feature_dim"],
-    weight: Float[Array, " feature_dim"],
+    covariates: Float[Array, "t_max feature_dim *batch"],
+    weight: Float[Array, "feature_dim *batch"],
     bias: float,
-) -> Float[Array, " t_max"]:
+) -> Float[Array, "t_max *batch"]:
     """Compute seasonal component as weighted sum of Fourier features.
 
     mu = bias + covariates @ weight
@@ -281,6 +281,8 @@ def ma_error_step(
     theta: Float[Array, " q"],
 ) -> tuple[float, Float[Array, " q"]]:
     """Compute MA error and update error history.
+
+    MA component is univariate-only; for panel data, use ``jax.vmap``.
 
     error = y_t - predicted
     ma_contribution = theta @ previous_errors
@@ -372,7 +374,7 @@ def regression_effect(
 def tsb_transition(
     carry: tuple[Float[Array, "..."], Float[Array, "..."]],
     t: int,
-    ts: Float[Array, " t_max"],
+    ts: Float[Array, "t_max *batch"],
     t_max: int,
     z_smoothing: Float[Array, "..."],
     p_smoothing: Float[Array, "..."],
@@ -393,20 +395,30 @@ def tsb_transition(
 
 ## HSGP (`components/hsgp.py`)
 
+### `HSGP_DEFAULT_PRIORS`
+
+```python
+from probcast.core.prior import Prior
+
+HSGP_DEFAULT_PRIORS: dict[str, Prior] = {
+    "length_scale": Prior("InverseGamma", params={"concentration": 5.0, "rate": 5.0}),
+    "amplitude": Prior("HalfNormal", params={"scale": 1.0}),
+}
+```
+
 ### `hsgp_covariate_effect`
 
 Wraps `numpyro.contrib.hsgp` to provide smooth, non-parametric time-varying covariate effects. This enables any model to incorporate covariates whose influence changes over time without specifying a parametric form.
 
 ```python
 def hsgp_covariate_effect(
-    x: Float[Array, "t_max n_features"],
+    x: Float[Array, "t_max n_features *batch"],
     m: int = 20,
     c: float = 1.5,
     *,
-    length_scale_prior: dist.Distribution = dist.InverseGamma(5, 5),
-    amplitude_prior: dist.Distribution = dist.HalfNormal(1),
+    priors: dict[str, Prior] | None = None,
     name: str = "hsgp",
-) -> Float[Array, " t_max"]:
+) -> Float[Array, "t_max *batch"]:
     """Compute a time-varying covariate effect using Hilbert Space GP approximation.
 
     Parameters
@@ -419,10 +431,9 @@ def hsgp_covariate_effect(
     c
         Boundary extension factor (controls how far the GP extends
         beyond the data range).
-    length_scale_prior
-        Prior on the GP length scale.
-    amplitude_prior
-        Prior on the GP amplitude (output scale).
+    priors
+        Optional prior overrides. Valid keys: ``"length_scale"``, ``"amplitude"``.
+        Merged with ``HSGP_DEFAULT_PRIORS``.
     name
         NumPyro scope name for the GP parameters.
 
@@ -430,29 +441,35 @@ def hsgp_covariate_effect(
     -------
     Time-varying effect, shape ``(t_max,)``.
     """
+    resolved = {**HSGP_DEFAULT_PRIORS, **(priors or {})}
+    length_scale = resolved["length_scale"].sample(f"{name}_length_scale")
+    amplitude = resolved["amplitude"].sample(f"{name}_amplitude")
+    ...
 ```
 
 **Source:** [`numpyro.contrib.hsgp`](https://github.com/pyro-ppl/numpyro/tree/master/numpyro/contrib/hsgp). The component handles basis function computation and parameter sampling, returning a ready-to-use effect array that can be added to any model's mean function.
 
-**Key design choice:** The HSGP component *does* include `numpyro.sample` calls (unlike other components which are pure transition functions). This is because the GP kernel hyperparameters (length scale, amplitude) are inherently part of the GP specification and separating them would make the API awkward. The component is scoped via the `name` parameter to avoid site name collisions.
+**Key design choice:** HSGP uses `numpyro.sample` internally via `Prior.sample()`, following the same `DEFAULT_PRIORS` + override pattern as model functions. This is the only component that samples — all others are pure transition functions. The justification is that GP kernel hyperparameters (length scale, amplitude) are intrinsic to the component's definition and cannot be meaningfully separated. The component is scoped via the `name` parameter to avoid site name collisions.
 
 ## How Components Compose into Models
 
 ### Example 1: UCM model — the general case
 
-The UCM model accepts configuration flags to enable/disable components. Internally it assembles the enabled components into a single scan loop:
+The UCM model accepts configuration flags to enable/disable components. Internally it assembles the enabled components into a single scan loop. Priors are injected via the `priors` dict:
 
 ```python
 def ucm_model(
-    y, future=0, *,
+    y, *,
+    future=0,
     level=True,           # local level (random walk)
     trend="local linear", # None, "local linear", "smooth", "deterministic", "damped"
-    seasonal=None,        # None, int (additive HW), or {"type": "trigonometric", "period": 12, "harmonics": 4}
+    seasonal=None,        # None, int (additive HW), or {"type": "trigonometric", ...}
     cycle=False,          # stochastic damped cycle
     autoregressive=0,     # AR order
     exog=None,            # exogenous regressors (t_max, n_exog)
-    # ... injectable priors for each enabled component ...
+    priors=None,          # dict[str, Prior] | None — overrides merged with UCM_DEFAULT_PRIORS
 ):
+    resolved = {**UCM_DEFAULT_PRIORS, **(priors or {})}
     # 1. Sample priors only for enabled components
     # 2. Build composite transition_fn
     def transition_fn(carry, t):
@@ -487,13 +504,13 @@ def ucm_model(
 ### Example 2: Holt-Winters as a UCM convenience wrapper
 
 ```python
-def holt_winters_model(y, n_seasons, future=0, **prior_kwargs):
+def holt_winters_model(y, n_seasons, *, future=0, priors=None):
     """Additive Holt-Winters — a specific UCM configuration."""
     return ucm_model(
         y, future=future,
         level=True, trend="local linear",
         seasonal=n_seasons,
-        **prior_kwargs,
+        priors=priors,
     )
 ```
 
@@ -506,6 +523,11 @@ ucm_model(y_single, future=12, level=True, trend="smooth", seasonal=12)
 # Panel — y.shape == (100, 50) — same function, zero changes
 # Components broadcast over the 50-series batch dimension
 ucm_model(y_panel, future=12, level=True, trend="smooth", seasonal=12)
+
+# Override a prior — user only specifies what they want to change
+ucm_model(y_single, future=12, level=True, priors={
+    "sigma": Prior("HalfCauchy", params={"scale": 2.0}),
+})
 ```
 
-Components handle the state update logic; models handle prior sampling, likelihood, and the scan+condition wrapper.
+Components handle the state update logic; models handle prior sampling (via `Prior.sample()`), likelihood, and the scan+condition wrapper.

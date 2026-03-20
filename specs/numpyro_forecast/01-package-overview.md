@@ -28,7 +28,7 @@ The core strength of the package is **customizability** — reducing the boilerp
 
 6. **ArviZ integration.** Inference results convert to `arviz.InferenceData` for diagnostics, plotting, and comparison. Forecast outputs align with ArviZ's `posterior_predictive` conventions.
 
-7. **Minimal dependencies.** Core: `numpyro`, `jax`, `jaxlib`. Optional: `arviz`, `xarray`, `matplotlib` (for plotting/CV output), `pydantic` (for config validation).
+7. **Typed-by-default core dependencies.** Core: `numpyro`, `jax`, `jaxlib`, `pydantic`, `jaxtyping`, `beartype`. Optional: `arviz`, `xarray`, `matplotlib` (for plotting/CV output).
 
 8. **AI-friendly.** The repository includes `AGENTS.md` and `SKILLS.md` to make it easy for AI coding assistants to understand and contribute to the project.
 

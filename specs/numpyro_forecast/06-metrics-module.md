@@ -138,11 +138,50 @@ def log_score(
     truth: Float[Array, "*batch"],
     pred: Float[Array, "n_samples *batch"],
 ) -> Float[Array, ""]:
-    """Log predictive density score (via KDE or histogram approximation).
+    """Deferred for v0.1 unless estimator is fully specified.
 
-    Higher is better.
+    If implemented, the estimator, bandwidth/binning policy, and
+    multivariate behavior must be documented explicitly.
     """
 ```
+
+### `interval_coverage`
+
+Calibration metric for posterior predictive intervals at target nominal levels.
+
+```python
+def interval_coverage(
+    truth: Float[Array, "horizon *batch"],
+    pred: Float[Array, "n_samples horizon *batch"],
+    levels: tuple[float, ...] = (0.5, 0.8, 0.95),
+) -> dict[str, Float[Array, "horizon"]]:
+    """Compute empirical coverage by forecast horizon for each nominal level."""
+```
+
+### `pit_values`
+
+Probability integral transform values for calibration diagnostics.
+
+```python
+def pit_values(
+    truth: Float[Array, "horizon *batch"],
+    pred: Float[Array, "n_samples horizon *batch"],
+) -> Float[Array, "horizon *batch"]:
+    """Compute PIT values from empirical posterior predictive samples."""
+```
+
+### Horizon-conditioned outputs
+
+For forecasting evaluation, probabilistic metrics should support per-horizon outputs:
+- CRPS by horizon for univariate/panel forecasts,
+- energy score by horizon for multivariate forecasts,
+- coverage by horizon for selected interval levels,
+- PIT values for calibration visualization and tests.
+
+Baseline reporting for tutorials and integration tests should include:
+- CRPS (or energy score) by horizon,
+- interval coverage at 50/80/95% by horizon,
+- PIT diagnostic artifact (histogram or equivalent summary).
 
 ## Usage Example
 

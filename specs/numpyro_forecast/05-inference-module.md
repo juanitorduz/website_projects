@@ -87,6 +87,8 @@ def forecast(
     model: Callable,
     samples: dict[str, Array],
     *model_args,
+    future: int = 0,
+    model_kwargs: dict[str, Any] | None = None,
     return_sites: list[str] | None = None,
 ) -> ForecastResult:
     """Generate posterior predictive forecasts from MCMC samples.
@@ -100,8 +102,13 @@ def forecast(
     samples
         Posterior samples from ``mcmc.get_samples()``.
     *model_args
-        Positional arguments forwarded to the model (must include ``future > 0``
-        in the appropriate position or as a keyword argument).
+        Positional arguments forwarded to the model.
+    future
+        Forecast horizon. Must be passed as keyword argument to keep calls
+        consistent across model families.
+    model_kwargs
+        Additional keyword arguments forwarded to the model (for example
+        ``exog`` or ``future_exog``).
     return_sites
         Sites to return. If None, returns all deterministic sites.
 
@@ -115,7 +122,12 @@ def forecast(
         posterior_samples=samples,
         return_sites=return_sites,
     )
-    pred_samples = predictive(rng_key, *model_args)
+    pred_samples = predictive(
+        rng_key,
+        *model_args,
+        future=future,
+        **(model_kwargs or {}),
+    )
     return ForecastResult(samples=pred_samples)
 ```
 
@@ -176,6 +188,8 @@ def forecast_svi(
     guide: AutoGuide,
     svi_params: dict,
     *model_args,
+    future: int = 0,
+    model_kwargs: dict[str, Any] | None = None,
     num_samples: int = 5_000,
     return_sites: list[str] | None = None,
 ) -> ForecastResult:
@@ -190,7 +204,12 @@ def forecast_svi(
         num_samples=num_samples,
         return_sites=return_sites,
     )
-    pred_samples = predictive(rng_key, *model_args)
+    pred_samples = predictive(
+        rng_key,
+        *model_args,
+        future=future,
+        **(model_kwargs or {}),
+    )
     return ForecastResult(samples=pred_samples)
 ```
 
@@ -211,7 +230,7 @@ posterior = Predictive(
 def check_diagnostics(
     mcmc: MCMC,
     *,
-    rhat_threshold: float = 1.05,
+    rhat_threshold: float = 1.01,
     min_ess: int = 100,
     warn: bool = True,
 ) -> dict[str, Any]:
@@ -238,6 +257,19 @@ def check_diagnostics(
 
 This consolidates the ad-hoc diagnostic checks scattered across notebooks into a single reusable function. Uses ArviZ summary statistics under the hood.
 
+### Diagnostic policy (mandatory for baseline examples)
+
+For release examples and integration tests, diagnostics are considered passing when:
+- rank-normalized ``R-hat <= 1.01`` for key latent and forecast sites,
+- ``ESS_bulk >= 400`` and ``ESS_tail >= 200`` for key sites,
+- ``num_divergences == 0`` (or explicit documented rationale),
+- no persistent max treedepth saturation,
+- BFMI has no warning-level failures.
+
+If these checks fail, either:
+- reparameterize/tune and rerun, or
+- mark the example/model as experimental with an explicit warning.
+
 ## ArviZ Integration
 
 All inference functions support optional conversion to `arviz.InferenceData`:
@@ -249,8 +281,17 @@ def to_arviz(
     *,
     coords: dict | None = None,
     dims: dict | None = None,
+    prior_config: dict[str, "Prior"] | None = None,
 ) -> "az.InferenceData":
-    """Convert inference results to ArviZ InferenceData."""
+    """Convert inference results to ArviZ InferenceData.
+
+    Parameters
+    ----------
+    prior_config
+        Optional dict of ``Prior`` objects used in the model run.
+        When provided, serialized prior metadata is attached to
+        ``idata.attrs["prior_config"]`` for reproducibility.
+    """
 ```
 
-This wraps `az.from_numpyro()` with sensible defaults and handles both MCMC and SVI outputs.
+This wraps `az.from_numpyro()` with sensible defaults and handles both MCMC and SVI outputs. When `prior_config` is provided, the `Prior` objects are serialized via `model_dump()` and stored as InferenceData attributes so that the exact prior configuration is recoverable from saved results.

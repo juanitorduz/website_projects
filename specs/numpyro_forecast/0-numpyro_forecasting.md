@@ -41,6 +41,13 @@ I want to build a flexible and powerfull forecasting library based on nympyro ba
 
 Provide light weight version using Sphinx and readthedocs. See for example https://github.com/pyro-ppl/numpyro/tree/master/docs
 
+## Plotting
+
+- The plotting module should use `matplotlib` directly.
+- Do not add `seaborn` as a dependency.
+- Any ArviZ integration used by plotting or diagnostics should target `ArviZ > 1.0.0`.
+- Plotting helpers should stay thin and focus on forecast visualization, uncertainty bands, CV views, and posterior diagnostics built on top of Matplotlib.
+
 ## Dev Stack
 
 - Type hints

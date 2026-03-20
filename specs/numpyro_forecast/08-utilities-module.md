@@ -183,7 +183,7 @@ def prepare_hierarchical_mapping(
 
 ## Plotting (`utils/plotting.py`)
 
-Thin wrappers around ArviZ and Matplotlib. Optional — only imported if `matplotlib` is available.
+Thin plotting helpers built on `matplotlib` directly, with optional ArviZ interoperability where `ArviZ > 1.0.0` APIs are stable. Do not add a `seaborn` dependency. Optional — only imported if `matplotlib` is available.
 
 ### `plot_forecast`
 

@@ -4,6 +4,14 @@
 
 Time-series cross-validation with rolling or expanding windows. Designed to work with any `ModelFn` and handle data preparation for specialized models (Croston/TSB) via a callback.
 
+## Validation Policy (No Leakage)
+
+All CV routines must enforce leakage-safe semantics:
+- training folds may only use observations and covariates available up to the forecast origin;
+- `prepare_data_fn` must consume training-slice inputs only (never full-series arrays);
+- when exogenous regressors are used, forecast horizons must use aligned `future_exog` for that fold only;
+- metrics are computed strictly on held-out horizon windows.
+
 ## Time-Slice CV (`cv/time_series.py`)
 
 ### `time_slice_cv`
@@ -50,8 +58,11 @@ def time_slice_cv(
     horizon
         Number of steps to forecast at each fold.
     prepare_data_fn
-        Optional callback to transform y_train into model arguments.
-        Signature: ``(y_train) -> (model_args_tuple)``
+        Optional callback to transform training data into model arguments.
+        Signature: ``(y_train, **fold_info) -> (model_args_tuple, model_kwargs_dict)``
+        where ``fold_info`` includes ``fold_idx``, ``train_end_idx``.
+        For exogenous models, the callback should slice covariates from
+        the full arrays passed via ``model_kwargs``.
         Used for Croston/TSB where raw y must be decomposed into z, p_inv.
     return_sites
         Sites to return from Predictive.
@@ -96,6 +107,15 @@ cv_result = time_slice_cv(
 )
 ```
 
+**SARIMAX CV example** — slicing exogenous regressors per fold:
+
+```python
+def prepare_sarimax_data(y_train, *, exog_full, future_exog_full, fold_idx, train_end_idx, horizon, **_):
+    exog_train = exog_full[:train_end_idx]
+    future_exog = future_exog_full[train_end_idx:train_end_idx + horizon]
+    return (y_train,), {"exog": exog_train, "future_exog": future_exog}
+```
+
 ### `expanding_window_cv`
 
 Expanding window variant where training size grows at each fold.
@@ -137,6 +157,8 @@ class CVResult(NamedTuple):
     n_folds: int
 ```
 
+Note: `CVResult` requires the `cv` extra (`pip install probcast[cv]`). The `xr.Dataset` import is deferred so the core package remains importable without xarray.
+
 ### `forecasts` structure
 
 An `xr.Dataset` with dimensions `(chain, draw, t)` where `t` indexes the forecast origins. This matches the pattern from all three intermittent demand notebooks:
@@ -155,8 +177,12 @@ xr.concat(
     "crps": jnp.array([...]),       # Per-fold CRPS values, shape (n_folds,)
     "crps_mean": jnp.float32(...),  # Aggregate mean CRPS
     "mae": jnp.array([...]),        # Per-fold MAE (optional)
+    "crps_by_horizon": jnp.array([...]),      # Shape (n_folds, horizon)
+    "coverage80_by_horizon": jnp.array([...]) # Shape (n_folds, horizon), optional
 }
 ```
+
+Fold metadata should also include forecast origin indices and effective train sizes to make leakage audits reproducible.
 
 ## `prepare_data_fn` Callbacks
 
@@ -183,6 +209,8 @@ def prepare_tsb_data(y_train):
 ```
 
 **Source:** `get_model_args` in `tsb_numpyro.ipynb` and `zi_tsb_numpyro.ipynb`.
+
+`prepare_data_fn` callbacks must validate minimum train-length requirements for enabled model structure (for example, seasonal period, AR lag order, and HSGP basis assumptions) and fail fast with clear errors if a fold is too short.
 
 ## Usage Example
 

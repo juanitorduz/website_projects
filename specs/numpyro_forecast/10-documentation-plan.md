@@ -5,6 +5,8 @@
 - **Sphinx** with **`myst-nb`** for rendering Jupyter notebooks as documentation pages.
 - **`sphinx-book-theme`** for clean, readable layout.
 - **ReadTheDocs** for hosting and automated builds on push.
+- Plotting examples should use `matplotlib` directly; do not introduce `seaborn`.
+- Any ArviZ examples or diagnostics pages should assume `ArviZ > 1.0.0`.
 
 **Source:** Follows NumPyro's own docs structure (`numpyro/docs/`), as referenced in the project requirements.
 
@@ -18,7 +20,7 @@ docs/
 │
 ├── api/                    # Auto-generated API reference (one page per module)
 │   ├── index.rst
-│   ├── core.rst            # ModelFn, MCMCParams, SVIParams, ForecastResult, CVResult
+│   ├── core.rst            # ModelFn, Prior, MCMCParams, SVIParams, ForecastResult, CVResult
 │   ├── models.rst          # All pre-built model functions
 │   ├── inference.rst       # run_mcmc, run_svi, forecast, check_diagnostics
 │   ├── metrics.rst         # crps_empirical, per_obs_crps, energy_score, mae, etc.
@@ -28,6 +30,7 @@ docs/
 ├── tutorials/              # Narrative tutorials as myst-nb notebooks
 │   ├── quickstart.ipynb
 │   ├── ucm_guide.ipynb
+│   ├── prior_config.ipynb
 │   ├── custom_model.ipynb
 │   ├── batch_panel.ipynb
 │   ├── hierarchical.ipynb
@@ -75,27 +78,33 @@ Deep dive into the Unobserved Components Model. Shows how to compose level, tren
 
 **Covers:** `ucm_model` with all component combinations, interpreting component decomposition, comparison with statsmodels UCM.
 
-### 3. Custom Model (`tutorials/custom_model.ipynb`)
+### 3. Prior Configuration (`tutorials/prior_config.ipynb`)
+
+How to configure, override, and compose priors using the `Prior` class. Covers flat priors, hyperprior trees for hierarchical models, serialization for reproducibility, and attaching prior metadata to ArviZ results.
+
+**Covers:** `Prior`, `DEFAULT_PRIORS` pattern, nested hierarchical priors, `model_dump()` / `model_validate()` round-trip, `to_arviz(prior_config=...)`.
+
+### 4. Custom Model (`tutorials/custom_model.ipynb`)
 
 Build a model from scratch using components. Shows the `scan + condition` pattern, how to add custom priors, and how to use the inference toolkit with a non-standard model.
 
 **Covers:** `components/`, `ModelFn` protocol, `run_mcmc`, `forecast`.
 
-### 4. Batch & Panel Forecasting (`tutorials/batch_panel.ipynb`)
+### 5. Batch & Panel Forecasting (`tutorials/batch_panel.ipynb`)
 
 Shows how the same model works on a single series and a panel of series. Demonstrates `numpyro.plate` for shared/hierarchical priors vs `jax.vmap` for independent fits.
 
 **Covers:** Batch dimension convention, `ucm_model` on panel data, `holt_winters_model` on panel data, performance tips.
 
-### 5. Hierarchical Forecasting (`tutorials/hierarchical.ipynb`)
+### 6. Hierarchical Forecasting (`tutorials/hierarchical.ipynb`)
 
-Multi-series Holt-Winters with group-level pooling. Demonstrates SVI for scalability.
+Multi-series Holt-Winters with group-level pooling via nested `Prior` objects. Demonstrates SVI for scalability and how hierarchy is expressed as a prior configuration rather than a separate model function.
 
-**Covers:** `hierarchical_holt_winters_model`, `run_svi`, `forecast_svi`, `prepare_hierarchical_mapping`.
+**Covers:** `holt_winters_model` with nested `Prior` hierarchies, `numpyro.plate`, `LocScaleReparam`, `run_svi`, `forecast_svi`, `prepare_hierarchical_mapping`.
 
 **Adapted from:** `hierarchical_exponential_smoothing.ipynb`.
 
-### 6. Cross-Validation Workflow (`tutorials/cv_workflow.ipynb`)
+### 7. Cross-Validation Workflow (`tutorials/cv_workflow.ipynb`)
 
 Time-slice CV on intermittent demand data. Shows `prepare_data_fn` pattern and per-fold metrics.
 
@@ -103,7 +112,7 @@ Time-slice CV on intermittent demand data. Shows `prepare_data_fn` pattern and p
 
 **Adapted from:** `tsb_numpyro.ipynb`, `zi_tsb_numpyro.ipynb`.
 
-### 7. Intermittent Demand (`tutorials/intermittent.ipynb`)
+### 8. Intermittent Demand (`tutorials/intermittent.ipynb`)
 
 Comparison of Croston, TSB, and ZI-TSB on the same dataset.
 
@@ -111,17 +120,17 @@ Comparison of Croston, TSB, and ZI-TSB on the same dataset.
 
 **Adapted from:** `croston_numpyro.ipynb`, `tsb_numpyro.ipynb`, `zi_tsb_numpyro.ipynb`.
 
-### 8. HSGP Time-Varying Covariates (`tutorials/hsgp_covariates.ipynb`)
+### 9. HSGP Time-Varying Covariates (`tutorials/hsgp_covariates.ipynb`)
 
 Adding smooth, non-parametric covariate effects to a forecasting model using Hilbert Space GPs.
 
 **Covers:** `hsgp_covariate_effect` component, composing with UCM or custom models, interpreting the GP effect.
 
-### 9. DeepAR Forecasting (`tutorials/deepar.ipynb`)
+### 10. DeepAR Forecasting (`tutorials/deepar.ipynb`)
 
-Probabilistic forecasting with a simple RNN-based model (flax.nnx). Demonstrates SVI training and multi-series forecasting.
+Probabilistic forecasting with a simple RNN-based model. Demonstrates building a `DeepARCell` with `flax.nnx`, passing it into `deepar_model`, and SVI training with both deterministic (`nnx_module`) and Bayesian (`random_nnx_module`) NN weights.
 
-**Covers:** `deepar_model`, `run_svi`, `forecast_svi`, comparing with classical models via CRPS.
+**Covers:** `DeepARCell` construction, `deepar_model(y, rnn, ...)`, `bayesian_nn` flag, `run_svi`, `forecast_svi`, comparing with classical models via CRPS.
 
 ## Example Notebooks
 
@@ -163,3 +172,16 @@ intersphinx_mapping = {
 
 nb_execution_mode = "cache"
 ```
+
+## Documentation Acceptance Gates
+
+The docs pipeline is release-blocking and must satisfy all of the following:
+- strict build: `sphinx-build -W docs docs/_build/html`;
+- notebook policy: explicit execution mode, per-notebook timeout budget, and fail-on-execution-error behavior;
+- API reference completeness check (aligned with `scripts/validate_api_docs.py`);
+- link hygiene checks on a scheduled cadence or release workflow.
+
+Minimum notebook execution policy for CI/docs:
+- tutorial notebooks must run in a deterministic environment with fixed seeds;
+- runtime-heavy notebooks may be marked as pre-executed artifacts, but this must be explicit;
+- failures in required notebooks block merge/release.

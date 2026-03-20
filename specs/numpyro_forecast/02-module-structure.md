@@ -10,7 +10,8 @@ probcast/
 ├── core/                        # Abstractions and type definitions
 │   ├── __init__.py
 │   ├── types.py                 # ModelFn protocol, ForecastResult, CVResult
-│   └── params.py                # MCMCParams, SVIParams (Pydantic)
+│   ├── params.py                # MCMCParams, SVIParams (Pydantic)
+│   └── prior.py                 # Prior class (Pydantic) for prior injection and hierarchical composition
 │
 ├── components/                  # Composable building blocks (transition functions)
 │   ├── __init__.py
@@ -118,19 +119,23 @@ def level_transition(carry, t, y, t_max, level_smoothing):
 
 Components are **pure functions** — no `numpyro.sample` calls for priors. The calling model function samples priors and passes them in.
 
+**Explicit exception:** `components/hsgp.py` uses `numpyro.sample` internally via `Prior.sample()`, following the same `DEFAULT_PRIORS` + override pattern as model functions. This is the only component that samples — all others are pure transition functions. The justification is that GP kernel hyperparameters are intrinsic to the component's definition and cannot be meaningfully separated. This must be documented in the component docstring.
+
 ### Models (`models/`)
 
-Complete **model functions** that assemble components, sample priors, and define the likelihood. These follow the `ModelFn` protocol:
+Complete **model functions** that assemble components, sample priors, and define the likelihood. These follow the `ModelFn` protocol. Priors are injected via a `priors: dict[str, Prior] | None = None` parameter, merged with each model's `DEFAULT_PRIORS` constant:
 
 ```python
-def level_model(y, future=0, *, level_smoothing_prior=None, noise_prior=None):
-    # Sample priors (with injectable defaults)
+def level_model(y, *, future=0, priors=None):
+    resolved = {**LEVEL_DEFAULT_PRIORS, **(priors or {})}
+    level_smoothing = resolved["level_smoothing"].sample("level_smoothing")
+    sigma = resolved["sigma"].sample("sigma")
     # Build transition_fn from components
     # Run scan+condition
     # Return forecast deterministic if future > 0
 ```
 
-Models are what users pass to `run_mcmc()` or `run_svi()`.
+Models are what users pass to `run_mcmc()` or `run_svi()`. See [03-core-abstractions.md](03-core-abstractions.md) for the `Prior` class specification.
 
 ### Why This Split?
 
@@ -161,4 +166,4 @@ core/  ←  components/  ←  models/
         utils/ (features, data, plotting)
 ```
 
-No circular dependencies. `core/` depends on nothing internal. `utils/` is a leaf module used by any layer. `nn/` is optional — only required for DeepAR/attention models (uses `flax.nnx`).
+No circular dependencies. `core/` depends on nothing internal (except `numpyro` and `pydantic` for the `Prior` class). `utils/` is a leaf module used by any layer. `nn/` is optional — only required for DeepAR/attention models (uses `flax.nnx`).
