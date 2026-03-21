@@ -120,7 +120,9 @@ def forecast(
         Additional keyword arguments forwarded to the model (for example
         ``covariates`` or ``future_covariates``).
     return_sites
-        Sites to return. If None, returns all deterministic sites.
+        Sites to return. If ``None``, uses NumPyro ``Predictive`` default
+        behavior (all sample and deterministic sites except plate dimensions).
+        For stable user-facing APIs, prefer passing an explicit list.
     coords
         Coordinate metadata (e.g. time index, series ids) passed to
         ``to_datatree()``.

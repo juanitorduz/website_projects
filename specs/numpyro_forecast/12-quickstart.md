@@ -245,6 +245,8 @@ return_sites = ["z_forecast", "p_inv_forecast", "forecast"]
 # return_sites = ["ts_forecast"]
 ```
 
+Note: for Croston, full diagnostics often use all three sites above. In CV workflows, `return_sites=["forecast"]` is usually sufficient when scoring only the final demand forecast.
+
 ### Step 3-6
 
 ```python

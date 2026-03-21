@@ -347,6 +347,17 @@ class CVResult(NamedTuple):
 
     n_folds: int
     """Number of CV folds executed."""
+
+    fold_info: list[dict[str, int]]
+    """Per-fold metadata dictionaries.
+
+    Minimum keys per fold:
+    - ``fold_idx``
+    - ``horizon``
+    - ``train_end_idx``
+    - ``train_size``
+    - ``forecast_origin_idx``
+    """
 ```
 
 **Source:** The CV functions in `croston_numpyro.ipynb`, `tsb_numpyro.ipynb`, and `zi_tsb_numpyro.ipynb` all return concatenated per-fold results. In ArviZ >= 1.0.0, `xarray.DataTree` replaces `arviz.InferenceData` as the standard container:
@@ -358,7 +369,7 @@ return xr.concat(
 )
 ```
 
-`CVResult` wraps this pattern with accompanying metrics.
+`CVResult` wraps this pattern with accompanying metrics and fold metadata.
 
 ## Type Aliases
 

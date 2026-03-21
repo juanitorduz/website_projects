@@ -297,7 +297,10 @@ def croston_model(
 ```python
 z_forecast = scope(level_model, "demand")(z, future=future, priors=resolved)
 p_inv_forecast = scope(level_model, "period_inv")(p_inv, future=future, priors=resolved)
+forecast = numpyro.deterministic("forecast", z_forecast / p_inv_forecast)
 ```
+
+The `"forecast"` site is the canonical Croston output for scoring/CV; `"z_forecast"` and `"p_inv_forecast"` are component-level diagnostics.
 
 **Source:** `croston_numpyro.ipynb`
 

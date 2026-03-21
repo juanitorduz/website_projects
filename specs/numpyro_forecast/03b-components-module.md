@@ -579,9 +579,12 @@ def uc_model(
         return state, pred
 
     # 3. Run scan inside the condition handler
+    time = y.shape[0] + future
     with numpyro.handlers.condition(data={"pred": y}):
-        _, preds = scan(transition_fn, init_carry, jnp.arange(time + future))
+        _, preds = scan(transition_fn, init_carry, jnp.arange(time))
 ```
+
+The condition handler pins the observed prefix (`y.shape[0]` steps) and leaves the future suffix (`future` steps) sampled.
 
 ### Example 2: Holt-Winters as a UCM convenience wrapper
 

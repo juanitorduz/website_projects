@@ -46,7 +46,7 @@ Provide light weight version using Sphinx and readthedocs. See for example https
 
 - The plotting module should use `matplotlib` directly.
 - Do not add `seaborn` as a dependency.
-- Any ArviZ integration used by plotting or diagnostics should target `ArviZ > 1.0.0`.
+- Any ArviZ integration used by plotting or diagnostics should target `ArviZ >= 1.0.0`.
 - Plotting helpers should stay thin and focus on forecast visualization, uncertainty bands, CV views, and posterior diagnostics built on top of Matplotlib.
 
 ## Dev Stack

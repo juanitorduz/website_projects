@@ -157,6 +157,7 @@ class CVResult(NamedTuple):
     forecasts: xr.DataTree
     metrics: dict[str, Float[Array, "..."]]
     n_folds: int
+    fold_info: list[dict[str, int]]
 ```
 
 `CVResult` always includes `xr.DataTree` forecasts as part of the core package contract.
@@ -185,6 +186,18 @@ xr.concat(
 ```
 
 Fold metadata should also include forecast origin indices and effective train sizes to make leakage audits reproducible.
+
+Minimum `fold_info` keys per fold:
+
+```python
+{
+    "fold_idx": int,
+    "horizon": int,
+    "train_end_idx": int,
+    "train_size": int,
+    "forecast_origin_idx": int,
+}
+```
 
 ## Data Preparation (`cv/prepare.py`)
 
