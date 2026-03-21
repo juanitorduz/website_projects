@@ -96,7 +96,7 @@ def croston_time_slice_cross_validation(rng_key, y, n_splits, inference_params):
         # ... inference + forecast ...
 
 # Package: generic CV with prepare_data_fn callback
-def prepare_croston_data(y_train, **fold_info):
+def prepare_intermittent_data(y_train, **fold_info):
     z = y_train[y_train != 0]
     p_idx = jnp.flatnonzero(y_train).astype(jnp.float32)
     p = jnp.diff(p_idx, prepend=-1)
@@ -105,7 +105,7 @@ def prepare_croston_data(y_train, **fold_info):
 
 cv_result = time_slice_cv(
     rng_key, croston_model, y, n_splits=20,
-    inference_params=params, prepare_data_fn=prepare_croston_data,
+    inference_params=params, prepare_data_fn=prepare_intermittent_data,
 )
 ```
 
@@ -159,7 +159,7 @@ class CVResult(NamedTuple):
     n_folds: int
 ```
 
-Note: `CVResult` requires the `cv` extra (`pip install probcast[cv]`). The `xr.DataTree` import is deferred so the core package remains importable without xarray.
+`CVResult` always includes `xr.DataTree` forecasts as part of the core package contract.
 
 ### `forecasts` structure
 
@@ -228,7 +228,7 @@ def prepare_hierarchical_mapping(
 Pre-built callbacks for common data transformations (live in `cv/prepare.py`):
 
 ```python
-def prepare_croston_data(y_train, **fold_info):
+def prepare_intermittent_data(y_train, **fold_info):
     """Decompose intermittent series into demand sizes and period inverses."""
     z = y_train[y_train != 0]
     p_idx = jnp.flatnonzero(y_train).astype(jnp.float32)

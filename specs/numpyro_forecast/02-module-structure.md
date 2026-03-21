@@ -27,7 +27,7 @@ probcast/
 │
 ├── models/                      # Pre-built model functions
 │   ├── __init__.py
-│   ├── ucm.py                   # Unobserved Components Model (composable: level, trend, season, cycle, AR, regression)
+│   ├── uc.py                    # Unobserved Components Model (composable: level, trend, season, cycle, AR, regression)
 │   ├── exponential_smoothing.py # Level, level+trend, Holt-Winters, damped HW (UCM convenience wrappers)
 │   ├── sarimax.py               # SARIMAX(p,d,q)(P,D,Q,s)
 │   ├── intermittent.py          # Croston, TSB, ZI-TSB
@@ -56,7 +56,7 @@ probcast/
 │   ├── time_series.py           # time_slice_cv(), expanding_window_cv(), train_test_split()
 │   └── prepare.py               # prepare_intermittent_data(), prepare_tsb_data(), prepare_hierarchical_mapping()
 │
-└── plotting/                    # Visualization helpers (optional: requires matplotlib)
+└── plotting/                    # Visualization helpers
     ├── __init__.py
     ├── forecast.py              # plot_forecast()
     ├── cv.py                    # plot_cv_results()
@@ -75,7 +75,7 @@ tests/
 ├── test_cv/
 ├── test_plotting/
 └── integration/                 # End-to-end tests (model → inference → forecast → metrics)
-    ├── test_ucm.py
+    ├── test_uc_statsmodels.py
     ├── test_exponential_smoothing.py
     ├── test_sarimax.py
     ├── test_intermittent.py
@@ -166,7 +166,6 @@ from probcast.models import (
     uc_model,
     level_model,
     holt_winters_model,
-    damped_holt_winters_model,
     sarimax_model,
     croston_model,
     tsb_model,
@@ -186,9 +185,9 @@ from probcast.metrics import mae, rmse, mape, wape, log_score
 
 # Cross-validation
 from probcast.cv import time_slice_cv, expanding_window_cv
-from probcast.cv.prepare import train_test_split, prepare_croston_data, prepare_tsb_data
+from probcast.cv.prepare import train_test_split, prepare_intermittent_data, prepare_tsb_data
 
-# Plotting (optional — requires matplotlib)
+# Plotting
 from probcast.plotting import plot_forecast, plot_cv_results, plot_irf
 ```
 
@@ -204,7 +203,9 @@ core/  ←  components/  ←  models/
             ↓
         metrics/  ←  cv/
             ↓
-        plotting/ (optional, matplotlib)
+        plotting/
 ```
 
-No circular dependencies. `core/` depends on nothing internal (except `numpyro` and `pydantic` for the `Prior` class). `plotting/` is optional — only required if `matplotlib` is installed. `nn/` is optional — only required for DeepAR/attention models (uses `flax.nnx`). There is no catch-all `utils/` module — each function lives in its natural domain: Fourier/periodic helpers in `components/seasonality.py`, data preparation callbacks in `cv/prepare.py`, and plotting in `plotting/`.
+No circular dependencies. `core/` depends on nothing internal (except `numpyro` and `pydantic` for the `Prior` class). `nn/` is optional — only required for DeepAR/attention models (uses `flax.nnx`). There is no catch-all `utils/` module — each function lives in its natural domain: Fourier/periodic helpers in `components/seasonality.py`, data preparation callbacks in `cv/prepare.py`, and plotting in `plotting/`.
+
+For canonical end-to-end usage and data/API contracts across model families, see [12-quickstart.md](12-quickstart.md).

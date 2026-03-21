@@ -30,7 +30,9 @@ class ModelFn(Protocol):
 ```python
 # From exponential_smoothing_numpyro.ipynb
 def level_model(y: ArrayImpl, *, future: int = 0) -> None: ...
-def holt_winters_model(y: ArrayImpl, n_seasons: int, *, future: int = 0) -> None: ...
+def holt_winters_model(
+    y: ArrayImpl, n_seasons: int, *, future: int = 0, damped: bool = False
+) -> None: ...
 
 # From var_numpyro.ipynb
 def model(y: Float[Array, "time vars"], n_lags: int, *, future: int = 0) -> None: ...
@@ -135,12 +137,12 @@ class Prior(BaseModel):
     distribution
         Name of a ``numpyro.distributions`` class (e.g. ``"Beta"``, ``"Normal"``).
     params
-        Distribution parameters. Values can be floats or nested ``Prior``
+        Distribution parameters. Values can be floats, ints, or nested ``Prior``
         instances for hierarchical (hyperprior) trees.
     """
 
     distribution: str
-    params: dict[str, float | Prior] = Field(default_factory=dict)
+    params: dict[str, float | int | Prior] = Field(default_factory=dict)
 
     def sample(self, name: str) -> Array:
         """Resolve nested priors and call ``numpyro.sample``.
@@ -162,6 +164,65 @@ class Prior(BaseModel):
 ### Limitations
 
 `Prior.sample()` resolves the full tree in the current NumPyro scope. For multi-level hierarchies requiring intermediate plates (e.g., 3-level hierarchies with `group_mapping`), the model function must walk the tree manually — see the hierarchical example in [04-models-module.md](04-models-module.md).
+
+### `sample_hierarchical`
+
+A standalone helper in `core/prior.py` that encapsulates the 3-level (global -> group -> series) hierarchical sampling pattern. Every panel-capable model that supports `group_mapping` needs this logic, so centralising it avoids fragile, repetitive tree-walking code in each model function.
+
+```python
+def sample_hierarchical(
+    prior: Prior,
+    name: str,
+    group_mapping: Array,
+    n_groups: int,
+    n_series: int,
+) -> Array:
+    """Sample a 3-level hierarchical prior: global -> group -> series.
+
+    1. Hyperpriors (leaf ``Prior`` children) are sampled at global scope.
+    2. Group-level params are sampled inside ``plate("groups", n_groups)``.
+    3. Series-level values are produced by indexing group params via
+       ``group_mapping``.
+
+    Parameters
+    ----------
+    prior
+        A ``Prior`` whose ``params`` contain nested ``Prior`` children
+        (the hyperprior tree).
+    name
+        Base site name for ``numpyro.sample`` calls.
+    group_mapping
+        Integer array of shape ``(n_series,)`` mapping each series to
+        its group index.
+    n_groups
+        Number of groups.
+    n_series
+        Number of series.
+
+    Returns
+    -------
+    Array
+        Sampled values of shape ``(n_series,)``.
+    """
+    # 1. Sample hyperpriors at global scope
+    hyperparams = {}
+    for k, v in prior.params.items():
+        if isinstance(v, Prior):
+            hyperparams[k] = v.sample(f"{name}_{k}")
+        else:
+            hyperparams[k] = v
+
+    # 2. Sample group-level params
+    with numpyro.plate("groups", n_groups):
+        group_params = numpyro.sample(
+            f"{name}_group", getattr(dist, prior.distribution)(**hyperparams)
+        )
+
+    # 3. Index into series
+    return group_params[group_mapping]
+```
+
+When `group_mapping` is `None`, models fall back to `prior.sample(name)` directly inside a `plate("series", n_series)`.
 
 ### Usage
 
@@ -249,9 +310,9 @@ class ForecastResult(NamedTuple):
     samples: dict[str, Float[Array, "..."]]
     """Raw posterior predictive samples keyed by site name."""
 
-    datatree: "xr.DataTree | None" = None
-    """Optional xarray DataTree (ArviZ >= 1.0.0) with posterior_predictive group.
-    Created via ``arviz_base.from_numpyro``."""
+    datatree: "xr.DataTree"
+    """xarray DataTree (ArviZ >= 1.0.0) with posterior_predictive group.
+    Created via ``arviz.from_numpyro``."""
 
     coords: dict | None = None
     """Coordinate metadata (e.g. time index, series ids) attached to the DataTree."""
@@ -268,20 +329,18 @@ predictive = Predictive(model=model, posterior_samples=samples, return_sites=["z
 return predictive(rng_key, *model_args)
 ```
 
-**ArviZ >= 1.0.0 note:** The `datatree` field uses `xarray.DataTree` (the standard container for ArviZ >= 1.0.0, replacing the legacy `arviz.InferenceData`). It is created via `arviz_base.from_numpyro` and can be consumed by all ArviZ plotting and diagnostic functions.
+**ArviZ >= 1.0.0 note:** The `datatree` field uses `xarray.DataTree` (the standard container for ArviZ >= 1.0.0, replacing the legacy `arviz.InferenceData`). It is created via `arviz.from_numpyro` and can be consumed by all ArviZ plotting and diagnostic functions.
 
 ### `CVResult`
 
 ```python
 class CVResult(NamedTuple):
     """Container for cross-validation output.
-
-    Requires ``probcast[cv]`` extra for xarray.
     """
 
     forecasts: "xr.DataTree"
     """Concatenated posterior predictive forecasts across folds as a DataTree,
-    indexed by time. Created via ``arviz_base.from_numpyro``."""
+    indexed by time. Created via ``arviz.from_numpyro``."""
 
     metrics: dict[str, Float[Array, "..."]]
     """Per-fold and aggregate metric values."""

@@ -150,7 +150,7 @@ def forecast(
 ```
 
 **Source:** `forecast` helper in all notebooks. The `return_sites` parameter varies per model:
-- Exponential smoothing: `["pred"]` (full series) or implicit
+- Exponential smoothing / UCM: `["y_forecast"]` for out-of-sample forecasts (`"pred"` is the full observed+future site)
 - Croston: `["z_forecast", "p_inv_forecast", "forecast"]`
 - TSB/ZI-TSB: `["ts_forecast"]`
 - ARMA: `["y_forecast", "errors"]`
@@ -165,9 +165,9 @@ def run_svi(
     model: Callable,
     params: SVIParams,
     *model_args,
+    model_kwargs: dict[str, Any] | None = None,
     guide: AutoGuide | None = None,
     optimizer: optax.GradientTransformation | None = None,
-    **model_kwargs,
 ) -> SVIRunResult:
     """Run SVI optimization on a model function.
 
@@ -181,12 +181,13 @@ def run_svi(
         SVI configuration (num_steps, learning_rate, etc.).
     *model_args
         Positional arguments forwarded to the model.
+    model_kwargs
+        Keyword arguments forwarded to the model (e.g., ``future``,
+        ``priors``, ``covariates``). Passed to the SVI model call.
     guide
         AutoGuide instance. If None, resolved from ``params.build_guide(model)``.
     optimizer
         Optax optimizer. If None, resolved from ``params.build_optimizer()``.
-    **model_kwargs
-        Keyword arguments forwarded to the model.
 
     Returns
     -------
@@ -253,7 +254,7 @@ def forecast_svi(
 ```python
 posterior = Predictive(
     model=model, guide=guide, params=svi_result.params,
-    num_samples=5_000, return_sites=["obs"],
+    num_samples=5_000, return_sites=["y_forecast"],
 )
 ```
 
@@ -290,7 +291,7 @@ def check_diagnostics(
     """
 ```
 
-This consolidates the ad-hoc diagnostic checks scattered across notebooks into a single reusable function. Uses ArviZ >= 1.0.0 summary statistics (via `arviz_base`/`arviz_stats`) under the hood.
+This consolidates the ad-hoc diagnostic checks scattered across notebooks into a single reusable function. Uses ArviZ >= 1.0.0 summary statistics under the hood.
 
 ### Diagnostic policy (mandatory for baseline examples)
 
@@ -307,7 +308,7 @@ If these checks fail, either:
 
 ## ArviZ Integration (ArviZ >= 1.0.0 / `xarray.DataTree`)
 
-All inference functions support optional conversion to `xarray.DataTree` via `arviz_base.from_numpyro`:
+All inference functions convert results to `xarray.DataTree` via `arviz.from_numpyro`:
 
 ```python
 def to_datatree(
@@ -342,8 +343,8 @@ def to_datatree(
 
     See Also
     --------
-    arviz_base.from_numpyro : https://python.arviz.org/projects/base/en/stable/api/generated/arviz_base.from_numpyro.html
+    arviz.from_numpyro : https://python.arviz.org/en/stable/api/generated/arviz.from_numpyro.html
     """
 ```
 
-This wraps `arviz_base.from_numpyro()` with sensible defaults and handles both MCMC and SVI outputs. When `prior_config` is provided, the `Prior` objects are serialized via `model_dump()` and stored as DataTree attributes so that the exact prior configuration is recoverable from saved results.
+This wraps `arviz.from_numpyro()` with sensible defaults and handles both MCMC and SVI outputs. When `prior_config` is provided, the `Prior` objects are serialized via `model_dump()` and stored as DataTree attributes so that the exact prior configuration is recoverable from saved results.

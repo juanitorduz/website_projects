@@ -23,7 +23,7 @@ See [03b-components-module.md](03b-components-module.md) for the Fourier/seasona
 
 ## Plotting Module (`plotting/`)
 
-Thin plotting helpers built on `matplotlib` directly, with optional ArviZ interoperability targeting `ArviZ >= 1.0.0` (which uses `xarray.DataTree` instead of `arviz.InferenceData`). Do not add a `seaborn` dependency. Optional — only imported if `matplotlib` is available.
+Thin plotting helpers built on `matplotlib` directly, with ArviZ interoperability targeting `ArviZ >= 1.0.0` (which uses `xarray.DataTree` instead of `arviz.InferenceData`). Do not add a `seaborn` dependency.
 
 ### `plot_forecast` (`plotting/forecast.py`)
 
@@ -34,7 +34,7 @@ def plot_forecast(
     y_test: Float[Array, " t_test"] | None = None,
     *,
     group: str = "posterior_predictive",
-    var_name: str = "pred",
+    var_name: str = "y_forecast",
     hdi_prob: float = 0.94,
     ax: "matplotlib.axes.Axes | None" = None,
     **plot_kwargs,
@@ -53,7 +53,8 @@ def plot_forecast(
     group
         DataTree group to extract samples from.
     var_name
-        Variable name within the group.
+        Variable name within the group. Use ``"y_forecast"`` for forecast-only
+        trajectories (recommended) or ``"pred"`` for full observed+future paths.
     hdi_prob
         Probability mass for the HDI band.
 

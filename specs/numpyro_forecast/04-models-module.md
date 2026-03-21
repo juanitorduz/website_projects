@@ -25,7 +25,7 @@ NaN policy: Models do not handle NaN internally. Users must impute or mask befor
 
 **Batch dimension:** All models accept `y: Float[Array, "time *batch"]`. When `*batch` is empty it's univariate; when `(n_series,)` it's panel data. Components broadcast over batch dims automatically.
 
-## Unobserved Components Model (`models/ucm.py`) — **Core Model**
+## Unobserved Components Model (`models/uc.py`) — **Core Model**
 
 The UCM is the central composable model. It generalizes local level, local linear trend, Holt-Winters, and more into a single function where users enable/disable structural components. This is a Bayesian, JAX-native counterpart to [statsmodels `UnobservedComponents`](https://www.statsmodels.org/stable/generated/statsmodels.tsa.statespace.structural.UnobservedComponents.html).
 
@@ -91,6 +91,33 @@ def uc_model(
 - Works seamlessly on `(time,)` or `(time, n_series)` via broadcasting.
 - Valid prior keys: all keys in `UC_DEFAULT_PRIORS`. The model only samples priors for components that are enabled.
 
+### Scan + Condition Pattern
+
+After prior sampling and state initialisation, every model follows this pattern:
+
+```python
+    # total time steps = observed + future
+    time = y.shape[0] + future
+
+    def transition_fn(carry, t):
+        state = level_transition(carry, ...)   # from components module
+        mu = state["level"] + state.get("trend", 0.0) + ...
+        sigma = carry["sigma"]
+        pred = numpyro.sample("pred", dist.Normal(mu, sigma))
+        return state, pred
+
+    init_state = {"level": level_init, ...}    # from sampled priors
+    # condition observed portion; future steps remain generative
+    with numpyro.handlers.condition(data={"pred": y}):
+        _, predictions = jax.lax.scan(transition_fn, init_state, jnp.arange(time))
+
+    # store forecast slice as deterministic for easy extraction
+    if future > 0:
+        numpyro.deterministic("y_forecast", predictions[-future:])
+```
+
+The `condition` handler pins the first `y.shape[0]` values of `pred` to the observed data. During the `future` steps no observed data exists, so those `pred` samples are drawn from the prior predictive — this is how the model generates forecasts. The `y_forecast` deterministic makes the forecast slice easy to extract from posterior samples via `return_sites=["y_forecast"]`.
+
 **Seasonal config grammar:**
 - `None` — no seasonality
 - `int` — additive HW seasonality with that many seasons
@@ -107,7 +134,7 @@ def uc_model(
 | Local linear trend | True | "local linear" | None | False | 0 | `local_linear_trend_model` |
 | Smooth trend | True | "smooth" | None | False | 0 | `smooth_trend_model` |
 | Holt-Winters | True | "local linear" | n_seasons | False | 0 | `holt_winters_model` |
-| Damped HW | True | "damped" | n_seasons | False | 0 | `damped_holt_winters_model` |
+| Damped HW | True | "damped" | n_seasons | False | 0 | `holt_winters_model(damped=True)` |
 | BSM (basic structural) | True | "local linear" | {"type": "trigonometric", ...} | True | 0 | — |
 | UCM + AR | True | "smooth" | n_seasons | False | 2 | — |
 
@@ -144,9 +171,9 @@ def smooth_trend_model(
 
 ### Validation: UCM vs statsmodels
 
-The UCM implementation must be validated against [`statsmodels.tsa.statespace.structural.UnobservedComponents`](https://www.statsmodels.org/stable/generated/statsmodels.tsa.statespace.structural.UnobservedComponents.html). A dedicated test suite (`tests/test_models/test_ucm_statsmodels.py`) should:
+The UCM implementation must be validated against [`statsmodels.tsa.statespace.structural.UnobservedComponents`](https://www.statsmodels.org/stable/generated/statsmodels.tsa.statespace.structural.UnobservedComponents.html). A dedicated integration test suite (`tests/integration/test_uc_statsmodels.py`) should:
 
-1. Fit both `probcast.uc_model` (with weakly informative priors and MCMC) and `statsmodels.UnobservedComponents` on the same dataset for each UCM configuration recipe (local level, local linear trend, smooth trend, Holt-Winters, BSM).
+1. Fit both `probcast.models.uc_model` (with weakly informative priors and MCMC) and `statsmodels.UnobservedComponents` on the same dataset for each UCM configuration recipe (local level, local linear trend, smooth trend, Holt-Winters, BSM).
 2. Compare the **posterior mean of predictions** against the statsmodels MLE point forecasts (within reasonable tolerance, accounting for Bayesian vs frequentist differences).
 3. Compare **inferred parameter means** (e.g., smoothing parameters, noise variances) against MLE estimates.
 4. Use weakly informative priors centred near the MLE values to ensure the Bayesian posterior concentrates around the frequentist solution.
@@ -155,7 +182,7 @@ The UCM implementation must be validated against [`statsmodels.tsa.statespace.st
 
 ## Exponential Smoothing (`models/exponential_smoothing.py`)
 
-These are **convenience wrappers** around `uc_model` with specific component configurations and the ES-style smoothing parameterisation (alpha, beta, gamma instead of innovation variances). They accept `y: Float[Array, "time *batch"]` and broadcast over batch dimensions. All forward `priors` to `uc_model`.
+These are **convenience wrappers** around `uc_model` with specific component configurations. They accept `y: Float[Array, "time *batch"]`, broadcast over batch dimensions, and forward `group_mapping`, `priors`, and additional keyword arguments to `uc_model`.
 
 ### `level_model`
 
@@ -166,9 +193,14 @@ def level_model(
     y: Float[Array, "time *batch"],
     *,
     future: int = 0,
+    group_mapping: Float[Array, "n_series"] | None = None,
     priors: dict[str, Prior] | None = None,
+    **kwargs,
 ) -> None:
-    return uc_model(y, future=future, level=True, priors=priors)
+    return uc_model(
+        y, future=future, level=True,
+        group_mapping=group_mapping, priors=priors, **kwargs,
+    )
 ```
 
 **Source:** `exponential_smoothing_numpyro.ipynb` — `level_model(y, future=0)`
@@ -184,16 +216,23 @@ def level_trend_model(
     y: Float[Array, "time *batch"],
     *,
     future: int = 0,
+    group_mapping: Float[Array, "n_series"] | None = None,
     priors: dict[str, Prior] | None = None,
+    **kwargs,
 ) -> None:
-    return uc_model(y, future=future, level=True, trend="local linear", priors=priors)
+    return uc_model(
+        y, future=future, level=True, trend="local linear",
+        group_mapping=group_mapping, priors=priors, **kwargs,
+    )
 ```
 
 Valid prior keys: `"level_smoothing"`, `"trend_smoothing"`, `"level_init"`, `"trend_init"`, `"sigma"`.
 
 ### `holt_winters_model`
 
-Additive Holt-Winters. Equivalent to `uc_model(y, level=True, trend="local linear", seasonal=n_seasons)`.
+Unified Holt-Winters wrapper with optional damping. Equivalent to:
+- `damped=False` → `uc_model(y, level=True, trend="local linear", seasonal=n_seasons)`
+- `damped=True` → `uc_model(y, level=True, trend="damped", seasonal=n_seasons)`
 
 ```python
 def holt_winters_model(
@@ -201,37 +240,25 @@ def holt_winters_model(
     n_seasons: int,
     *,
     future: int = 0,
+    damped: bool = False,
     group_mapping: Float[Array, "n_series"] | None = None,
     priors: dict[str, Prior] | None = None,
+    **kwargs,
 ) -> None:
+    trend = "damped" if damped else "local linear"
     return uc_model(
-        y, future=future, level=True, trend="local linear",
-        seasonal=n_seasons, group_mapping=group_mapping, priors=priors,
+        y, future=future, level=True, trend=trend,
+        seasonal=n_seasons, group_mapping=group_mapping, priors=priors, **kwargs,
     )
 ```
 
 Valid prior keys: `"level_smoothing"`, `"trend_smoothing"`, `"seasonality_smoothing"`, `"level_init"`, `"trend_init"`, `"seasonality_init"`, `"sigma"`.
 
-### `damped_holt_winters_model`
+When `damped=True`, the `"damping"` prior key is additionally used.
 
-Damped trend variant. Equivalent to `uc_model(y, level=True, trend="damped", seasonal=n_seasons)`.
+### `damped_holt_winters_model` (compatibility alias)
 
-```python
-def damped_holt_winters_model(
-    y: Float[Array, "time *batch"],
-    n_seasons: int,
-    *,
-    future: int = 0,
-    group_mapping: Float[Array, "n_series"] | None = None,
-    priors: dict[str, Prior] | None = None,
-) -> None:
-    return uc_model(
-        y, future=future, level=True, trend="damped",
-        seasonal=n_seasons, group_mapping=group_mapping, priors=priors,
-    )
-```
-
-Valid prior keys: `"level_smoothing"`, `"trend_smoothing"`, `"seasonality_smoothing"`, `"damping"`, `"level_init"`, `"trend_init"`, `"seasonality_init"`, `"sigma"`.
+Retained only for backward compatibility. Prefer `holt_winters_model(..., damped=True)` in all new code and docs.
 
 **Source:** `exponential_smoothing_numpyro.ipynb`
 
@@ -525,7 +552,7 @@ Hierarchical structure is a **cross-cutting capability** supported by all panel-
 |-------|---------------------|-------|
 | `uc_model` | `Float[Array, "n_series"]` | Core model — all ES wrappers delegate here |
 | `holt_winters_model` | `Float[Array, "n_series"]` | Forwards to `uc_model` |
-| `damped_holt_winters_model` | `Float[Array, "n_series"]` | Forwards to `uc_model` |
+| `holt_winters_model(damped=True)` | `Float[Array, "n_series"]` | Damped variant via same wrapper |
 | `local_level_model` etc. | via `**kwargs` | UCM convenience aliases forward `group_mapping` |
 | `sarimax_model` | `Float[Array, "n_series"]` | Standalone — own plate logic |
 | `arma_model` | `Float[Array, "n_series"]` | Standalone — own plate logic |
@@ -665,11 +692,13 @@ sarimax_model(
 
 ### Inside the model function (general pattern)
 
-> **Note:** `Prior.sample()` handles 1-level and 2-level hierarchies automatically. For 3-level hierarchies with `group_mapping`, the model manually decomposes the prior tree to insert `plate('groups')` between global and series scopes. This is the **one case** where manual tree-walking is required (because an intermediate plate must be inserted between levels).
+> **Note:** `Prior.sample()` handles 1-level and 2-level hierarchies automatically. For 3-level hierarchies with `group_mapping`, use the `sample_hierarchical()` helper from `core/prior.py` to avoid manual tree-walking (see [03-core-abstractions.md](03-core-abstractions.md)).
 
 Every model that accepts `group_mapping` follows the same internal logic. Here it is illustrated with `holt_winters_model`, but the pattern applies identically to `arma_model`, `sarimax_model`, `deepar_model`, etc.:
 
 ```python
+from probcast.core.prior import sample_hierarchical
+
 def holt_winters_model(
     y: Float[Array, "time *batch"],
     n_seasons: int,
@@ -678,37 +707,22 @@ def holt_winters_model(
     group_mapping: Float[Array, "n_series"] | None = None,
     priors: dict[str, Prior] | None = None,
 ) -> None:
-    resolved = {**HOLT_WINTERS_DEFAULT_PRIORS, **(priors or {})}
+    resolved = {**UC_DEFAULT_PRIORS, **(priors or {})}
     n_time, n_series = y.shape[0], y.shape[1] if y.ndim > 1 else None
 
     if group_mapping is not None:
         n_groups = jnp.unique(group_mapping).shape[0]
-
-    # --- 3-level priors (trend): global -> group -> series ---
-    # Leaf hyperpriors (depth 0) are sampled at global scope by Prior.sample()
-    # Mid-level priors (depth 1) are sampled inside plate("groups")
-    if group_mapping is not None:
-        with numpyro.plate("groups", n_groups):
-            trend_c1 = resolved["trend_smoothing"].params["concentration1"].sample(
-                "trend_smoothing_concentration1"
-            )
-            trend_c0 = resolved["trend_smoothing"].params["concentration0"].sample(
-                "trend_smoothing_concentration0"
-            )
 
     with numpyro.plate("series", n_series):
         # Flat priors: sample directly in series plate
         level_smoothing = resolved["level_smoothing"].sample("level_smoothing")
         level_init = resolved["level_init"].sample("level_init")
 
-        # 3-level prior: index group params into series via group_mapping
+        # 3-level prior via helper: global -> group -> series
         if group_mapping is not None:
-            trend_smoothing = numpyro.sample(
-                "trend_smoothing",
-                dist.Beta(
-                    concentration1=trend_c1[group_mapping],
-                    concentration0=trend_c0[group_mapping],
-                ),
+            trend_smoothing = sample_hierarchical(
+                resolved["trend_smoothing"], "trend_smoothing",
+                group_mapping, n_groups, n_series,
             )
         else:
             trend_smoothing = resolved["trend_smoothing"].sample("trend_smoothing")
@@ -724,7 +738,7 @@ def holt_winters_model(
     # ... transition_fn, scan+condition as in non-hierarchical case ...
 ```
 
-When a `Prior` has nested children, `prior.sample(name)` recursively samples the hyperpriors first (at the global level), then the parent distribution is instantiated with the resolved values and sampled — giving the hierarchical pooling structure. For 3-level hierarchies with `group_mapping`, the model function manually walks the prior tree to insert an intermediate group plate between the global and series levels.
+When a `Prior` has nested children, `prior.sample(name)` recursively samples the hyperpriors first (at the global level), then the parent distribution is instantiated with the resolved values and sampled — giving the hierarchical pooling structure. For 3-level hierarchies with `group_mapping`, the `sample_hierarchical()` helper encapsulates the tree-walking and intermediate group plate logic so model functions stay concise.
 
 The model can also apply `numpyro.handlers.reparam` with `LocScaleReparam` for non-centered parameterization when needed.
 
@@ -920,7 +934,14 @@ Time-varying covariate effects can be added to any model via the HSGP component 
 ```python
 from probcast.components.hsgp import hsgp_covariate_effect
 
-def custom_model_with_hsgp(y, covariates, *, future=0, priors=None, **kwargs):
+def custom_model_with_hsgp(
+    y: Float[Array, "time *batch"],
+    covariates: Float[Array, "time_cov n_features *batch"],
+    *,
+    future: int = 0,
+    priors: dict[str, Prior] | None = None,
+    **kwargs,
+) -> None:
     # ... standard model components ...
 
     # Add time-varying covariate effect via HSGP

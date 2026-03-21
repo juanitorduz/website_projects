@@ -81,18 +81,13 @@ dependencies = [
     "jax>=9.2",
     "numpyro>=0.20",
     "pydantic>=2.0",
+    "jaxtyping>=0.2",
+    "beartype>=0.18",
+    "arviz>=1.0.0",
+    "matplotlib>=3.8",
 ]
 
 [project.optional-dependencies]
-viz = [
-    "arviz-base>=1.0.0",
-    "arviz-plots>=0.3",
-    "matplotlib>=3.8",
-]
-cv = [
-    "xarray>=2024.1",
-    "arviz-base>=1.0.0",
-]
 nn = [
     "flax>=0.10",
 ]  # For DeepAR / attention models (uses flax.nnx API)
@@ -100,8 +95,6 @@ dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",
     "pytest-xdist",
-    "jaxtyping>=0.2",
-    "beartype>=0.18",
     "ruff>=0.4",
     "pre-commit>=3.7",
     "mypy>=1.10",
@@ -112,7 +105,7 @@ docs = [
     "myst-nb>=1.0",
     "sphinx-book-theme",
 ]
-all = ["probcast[viz,cv,nn,dev,docs]"]
+all = ["probcast[nn,dev,docs]"]
 
 [project.urls]
 Homepage = "https://juanitorduz.github.io"
@@ -144,16 +137,16 @@ The structure should be explicit in the design review:
 
 - `[build-system]` defines how the wheel/sdist is built. Use `hatchling` unless there is a strong reason to choose another backend.
 - `[project]` contains the package identity and only the runtime dependencies required for the core library.
-- `[project.optional-dependencies]` is the contract for extras. Keep visualization, CV, docs, neural components, and development tooling in separate tiers.
+- `[project.optional-dependencies]` is the contract for non-core extras. Keep only genuinely optional tiers (for example `nn`, `docs`, and development tooling).
 - `[project.urls]` should exist from day one for PyPI and documentation discoverability.
 - `[tool.uv]` owns environment-resolution defaults, while linting, tests, and typing live under their respective `[tool.*]` sections.
 
 Recommended dependency policy:
 
 - Keep `jax` in core dependencies, but do not hard-code `jaxlib` in the initial package spec. Installation of accelerator-specific wheels should be documented separately because CPU/GPU/TPU installs vary by platform.
-- Keep `matplotlib`, `arviz-base >= 1.0.0`, and `arviz-plots` in the `viz` extra. ArviZ >= 1.0.0 uses `xarray.DataTree` instead of `arviz.InferenceData`.
+- Keep `arviz >= 1.0.0` and `matplotlib` in core dependencies because DataTree conversion and plotting are part of the core contract.
 - Do not add `seaborn`.
-- If `xarray` appears in public APIs like `CVResult`, either promote it to required status for those APIs or make those APIs clearly optional and lazily imported.
+- Do not add explicit `xarray` dependency unless a direct import requirement appears outside ArviZ's dependency chain.
 - The first implementation pass should create a real `pyproject.toml` matching this structure so packaging decisions are not deferred to the end.
 
 ## Testing
@@ -186,7 +179,7 @@ tests/
     ├── test_es_pipeline.py      # model → inference → forecast → metrics
     ├── test_intermittent.py
     ├── test_var.py
-    ├── test_ucm_statsmodels.py  # UCM vs statsmodels.UnobservedComponents
+    ├── test_uc_statsmodels.py   # UCM vs statsmodels.UnobservedComponents
     └── test_var_statsmodels.py  # VAR vs statsmodels.VAR (predictions, params, IRFs)
 ```
 
@@ -354,7 +347,7 @@ This is intentionally similar to the PyMC Marketing pre-commit setup in their [`
 - Plotting utilities use `matplotlib` directly.
 - Do not introduce `seaborn` as a dependency.
 - ArviZ-backed visualization or diagnostics helpers must be compatible with `ArviZ >= 1.0.0` and use `xarray.DataTree` (not the legacy `arviz.InferenceData`).
-- Keep plotting optional so the core package remains lightweight.
+- Plotting is part of the core package contract.
 
 ## Docstrings
 

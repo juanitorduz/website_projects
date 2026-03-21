@@ -6,7 +6,7 @@
 - **`sphinx-book-theme`** for clean, readable layout.
 - **ReadTheDocs** for hosting and automated builds on push.
 - Plotting examples should use `matplotlib` directly; do not introduce `seaborn`.
-- Any ArviZ examples or diagnostics pages should assume `ArviZ >= 1.0.0` and use `xarray.DataTree` (via `arviz_base.from_numpyro`) instead of `arviz.InferenceData`.
+- Any ArviZ examples or diagnostics pages should assume `ArviZ >= 1.0.0` and use `xarray.DataTree` (via `arviz.from_numpyro`) instead of `arviz.InferenceData`.
 
 **Source:** Follows NumPyro's own docs structure (`numpyro/docs/`), as referenced in the project requirements.
 
@@ -16,7 +16,7 @@
 docs/
 ├── conf.py
 ├── index.rst               # Landing page with overview and quick links
-├── installation.rst        # pip/uv install instructions, optional deps
+├── installation.rst        # pip/uv install instructions and optional extras (nn/docs/dev)
 │
 ├── api/                    # Auto-generated API reference (one page per module)
 │   ├── index.rst
@@ -71,6 +71,8 @@ Each API page groups functions by module with cross-references to related tutori
 
 End-to-end example: generate data → fit UCM (local level + trend) → forecast → evaluate CRPS → plot. Shows both univariate and panel data.
 
+Contract source: [12-quickstart.md](12-quickstart.md) defines the canonical end-to-end API/data flow templates this tutorial must follow.
+
 **Covers:** `uc_model`, `run_mcmc`, `forecast`, `crps_empirical`, `plot_forecast`, batch dimensions.
 
 ### 2. UCM Guide (`tutorials/ucm_guide.ipynb`)
@@ -83,7 +85,7 @@ Deep dive into the Unobserved Components Model. Shows how to compose level, tren
 
 How to configure, override, and compose priors using the `Prior` class. Covers flat priors, hyperprior trees for hierarchical models, serialization for reproducibility, and attaching prior metadata to ArviZ results.
 
-**Covers:** `Prior`, `DEFAULT_PRIORS` pattern, nested hierarchical priors, `model_dump()` / `model_validate()` round-trip, `to_arviz(prior_config=...)`.
+**Covers:** `Prior`, `DEFAULT_PRIORS` pattern, nested hierarchical priors, `model_dump()` / `model_validate()` round-trip, `to_datatree(...)`.
 
 ### 4. Custom Model (`tutorials/custom_model.ipynb`)
 

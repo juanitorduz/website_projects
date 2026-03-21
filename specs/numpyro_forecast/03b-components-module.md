@@ -157,7 +157,7 @@ def damped_trend_prediction(
     """
 ```
 
-**Source:** `damped_holt_winters_model` in `exponential_smoothing_numpyro.ipynb`, which uses `fori_loop(1, step+1, lambda i, val: val + phi**i, 0)`.
+**Source:** damped Holt-Winters path in `exponential_smoothing_numpyro.ipynb` (equivalent to `holt_winters_model(..., damped=True)`), which uses `fori_loop(1, step+1, lambda i, val: val + phi**i, 0)`.
 
 ## Seasonality (`components/seasonality.py`)
 
@@ -578,7 +578,7 @@ def uc_model(
         pred = numpyro.sample("pred", dist.Normal(loc=mu, scale=noise))
         return state, pred
 
-    # 3. Run scan+condition
+    # 3. Run scan inside the condition handler
     with numpyro.handlers.condition(data={"pred": y}):
         _, preds = scan(transition_fn, init_carry, jnp.arange(time + future))
 ```

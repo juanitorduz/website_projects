@@ -26,9 +26,9 @@ The core strength of the package is **customizability** — reducing the boilerp
 
 5. **JAX-native.** All numerical code uses `jax.numpy` and `jax.lax.scan`. Models are JIT-compilable and `vmap`-friendly. No NumPy/SciPy at runtime.
 
-6. **ArviZ integration.** Inference results convert to `xarray.DataTree` via `arviz_base.from_numpyro` (ArviZ >= 1.0.0) for diagnostics, plotting, and comparison. Forecast outputs align with ArviZ's `posterior_predictive` conventions.
+6. **ArviZ integration.** Inference results convert to `xarray.DataTree` via `arviz.from_numpyro` (ArviZ >= 1.0.0) for diagnostics, plotting, and comparison. Forecast outputs align with ArviZ's `posterior_predictive` conventions.
 
-7. **Typed-by-default core dependencies.** Core: `numpyro`, `jax`, `jaxlib`, `pydantic`, `jaxtyping`, `beartype`. Optional: `arviz-base`, `arviz-plots`, `xarray`, `matplotlib` (for plotting/CV output).
+7. **Typed-by-default core dependencies.** Core: `numpyro`, `jax`, `jaxlib`, `pydantic`, `jaxtyping`, `beartype`, `arviz`, `matplotlib`. Optional extras are reserved for non-core capabilities (for example neural-network backends and docs tooling).
 
 8. **AI-friendly.** The repository includes `AGENTS.md` and `SKILLS.md` to make it easy for AI coding assistants to understand and contribute to the project.
 

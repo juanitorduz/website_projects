@@ -14,7 +14,7 @@ Do not move to the next phase until all the tests are passing.
 
 ### Documentation Notebooks
 
-During the implementation do not write Jypyter Notebooks! Instead, write Python files that should be parsed via Jupytext. HEnce, you still need to add comments as markdown cells and code comments in the Python files. The success criteria is that these python scripts have to run end to end. I, the core developer, will convert the scripts to notebooks manually.
+During the implementation do not write Jypyter Notebooks! Instead, write Python files that should be parsed via Jupytext. Hence, you still need to add comments as markdown cells and code comments in the Python files. The success criteria is that these python scripts have to run end to end. I, the core developer, will convert the scripts to notebooks manually.
 
 ### ArviZ 1.0 documentation
 
@@ -82,8 +82,8 @@ Components are extracted *from* the models. Having the core and inference layer 
 
 ### Deliverables
 
-- `models/ucm.py` — **`uc_model`** (composable: level, trend, seasonal, cycle, AR, regression) + convenience aliases (`local_level_model`, `local_linear_trend_model`, `smooth_trend_model`). Accepts `group_mapping`.
-- `models/exponential_smoothing.py` — `level_model`, `level_trend_model`, `holt_winters_model`, `damped_holt_winters_model` (thin UCM wrappers). All forward `group_mapping` to `uc_model`.
+- `models/uc.py` — **`uc_model`** (composable: level, trend, seasonal, cycle, AR, regression) + convenience aliases (`local_level_model`, `local_linear_trend_model`, `smooth_trend_model`). Accepts `group_mapping`.
+- `models/exponential_smoothing.py` — `level_model`, `level_trend_model`, `holt_winters_model(damped: bool = False)` (thin UCM wrappers). All forward `group_mapping` to `uc_model`.
 - `models/sarimax.py` — `sarimax_model`. Accepts `group_mapping`.
 - `models/intermittent.py` — `croston_model`, `tsb_model`, `zi_tsb_model` (hierarchical extension deferred — different input contract).
 - `models/arma.py` — `arma_model`. Accepts `group_mapping`.
@@ -177,6 +177,7 @@ Docs are best written against a stable API. Premature docs create maintenance bu
 - CI enforces lint, typing, tests, docs strict build, and API docs validation.
 - Release workflow and deprecation/versioning policy are documented.
 - Principal sign-off checklist items are traceable to spec sections.
+- End-to-end examples and tutorials are consistent with [12-quickstart.md](12-quickstart.md) contracts.
 
 ## Statistical quality gate (cross-phase)
 
@@ -247,7 +248,7 @@ Phase 1: core/ + inference/ + metrics/ + cv/prepare.py
     ↓
 Phase 2: components/ (core deterministic components, incl. seasonality feature helpers)
     ↓
-Phase 3: models/ (UCM core + ES wrappers, SARIMAX, ARMA, VAR, intermittent — all with group_mapping)
+Phase 3: models/ (UCM core + ES wrappers, SARIMAX, ARMA, VAR with `group_mapping`; intermittent models without `group_mapping`)
     ↓
 Phase 4: cv/time_series.py + plotting/
     ↓
