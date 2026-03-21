@@ -123,7 +123,7 @@ Components are **pure functions** — no `numpyro.sample` calls for priors. The 
 
 ### Models (`models/`)
 
-Complete **model functions** that assemble components, sample priors, and define the likelihood. These follow the `ModelFn` protocol. Priors are injected via a `priors: dict[str, Prior] | None = None` parameter, merged with each model's `DEFAULT_PRIORS` constant:
+Complete **model functions** that assemble components, sample priors, and define the observation model via scan+condition. These follow the `ModelFn` protocol. Priors are injected via a `priors: dict[str, Prior] | None = None` parameter, merged with each model's `DEFAULT_PRIORS` constant:
 
 ```python
 def level_model(y, *, future=0, priors=None):
@@ -163,7 +163,7 @@ from probcast.core import MCMCParams, SVIParams, Prior, ForecastResult, CVResult
 
 # Models
 from probcast.models import (
-    ucm_model,
+    uc_model,
     level_model,
     holt_winters_model,
     damped_holt_winters_model,

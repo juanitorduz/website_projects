@@ -82,8 +82,8 @@ Components are extracted *from* the models. Having the core and inference layer 
 
 ### Deliverables
 
-- `models/ucm.py` — **`ucm_model`** (composable: level, trend, seasonal, cycle, AR, regression) + convenience aliases (`local_level_model`, `local_linear_trend_model`, `smooth_trend_model`). Accepts `group_mapping`.
-- `models/exponential_smoothing.py` — `level_model`, `level_trend_model`, `holt_winters_model`, `damped_holt_winters_model` (thin UCM wrappers). All forward `group_mapping` to `ucm_model`.
+- `models/ucm.py` — **`uc_model`** (composable: level, trend, seasonal, cycle, AR, regression) + convenience aliases (`local_level_model`, `local_linear_trend_model`, `smooth_trend_model`). Accepts `group_mapping`.
+- `models/exponential_smoothing.py` — `level_model`, `level_trend_model`, `holt_winters_model`, `damped_holt_winters_model` (thin UCM wrappers). All forward `group_mapping` to `uc_model`.
 - `models/sarimax.py` — `sarimax_model`. Accepts `group_mapping`.
 - `models/intermittent.py` — `croston_model`, `tsb_model`, `zi_tsb_model` (hierarchical extension deferred — different input contract).
 - `models/arma.py` — `arma_model`. Accepts `group_mapping`.

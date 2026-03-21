@@ -71,13 +71,13 @@ Each API page groups functions by module with cross-references to related tutori
 
 End-to-end example: generate data → fit UCM (local level + trend) → forecast → evaluate CRPS → plot. Shows both univariate and panel data.
 
-**Covers:** `ucm_model`, `run_mcmc`, `forecast`, `crps_empirical`, `plot_forecast`, batch dimensions.
+**Covers:** `uc_model`, `run_mcmc`, `forecast`, `crps_empirical`, `plot_forecast`, batch dimensions.
 
 ### 2. UCM Guide (`tutorials/ucm_guide.ipynb`)
 
 Deep dive into the Unobserved Components Model. Shows how to compose level, trend (all variants), seasonality (additive, trigonometric), cycle, AR, and regression components. Compares different configurations on the same dataset.
 
-**Covers:** `ucm_model` with all component combinations, interpreting component decomposition, comparison with statsmodels UCM.
+**Covers:** `uc_model` with all component combinations, interpreting component decomposition, comparison with statsmodels UCM.
 
 ### 3. Prior Configuration (`tutorials/prior_config.ipynb`)
 
@@ -95,7 +95,7 @@ Build a model from scratch using components. Shows the `scan + condition` patter
 
 Shows how the same model works on a single series and a panel of series. Demonstrates `numpyro.plate` for shared/hierarchical priors vs `jax.vmap` for independent fits.
 
-**Covers:** Batch dimension convention, `ucm_model` on panel data, `holt_winters_model` on panel data, performance tips.
+**Covers:** Batch dimension convention, `uc_model` on panel data, `holt_winters_model` on panel data, performance tips.
 
 ### 6. Hierarchical Forecasting (`tutorials/hierarchical.ipynb`)
 
@@ -133,7 +133,7 @@ Reproduces and extends the [bikes GP blog post](https://juanitorduz.github.io/bi
 
 Reproduces all three models from the [Pyro-M5-Starter-Kit](https://github.com/pyro-ppl/Pyro-M5-Starter-Kit) using probcast. Demonstrates that the package can support the same model complexity as the original Pyro forecasting module. Includes covariates, hierarchical structure, and probabilistic evaluation.
 
-**Covers:** `ucm_model` with covariates, hierarchical priors, `run_svi`, `forecast_svi`, `crps_empirical`, custom model composition from components. Ports [model1.py](https://github.com/pyro-ppl/Pyro-M5-Starter-Kit/blob/master/model1.py), [model2.py](https://github.com/pyro-ppl/Pyro-M5-Starter-Kit/blob/master/model2.py), and [model3.py](https://github.com/pyro-ppl/Pyro-M5-Starter-Kit/blob/master/model3.py) to NumPyro/probcast.
+**Covers:** `uc_model` with covariates, hierarchical priors, `run_svi`, `forecast_svi`, `crps_empirical`, custom model composition from components. Ports [model1.py](https://github.com/pyro-ppl/Pyro-M5-Starter-Kit/blob/master/model1.py), [model2.py](https://github.com/pyro-ppl/Pyro-M5-Starter-Kit/blob/master/model2.py), and [model3.py](https://github.com/pyro-ppl/Pyro-M5-Starter-Kit/blob/master/model3.py) to NumPyro/probcast.
 
 **Adapted from:** [Pyro-M5-Starter-Kit](https://github.com/pyro-ppl/Pyro-M5-Starter-Kit).
 

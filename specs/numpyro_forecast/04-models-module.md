@@ -29,12 +29,12 @@ NaN policy: Models do not handle NaN internally. Users must impute or mask befor
 
 The UCM is the central composable model. It generalizes local level, local linear trend, Holt-Winters, and more into a single function where users enable/disable structural components. This is a Bayesian, JAX-native counterpart to [statsmodels `UnobservedComponents`](https://www.statsmodels.org/stable/generated/statsmodels.tsa.statespace.structural.UnobservedComponents.html).
 
-### `UCM_DEFAULT_PRIORS`
+### `UC_DEFAULT_PRIORS`
 
 ```python
 from probcast.core.prior import Prior
 
-UCM_DEFAULT_PRIORS: dict[str, Prior] = {
+UC_DEFAULT_PRIORS: dict[str, Prior] = {
     # Level
     "level_smoothing": Prior("Beta", params={"concentration1": 1.0, "concentration0": 1.0}),
     "level_init": Prior("Normal", params={"loc": 0.0, "scale": 1.0}),
@@ -60,10 +60,10 @@ UCM_DEFAULT_PRIORS: dict[str, Prior] = {
 }
 ```
 
-### `ucm_model`
+### `uc_model`
 
 ```python
-def ucm_model(
+def uc_model(
     y: Float[Array, "time *batch"],
     *,
     future: int = 0,
@@ -78,9 +78,8 @@ def ucm_model(
     group_mapping: Float[Array, "n_series"] | None = None,
     # --- Prior overrides ---
     priors: dict[str, Prior] | None = None,
-    likelihood: str = "normal",  # "normal", "studentt"
 ) -> None:
-    resolved = {**UCM_DEFAULT_PRIORS, **(priors or {})}
+    resolved = {**UC_DEFAULT_PRIORS, **(priors or {})}
     # Only sample priors for enabled components ...
 ```
 
@@ -90,7 +89,7 @@ def ucm_model(
 - `seasonal` accepts either `int` (additive HW with `n_seasons`) or `dict` for trigonometric: `{"type": "trigonometric", "period": 12, "harmonics": 4}` or a list of dicts for multiple seasonal periods.
 - `trend` accepts string matching statsmodels conventions: `"local linear"`, `"smooth"`, `"deterministic"`, `"damped"`.
 - Works seamlessly on `(time,)` or `(time, n_series)` via broadcasting.
-- Valid prior keys: all keys in `UCM_DEFAULT_PRIORS`. The model only samples priors for components that are enabled.
+- Valid prior keys: all keys in `UC_DEFAULT_PRIORS`. The model only samples priors for components that are enabled.
 
 **Seasonal config grammar:**
 - `None` — no seasonality
@@ -115,23 +114,39 @@ def ucm_model(
 ### Convenience aliases
 
 ```python
-# Thin wrappers calling ucm_model with specific configurations.
-# All forward `priors` so users can override defaults via the same dict pattern.
-def local_level_model(y, *, future=0, priors=None, **kwargs):
-    return ucm_model(y, future=future, level=True, priors=priors, **kwargs)
+def local_level_model(
+    y: Float[Array, "time *batch"],
+    *,
+    future: int = 0,
+    priors: dict[str, Prior] | None = None,
+    **kwargs,
+) -> None:
+    return uc_model(y, future=future, level=True, priors=priors, **kwargs)
 
-def local_linear_trend_model(y, *, future=0, priors=None, **kwargs):
-    return ucm_model(y, future=future, level=True, trend="local linear", priors=priors, **kwargs)
+def local_linear_trend_model(
+    y: Float[Array, "time *batch"],
+    *,
+    future: int = 0,
+    priors: dict[str, Prior] | None = None,
+    **kwargs,
+) -> None:
+    return uc_model(y, future=future, level=True, trend="local linear", priors=priors, **kwargs)
 
-def smooth_trend_model(y, *, future=0, priors=None, **kwargs):
-    return ucm_model(y, future=future, level=True, trend="smooth", priors=priors, **kwargs)
+def smooth_trend_model(
+    y: Float[Array, "time *batch"],
+    *,
+    future: int = 0,
+    priors: dict[str, Prior] | None = None,
+    **kwargs,
+) -> None:
+    return uc_model(y, future=future, level=True, trend="smooth", priors=priors, **kwargs)
 ```
 
 ### Validation: UCM vs statsmodels
 
 The UCM implementation must be validated against [`statsmodels.tsa.statespace.structural.UnobservedComponents`](https://www.statsmodels.org/stable/generated/statsmodels.tsa.statespace.structural.UnobservedComponents.html). A dedicated test suite (`tests/test_models/test_ucm_statsmodels.py`) should:
 
-1. Fit both `probcast.ucm_model` (with weakly informative priors and MCMC) and `statsmodels.UnobservedComponents` on the same dataset for each UCM configuration recipe (local level, local linear trend, smooth trend, Holt-Winters, BSM).
+1. Fit both `probcast.uc_model` (with weakly informative priors and MCMC) and `statsmodels.UnobservedComponents` on the same dataset for each UCM configuration recipe (local level, local linear trend, smooth trend, Holt-Winters, BSM).
 2. Compare the **posterior mean of predictions** against the statsmodels MLE point forecasts (within reasonable tolerance, accounting for Bayesian vs frequentist differences).
 3. Compare **inferred parameter means** (e.g., smoothing parameters, noise variances) against MLE estimates.
 4. Use weakly informative priors centred near the MLE values to ensure the Bayesian posterior concentrates around the frequentist solution.
@@ -140,11 +155,11 @@ The UCM implementation must be validated against [`statsmodels.tsa.statespace.st
 
 ## Exponential Smoothing (`models/exponential_smoothing.py`)
 
-These are **convenience wrappers** around `ucm_model` with specific component configurations and the ES-style smoothing parameterisation (alpha, beta, gamma instead of innovation variances). They accept `y: Float[Array, "time *batch"]` and broadcast over batch dimensions. All forward `priors` to `ucm_model`.
+These are **convenience wrappers** around `uc_model` with specific component configurations and the ES-style smoothing parameterisation (alpha, beta, gamma instead of innovation variances). They accept `y: Float[Array, "time *batch"]` and broadcast over batch dimensions. All forward `priors` to `uc_model`.
 
 ### `level_model`
 
-Simple exponential smoothing (level only). Equivalent to `ucm_model(y, level=True)`.
+Simple exponential smoothing (level only). Equivalent to `uc_model(y, level=True)`.
 
 ```python
 def level_model(
@@ -153,7 +168,7 @@ def level_model(
     future: int = 0,
     priors: dict[str, Prior] | None = None,
 ) -> None:
-    return ucm_model(y, future=future, level=True, priors=priors)
+    return uc_model(y, future=future, level=True, priors=priors)
 ```
 
 **Source:** `exponential_smoothing_numpyro.ipynb` — `level_model(y, future=0)`
@@ -162,7 +177,7 @@ Valid prior keys: `"level_smoothing"`, `"level_init"`, `"sigma"`.
 
 ### `level_trend_model`
 
-Exponential smoothing with additive trend. Equivalent to `ucm_model(y, level=True, trend="local linear")`.
+Exponential smoothing with additive trend. Equivalent to `uc_model(y, level=True, trend="local linear")`.
 
 ```python
 def level_trend_model(
@@ -171,14 +186,14 @@ def level_trend_model(
     future: int = 0,
     priors: dict[str, Prior] | None = None,
 ) -> None:
-    return ucm_model(y, future=future, level=True, trend="local linear", priors=priors)
+    return uc_model(y, future=future, level=True, trend="local linear", priors=priors)
 ```
 
 Valid prior keys: `"level_smoothing"`, `"trend_smoothing"`, `"level_init"`, `"trend_init"`, `"sigma"`.
 
 ### `holt_winters_model`
 
-Additive Holt-Winters. Equivalent to `ucm_model(y, level=True, trend="local linear", seasonal=n_seasons)`.
+Additive Holt-Winters. Equivalent to `uc_model(y, level=True, trend="local linear", seasonal=n_seasons)`.
 
 ```python
 def holt_winters_model(
@@ -189,7 +204,7 @@ def holt_winters_model(
     group_mapping: Float[Array, "n_series"] | None = None,
     priors: dict[str, Prior] | None = None,
 ) -> None:
-    return ucm_model(
+    return uc_model(
         y, future=future, level=True, trend="local linear",
         seasonal=n_seasons, group_mapping=group_mapping, priors=priors,
     )
@@ -199,7 +214,7 @@ Valid prior keys: `"level_smoothing"`, `"trend_smoothing"`, `"seasonality_smooth
 
 ### `damped_holt_winters_model`
 
-Damped trend variant. Equivalent to `ucm_model(y, level=True, trend="damped", seasonal=n_seasons)`.
+Damped trend variant. Equivalent to `uc_model(y, level=True, trend="damped", seasonal=n_seasons)`.
 
 ```python
 def damped_holt_winters_model(
@@ -210,7 +225,7 @@ def damped_holt_winters_model(
     group_mapping: Float[Array, "n_series"] | None = None,
     priors: dict[str, Prior] | None = None,
 ) -> None:
-    return ucm_model(
+    return uc_model(
         y, future=future, level=True, trend="damped",
         seasonal=n_seasons, group_mapping=group_mapping, priors=priors,
     )
@@ -436,14 +451,15 @@ The VAR implementation must be validated against [`statsmodels.tsa.vector_ar.var
 The previous `local_level_fourier_model` from `numpyro_forecasting_univariate.ipynb` is now expressed as a UCM configuration:
 
 ```python
-# Local level with trigonometric Fourier seasonality and Student-T likelihood
-ucm_model(
+# Local level with trigonometric Fourier seasonality
+uc_model(
     y, future=12,
     level=True, trend=None,
     seasonal={"type": "trigonometric", "period": 365.25, "harmonics": 6},
-    likelihood="studentt",
 )
 ```
+
+Models are purely generative — the observation distribution is `dist.Normal(mu, sigma)` inside the scan, conditioned on via `numpyro.handlers.condition(data={"pred": y})`. For non-Normal observation distributions (e.g., Student-T), users compose a custom model from components.
 
 For the specific pattern using `LocScaleReparam` and Fourier regression covariates (as in the original notebook), users can compose `level_transition` + `fourier_regression` in a custom model function. The UCM provides the common case; the components enable the advanced case.
 
@@ -507,9 +523,9 @@ Hierarchical structure is a **cross-cutting capability** supported by all panel-
 
 | Model | `group_mapping` type | Notes |
 |-------|---------------------|-------|
-| `ucm_model` | `Float[Array, "n_series"]` | Core model — all ES wrappers delegate here |
-| `holt_winters_model` | `Float[Array, "n_series"]` | Forwards to `ucm_model` |
-| `damped_holt_winters_model` | `Float[Array, "n_series"]` | Forwards to `ucm_model` |
+| `uc_model` | `Float[Array, "n_series"]` | Core model — all ES wrappers delegate here |
+| `holt_winters_model` | `Float[Array, "n_series"]` | Forwards to `uc_model` |
+| `damped_holt_winters_model` | `Float[Array, "n_series"]` | Forwards to `uc_model` |
 | `local_level_model` etc. | via `**kwargs` | UCM convenience aliases forward `group_mapping` |
 | `sarimax_model` | `Float[Array, "n_series"]` | Standalone — own plate logic |
 | `arma_model` | `Float[Array, "n_series"]` | Standalone — own plate logic |
@@ -654,7 +670,14 @@ sarimax_model(
 Every model that accepts `group_mapping` follows the same internal logic. Here it is illustrated with `holt_winters_model`, but the pattern applies identically to `arma_model`, `sarimax_model`, `deepar_model`, etc.:
 
 ```python
-def holt_winters_model(y, n_seasons, *, future=0, group_mapping=None, priors=None):
+def holt_winters_model(
+    y: Float[Array, "time *batch"],
+    n_seasons: int,
+    *,
+    future: int = 0,
+    group_mapping: Float[Array, "n_series"] | None = None,
+    priors: dict[str, Prior] | None = None,
+) -> None:
     resolved = {**HOLT_WINTERS_DEFAULT_PRIORS, **(priors or {})}
     n_time, n_series = y.shape[0], y.shape[1] if y.ndim > 1 else None
 
@@ -909,7 +932,7 @@ def custom_model_with_hsgp(y, covariates, *, future=0, priors=None, **kwargs):
     )
 
     mu = level + trend + covariate_effect
-    # ... likelihood ...
+    # ... numpyro.sample("pred", dist.Normal(mu, sigma)) inside condition handler ...
 ```
 
 This keeps the HSGP as a composable component rather than baking it into specific model functions.

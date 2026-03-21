@@ -184,15 +184,15 @@ Prior(
 Each model defines a module-level `*_DEFAULT_PRIORS: dict[str, Prior]` constant. Model functions accept `priors: dict[str, Prior] | None = None` and merge user overrides:
 
 ```python
-UCM_DEFAULT_PRIORS: dict[str, Prior] = {
+UC_DEFAULT_PRIORS: dict[str, Prior] = {
     "level_smoothing": Prior("Beta", params={"concentration1": 1.0, "concentration0": 1.0}),
     "level_init": Prior("Normal", params={"loc": 0.0, "scale": 1.0}),
     "sigma": Prior("HalfNormal", params={"scale": 1.0}),
     # ... one entry per model parameter ...
 }
 
-def ucm_model(y, *, future=0, priors=None, **config):
-    resolved = {**UCM_DEFAULT_PRIORS, **(priors or {})}
+def uc_model(y, *, future=0, priors=None, **config):
+    resolved = {**UC_DEFAULT_PRIORS, **(priors or {})}
     level_smoothing = resolved["level_smoothing"].sample("level_smoothing")
     ...
 ```
@@ -338,10 +338,10 @@ A core design principle: **every model works on both a single time series and a 
 
 ```python
 # Univariate — works as-is
-ucm_model(y_single, future=12)  # y_single.shape == (100,)
+uc_model(y_single, future=12)  # y_single.shape == (100,)
 
 # Panel — same function, same call pattern
-ucm_model(y_panel, future=12)   # y_panel.shape == (100, 50)
+uc_model(y_panel, future=12)   # y_panel.shape == (100, 50)
 ```
 
 No `vmap` wrapper needed for the common case. The scan loop and all components broadcast naturally.

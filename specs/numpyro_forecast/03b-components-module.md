@@ -540,7 +540,7 @@ def hsgp_covariate_effect(
 The UCM model accepts configuration flags to enable/disable components. Internally it assembles the enabled components into a single scan loop. Priors are injected via the `priors` dict:
 
 ```python
-def ucm_model(
+def uc_model(
     y, *,
     future=0,
     level=True,           # local level (random walk)
@@ -549,9 +549,9 @@ def ucm_model(
     cycle=False,          # stochastic damped cycle
     autoregressive=0,     # AR order
     covariates=None,      # exogenous regressors (time, n_features)
-    priors=None,          # dict[str, Prior] | None — overrides merged with UCM_DEFAULT_PRIORS
+    priors=None,          # dict[str, Prior] | None — overrides merged with UC_DEFAULT_PRIORS
 ):
-    resolved = {**UCM_DEFAULT_PRIORS, **(priors or {})}
+    resolved = {**UC_DEFAULT_PRIORS, **(priors or {})}
     # 1. Sample priors only for enabled components
     # 2. Build composite transition_fn
     def transition_fn(carry, t):
@@ -588,7 +588,7 @@ def ucm_model(
 ```python
 def holt_winters_model(y, n_seasons, *, future=0, priors=None):
     """Additive Holt-Winters — a specific UCM configuration."""
-    return ucm_model(
+    return uc_model(
         y, future=future,
         level=True, trend="local linear",
         seasonal=n_seasons,
@@ -600,16 +600,16 @@ def holt_winters_model(y, n_seasons, *, future=0, priors=None):
 
 ```python
 # Univariate — y.shape == (100,)
-ucm_model(y_single, future=12, level=True, trend="smooth", seasonal=12)
+uc_model(y_single, future=12, level=True, trend="smooth", seasonal=12)
 
 # Panel — y.shape == (100, 50) — same function, zero changes
 # Components broadcast over the 50-series batch dimension
-ucm_model(y_panel, future=12, level=True, trend="smooth", seasonal=12)
+uc_model(y_panel, future=12, level=True, trend="smooth", seasonal=12)
 
 # Override a prior — user only specifies what they want to change
-ucm_model(y_single, future=12, level=True, priors={
+uc_model(y_single, future=12, level=True, priors={
     "sigma": Prior("HalfCauchy", params={"scale": 2.0}),
 })
 ```
 
-Components handle the state update logic; models handle prior sampling (via `Prior.sample()`), likelihood, and the scan+condition wrapper.
+Components handle the state update logic; models handle prior sampling (via `Prior.sample()`) and the scan+condition wrapper.
