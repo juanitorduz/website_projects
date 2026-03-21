@@ -6,7 +6,7 @@
 - **`sphinx-book-theme`** for clean, readable layout.
 - **ReadTheDocs** for hosting and automated builds on push.
 - Plotting examples should use `matplotlib` directly; do not introduce `seaborn`.
-- Any ArviZ examples or diagnostics pages should assume `ArviZ > 1.0.0`.
+- Any ArviZ examples or diagnostics pages should assume `ArviZ >= 1.0.0` and use `xarray.DataTree` (via `arviz_base.from_numpyro`) instead of `arviz.InferenceData`.
 
 **Source:** Follows NumPyro's own docs structure (`numpyro/docs/`), as referenced in the project requirements.
 
@@ -24,8 +24,8 @@ docs/
 │   ├── models.rst          # All pre-built model functions
 │   ├── inference.rst       # run_mcmc, run_svi, forecast, check_diagnostics
 │   ├── metrics.rst         # crps_empirical, per_obs_crps, energy_score, mae, etc.
-│   ├── cv.rst              # time_slice_cv, expanding_window_cv
-│   └── utils.rst           # periodic_features, data helpers, plotting
+│   ├── cv.rst              # time_slice_cv, expanding_window_cv, data preparation helpers
+│   └── plotting.rst        # plot_forecast, plot_cv_results, plot_irf
 │
 ├── tutorials/              # Narrative tutorials as myst-nb notebooks
 │   ├── quickstart.ipynb
@@ -121,13 +121,23 @@ Comparison of Croston, TSB, and ZI-TSB on the same dataset.
 
 **Adapted from:** `croston_numpyro.ipynb`, `tsb_numpyro.ipynb`, `zi_tsb_numpyro.ipynb`.
 
-### 9. HSGP Time-Varying Covariates (`tutorials/hsgp_covariates.ipynb`)
+### 9. HSGP Time-Varying Covariates — Bikes GP (`tutorials/hsgp_covariates.ipynb`)
 
-Adding smooth, non-parametric covariate effects to a forecasting model using Hilbert Space GPs.
+Reproduces and extends the [bikes GP blog post](https://juanitorduz.github.io/bikes_gp/) (originally written in PyMC) using probcast's HSGP component. The key additions over the original are: (1) a train-test split to showcase genuine forecasting (the PyMC version does not forecast), and (2) future covariate values (wind speed, temperature) are assumed known and passed via `future_covariates`.
 
-**Covers:** `hsgp_covariate_effect` component, composing with UCM or custom models, interpreting the GP effect.
+**Covers:** `hsgp_covariate_effect` component, composing with UCM or custom models, train-test split with known future covariates, interpreting the GP effect, comparison with parametric seasonality.
 
-### 10. DeepAR Forecasting (`tutorials/deepar.ipynb`)
+**Adapted from:** [bikes_gp](https://juanitorduz.github.io/bikes_gp/) (PyMC implementation).
+
+### 10. M5 Competition Models (`tutorials/m5_competition.ipynb`)
+
+Reproduces all three models from the [Pyro-M5-Starter-Kit](https://github.com/pyro-ppl/Pyro-M5-Starter-Kit) using probcast. Demonstrates that the package can support the same model complexity as the original Pyro forecasting module. Includes covariates, hierarchical structure, and probabilistic evaluation.
+
+**Covers:** `ucm_model` with covariates, hierarchical priors, `run_svi`, `forecast_svi`, `crps_empirical`, custom model composition from components. Ports [model1.py](https://github.com/pyro-ppl/Pyro-M5-Starter-Kit/blob/master/model1.py), [model2.py](https://github.com/pyro-ppl/Pyro-M5-Starter-Kit/blob/master/model2.py), and [model3.py](https://github.com/pyro-ppl/Pyro-M5-Starter-Kit/blob/master/model3.py) to NumPyro/probcast.
+
+**Adapted from:** [Pyro-M5-Starter-Kit](https://github.com/pyro-ppl/Pyro-M5-Starter-Kit).
+
+### 11. DeepAR Forecasting (`tutorials/deepar.ipynb`)
 
 Probabilistic forecasting with a simple RNN-based model. Demonstrates building a `DeepARCell` with `flax.nnx`, passing it into `deepar_model`, and SVI training with both deterministic (`nnx_module`) and Bayesian (`random_nnx_module`) NN weights.
 
@@ -139,7 +149,7 @@ Lighter versions of the user's existing notebooks, adapted to use the package AP
 
 - Uses `probcast` imports instead of inline helpers.
 - Focuses on the model and results, not infrastructure.
-- Includes ArviZ diagnostics and CRPS evaluation.
+- Includes ArviZ diagnostics (via `xarray.DataTree`) and CRPS evaluation.
 
 | Example | Source Notebook |
 |---------|----------------|

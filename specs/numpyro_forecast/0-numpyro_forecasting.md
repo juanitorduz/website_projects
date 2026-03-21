@@ -20,6 +20,7 @@ I want to build a flexible and powerfull forecasting library based on nympyro ba
 
 - We also should allow time verying covariates using hilbert space GPS like https://github.com/pyro-ppl/numpyro/tree/master/numpyro/contrib/hsgp 
 
+- We must be able support all the mdoels from the M% competition repository https://github.com/pyro-ppl/Pyro-M5-Starter-Kit
 
 ## Open Source Package Vision
 

@@ -1,5 +1,26 @@
 # 11 — Implementation Sequence
 
+Start by creating a `uv` environment with the latest version of Python 3.13.
+
+## Important
+
+### Test Driven Development
+
+IMPORTANT: For all the phases we whould use a test driven development approach.
+
+Hence, we should write the tests based on these design specifications and then implement the code to make the tests fail. Once the tests are failing, we should implement the code to make the tests pass.
+
+Do not move to the next phase until all the tests are passing.
+
+### Documentation Notebooks
+
+During the implementation do not write Jypyter Notebooks! Instead, write Python files that should be parsed via Jupytext. HEnce, you still need to add comments as markdown cells and code comments in the Python files. The success criteria is that these python scripts have to run end to end. I, the core developer, will convert the scripts to notebooks manually.
+
+### ArviZ 1.0 documentation
+
+Most docs online are old arviz. So use the migration guide to the new arviz 1.0 documentation.
+
+
 ## Phase 1: Foundation (Core + Metrics + Utils)
 
 **Goal:** Remove duplication from existing notebooks immediately. After this phase, notebooks can `import` instead of copy-pasting helpers.
@@ -14,10 +35,9 @@
 - `inference/diagnostics.py` — `check_diagnostics()`
 - `metrics/crps.py` — `crps_empirical()`, `per_obs_crps()`
 - `metrics/point.py` — `mae`, `rmse`, `mape`, `wape`
-- `utils/features.py` — `periodic_features()`, `fourier_modes()`
-- `utils/data.py` — `train_test_split()`, `prepare_intermittent_data()`, `prepare_tsb_data()`
+- `cv/prepare.py` — `train_test_split()`, `prepare_intermittent_data()`, `prepare_tsb_data()`, `prepare_hierarchical_mapping()`
 - `pyproject.toml` — project metadata, dependencies, ruff config
-- `tests/conftest.py` + unit tests for metrics and utils
+- `tests/conftest.py` + unit tests for metrics and cv/prepare helpers
 
 ### Why first?
 
@@ -38,7 +58,7 @@ These are the most duplicated pieces across notebooks. Every notebook has its ow
 
 - `components/level.py` — level transition (local level / random walk)
 - `components/trend.py` — local linear trend, smooth trend, deterministic trend, damped trend
-- `components/seasonality.py` — additive seasonality rotation, trigonometric (Fourier state-space), Fourier regression
+- `components/seasonality.py` — additive seasonality rotation, trigonometric (Fourier state-space), Fourier regression, `periodic_features()`, `fourier_modes()`, `periodic_repeat()`
 - `components/cycle.py` — stochastic damped cycle
 - `components/ar.py` — autoregressive transition
 - `components/ma.py` — moving average with error state
@@ -58,7 +78,7 @@ Components are extracted *from* the models. Having the core and inference layer 
 
 ## Phase 3: Pre-built Models (Classical)
 
-**Goal:** Provide ready-to-use model functions with the `priors: dict[str, Prior]` injection pattern. The UCM is the centrepiece; other models are either UCM wrappers or distinct model families. All models must work on both `(t_max,)` and `(t_max, n_series)` shapes. All panel-capable models accept `group_mapping: Array | None` for hierarchical priors — hierarchy is a cross-cutting capability expressed through nested `Prior` objects, not a separate model.
+**Goal:** Provide ready-to-use model functions with the `priors: dict[str, Prior]` injection pattern. The UCM is the centrepiece; other models are either UCM wrappers or distinct model families. All models must work on both `(time,)` and `(time, n_series)` shapes. All panel-capable models accept `group_mapping: Array | None` for hierarchical priors — hierarchy is a cross-cutting capability expressed through nested `Prior` objects, not a separate model.
 
 ### Deliverables
 
@@ -82,6 +102,8 @@ Models compose components + core. They are the user-facing API and need both lay
 - Hierarchical behavior is validated via nested `Prior` objects with `numpyro.plate` on at least two model families (e.g., ES and ARMA).
 - Baseline model docs include identifiability/stability notes where applicable (ARMA/SARIMAX/VAR/HSGP/UCM).
 - Forecast outputs expose stable and documented `return_sites`.
+- UCM comparison tests against `statsmodels.UnobservedComponents` pass for all UCM configuration recipes (local level, local linear trend, smooth trend, Holt-Winters, BSM) — posterior mean predictions and parameter estimates must be within reasonable tolerance of MLE.
+- VAR comparison tests against `statsmodels.VAR` pass — posterior mean predictions, AR coefficients, and IRFs must be within reasonable tolerance of OLS estimates.
 
 ## Phase 4: Cross-Validation
 
@@ -90,7 +112,9 @@ Models compose components + core. They are the user-facing API and need both lay
 ### Deliverables
 
 - `cv/time_series.py` — `time_slice_cv()`, `expanding_window_cv()`
-- `utils/plotting.py` — `plot_forecast()`, `plot_cv_results()`, `plot_irf()`
+- `plotting/forecast.py` — `plot_forecast()`
+- `plotting/cv.py` — `plot_cv_results()`
+- `plotting/irf.py` — `plot_irf()`
 - Integration tests with real models + CV
 
 ### Why fourth?
@@ -125,6 +149,7 @@ These are more advanced models that depend on all previous layers being stable. 
 - DeepAR SVI-only behavior is documented and validated by tests.
 - Both `nnx_module` (deterministic) and `random_nnx_module` (Bayesian) paths are tested.
 - HSGP integration examples include prior sensitivity guidance.
+- The [bikes GP blog post](https://juanitorduz.github.io/bikes_gp/) is reproduced using probcast's HSGP component, with a train-test split and known future covariates (wind speed, temperature), demonstrating genuine forecasting capability.
 - Optional dependency failures produce clear user-facing messages.
 
 ## Phase 6: Documentation + Packaging + CI/CD
@@ -190,7 +215,7 @@ Forward-mode AD is slower than reverse-mode for models with many parameters. Hie
 
 All panel-capable models use plates with `dim=-1` and `dim=-2` for series and seasons when `group_mapping` is provided. Getting broadcasting right across transition functions is error-prone.
 
-**Mitigation:** Thorough shape annotations with `jaxtyping`. Integration tests that verify output shapes match expected `(t_max, n_series)`.
+**Mitigation:** Thorough shape annotations with `jaxtyping`. Integration tests that verify output shapes match expected `(time, n_series)`.
 
 ### 4. Intermittent data preparation
 
@@ -206,7 +231,7 @@ Components must broadcast correctly over `...` trailing batch dimensions. This i
 - **AR lags:** `update_lags` shifts along axis 0 with batch dims trailing.
 - **Plates vs vmap:** Models with `group_mapping` (or nested `Prior` objects) use `numpyro.plate` for shared/pooled priors across series; non-hierarchical models can use `jax.vmap` for independent fits. The choice affects shape conventions.
 
-**Mitigation:** Comprehensive shape tests for every component with `(t_max,)`, `(t_max, 1)`, and `(t_max, n_series)` inputs. Use `jaxtyping` + `beartype` to catch shape mismatches early.
+**Mitigation:** Comprehensive shape tests for every component with `(time,)`, `(time, 1)`, and `(time, n_series)` inputs. Use `jaxtyping` + `beartype` to catch shape mismatches early.
 
 ### 6. ARMA error conditioning
 
@@ -217,13 +242,14 @@ The error conditioning pattern in ARMA is conceptually different from the `scan 
 ## Dependency Graph
 
 ```
-Phase 1: core/ + inference/ + metrics/ + utils/ (features, data)
+Phase 1: core/ + inference/ + metrics/ + cv/prepare.py
+
     ↓
-Phase 2: components/ (core deterministic components)
+Phase 2: components/ (core deterministic components, incl. seasonality feature helpers)
     ↓
 Phase 3: models/ (UCM core + ES wrappers, SARIMAX, ARMA, VAR, intermittent — all with group_mapping)
     ↓
-Phase 4: cv/ + utils/plotting
+Phase 4: cv/time_series.py + plotting/
     ↓
 Phase 5: nn/ + models/deepar + components/hsgp
     ↓

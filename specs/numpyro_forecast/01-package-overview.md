@@ -18,7 +18,7 @@ The core strength of the package is **customizability** — reducing the boilerp
 
 2. **Composable components.** Transition functions (level, trend, seasonality, cycle, AR, MA, regression) are standalone building blocks. Assemble them into full models by composition, not inheritance. The **UCM model** is the canonical example: pick which components to include, and probcast assembles the scan loop.
 
-3. **Batch-native.** All components and models vectorize seamlessly over batch dimensions. A model that works on a single series `(t_max,)` works identically on a panel `(t_max, n_series)` — no code changes needed. Components use `...` trailing dimensions for broadcasting; `numpyro.plate` or `jax.vmap` handles the series axis.
+3. **Batch-native.** All components and models vectorize seamlessly over batch dimensions. A model that works on a single series `(time,)` works identically on a panel `(time, n_series)` — no code changes needed. Components use `...` trailing dimensions for broadcasting; `numpyro.plate` or `jax.vmap` handles the series axis.
 
 4. **Two-layer API.**
    - **Toolkit layer** — inference runners, forecast helpers, metrics, CV routines. Use these with *any* NumPyro model function.
@@ -26,9 +26,9 @@ The core strength of the package is **customizability** — reducing the boilerp
 
 5. **JAX-native.** All numerical code uses `jax.numpy` and `jax.lax.scan`. Models are JIT-compilable and `vmap`-friendly. No NumPy/SciPy at runtime.
 
-6. **ArviZ integration.** Inference results convert to `arviz.InferenceData` for diagnostics, plotting, and comparison. Forecast outputs align with ArviZ's `posterior_predictive` conventions.
+6. **ArviZ integration.** Inference results convert to `xarray.DataTree` via `arviz_base.from_numpyro` (ArviZ >= 1.0.0) for diagnostics, plotting, and comparison. Forecast outputs align with ArviZ's `posterior_predictive` conventions.
 
-7. **Typed-by-default core dependencies.** Core: `numpyro`, `jax`, `jaxlib`, `pydantic`, `jaxtyping`, `beartype`. Optional: `arviz`, `xarray`, `matplotlib` (for plotting/CV output).
+7. **Typed-by-default core dependencies.** Core: `numpyro`, `jax`, `jaxlib`, `pydantic`, `jaxtyping`, `beartype`. Optional: `arviz-base`, `arviz-plots`, `xarray`, `matplotlib` (for plotting/CV output).
 
 8. **AI-friendly.** The repository includes `AGENTS.md` and `SKILLS.md` to make it easy for AI coding assistants to understand and contribute to the project.
 
@@ -71,5 +71,6 @@ The package design is grounded in these reference implementations:
 | [Pyro DLM](https://pyro.ai/examples/forecasting_dlm.html) | Dynamic linear model in Pyro |
 | [NumPyro HSGP](https://github.com/pyro-ppl/numpyro/tree/master/numpyro/contrib/hsgp) | Hilbert Space GP for time-varying covariates |
 | [NumPyro Time Series Tutorial](https://num.pyro.ai/en/stable/tutorials/time_series_forecasting.html) | Base patterns this package should simplify |
+| [Pyro-M5-Starter-Kit](https://github.com/pyro-ppl/Pyro-M5-Starter-Kit) | M5 competition models — validation target for probcast (all three models must be reproducible) |
 | [statsmodels UnobservedComponents](https://www.statsmodels.org/stable/generated/statsmodels.tsa.statespace.structural.UnobservedComponents.html) | Reference for UCM component catalogue (level, trend, seasonal, cycle, AR, regression) |
 

@@ -78,31 +78,30 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-    "jax>=0.4",
-    "numpyro>=0.15",
+    "jax>=9.2",
+    "numpyro>=0.20",
     "pydantic>=2.0",
 ]
 
 [project.optional-dependencies]
 viz = [
-    "arviz>1.0.0",
+    "arviz-base>=1.0.0",
+    "arviz-plots>=0.3",
     "matplotlib>=3.8",
-]
-cv = [
-    "xarray>=2024.1",
-    "arviz>1.0.0",
 ]
 nn = [
     "flax>=0.10",
 ]  # For DeepAR / attention models (uses flax.nnx API)
 dev = [
     "pytest>=8.0",
+    "pytest-cov>=5.0",
     "pytest-xdist",
     "jaxtyping>=0.2",
     "beartype>=0.18",
     "ruff>=0.4",
     "pre-commit>=3.7",
     "mypy>=1.10",
+    "statsmodels>=0.14",
 ]
 docs = [
     "sphinx>=7",
@@ -122,16 +121,16 @@ default-groups = []
 
 [tool.ruff]
 line-length = 99
-target-version = "py311"
+target-version = "py313"
 # Canonical Ruff policy is defined in the dedicated "Linting and Formatting"
 # section below. Keep only one Ruff configuration in the real pyproject.
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --tb=short"
+addopts = ["-v", "--strict-markers", "--strict-config", "--cov=probcast", "--cov-report=term-missing", "--cov-report=xml", "--no-cov-on-fail", "--durations=50", "--color=yes"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.13"
 warn_unused_configs = true
 disallow_untyped_defs = false
 ignore_missing_imports = true
@@ -148,7 +147,7 @@ The structure should be explicit in the design review:
 Recommended dependency policy:
 
 - Keep `jax` in core dependencies, but do not hard-code `jaxlib` in the initial package spec. Installation of accelerator-specific wheels should be documented separately because CPU/GPU/TPU installs vary by platform.
-- Keep `matplotlib` and `ArviZ > 1.0.0` in the `viz` extra.
+- Keep `matplotlib`, `arviz-base >= 1.0.0`, and `arviz-plots` in the `viz` extra. ArviZ >= 1.0.0 uses `xarray.DataTree` instead of `arviz.InferenceData`.
 - Do not add `seaborn`.
 - If `xarray` appears in public APIs like `CVResult`, either promote it to required status for those APIs or make those APIs clearly optional and lazily imported.
 - The first implementation pass should create a real `pyproject.toml` matching this structure so packaging decisions are not deferred to the end.
@@ -175,15 +174,31 @@ tests/
 │   ├── test_crps.py         # Known-value tests, edge cases
 │   └── test_point.py
 ├── test_cv/
-│   └── test_time_series.py
-├── test_utils/
-│   ├── test_features.py     # Fourier basis properties
-│   └── test_data.py
+│   ├── test_time_series.py
+│   └── test_prepare.py          # Data preparation helpers
+├── test_plotting/
+│   └── test_forecast_plot.py
 └── integration/
-    ├── test_es_pipeline.py  # model → inference → forecast → metrics
+    ├── test_es_pipeline.py      # model → inference → forecast → metrics
     ├── test_intermittent.py
-    └── test_var.py
+    ├── test_var.py
+    ├── test_ucm_statsmodels.py  # UCM vs statsmodels.UnobservedComponents
+    └── test_var_statsmodels.py  # VAR vs statsmodels.VAR (predictions, params, IRFs)
 ```
+
+### Code Coverage
+
+Code coverage is measured via `pytest-cov` and enforced in CI. The `pyproject.toml` configuration:
+
+```toml
+[tool.pytest.ini_options]
+addopts = ["-v", "--strict-markers", "--strict-config", "--cov=probcast", "--cov-report=term-missing", "--cov-report=xml", "--no-cov-on-fail", "--durations=50", "--color=yes"]
+```
+
+This produces both terminal and XML coverage reports. The XML report enables integration with CI coverage services. Coverage targets:
+- **Core modules** (`core/`, `components/`, `metrics/`): aim for >= 90% line coverage.
+- **Models and inference**: >= 80% (some branches require expensive MCMC runs).
+- **Plotting**: >= 70% (visual output testing is inherently limited).
 
 ### Testing strategy
 
@@ -210,6 +225,24 @@ def sample_univariate():
 def fast_mcmc_params():
     return MCMCParams(num_warmup=50, num_samples=50, num_chains=1)
 ```
+
+We should organize groups of tests in the following using classes:
+
+```python
+class TestCore:
+    def test_model_fn(self):
+        pass
+```
+
+```python
+class TestComponents:
+    def test_level(self):
+        pass
+```
+
+These sould only serve to organize the tests. Avoid having attributes in the classes as we want the tests to be independent and self-contained.
+
+- Use as much parametrizations as possible in order to avoid code dupplication isn tests.
 
 ## Linting and Formatting
 
@@ -316,7 +349,7 @@ This is intentionally similar to the PyMC Marketing pre-commit setup in their [`
 
 - Plotting utilities use `matplotlib` directly.
 - Do not introduce `seaborn` as a dependency.
-- ArviZ-backed visualization or diagnostics helpers must be compatible with `ArviZ > 1.0.0`.
+- ArviZ-backed visualization or diagnostics helpers must be compatible with `ArviZ >= 1.0.0` and use `xarray.DataTree` (not the legacy `arviz.InferenceData`).
 - Keep plotting optional so the core package remains lightweight.
 
 ## Docstrings
@@ -397,7 +430,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ["3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3

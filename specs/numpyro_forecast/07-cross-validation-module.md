@@ -9,7 +9,7 @@ Time-series cross-validation with rolling or expanding windows. Designed to work
 All CV routines must enforce leakage-safe semantics:
 - training folds may only use observations and covariates available up to the forecast origin;
 - `prepare_data_fn` must consume training-slice inputs only (never full-series arrays);
-- when exogenous regressors are used, forecast horizons must use aligned `future_exog` for that fold only;
+- when exogenous regressors are used, forecast horizons must use aligned `future_covariates` for that fold only;
 - metrics are computed strictly on held-out horizon windows.
 
 ## Time-Slice CV (`cv/time_series.py`)
@@ -110,10 +110,10 @@ cv_result = time_slice_cv(
 **SARIMAX CV example** — slicing exogenous regressors per fold:
 
 ```python
-def prepare_sarimax_data(y_train, *, exog_full, future_exog_full, fold_idx, train_end_idx, horizon, **_):
-    exog_train = exog_full[:train_end_idx]
-    future_exog = future_exog_full[train_end_idx:train_end_idx + horizon]
-    return (y_train,), {"exog": exog_train, "future_exog": future_exog}
+def prepare_sarimax_data(y_train, *, covariates_full, future_covariates_full, fold_idx, train_end_idx, horizon, **_):
+    covariates_train = covariates_full[:train_end_idx]
+    future_covariates = future_covariates_full[train_end_idx:train_end_idx + horizon]
+    return (y_train,), {"covariates": covariates_train, "future_covariates": future_covariates}
 ```
 
 ### `expanding_window_cv`
@@ -152,16 +152,16 @@ def expanding_window_cv(
 
 ```python
 class CVResult(NamedTuple):
-    forecasts: xr.Dataset
+    forecasts: xr.DataTree
     metrics: dict[str, Float[Array, "..."]]
     n_folds: int
 ```
 
-Note: `CVResult` requires the `cv` extra (`pip install probcast[cv]`). The `xr.Dataset` import is deferred so the core package remains importable without xarray.
+Note: `CVResult` requires the `cv` extra (`pip install probcast[cv]`). The `xr.DataTree` import is deferred so the core package remains importable without xarray.
 
 ### `forecasts` structure
 
-An `xr.Dataset` with dimensions `(chain, draw, t)` where `t` indexes the forecast origins. This matches the pattern from all three intermittent demand notebooks:
+An `xr.DataTree` (ArviZ >= 1.0.0 container, replacing `arviz.InferenceData`) with dimensions `(chain, draw, t)` where `t` indexes the forecast origins. This matches the pattern from all three intermittent demand notebooks:
 
 ```python
 xr.concat(
@@ -184,12 +184,48 @@ xr.concat(
 
 Fold metadata should also include forecast origin indices and effective train sizes to make leakage audits reproducible.
 
-## `prepare_data_fn` Callbacks
+## Data Preparation (`cv/prepare.py`)
 
-Pre-built callbacks for common data transformations:
+### `train_test_split`
 
 ```python
-# In utils/data.py
+def train_test_split(
+    y: Float[Array, "time *rest"],
+    n_test: int,
+) -> tuple[Float[Array, "..."], Float[Array, "..."]]:
+    """Split a time series into train and test by slicing the last n_test steps."""
+    return y[:-n_test], y[-n_test:]
+```
+
+### `prepare_hierarchical_mapping`
+
+```python
+def prepare_hierarchical_mapping(
+    group_labels: Sequence[str],
+) -> tuple[Float[Array, " n_series"], int]:
+    """Encode group labels as integer indices.
+
+    Parameters
+    ----------
+    group_labels
+        Group membership for each series (e.g., state names).
+
+    Returns
+    -------
+    mapping_idx
+        Integer array mapping each series to its group index.
+    n_groups
+        Number of unique groups.
+    """
+```
+
+**Source:** `LabelEncoder` usage in `hierarchical_exponential_smoothing.ipynb`.
+
+## `prepare_data_fn` Callbacks
+
+Pre-built callbacks for common data transformations (live in `cv/prepare.py`):
+
+```python
 def prepare_croston_data(y_train):
     """Decompose intermittent series into demand sizes and period inverses."""
     z = y_train[y_train != 0]
@@ -208,7 +244,7 @@ def prepare_tsb_data(y_train):
     return (y_train_trim, z0, p0)
 ```
 
-**Source:** `get_model_args` in `tsb_numpyro.ipynb` and `zi_tsb_numpyro.ipynb`.
+**Source:** `get_model_args` in `tsb_numpyro.ipynb` and `zi_tsb_numpyro.ipynb`. All data preparation callbacks and helpers live in `cv/prepare.py`.
 
 `prepare_data_fn` callbacks must validate minimum train-length requirements for enabled model structure (for example, seasonal period, AR lag order, and HSGP basis assumptions) and fail fast with clear errors if a fold is too short.
 
@@ -216,8 +252,8 @@ def prepare_tsb_data(y_train):
 
 ```python
 from probcast.cv import time_slice_cv
+from probcast.cv.prepare import prepare_tsb_data
 from probcast.models import tsb_model
-from probcast.utils.data import prepare_tsb_data
 from probcast.core import MCMCParams
 
 params = MCMCParams(num_warmup=1_000, num_samples=1_000, num_chains=2)

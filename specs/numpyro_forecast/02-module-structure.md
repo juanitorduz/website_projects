@@ -17,7 +17,7 @@ probcast/
 │   ├── __init__.py
 │   ├── level.py                 # Level transitions (local level / random walk)
 │   ├── trend.py                 # Trend transitions (local linear, smooth, damped, deterministic)
-│   ├── seasonality.py           # Seasonal transitions (additive HW, trigonometric/Fourier, dummy)
+│   ├── seasonality.py           # Seasonal transitions (additive HW, trigonometric/Fourier, dummy) + feature helpers (periodic_features, fourier_modes, periodic_repeat)
 │   ├── cycle.py                 # Stochastic cycle with damping and frequency
 │   ├── ar.py                    # Autoregressive component
 │   ├── ma.py                    # Moving average component
@@ -53,13 +53,14 @@ probcast/
 │
 ├── cv/                          # Cross-validation routines
 │   ├── __init__.py
-│   └── time_series.py           # time_slice_cv(), expanding_window_cv()
+│   ├── time_series.py           # time_slice_cv(), expanding_window_cv(), train_test_split()
+│   └── prepare.py               # prepare_intermittent_data(), prepare_tsb_data(), prepare_hierarchical_mapping()
 │
-└── utils/                       # Utility functions
+└── plotting/                    # Visualization helpers (optional: requires matplotlib)
     ├── __init__.py
-    ├── features.py              # periodic_features(), periodic_repeat(), fourier_modes()
-    ├── data.py                  # train_test_split(), prepare_intermittent_data(), prepare_hierarchical_mapping()
-    └── plotting.py              # plot_forecast(), plot_cv_results()
+    ├── forecast.py              # plot_forecast()
+    ├── cv.py                    # plot_cv_results()
+    └── irf.py                   # plot_irf()
 ```
 
 ```
@@ -72,7 +73,7 @@ tests/
 ├── test_inference/
 ├── test_metrics/
 ├── test_cv/
-├── test_utils/
+├── test_plotting/
 └── integration/                 # End-to-end tests (model → inference → forecast → metrics)
     ├── test_ucm.py
     ├── test_exponential_smoothing.py
@@ -147,8 +148,8 @@ Models are what users pass to `run_mcmc()` or `run_svi()`. See [03-core-abstract
 
 All components and models follow a consistent batch dimension convention:
 
-- **Univariate:** `y` has shape `(t_max,)`. Components carry scalar state.
-- **Panel / multi-series:** `y` has shape `(t_max, *batch)` where `*batch` is typically `(n_series,)`. Components carry state with matching batch shape.
+- **Univariate:** `y` has shape `(time,)`. Components carry scalar state.
+- **Panel / multi-series:** `y` has shape `(time, *batch)` where `*batch` is typically `(n_series,)`. Components carry state with matching batch shape.
 
 Components use `...` (ellipsis) in `jaxtyping` annotations for trailing batch dimensions. This means the same component code works for both univariate and panel data — no separate implementations. Models use `numpyro.plate` for the series dimension to enable hierarchical priors, or `jax.vmap` for independent fits.
 
@@ -162,7 +163,7 @@ core/  ←  components/  ←  models/
             ↓
         metrics/  ←  cv/
             ↓
-        utils/ (features, data, plotting)
+        plotting/ (optional, matplotlib)
 ```
 
-No circular dependencies. `core/` depends on nothing internal (except `numpyro` and `pydantic` for the `Prior` class). `utils/` is a leaf module used by any layer. `nn/` is optional — only required for DeepAR/attention models (uses `flax.nnx`).
+No circular dependencies. `core/` depends on nothing internal (except `numpyro` and `pydantic` for the `Prior` class). `plotting/` is optional — only required if `matplotlib` is installed. `nn/` is optional — only required for DeepAR/attention models (uses `flax.nnx`). There is no catch-all `utils/` module — each function lives in its natural domain: Fourier/periodic helpers in `components/seasonality.py`, data preparation callbacks in `cv/prepare.py`, and plotting in `plotting/`.

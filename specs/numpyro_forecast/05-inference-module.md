@@ -108,14 +108,15 @@ def forecast(
         consistent across model families.
     model_kwargs
         Additional keyword arguments forwarded to the model (for example
-        ``exog`` or ``future_exog``).
+        ``covariates`` or ``future_covariates``).
     return_sites
         Sites to return. If None, returns all deterministic sites.
 
     Returns
     -------
     ForecastResult
-        Named tuple with ``samples`` dict and optional ``idata``.
+        Named tuple with ``samples`` dict and optional ``datatree``
+        (``xarray.DataTree`` via ArviZ >= 1.0.0).
     """
     predictive = Predictive(
         model=model,
@@ -196,6 +197,12 @@ def forecast_svi(
     """Generate posterior predictive forecasts from SVI parameters.
 
     Uses ``Predictive`` with guide and optimized params.
+
+    Returns
+    -------
+    ForecastResult
+        Named tuple with ``samples`` dict and optional ``datatree``
+        (``xarray.DataTree`` via ArviZ >= 1.0.0).
     """
     predictive = Predictive(
         model=model,
@@ -255,7 +262,7 @@ def check_diagnostics(
     """
 ```
 
-This consolidates the ad-hoc diagnostic checks scattered across notebooks into a single reusable function. Uses ArviZ summary statistics under the hood.
+This consolidates the ad-hoc diagnostic checks scattered across notebooks into a single reusable function. Uses ArviZ >= 1.0.0 summary statistics (via `arviz_base`/`arviz_stats`) under the hood.
 
 ### Diagnostic policy (mandatory for baseline examples)
 
@@ -270,28 +277,45 @@ If these checks fail, either:
 - reparameterize/tune and rerun, or
 - mark the example/model as experimental with an explicit warning.
 
-## ArviZ Integration
+## ArviZ Integration (ArviZ >= 1.0.0 / `xarray.DataTree`)
 
-All inference functions support optional conversion to `arviz.InferenceData`:
+All inference functions support optional conversion to `xarray.DataTree` via `arviz_base.from_numpyro`:
 
 ```python
-def to_arviz(
+def to_datatree(
     mcmc: MCMC | None = None,
     posterior_predictive: dict[str, Array] | None = None,
     *,
     coords: dict | None = None,
     dims: dict | None = None,
     prior_config: dict[str, "Prior"] | None = None,
-) -> "az.InferenceData":
-    """Convert inference results to ArviZ InferenceData.
+) -> "xr.DataTree":
+    """Convert inference results to an xarray DataTree (ArviZ >= 1.0.0).
 
     Parameters
     ----------
+    mcmc
+        Fitted MCMC object.
+    posterior_predictive
+        Posterior predictive samples dict.
+    coords
+        Coordinate metadata (e.g. time index, series ids).
+    dims
+        Dimension names for each site.
     prior_config
         Optional dict of ``Prior`` objects used in the model run.
         When provided, serialized prior metadata is attached to
-        ``idata.attrs["prior_config"]`` for reproducibility.
+        ``datatree.attrs["prior_config"]`` for reproducibility.
+
+    Returns
+    -------
+    xr.DataTree
+        DataTree with posterior, posterior_predictive, and other groups.
+
+    See Also
+    --------
+    arviz_base.from_numpyro : https://python.arviz.org/projects/base/en/stable/api/generated/arviz_base.from_numpyro.html
     """
 ```
 
-This wraps `az.from_numpyro()` with sensible defaults and handles both MCMC and SVI outputs. When `prior_config` is provided, the `Prior` objects are serialized via `model_dump()` and stored as InferenceData attributes so that the exact prior configuration is recoverable from saved results.
+This wraps `arviz_base.from_numpyro()` with sensible defaults and handles both MCMC and SVI outputs. When `prior_config` is provided, the `Prior` objects are serialized via `model_dump()` and stored as DataTree attributes so that the exact prior configuration is recoverable from saved results.

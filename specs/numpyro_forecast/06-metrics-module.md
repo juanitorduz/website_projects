@@ -81,8 +81,8 @@ Multivariate generalization of CRPS for models like VAR.
 
 ```python
 def energy_score(
-    truth: Float[Array, "t_max n_vars"],
-    pred: Float[Array, "n_samples t_max n_vars"],
+    truth: Float[Array, "time n_vars"],
+    pred: Float[Array, "n_samples time n_vars"],
 ) -> Float[Array, ""]:
     """Compute multivariate energy score.
 

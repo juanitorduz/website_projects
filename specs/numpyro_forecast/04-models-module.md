@@ -18,12 +18,12 @@ Models validate inputs at entry and raise `ValueError` for:
 - Unknown `trend` strings (must be one of: `None`, `"local linear"`, `"smooth"`, `"deterministic"`, `"damped"`)
 - `n_seasons < 2` or `autoregressive < 0`
 - `y.shape[0] < n_lags` (series shorter than required lag order)
-- `future > 0` with `exog` provided but `future_exog` missing
-- `future_exog.shape[0] != future` shape mismatch
+- `future > 0` with `covariates` provided but `future_covariates` missing
+- `future_covariates.shape[0] != future` shape mismatch
 
 NaN policy: Models do not handle NaN internally. Users must impute or mask before passing to model functions. Document this in model docstrings.
 
-**Batch dimension:** All models accept `y: Float[Array, "t_max *batch"]`. When `*batch` is empty it's univariate; when `(n_series,)` it's panel data. Components broadcast over batch dims automatically.
+**Batch dimension:** All models accept `y: Float[Array, "time *batch"]`. When `*batch` is empty it's univariate; when `(n_series,)` it's panel data. Components broadcast over batch dims automatically.
 
 ## Unobserved Components Model (`models/ucm.py`) — **Core Model**
 
@@ -64,7 +64,7 @@ UCM_DEFAULT_PRIORS: dict[str, Prior] = {
 
 ```python
 def ucm_model(
-    y: Float[Array, "t_max *batch"],
+    y: Float[Array, "time *batch"],
     *,
     future: int = 0,
     # --- Structural component toggles ---
@@ -73,8 +73,8 @@ def ucm_model(
     seasonal: int | dict | None = None, # int = additive HW with n_seasons; dict = trigonometric config
     cycle: bool = False,
     autoregressive: int = 0,            # AR order on the irregular component
-    exog: Float[Array, "t_max n_exog *batch"] | None = None,
-    future_exog: Float[Array, "future n_exog *batch"] | None = None,
+    covariates: Float[Array, "time n_features *batch"] | None = None,
+    future_covariates: Float[Array, "future n_features *batch"] | None = None,
     group_mapping: Float[Array, "n_series"] | None = None,
     # --- Prior overrides ---
     priors: dict[str, Prior] | None = None,
@@ -89,7 +89,7 @@ def ucm_model(
 - Transition function composes enabled components additively: `mu = level + trend + seasonal + cycle + ar + regression`.
 - `seasonal` accepts either `int` (additive HW with `n_seasons`) or `dict` for trigonometric: `{"type": "trigonometric", "period": 12, "harmonics": 4}` or a list of dicts for multiple seasonal periods.
 - `trend` accepts string matching statsmodels conventions: `"local linear"`, `"smooth"`, `"deterministic"`, `"damped"`.
-- Works seamlessly on `(t_max,)` or `(t_max, n_series)` via broadcasting.
+- Works seamlessly on `(time,)` or `(time, n_series)` via broadcasting.
 - Valid prior keys: all keys in `UCM_DEFAULT_PRIORS`. The model only samples priors for components that are enabled.
 
 **Seasonal config grammar:**
@@ -127,9 +127,20 @@ def smooth_trend_model(y, *, future=0, priors=None, **kwargs):
     return ucm_model(y, future=future, level=True, trend="smooth", priors=priors, **kwargs)
 ```
 
+### Validation: UCM vs statsmodels
+
+The UCM implementation must be validated against [`statsmodels.tsa.statespace.structural.UnobservedComponents`](https://www.statsmodels.org/stable/generated/statsmodels.tsa.statespace.structural.UnobservedComponents.html). A dedicated test suite (`tests/test_models/test_ucm_statsmodels.py`) should:
+
+1. Fit both `probcast.ucm_model` (with weakly informative priors and MCMC) and `statsmodels.UnobservedComponents` on the same dataset for each UCM configuration recipe (local level, local linear trend, smooth trend, Holt-Winters, BSM).
+2. Compare the **posterior mean of predictions** against the statsmodels MLE point forecasts (within reasonable tolerance, accounting for Bayesian vs frequentist differences).
+3. Compare **inferred parameter means** (e.g., smoothing parameters, noise variances) against MLE estimates.
+4. Use weakly informative priors centred near the MLE values to ensure the Bayesian posterior concentrates around the frequentist solution.
+
+`statsmodels>=0.14` is a dev dependency for this purpose. See [09-dev-stack.md](09-dev-stack.md).
+
 ## Exponential Smoothing (`models/exponential_smoothing.py`)
 
-These are **convenience wrappers** around `ucm_model` with specific component configurations and the ES-style smoothing parameterisation (alpha, beta, gamma instead of innovation variances). They accept `y: Float[Array, "t_max *batch"]` and broadcast over batch dimensions. All forward `priors` to `ucm_model`.
+These are **convenience wrappers** around `ucm_model` with specific component configurations and the ES-style smoothing parameterisation (alpha, beta, gamma instead of innovation variances). They accept `y: Float[Array, "time *batch"]` and broadcast over batch dimensions. All forward `priors` to `ucm_model`.
 
 ### `level_model`
 
@@ -137,7 +148,7 @@ Simple exponential smoothing (level only). Equivalent to `ucm_model(y, level=Tru
 
 ```python
 def level_model(
-    y: Float[Array, "t_max *batch"],
+    y: Float[Array, "time *batch"],
     *,
     future: int = 0,
     priors: dict[str, Prior] | None = None,
@@ -155,7 +166,7 @@ Exponential smoothing with additive trend. Equivalent to `ucm_model(y, level=Tru
 
 ```python
 def level_trend_model(
-    y: Float[Array, "t_max *batch"],
+    y: Float[Array, "time *batch"],
     *,
     future: int = 0,
     priors: dict[str, Prior] | None = None,
@@ -171,7 +182,7 @@ Additive Holt-Winters. Equivalent to `ucm_model(y, level=True, trend="local line
 
 ```python
 def holt_winters_model(
-    y: Float[Array, "t_max *batch"],
+    y: Float[Array, "time *batch"],
     n_seasons: int,
     *,
     future: int = 0,
@@ -192,7 +203,7 @@ Damped trend variant. Equivalent to `ucm_model(y, level=True, trend="damped", se
 
 ```python
 def damped_holt_winters_model(
-    y: Float[Array, "t_max *batch"],
+    y: Float[Array, "time *batch"],
     n_seasons: int,
     *,
     future: int = 0,
@@ -264,7 +275,7 @@ Teunter-Syntetos-Babai method with dual-state (demand level + demand probability
 
 ```python
 def tsb_model(
-    ts_trim: Float[Array, "t_max *batch"],
+    ts_trim: Float[Array, "time *batch"],
     z0: float,
     p0: float,
     *,
@@ -293,7 +304,7 @@ Zero-inflated TSB with count likelihood.
 
 ```python
 def zi_tsb_model(
-    ts_trim: Float[Array, "t_max *batch"],
+    ts_trim: Float[Array, "time *batch"],
     z0: float,
     p0: float,
     *,
@@ -328,7 +339,7 @@ ARMA(p,q) model with error conditioning pattern.
 
 ```python
 def arma_model(
-    y: Float[Array, "t_max *batch"],
+    y: Float[Array, "time *batch"],
     p: int = 1,
     q: int = 1,
     *,
@@ -409,6 +420,17 @@ Computes MA(∞) representation via `lax.scan`. JIT-compilable with `static_argn
 
 **Source:** `var_numpyro.ipynb`
 
+### Validation: VAR vs statsmodels
+
+The VAR implementation must be validated against [`statsmodels.tsa.vector_ar.var_model.VAR`](https://www.statsmodels.org/stable/vector_ar.html). A dedicated test suite (`tests/test_models/test_var_statsmodels.py`) should:
+
+1. Fit both `probcast.var_model` (with weakly informative priors and MCMC) and `statsmodels.VAR` on the same publicly available dataset (from the [var_numpyro blog post](https://juanitorduz.github.io/var_numpyro/)).
+2. Compare **posterior mean predictions** against the OLS point forecasts.
+3. Compare **inferred AR coefficient matrices** (posterior means) against OLS estimates.
+4. Compare **impulse response functions** from `compute_irf` against `statsmodels.tsa.vector_ar.irf.IRAnalysis` — these should match closely since IRFs are a deterministic function of the AR coefficients.
+
+`statsmodels>=0.14` is a dev dependency for this purpose. See [09-dev-stack.md](09-dev-stack.md).
+
 ## Local Level + Fourier (subsumed by UCM)
 
 The previous `local_level_fourier_model` from `numpyro_forecasting_univariate.ipynb` is now expressed as a UCM configuration:
@@ -448,13 +470,13 @@ Seasonal ARIMA with exogenous regressors. Builds on the ARMA components with dif
 
 ```python
 def sarimax_model(
-    y: Float[Array, "t_max *batch"],
+    y: Float[Array, "time *batch"],
     order: tuple[int, int, int] = (1, 0, 0),
     seasonal_order: tuple[int, int, int, int] = (0, 0, 0, 1),
-    exog: Float[Array, "t_max n_exog *batch"] | None = None,
+    covariates: Float[Array, "time n_features *batch"] | None = None,
     *,
     future: int = 0,
-    future_exog: Float[Array, "future n_exog *batch"] | None = None,
+    future_covariates: Float[Array, "future n_features *batch"] | None = None,
     group_mapping: Float[Array, "n_series"] | None = None,
     priors: dict[str, Prior] | None = None,
 ) -> None:
@@ -467,13 +489,13 @@ def sarimax_model(
 - `seasonal_order = (P, D, Q, s)` — seasonal AR, differencing, MA, and period.
 - Differencing applied as a data transform before the scan loop.
 - Exogenous regressors added as linear regression term to the mean.
-- `future_exog` must be provided when `future > 0` and `exog` is not None.
+- `future_covariates` must be provided when `future > 0` and `covariates` is not None.
 
 Valid prior keys: `"phi"`, `"theta"`, `"seasonal_phi"`, `"seasonal_theta"`, `"beta"`, `"sigma"`.
 
 ## Hierarchical Models (Cross-Cutting Pattern)
 
-Hierarchical structure is a **cross-cutting capability** supported by all panel-capable models, not a separate model. Any model that accepts `y: (t_max, *batch)` and `priors: dict[str, Prior]` also accepts `group_mapping: Array | None` to enable multi-level hierarchical priors. Hierarchy is expressed entirely through the `Prior` dict: nested `Prior` objects create hyperprior trees, and the model function wraps `prior.sample(...)` inside `numpyro.plate` and applies `LocScaleReparam` where needed.
+Hierarchical structure is a **cross-cutting capability** supported by all panel-capable models, not a separate model. Any model that accepts `y: (time, *batch)` and `priors: dict[str, Prior]` also accepts `group_mapping: Array | None` to enable multi-level hierarchical priors. Hierarchy is expressed entirely through the `Prior` dict: nested `Prior` objects create hyperprior trees, and the model function wraps `prior.sample(...)` inside `numpyro.plate` and applies `LocScaleReparam` where needed.
 
 ### How it works
 
@@ -508,7 +530,7 @@ This example directly corresponds to the [hierarchical exponential smoothing not
 ```python
 # ts_state_mapping_idx: shape (n_series,) — maps each series to its state/territory group
 holt_winters_model(
-    y_panel,  # shape (t_max, n_series)
+    y_panel,  # shape (time, n_series)
     n_seasons=4,
     future=8,
     group_mapping=ts_state_mapping_idx,
@@ -571,7 +593,7 @@ The identical `group_mapping` + nested `Prior` pattern works with any panel-capa
 
 ```python
 arma_model(
-    y_panel,  # shape (t_max, n_series)
+    y_panel,  # shape (time, n_series)
     p=1, q=1,
     future=12,
     group_mapping=region_mapping_idx,  # shape (n_series,) — maps series to region
@@ -599,12 +621,12 @@ arma_model(
 
 ```python
 sarimax_model(
-    y_panel,  # shape (t_max, n_series)
+    y_panel,  # shape (time, n_series)
     order=(1, 0, 0),
     seasonal_order=(1, 0, 0, 12),
-    exog=exog_panel,
+    covariates=covariates_panel,
     future=12,
-    future_exog=future_exog_panel,
+    future_covariates=future_covariates_panel,
     group_mapping=store_cluster_idx,  # shape (n_series,) — maps stores to clusters
     priors={
         # Seasonal AR: 3-level hierarchy (global -> cluster -> store)
@@ -634,7 +656,7 @@ Every model that accepts `group_mapping` follows the same internal logic. Here i
 ```python
 def holt_winters_model(y, n_seasons, *, future=0, group_mapping=None, priors=None):
     resolved = {**HOLT_WINTERS_DEFAULT_PRIORS, **(priors or {})}
-    t_max, n_series = y.shape[0], y.shape[1] if y.ndim > 1 else None
+    n_time, n_series = y.shape[0], y.shape[1] if y.ndim > 1 else None
 
     if group_mapping is not None:
         n_groups = jnp.unique(group_mapping).shape[0]
@@ -688,7 +710,7 @@ The model can also apply `numpyro.handlers.reparam` with `LocScaleReparam` for n
 - `group_mapping: Array | None` — optional mapping from series index to group index, enabling the intermediate plate.
 - `numpyro.plate("groups", n_groups)` for group-level parameters.
 - `numpyro.plate("series", n_series)` for series-level parameters indexed into group params via `group_mapping`.
-- Transition operates on `(t_max, n_series)` arrays with vectorized updates.
+- Transition operates on `(time, n_series)` arrays with vectorized updates.
 - Recommend SVI for large hierarchical models (hundreds of series). MCMC is viable for smaller panels.
 - The pattern was validated with both NUTS and SVI on the tourism dataset (308 series, `hierarchical_exponential_smoothing.ipynb`).
 
@@ -722,9 +744,9 @@ A simple DeepAR-style probabilistic forecaster using an autoregressive RNN. This
 from numpyro.contrib.module import nnx_module, random_nnx_module
 
 def deepar_model(
-    y: Float[Array, "t_max *batch"],
+    y: Float[Array, "time *batch"],
     rnn: nnx.Module,
-    covariates: Float[Array, "t_max n_features"] | None = None,
+    covariates: Float[Array, "time n_features"] | None = None,
     *,
     future: int = 0,
     future_covariates: Float[Array, "future n_features"] | None = None,
@@ -745,7 +767,7 @@ def deepar_model(
     # ... autoregressive scan driven by rnn ...
 ```
 
-**Note:** DeepAR requires `y` to have at least one batch dimension (`n_series >= 1`) because the RNN operates per-series. For a single series, reshape to `(t_max, 1)`.
+**Note:** DeepAR requires `y` to have at least one batch dimension (`n_series >= 1`) because the RNN operates per-series. For a single series, reshape to `(time, 1)`.
 
 **Parameters:**
 - `rnn` — a pre-built `flax.nnx.Module` (e.g. `DeepARCell` from `nn/rnn.py`). Architecture choices (hidden size, number of layers, cell type) are made at construction time, not in the model signature.
@@ -847,9 +869,9 @@ A variant that adds a simple temporal self-attention layer on top of the RNN hid
 
 ```python
 def attention_deepar_model(
-    y: Float[Array, "t_max *batch"],
+    y: Float[Array, "time *batch"],
     rnn: nnx.Module,
-    covariates: Float[Array, "t_max n_features"] | None = None,
+    covariates: Float[Array, "time n_features"] | None = None,
     *,
     future: int = 0,
     n_heads: int = 2,

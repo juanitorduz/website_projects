@@ -18,7 +18,7 @@ class ModelFn(Protocol):
 
 **Contract:**
 
-- `y` — observed time series as a JAX array. Shape `(t_max,)` for univariate or `(t_max, *batch)` for panel/multi-series. All models must handle both shapes seamlessly — components broadcast over trailing batch dimensions.
+- `y` — observed time series as a JAX array. Shape `(time,)` for univariate or `(time, *batch)` for panel/multi-series. All models must handle both shapes seamlessly — components broadcast over trailing batch dimensions.
 - `*args` — model-specific positional arguments (e.g., `n_seasons`, `n_lags`, covariates).
 - `future` — number of future time steps to forecast. This is keyword-only (`future=...`) in public APIs and examples to avoid positional ambiguity across model families. When `future=0`, the model only conditions on observations. When `future > 0`, it produces `numpyro.deterministic` forecast sites.
 - `priors` — optional `dict[str, Prior]` for prior overrides. Models merge user-provided priors with their `DEFAULT_PRIORS` via shallow dict merge so users only override what they need.
@@ -36,12 +36,17 @@ def holt_winters_model(y: ArrayImpl, n_seasons: int, *, future: int = 0) -> None
 def model(y: Float[Array, "time vars"], n_lags: int, *, future: int = 0) -> None: ...
 
 # From numpyro_forecasting_univariate.ipynb (covariate-first variant, see note below)
-def model(covariates: Float[Array, "t_max feature_dim"], y=None) -> None: ...
+def model(covariates: Float[Array, "time feature_dim"], y=None) -> None: ...
 ```
 
 The protocol is intentionally loose — it type-checks the common `(y, ..., future=0)` pattern without restricting model-specific arguments. The shape contract is seamless: a single model interface covers univariate, panel, and multivariate use cases by treating all non-time axes as trailing structure handled by JAX broadcasting or model-specific linear algebra.
 
-**Note on covariates.** Models that accept exogenous covariates (UCM with `exog`, SARIMAX, DeepAR) pass them as keyword arguments or additional positional arguments *after* `y`, keeping the `(y, ..., future=0)` contract intact. DeepAR additionally takes a pre-built `flax.nnx.Module` (`rnn`) as its second positional argument — architecture choices belong to NN construction, not the model signature — giving a `(y, rnn, ..., future=0)` contract. The original `local_level_fourier_model` (from `numpyro_forecasting_univariate.ipynb`) used a covariate-first `(covariates, y=None)` signature — this pattern is now subsumed by the UCM with trigonometric seasonality and the `exog` argument.
+**Covariate convention.** Models that accept exogenous covariates use a consistent naming convention inspired by [Pyro's `ForecastingModel.model(zero_data, covariates)`](https://docs.pyro.ai/en/dev/_modules/pyro/contrib/forecast/forecaster.html#ForecastingModel.model):
+
+- `covariates: Float[Array, "time n_features *batch"] | None = None` — observed covariate matrix covering the training period.
+- `future_covariates: Float[Array, "future n_features *batch"] | None = None` — covariate values for the forecast horizon (must be provided when `future > 0` and `covariates` is not None).
+
+Both are keyword-only arguments to avoid positional ambiguity. All models that accept covariates (UCM with regression, SARIMAX, DeepAR, HSGP-based) follow this convention. DeepAR additionally takes a pre-built `flax.nnx.Module` (`rnn`) as its second positional argument — architecture choices belong to NN construction, not the model signature — giving a `(y, rnn, ..., future=0)` contract. The original `local_level_fourier_model` (from `numpyro_forecasting_univariate.ipynb`) used a covariate-first `(covariates, y=None)` signature — this pattern is now subsumed by the UCM with trigonometric seasonality and the `covariates` argument.
 
 ## Inference Parameter Configs
 
@@ -210,6 +215,7 @@ Prior.model_validate(d)  # round-trips via Pydantic
 ```python
 from typing import NamedTuple
 from jaxtyping import Float, Array
+import xarray as xr
 
 class ForecastResult(NamedTuple):
     """Container for forecast output."""
@@ -217,8 +223,15 @@ class ForecastResult(NamedTuple):
     samples: dict[str, Float[Array, "..."]]
     """Raw posterior predictive samples keyed by site name."""
 
-    idata: "az.InferenceData | None" = None
-    """Optional ArviZ InferenceData with posterior_predictive group."""
+    datatree: "xr.DataTree | None" = None
+    """Optional xarray DataTree (ArviZ >= 1.0.0) with posterior_predictive group.
+    Created via ``arviz_base.from_numpyro``."""
+
+    coords: dict | None = None
+    """Coordinate metadata (e.g. time index, series ids) attached to the DataTree."""
+
+    dims: dict | None = None
+    """Dimension names for each site (e.g. ``{"pred": ["time", "series"]}``)."""
 ```
 
 **Why NamedTuple:** Immutable, unpacking-friendly, works with JAX tree utilities. The `samples` dict mirrors what `Predictive` returns in all source notebooks:
@@ -229,6 +242,8 @@ predictive = Predictive(model=model, posterior_samples=samples, return_sites=["z
 return predictive(rng_key, *model_args)
 ```
 
+**ArviZ >= 1.0.0 note:** The `datatree` field uses `xarray.DataTree` (the standard container for ArviZ >= 1.0.0, replacing the legacy `arviz.InferenceData`). It is created via `arviz_base.from_numpyro` and can be consumed by all ArviZ plotting and diagnostic functions.
+
 ### `CVResult`
 
 ```python
@@ -238,8 +253,9 @@ class CVResult(NamedTuple):
     Requires ``probcast[cv]`` extra for xarray.
     """
 
-    forecasts: "xr.Dataset"
-    """Concatenated posterior predictive forecasts across folds, indexed by time."""
+    forecasts: "xr.DataTree"
+    """Concatenated posterior predictive forecasts across folds as a DataTree,
+    indexed by time. Created via ``arviz_base.from_numpyro``."""
 
     metrics: dict[str, Float[Array, "..."]]
     """Per-fold and aggregate metric values."""
@@ -248,7 +264,7 @@ class CVResult(NamedTuple):
     """Number of CV folds executed."""
 ```
 
-**Source:** The CV functions in `croston_numpyro.ipynb`, `tsb_numpyro.ipynb`, and `zi_tsb_numpyro.ipynb` all return `xr.Dataset` by concatenating per-fold `arviz.InferenceData` objects:
+**Source:** The CV functions in `croston_numpyro.ipynb`, `tsb_numpyro.ipynb`, and `zi_tsb_numpyro.ipynb` all return concatenated per-fold results. In ArviZ >= 1.0.0, `xarray.DataTree` replaces `arviz.InferenceData` as the standard container:
 
 ```python
 return xr.concat(
@@ -265,9 +281,9 @@ return xr.concat(
 from jaxtyping import Float, Array
 
 # Common array shapes used in type hints
-TimeSeries = Float[Array, "t_max"]
-BatchTimeSeries = Float[Array, "t_max *batch"]
-PanelTimeSeries = Float[Array, "t_max n_series"]
+TimeSeries = Float[Array, "time"]
+BatchTimeSeries = Float[Array, "time *batch"]
+PanelTimeSeries = Float[Array, "time n_series"]
 Samples = dict[str, Float[Array, "..."]]
 RNGKey = Array
 ```
@@ -286,7 +302,7 @@ A core design principle: **every model works on both a single time series and a 
 
 1. **Components** use `Float[Array, "..."]` for state and parameters — the ellipsis absorbs batch dimensions. A level transition that works on a scalar also works on a `(n_series,)` vector via JAX broadcasting.
 
-2. **Models** accept `y: Float[Array, "t_max *batch"]`. When `*batch` is empty, it's univariate. When it's `(n_series,)`, it's panel data. The `scan` loop runs over `t_max` and all batch dimensions are handled by broadcasting within each step.
+2. **Models** accept `y: Float[Array, "time *batch"]`. When `*batch` is empty, it's univariate. When it's `(n_series,)`, it's panel data. The `scan` loop runs over the time dimension and all batch dimensions are handled by broadcasting within each step.
 
 3. **Hierarchical models** use `numpyro.plate("series", n_series)` to sample per-series parameters. Non-hierarchical models can use `jax.vmap` to fit independent models across series.
 

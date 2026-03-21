@@ -12,8 +12,8 @@ This separation enables:
 ## Batch Dimension Convention
 
 All components use `Float[Array, "..."]` for state and parameters. The `...` absorbs trailing batch dimensions, so the same component code works for:
-- **Univariate:** `carry` is a scalar, `y` has shape `(t_max,)`
-- **Panel:** `carry` has shape `(n_series,)`, `y` has shape `(t_max, n_series)`
+- **Univariate:** `carry` is a scalar, `y` has shape `(time,)`
+- **Panel:** `carry` has shape `(n_series,)`, `y` has shape `(time, n_series)`
 
 JAX broadcasting handles the rest. No separate univariate/panel implementations needed.
 
@@ -33,7 +33,7 @@ The following components map 1:1 to [statsmodels `UnobservedComponents`](https:/
 | Trigonometric seasonality | `freq_seasonal` (Fourier harmonics in state space) | `seasonality.py` |
 | Stochastic cycle | `cycle=True` | `cycle.py` |
 | Autoregressive | `autoregressive=p` | `ar.py` |
-| Regression | `exog` | `regression.py` |
+| Regression | `exog` (covariates) | `regression.py` |
 | Irregular (noise) | Always present | (handled in model, not a component) |
 
 ## Level (`components/level.py`)
@@ -46,7 +46,7 @@ Core exponential smoothing update.
 def level_transition(
     carry: Float[Array, "..."],
     t: int,
-    y: Float[Array, "t_max *batch"],
+    y: Float[Array, "time *batch"],
     t_max: int,
     level_smoothing: Float[Array, "..."],
 ) -> Float[Array, "..."]:
@@ -222,10 +222,10 @@ def trigonometric_seasonal_transition(
 
 ```python
 def fourier_regression(
-    covariates: Float[Array, "t_max feature_dim *batch"],
+    covariates: Float[Array, "time feature_dim *batch"],
     weight: Float[Array, "feature_dim *batch"],
     bias: float,
-) -> Float[Array, "t_max *batch"]:
+) -> Float[Array, "time *batch"]:
     """Compute seasonal component as weighted sum of Fourier features.
 
     mu = bias + covariates @ weight
@@ -236,6 +236,88 @@ def fourier_regression(
 ```
 
 **Source:** `numpyro_forecasting_univariate.ipynb` — `(weight * covariates).sum(axis=-1, keepdims=True)`.
+
+### `periodic_features`
+
+JAX translation of Pyro's `periodic_features` for generating Fourier basis functions. Lives in `components/seasonality.py` alongside the other seasonal building blocks.
+
+```python
+def periodic_features(
+    duration: int,
+    max_period: float | None = None,
+    min_period: float | None = None,
+) -> Float[Array, "duration feature_dim"]:
+    """Generate periodic (Fourier) features for time series regression.
+
+    Creates a matrix of sine/cosine pairs at multiple frequencies,
+    suitable for capturing seasonal patterns.
+
+    Parameters
+    ----------
+    duration
+        Number of time steps.
+    max_period
+        Maximum period (default: ``duration``).
+    min_period
+        Minimum period (default: 2, Nyquist cutoff).
+
+    Returns
+    -------
+    Array of shape ``(duration, 2 * n_frequencies)`` with cosine and
+    sine columns at each frequency.
+    """
+    assert isinstance(duration, int) and duration >= 0
+    if max_period is None:
+        max_period = duration
+    if min_period is None:
+        min_period = 2
+    assert min_period >= 2, "min_period is below Nyquist cutoff"
+    assert min_period <= max_period
+
+    t = jnp.arange(float(duration)).reshape(-1, 1, 1)
+    phase = jnp.array([0, jnp.pi / 2]).reshape(1, -1, 1)
+    freq = jnp.arange(1, max_period / min_period).reshape(1, 1, -1) * (
+        2 * jnp.pi / max_period
+    )
+    return jnp.cos(freq * t + phase).reshape(duration, -1)
+```
+
+**Source:** `periodic_features_jax` in `numpyro_forecasting_univariate.ipynb`. Direct JAX port of `pyro.ops.tensor_utils.periodic_features`.
+
+### `periodic_repeat`
+
+```python
+def periodic_repeat(
+    seasonal_init: Float[Array, "n_seasons *batch"],
+    n_time: int,
+) -> Float[Array, "time *batch"]:
+    """Tile a seasonal pattern to cover ``n_time`` time steps."""
+```
+
+### `fourier_modes`
+
+```python
+def fourier_modes(
+    t: Float[Array, " time"],
+    period: float,
+    n_modes: int,
+) -> Float[Array, "time 2*n_modes"]:
+    """Generate n sine/cosine pairs at harmonics of the given period.
+
+    Parameters
+    ----------
+    t
+        Time index array (e.g., ``jnp.arange(n_time)``).
+    period
+        Fundamental period (e.g., 365.25 for yearly, 7 for weekly).
+    n_modes
+        Number of Fourier harmonics.
+
+    Returns
+    -------
+    Array of shape ``(time, 2 * n_modes)`` — sin and cos columns.
+    """
+```
 
 ## Autoregressive (`components/ar.py`)
 
@@ -346,14 +428,14 @@ Static (time-invariant) regression of exogenous covariates. For time-varying coe
 
 ```python
 def regression_effect(
-    exog: Float[Array, "t_max n_exog *batch"],
-    beta: Float[Array, "n_exog *batch"],
-) -> Float[Array, "t_max *batch"]:
-    """Compute linear regression effect: mu_t = exog_t @ beta.
+    covariates: Float[Array, "time n_features *batch"],
+    beta: Float[Array, "n_features *batch"],
+) -> Float[Array, "time *batch"]:
+    """Compute linear regression effect: mu_t = covariates_t @ beta.
 
     Parameters
     ----------
-    exog
+    covariates
         Exogenous covariate matrix.
     beta
         Regression coefficients.
@@ -364,7 +446,7 @@ def regression_effect(
     """
 ```
 
-**Source:** Standard exogenous regression as in SARIMAX and statsmodels UCM (`exog` argument). This is a pure function — the model samples `beta` from a prior and passes it in.
+**Source:** Standard exogenous regression as in SARIMAX and statsmodels UCM (`covariates` argument, previously `exog`). This is a pure function — the model samples `beta` from a prior and passes it in.
 
 ## Intermittent (`components/intermittent.py`)
 
@@ -374,7 +456,7 @@ def regression_effect(
 def tsb_transition(
     carry: tuple[Float[Array, "..."], Float[Array, "..."]],
     t: int,
-    ts: Float[Array, "t_max *batch"],
+    ts: Float[Array, "time *batch"],
     t_max: int,
     z_smoothing: Float[Array, "..."],
     p_smoothing: Float[Array, "..."],
@@ -412,20 +494,20 @@ Wraps `numpyro.contrib.hsgp` to provide smooth, non-parametric time-varying cova
 
 ```python
 def hsgp_covariate_effect(
-    x: Float[Array, "t_max n_features *batch"],
+    x: Float[Array, "time n_features *batch"],
     m: int = 20,
     c: float = 1.5,
     *,
     priors: dict[str, Prior] | None = None,
     name: str = "hsgp",
-) -> Float[Array, "t_max *batch"]:
+) -> Float[Array, "time *batch"]:
     """Compute a time-varying covariate effect using Hilbert Space GP approximation.
 
     Parameters
     ----------
     x
         Covariate matrix (time x features). For a single time index,
-        pass ``jnp.arange(t_max).reshape(-1, 1)``.
+        pass ``jnp.arange(n_time).reshape(-1, 1)``.
     m
         Number of basis functions for the HSGP approximation.
     c
@@ -439,7 +521,7 @@ def hsgp_covariate_effect(
 
     Returns
     -------
-    Time-varying effect, shape ``(t_max,)``.
+    Time-varying effect, shape ``(time,)``.
     """
     resolved = {**HSGP_DEFAULT_PRIORS, **(priors or {})}
     length_scale = resolved["length_scale"].sample(f"{name}_length_scale")
@@ -447,7 +529,7 @@ def hsgp_covariate_effect(
     ...
 ```
 
-**Source:** [`numpyro.contrib.hsgp`](https://github.com/pyro-ppl/numpyro/tree/master/numpyro/contrib/hsgp). The component handles basis function computation and parameter sampling, returning a ready-to-use effect array that can be added to any model's mean function.
+**Source:** [`numpyro.contrib.hsgp`](https://github.com/pyro-ppl/numpyro/tree/master/numpyro/contrib/hsgp). The component handles basis function computation and parameter sampling, returning a ready-to-use effect array that can be added to any model's mean function. The key example to reproduce is the [bikes GP blog post](https://juanitorduz.github.io/bikes_gp/) (originally in PyMC), extended with a train-test split to showcase forecasting with known future covariates (wind speed, temperature).
 
 **Key design choice:** HSGP uses `numpyro.sample` internally via `Prior.sample()`, following the same `DEFAULT_PRIORS` + override pattern as model functions. This is the only component that samples — all others are pure transition functions. The justification is that GP kernel hyperparameters (length scale, amplitude) are intrinsic to the component's definition and cannot be meaningfully separated. The component is scoped via the `name` parameter to avoid site name collisions.
 
@@ -466,7 +548,7 @@ def ucm_model(
     seasonal=None,        # None, int (additive HW), or {"type": "trigonometric", ...}
     cycle=False,          # stochastic damped cycle
     autoregressive=0,     # AR order
-    exog=None,            # exogenous regressors (t_max, n_exog)
+    covariates=None,      # exogenous regressors (time, n_features)
     priors=None,          # dict[str, Prior] | None — overrides merged with UCM_DEFAULT_PRIORS
 ):
     resolved = {**UCM_DEFAULT_PRIORS, **(priors or {})}
@@ -490,8 +572,8 @@ def ucm_model(
             mu += effect
         if autoregressive > 0:
             mu += ar_transition(...)
-        if exog is not None:
-            mu += regression_effect(exog[t], beta)
+        if covariates is not None:
+            mu += regression_effect(covariates[t], beta)
 
         pred = numpyro.sample("pred", dist.Normal(loc=mu, scale=noise))
         return state, pred
