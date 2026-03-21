@@ -29,15 +29,33 @@ Thin plotting helpers built on `matplotlib` directly, with optional ArviZ intero
 
 ```python
 def plot_forecast(
-    y_train: Float[Array, " t_train"],
+    dt: "xr.DataTree",
+    y_train: Float[Array, " t_train"] | None = None,
     y_test: Float[Array, " t_test"] | None = None,
-    forecast_samples: Float[Array, "n_samples t_test"] | None = None,
     *,
+    group: str = "posterior_predictive",
+    var_name: str = "pred",
     hdi_prob: float = 0.94,
     ax: "matplotlib.axes.Axes | None" = None,
     **plot_kwargs,
 ) -> "matplotlib.axes.Axes":
     """Plot observed data with forecast HDI bands.
+
+    Parameters
+    ----------
+    dt
+        ``xr.DataTree`` (ArviZ >= 1.0.0) containing forecast samples.
+        Typically obtained from ``ForecastResult.datatree``.
+    y_train
+        Optional observed training series for overlay.
+    y_test
+        Optional held-out test series for overlay.
+    group
+        DataTree group to extract samples from.
+    var_name
+        Variable name within the group.
+    hdi_prob
+        Probability mass for the HDI band.
 
     Uses ``arviz_plots`` for credible interval shading when available.
     """
@@ -54,21 +72,37 @@ def plot_cv_results(
     max_folds: int | None = None,
     ax: "matplotlib.axes.Axes | None" = None,
 ) -> "matplotlib.axes.Axes":
-    """Plot cross-validation forecasts overlaid on the original series."""
+    """Plot cross-validation forecasts overlaid on the original series.
+
+    Reads forecast samples from ``cv_result.forecasts`` (an ``xr.DataTree``).
+    """
 ```
 
 ### `plot_irf` (`plotting/irf.py`)
 
 ```python
 def plot_irf(
-    irf_samples: Float[Array, "n_samples n_steps n_vars n_vars"],
+    dt: "xr.DataTree",
     var_names: list[str],
     *,
+    group: str = "posterior_predictive",
+    var_name: str = "irf",
     hdi_prob: float = 0.94,
     axes: "npt.NDArray[matplotlib.axes.Axes] | None" = None,
     figsize: tuple[float, float] | None = None,
 ) -> "npt.NDArray[matplotlib.axes.Axes]":
     """Plot impulse response functions with HDI bands.
+
+    Parameters
+    ----------
+    dt
+        ``xr.DataTree`` (ArviZ >= 1.0.0) containing IRF samples.
+    var_names
+        Names of the VAR variables.
+    group
+        DataTree group to extract samples from.
+    var_name
+        Variable name within the group.
 
     Creates a (n_vars x n_vars) grid of subplots. If ``axes`` is None,
     a new figure and axes array are created internally. The caller can

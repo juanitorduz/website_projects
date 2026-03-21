@@ -107,10 +107,10 @@ Low-level **transition functions** and **prior blocks** that implement a single 
 
 ```python
 # Example: a level transition function
-def level_transition(carry, t, y, t_max, level_smoothing):
+def level_transition(carry, t, y, time, level_smoothing):
     previous_level = carry
     level = jnp.where(
-        t < t_max,
+        t < time,
         level_smoothing * y[t] + (1 - level_smoothing) * previous_level,
         previous_level,
     )
@@ -152,6 +152,47 @@ All components and models follow a consistent batch dimension convention:
 - **Panel / multi-series:** `y` has shape `(time, *batch)` where `*batch` is typically `(n_series,)`. Components carry state with matching batch shape.
 
 Components use `...` (ellipsis) in `jaxtyping` annotations for trailing batch dimensions. This means the same component code works for both univariate and panel data — no separate implementations. Models use `numpyro.plate` for the series dimension to enable hierarchical priors, or `jax.vmap` for independent fits.
+
+## Public API Surface
+
+The following canonical imports define the public API. These are re-exported from `probcast/__init__.py` and subpackage `__init__.py` files, and constitute the stable interface users should rely on.
+
+```python
+# Core abstractions
+from probcast.core import MCMCParams, SVIParams, Prior, ForecastResult, CVResult
+
+# Models
+from probcast.models import (
+    ucm_model,
+    level_model,
+    holt_winters_model,
+    damped_holt_winters_model,
+    sarimax_model,
+    croston_model,
+    tsb_model,
+    zi_tsb_model,
+    arma_model,
+    var_model,
+    deepar_model,
+)
+
+# Inference
+from probcast.inference import run_mcmc, run_svi, forecast, forecast_svi, to_datatree
+from probcast.inference import check_diagnostics
+
+# Metrics
+from probcast.metrics import crps_empirical, per_obs_crps, energy_score
+from probcast.metrics import mae, rmse, mape, wape, log_score
+
+# Cross-validation
+from probcast.cv import time_slice_cv, expanding_window_cv
+from probcast.cv.prepare import train_test_split, prepare_croston_data, prepare_tsb_data
+
+# Plotting (optional — requires matplotlib)
+from probcast.plotting import plot_forecast, plot_cv_results, plot_irf
+```
+
+Each subpackage `__init__.py` should define `__all__` listing exactly the symbols above. Internal helpers, component functions, and NN building blocks are not part of the public API — users may import them directly from their submodules (e.g., `from probcast.components.level import level_transition`) but these are not guaranteed stable across minor versions.
 
 ## Dependency Flow
 

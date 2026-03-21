@@ -47,13 +47,13 @@ def level_transition(
     carry: Float[Array, "..."],
     t: int,
     y: Float[Array, "time *batch"],
-    t_max: int,
+    time: int,
     level_smoothing: Float[Array, "..."],
 ) -> Float[Array, "..."]:
     """Update the level state via exponential smoothing.
 
-    level_t = alpha * y_t + (1 - alpha) * level_{t-1}   (if t < t_max)
-    level_t = level_{t-1}                                (if t >= t_max, forecast mode)
+    level_t = alpha * y_t + (1 - alpha) * level_{t-1}   (if t < time)
+    level_t = level_{t-1}                                (if t >= time, forecast mode)
 
     Parameters
     ----------
@@ -63,7 +63,7 @@ def level_transition(
         Current time index.
     y
         Observed time series.
-    t_max
+    time
         Length of observed data (beyond this, level is frozen for forecasting).
     level_smoothing
         Smoothing parameter alpha in [0, 1].
@@ -74,7 +74,7 @@ def level_transition(
     """
     previous_level = carry
     level = jnp.where(
-        t < t_max,
+        t < time,
         level_smoothing * y[t] + (1 - level_smoothing) * previous_level,
         previous_level,
     )
@@ -97,7 +97,7 @@ def local_linear_trend_transition(
     previous_level: Float[Array, "..."],
     previous_trend: Float[Array, "..."],
     t: int,
-    t_max: int,
+    time: int,
     trend_smoothing: Float[Array, "..."],
 ) -> Float[Array, "..."]:
     """Update the trend state for local linear trend model.
@@ -170,7 +170,7 @@ def additive_seasonality_transition(
     trend: Float[Array, "..."],
     previous_seasonality: Float[Array, "n_seasons ..."],
     t: int,
-    t_max: int,
+    time: int,
     seasonality_smoothing: Float[Array, "..."],
 ) -> tuple[Float[Array, "..."], Float[Array, "n_seasons ..."]]:
     """Update the seasonal state via additive Holt-Winters recursion.
@@ -457,7 +457,7 @@ def tsb_transition(
     carry: tuple[Float[Array, "..."], Float[Array, "..."]],
     t: int,
     ts: Float[Array, "time *batch"],
-    t_max: int,
+    time: int,
     z_smoothing: Float[Array, "..."],
     p_smoothing: Float[Array, "..."],
 ) -> tuple[Float[Array, "..."], Float[Array, "..."]]:
@@ -580,7 +580,7 @@ def ucm_model(
 
     # 3. Run scan+condition
     with numpyro.handlers.condition(data={"pred": y}):
-        _, preds = scan(transition_fn, init_carry, jnp.arange(t_max + future))
+        _, preds = scan(transition_fn, init_carry, jnp.arange(time + future))
 ```
 
 ### Example 2: Holt-Winters as a UCM convenience wrapper

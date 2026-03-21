@@ -76,9 +76,35 @@ class SVIParams(BaseModel):
     num_steps: int = Field(10_000, ge=1)
     num_samples: int = Field(5_000, ge=1, description="Posterior samples to draw after optimization")
     learning_rate: float = Field(0.005, gt=0)
-    optimizer: str = Field("Adam", description="Optax or numpyro.optim optimizer name")
+    optimizer: str = Field("Adam", description="Optax optimizer name")
     guide: str = Field("AutoNormal", description="AutoGuide class name")
     stable_update: bool = Field(True, description="Use stable ELBO update")
+
+    def build_optimizer(self) -> "optax.GradientTransformation":
+        """Resolve optimizer name to an optax optimizer instance.
+
+        Uses ``self.learning_rate`` as the learning rate.
+        """
+        import optax
+        optimizer_cls = getattr(optax, self.optimizer.lower(), None)
+        if optimizer_cls is None:
+            raise ValueError(f"Unknown optax optimizer: {self.optimizer!r}")
+        return optimizer_cls(self.learning_rate)
+
+    def build_guide(self, model: "Callable") -> "AutoGuide":
+        """Resolve guide name to a NumPyro AutoGuide instance.
+
+        Parameters
+        ----------
+        model
+            The NumPyro model function to wrap.
+        """
+        from numpyro.infer.autoguide import AutoNormal, AutoDiagonalNormal
+        guides = {"AutoNormal": AutoNormal, "AutoDiagonalNormal": AutoDiagonalNormal}
+        guide_cls = guides.get(self.guide)
+        if guide_cls is None:
+            raise ValueError(f"Unknown guide: {self.guide!r}")
+        return guide_cls(model)
 ```
 
 **Source:** SVI setup in `hierarchical_exponential_smoothing.ipynb` (Adam, lr=0.03, 15k steps, AutoDiagonalNormal) and `numpyro_forecasting_univariate.ipynb` (Adam, lr=0.005, 50k steps, AutoNormal).

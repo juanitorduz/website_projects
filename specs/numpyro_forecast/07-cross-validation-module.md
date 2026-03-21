@@ -27,7 +27,7 @@ def time_slice_cv(
     inference_params: MCMCParams | SVIParams,
     *model_args,
     horizon: int = 1,
-    prepare_data_fn: Callable[..., tuple] | None = None,
+    prepare_data_fn: Callable[..., tuple[tuple, dict]] | None = None,
     return_sites: list[str] | None = None,
     metrics_fn: Callable | None = None,
     **model_kwargs,
@@ -59,8 +59,9 @@ def time_slice_cv(
         Number of steps to forecast at each fold.
     prepare_data_fn
         Optional callback to transform training data into model arguments.
-        Signature: ``(y_train, **fold_info) -> (model_args_tuple, model_kwargs_dict)``
-        where ``fold_info`` includes ``fold_idx``, ``train_end_idx``.
+        Signature: ``(y_train, **fold_info) -> tuple[tuple, dict]``
+        where the return value is ``(model_args_tuple, model_kwargs_dict)``,
+        and ``fold_info`` includes ``fold_idx``, ``train_end_idx``, ``horizon``.
         For exogenous models, the callback should slice covariates from
         the full arrays passed via ``model_kwargs``.
         Used for Croston/TSB where raw y must be decomposed into z, p_inv.
@@ -75,7 +76,8 @@ def time_slice_cv(
     Returns
     -------
     CVResult
-        Contains forecasts (xr.Dataset), per-fold metrics, and n_folds.
+        Contains forecasts (xr.DataTree with a ``posterior_predictive``
+        Dataset concatenated across folds), per-fold metrics, and n_folds.
     """
 ```
 
@@ -94,12 +96,12 @@ def croston_time_slice_cross_validation(rng_key, y, n_splits, inference_params):
         # ... inference + forecast ...
 
 # Package: generic CV with prepare_data_fn callback
-def prepare_croston_data(y_train):
+def prepare_croston_data(y_train, **fold_info):
     z = y_train[y_train != 0]
     p_idx = jnp.flatnonzero(y_train).astype(jnp.float32)
     p = jnp.diff(p_idx, prepend=-1)
     p_inv = 1 / p
-    return (z, p_inv)
+    return (z, p_inv), {}
 
 cv_result = time_slice_cv(
     rng_key, croston_model, y, n_splits=20,
@@ -130,7 +132,7 @@ def expanding_window_cv(
     inference_params: MCMCParams | SVIParams,
     *model_args,
     horizon: int = 1,
-    prepare_data_fn: Callable[..., tuple] | None = None,
+    prepare_data_fn: Callable[..., tuple[tuple, dict]] | None = None,
     return_sites: list[str] | None = None,
     metrics_fn: Callable | None = None,
     **model_kwargs,
@@ -226,22 +228,22 @@ def prepare_hierarchical_mapping(
 Pre-built callbacks for common data transformations (live in `cv/prepare.py`):
 
 ```python
-def prepare_croston_data(y_train):
+def prepare_croston_data(y_train, **fold_info):
     """Decompose intermittent series into demand sizes and period inverses."""
     z = y_train[y_train != 0]
     p_idx = jnp.flatnonzero(y_train).astype(jnp.float32)
     p = jnp.diff(p_idx, prepend=-1)
     p_inv = 1 / p
-    return (z, p_inv)
+    return (z, p_inv), {}
 
-def prepare_tsb_data(y_train):
+def prepare_tsb_data(y_train, **fold_info):
     """Trim leading zeros and compute initial z0, p0."""
     y_train_trim = jnp.trim_zeros(y_train, trim="f")
     p_idx = jnp.flatnonzero(y_train)
     p_diff = jnp.diff(p_idx, prepend=-1)
     z0 = y_train[p_idx[0]]
     p0 = 1 / p_diff.mean()
-    return (y_train_trim, z0, p0)
+    return (y_train_trim, z0, p0), {}
 ```
 
 **Source:** `get_model_args` in `tsb_numpyro.ipynb` and `zi_tsb_numpyro.ipynb`. All data preparation callbacks and helpers live in `cv/prepare.py`.

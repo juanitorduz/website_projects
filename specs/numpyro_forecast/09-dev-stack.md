@@ -89,6 +89,10 @@ viz = [
     "arviz-plots>=0.3",
     "matplotlib>=3.8",
 ]
+cv = [
+    "xarray>=2024.1",
+    "arviz-base>=1.0.0",
+]
 nn = [
     "flax>=0.10",
 ]  # For DeepAR / attention models (uses flax.nnx API)
@@ -252,7 +256,7 @@ These sould only serve to organize the tests. Avoid having attributes in the cla
 [tool.ruff]
 extend-include = ["*.ipynb"]
 line-length = 99
-target-version = "py311"
+target-version = "py313"
 
 [tool.ruff.format]
 docstring-code-format = true
@@ -362,6 +366,7 @@ def run_mcmc(
     model: Callable,
     params: MCMCParams,
     *model_args,
+    model_kwargs: dict[str, Any] | None = None,
     **nuts_kwargs,
 ) -> MCMC:
     """Run NUTS/MCMC inference on a model function.
@@ -374,6 +379,8 @@ def run_mcmc(
         NumPyro model function following the ModelFn protocol.
     params : MCMCParams
         MCMC configuration.
+    model_kwargs : dict[str, Any] | None
+        Keyword arguments forwarded to the model.
 
     Returns
     -------

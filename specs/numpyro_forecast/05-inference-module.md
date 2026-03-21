@@ -16,6 +16,7 @@ def run_mcmc(
     model: Callable,
     params: MCMCParams,
     *model_args,
+    model_kwargs: dict[str, Any] | None = None,
     **nuts_kwargs,
 ) -> MCMC:
     """Run NUTS/MCMC inference on a model function.
@@ -30,6 +31,9 @@ def run_mcmc(
         MCMC configuration (num_warmup, num_samples, num_chains).
     *model_args
         Positional arguments forwarded to the model function.
+    model_kwargs
+        Keyword arguments forwarded to the model (e.g., ``future``,
+        ``priors``, ``covariates``). Passed to ``mcmc.run()``.
     **nuts_kwargs
         Additional keyword arguments passed to ``numpyro.infer.NUTS``
         (e.g., ``target_accept_prob``, ``max_tree_depth``,
@@ -47,7 +51,7 @@ def run_mcmc(
         num_samples=params.num_samples,
         num_chains=params.num_chains,
     )
-    mcmc.run(rng_key, *model_args)
+    mcmc.run(rng_key, *model_args, **(model_kwargs or {}))
     return mcmc
 
 
@@ -57,6 +61,7 @@ def run_mcmc_custom(
     sampler: MCMCSampler,
     params: MCMCParams,
     *model_args,
+    model_kwargs: dict[str, Any] | None = None,
 ) -> MCMC:
     """Run MCMC with a user-provided sampler (HMC, SA, BarkerMH, etc.).
 
@@ -64,6 +69,9 @@ def run_mcmc_custom(
     ----------
     sampler
         Any NumPyro MCMC kernel (``NUTS``, ``HMC``, ``SA``, ``BarkerMH``).
+    model_kwargs
+        Keyword arguments forwarded to the model (e.g., ``future``,
+        ``priors``, ``covariates``). Passed to ``mcmc.run()``.
     """
     mcmc = MCMC(
         sampler=sampler,
@@ -71,7 +79,7 @@ def run_mcmc_custom(
         num_samples=params.num_samples,
         num_chains=params.num_chains,
     )
-    mcmc.run(rng_key, *model_args)
+    mcmc.run(rng_key, *model_args, **(model_kwargs or {}))
     return mcmc
 ```
 
@@ -90,6 +98,8 @@ def forecast(
     future: int = 0,
     model_kwargs: dict[str, Any] | None = None,
     return_sites: list[str] | None = None,
+    coords: dict | None = None,
+    dims: dict | None = None,
 ) -> ForecastResult:
     """Generate posterior predictive forecasts from MCMC samples.
 
@@ -111,11 +121,17 @@ def forecast(
         ``covariates`` or ``future_covariates``).
     return_sites
         Sites to return. If None, returns all deterministic sites.
+    coords
+        Coordinate metadata (e.g. time index, series ids) passed to
+        ``to_datatree()``.
+    dims
+        Dimension names for each site (e.g. ``{"pred": ["time"]}``),
+        passed to ``to_datatree()``.
 
     Returns
     -------
     ForecastResult
-        Named tuple with ``samples`` dict and optional ``datatree``
+        Named tuple with ``samples`` dict and ``datatree``
         (``xarray.DataTree`` via ArviZ >= 1.0.0).
     """
     predictive = Predictive(
@@ -129,7 +145,8 @@ def forecast(
         future=future,
         **(model_kwargs or {}),
     )
-    return ForecastResult(samples=pred_samples)
+    dt = to_datatree(posterior_predictive=pred_samples, coords=coords, dims=dims)
+    return ForecastResult(samples=pred_samples, datatree=dt, coords=coords, dims=dims)
 ```
 
 **Source:** `forecast` helper in all notebooks. The `return_sites` parameter varies per model:
@@ -165,9 +182,9 @@ def run_svi(
     *model_args
         Positional arguments forwarded to the model.
     guide
-        AutoGuide instance. If None, uses ``AutoNormal(model)``.
+        AutoGuide instance. If None, resolved from ``params.build_guide(model)``.
     optimizer
-        Optax optimizer. If None, uses ``Adam(params.learning_rate)``.
+        Optax optimizer. If None, resolved from ``params.build_optimizer()``.
     **model_kwargs
         Keyword arguments forwarded to the model.
 
@@ -193,15 +210,25 @@ def forecast_svi(
     model_kwargs: dict[str, Any] | None = None,
     num_samples: int = 5_000,
     return_sites: list[str] | None = None,
+    coords: dict | None = None,
+    dims: dict | None = None,
 ) -> ForecastResult:
     """Generate posterior predictive forecasts from SVI parameters.
 
     Uses ``Predictive`` with guide and optimized params.
 
+    Parameters
+    ----------
+    coords
+        Coordinate metadata (e.g. time index, series ids) passed to
+        ``to_datatree()``.
+    dims
+        Dimension names for each site, passed to ``to_datatree()``.
+
     Returns
     -------
     ForecastResult
-        Named tuple with ``samples`` dict and optional ``datatree``
+        Named tuple with ``samples`` dict and ``datatree``
         (``xarray.DataTree`` via ArviZ >= 1.0.0).
     """
     predictive = Predictive(
@@ -217,7 +244,8 @@ def forecast_svi(
         future=future,
         **(model_kwargs or {}),
     )
-    return ForecastResult(samples=pred_samples)
+    dt = to_datatree(posterior_predictive=pred_samples, coords=coords, dims=dims)
+    return ForecastResult(samples=pred_samples, datatree=dt, coords=coords, dims=dims)
 ```
 
 **Source:** `numpyro_forecasting_univariate.ipynb`:
