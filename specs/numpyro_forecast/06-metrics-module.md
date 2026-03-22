@@ -134,6 +134,52 @@ def wape(
     return jnp.sum(jnp.abs(truth - pred)) / jnp.sum(jnp.abs(truth))
 
 
+def smape(
+    truth: Float[Array, "*batch"],
+    pred: Float[Array, "*batch"],
+) -> Float[Array, ""]:
+    """Symmetric Mean Absolute Percentage Error.
+
+    sMAPE = mean(2 * |truth - pred| / (|truth| + |pred| + eps))
+
+    More robust than MAPE when truth values are near zero.
+    """
+    return jnp.mean(2 * jnp.abs(truth - pred) / (jnp.abs(truth) + jnp.abs(pred) + 1e-8))
+
+
+def mase(
+    truth: Float[Array, "*batch"],
+    pred: Float[Array, "*batch"],
+    y_train: Float[Array, "train_time"],
+    seasonality: int = 1,
+) -> Float[Array, ""]:
+    """Mean Absolute Scaled Error (Hyndman & Koehler, 2006).
+
+    MASE = MAE / naive_mae
+
+    where naive_mae is the in-sample MAE of the seasonal naive forecast.
+    MASE < 1 means the forecast is better than the naive baseline.
+
+    Parameters
+    ----------
+    truth
+        Observed test values.
+    pred
+        Point forecast (e.g., posterior mean).
+    y_train
+        Training series used to compute the naive forecast denominator.
+    seasonality
+        Seasonal period for the naive forecast (default 1 = random walk naive).
+
+    Returns
+    -------
+    Scalar MASE value.
+    """
+    naive_errors = jnp.abs(y_train[seasonality:] - y_train[:-seasonality])
+    naive_mae = jnp.mean(naive_errors)
+    return jnp.mean(jnp.abs(truth - pred)) / naive_mae
+
+
 def log_score(
     truth: Float[Array, "*batch"],
     pred: Float[Array, "n_samples *batch"],
@@ -186,11 +232,13 @@ Baseline reporting for tutorials and integration tests should include:
 ## Usage Example
 
 ```python
-from probcast.metrics import crps_empirical, mae, per_obs_crps
+from probcast.metrics import crps_empirical, mae, mase, smape, per_obs_crps
 
 # After generating posterior predictive samples
 crps_val = crps_empirical(y_test, forecast_samples)
 mae_val = mae(y_test, forecast_samples.mean(axis=0))
+mase_val = mase(y_test, forecast_samples.mean(axis=0), y_train, seasonality=12)
+smape_val = smape(y_test, forecast_samples.mean(axis=0))
 obs_crps = per_obs_crps(y_test, forecast_samples)  # Per-timestep CRPS
 ```
 
@@ -200,4 +248,6 @@ obs_crps = per_obs_crps(y_test, forecast_samples)  # Per-timestep CRPS
 |--------|---------------|---------|
 | CRPS | `pymc_marketing.metrics.crps` (crps.ipynb) or inline (hierarchical notebook) | `probcast.metrics.crps_empirical` — pure JAX, no PyMC dep |
 | MAE | `sklearn.metrics.mean_absolute_error` (crps.ipynb) | `probcast.metrics.mae` — pure JAX |
+| sMAPE | Not implemented | `probcast.metrics.smape` — pure JAX |
+| MASE | Not implemented | `probcast.metrics.mase` — pure JAX, requires training series |
 | Energy Score | Not implemented | `probcast.metrics.energy_score` — new |

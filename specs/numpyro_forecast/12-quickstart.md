@@ -42,7 +42,7 @@ For all covered model families, the expected usage flow is:
 - `CVResult.forecasts` is always present (`xr.DataTree`).
 - Core naming:
   - `pred`: full observed+future sampled site when model uses a direct observation site.
-  - `y_forecast`: forecast slice (`future` only) when exposed as deterministic site.
+  - `y_forecast`: **standardized primary forecast site across all models** — forecast slice (`future` only) exposed as deterministic. `forecast()` defaults to `return_sites=["y_forecast"]`.
 
 ### Inference contracts
 
@@ -220,7 +220,8 @@ model_args = (y,)
 fit_model_kwargs = {
     "level": True,
     "trend": "local linear",
-    "seasonal": 12,
+    "seasonal": 12,              # additive HW seasonality
+    # "freq_seasonal": [{"period": 365.25, "harmonics": 6}],  # trigonometric alternative
     # "group_mapping": group_mapping,  # panel only
 }
 
@@ -339,20 +340,20 @@ model_fn = croston_model
 model_args = (z, p_inv)
 fit_model_kwargs = {}
 forecast_model_kwargs = fit_model_kwargs
-return_sites = ["z_forecast", "p_inv_forecast", "forecast"]
+return_sites = ["y_forecast"]  # standardized; use ["y_forecast", "z_forecast", "p_inv_forecast"] for diagnostics
 
 # TSB
 # model_fn = tsb_model
 # model_args = (ts_trim, z0, p0)
-# return_sites = ["ts_forecast"]
+# return_sites = ["y_forecast"]
 
 # ZI-TSB
 # model_fn = zi_tsb_model
 # model_args = (ts_trim, z0, p0)
-# return_sites = ["ts_forecast"]
+# return_sites = ["y_forecast"]
 ```
 
-Note: for Croston, full diagnostics often use all three sites above. In CV workflows, `return_sites=["forecast"]` is usually sufficient when scoring only the final demand forecast.
+Note: all models expose `"y_forecast"` as the primary forecast site. For Croston, sub-component diagnostics are available via `return_sites=["y_forecast", "z_forecast", "p_inv_forecast"]`.
 
 ### Step 3-6
 
@@ -389,9 +390,9 @@ fit_model_kwargs = {
 
 ```python
 forecast_model_kwargs = fit_model_kwargs
-return_sites = ["y_forecast", "errors"]
+return_sites = ["y_forecast"]  # add "errors" for diagnostics: ["y_forecast", "errors"]
 coords = {"time": time_index_future}
-dims = {"y_forecast": ["time"], "errors": ["time"]}
+dims = {"y_forecast": ["time"]}
 ```
 
 ---
@@ -419,9 +420,9 @@ forecast_model_kwargs = fit_model_kwargs
 
 ```python
 forecast_model_kwargs = fit_model_kwargs
-return_sites = ["y_forecast", "irf"]
+return_sites = ["y_forecast"]  # add "irf" for impulse response: ["y_forecast", "irf"]
 coords = {"time": time_index_future, "var": var_names}
-dims = {"y_forecast": ["time", "var"], "irf": ["horizon", "shock_var", "response_var"]}
+dims = {"y_forecast": ["time", "var"]}
 ```
 
 ---
@@ -443,7 +444,7 @@ cv_result = time_slice_cv(
     n_splits=20,
     inference_params=params,
     prepare_data_fn=prepare_intermittent_data,
-    return_sites=["forecast"],
+    return_sites=["y_forecast"],
 )
 
 # Contract: always present DataTree

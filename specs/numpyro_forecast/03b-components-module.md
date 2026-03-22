@@ -477,6 +477,49 @@ def tsb_transition(
 
 ## HSGP (`components/hsgp.py`)
 
+HSGP is split into two functions to preserve the component purity contract: a **pure basis function** (`hsgp_basis_effect`) that computes the GP effect given resolved hyperparameters, and a **sampling wrapper** (`hsgp_covariate_effect`) that samples priors and calls the pure function.
+
+### `hsgp_basis_effect` (pure — no sampling)
+
+```python
+def hsgp_basis_effect(
+    x: Float[Array, "time n_features *batch"],
+    length_scale: Float[Array, "..."],
+    amplitude: Float[Array, "..."],
+    m: int = 20,
+    c: float = 1.5,
+) -> Float[Array, "time *batch"]:
+    """Compute HSGP effect from resolved hyperparameters — pure function, no sampling.
+
+    This is the deterministic core of the HSGP component: it computes the
+    Hilbert space basis functions and combines them with the given kernel
+    hyperparameters to produce a smooth, non-parametric covariate effect.
+
+    Parameters
+    ----------
+    x
+        Covariate matrix (time x features). For a single time index,
+        pass ``jnp.arange(n_time).reshape(-1, 1)``.
+    length_scale
+        GP kernel length scale (resolved, not a Prior).
+    amplitude
+        GP kernel amplitude (resolved, not a Prior).
+    m
+        Number of basis functions for the HSGP approximation.
+    c
+        Boundary extension factor (controls how far the GP extends
+        beyond the data range).
+
+    Returns
+    -------
+    Time-varying effect, shape ``(time, *batch)``.
+    """
+    # Compute Hilbert space basis functions and combine with kernel params
+    ...
+```
+
+This pure function enables deterministic unit testing of the GP math with known inputs — the same testing strategy used for all other components.
+
 ### `HSGP_DEFAULT_PRIORS`
 
 ```python
@@ -488,9 +531,9 @@ HSGP_DEFAULT_PRIORS: dict[str, Prior] = {
 }
 ```
 
-### `hsgp_covariate_effect`
+### `hsgp_covariate_effect` (sampling wrapper)
 
-Wraps `numpyro.contrib.hsgp` to provide smooth, non-parametric time-varying covariate effects. This enables any model to incorporate covariates whose influence changes over time without specifying a parametric form.
+Convenience wrapper that samples GP hyperparameters from priors, then delegates to `hsgp_basis_effect`. This is a **sampling component** — the only component that calls `numpyro.sample` — and is clearly documented as an exception to the pure component rule.
 
 ```python
 def hsgp_covariate_effect(
@@ -501,7 +544,12 @@ def hsgp_covariate_effect(
     priors: dict[str, Prior] | None = None,
     name: str = "hsgp",
 ) -> Float[Array, "time *batch"]:
-    """Compute a time-varying covariate effect using Hilbert Space GP approximation.
+    """Sample GP hyperparameters and compute HSGP covariate effect.
+
+    This is a sampling wrapper around ``hsgp_basis_effect``. It samples
+    ``length_scale`` and ``amplitude`` from priors, then calls the pure
+    basis function. For deterministic testing or when hyperparameters are
+    resolved externally, use ``hsgp_basis_effect`` directly.
 
     Parameters
     ----------
@@ -515,23 +563,23 @@ def hsgp_covariate_effect(
         beyond the data range).
     priors
         Optional prior overrides. Valid keys: ``"length_scale"``, ``"amplitude"``.
-        Merged with ``HSGP_DEFAULT_PRIORS``.
+        Merged with ``HSGP_DEFAULT_PRIORS`` via ``merge_priors``.
     name
         NumPyro scope name for the GP parameters.
 
     Returns
     -------
-    Time-varying effect, shape ``(time,)``.
+    Time-varying effect, shape ``(time, *batch)``.
     """
-    resolved = {**HSGP_DEFAULT_PRIORS, **(priors or {})}
+    resolved = merge_priors(HSGP_DEFAULT_PRIORS, priors)
     length_scale = resolved["length_scale"].sample(f"{name}_length_scale")
     amplitude = resolved["amplitude"].sample(f"{name}_amplitude")
-    ...
+    return hsgp_basis_effect(x, length_scale, amplitude, m=m, c=c)
 ```
 
-**Source:** [`numpyro.contrib.hsgp`](https://github.com/pyro-ppl/numpyro/tree/master/numpyro/contrib/hsgp). The component handles basis function computation and parameter sampling, returning a ready-to-use effect array that can be added to any model's mean function. The key example to reproduce is the [bikes GP blog post](https://juanitorduz.github.io/bikes_gp/) (originally in PyMC), extended with a train-test split to showcase forecasting with known future covariates (wind speed, temperature).
+**Source:** [`numpyro.contrib.hsgp`](https://github.com/pyro-ppl/numpyro/tree/master/numpyro/contrib/hsgp). The key example to reproduce is the [bikes GP blog post](https://juanitorduz.github.io/bikes_gp/) (originally in PyMC), extended with a train-test split to showcase forecasting with known future covariates (wind speed, temperature).
 
-**Key design choice:** HSGP uses `numpyro.sample` internally via `Prior.sample()`, following the same `DEFAULT_PRIORS` + override pattern as model functions. This is the only component that samples — all others are pure transition functions. The justification is that GP kernel hyperparameters (length scale, amplitude) are intrinsic to the component's definition and cannot be meaningfully separated. The component is scoped via the `name` parameter to avoid site name collisions.
+**Design rationale:** Splitting HSGP into pure basis + sampling wrapper keeps the component layer testable while preserving the ergonomic user-facing API. The pure `hsgp_basis_effect` can be unit-tested deterministically like all other components. The sampling wrapper `hsgp_covariate_effect` is the only component that samples — no future components should follow this pattern unless there is an equally strong justification.
 
 ## How Components Compose into Models
 
@@ -543,15 +591,16 @@ The UCM model accepts configuration flags to enable/disable components. Internal
 def uc_model(
     y, *,
     future=0,
-    level=True,           # local level (random walk)
-    trend="local linear", # None, "local linear", "smooth", "deterministic", "damped"
-    seasonal=None,        # None, int (additive HW), or {"type": "trigonometric", ...}
-    cycle=False,          # stochastic damped cycle
-    autoregressive=0,     # AR order
-    covariates=None,      # exogenous regressors (time, n_features)
-    priors=None,          # dict[str, Prior] | None — overrides merged with UC_DEFAULT_PRIORS
+    level=True,               # local level (random walk)
+    trend="local linear",     # None, "local linear", "smooth", "deterministic", "damped"
+    seasonal=None,            # None or int (additive HW with n_seasons)
+    freq_seasonal=None,       # None or list[dict] (trigonometric seasonality, one or more periods)
+    cycle=False,              # stochastic damped cycle
+    autoregressive=0,         # AR order
+    covariates=None,          # exogenous regressors (time, n_features)
+    priors=None,              # dict[str, Prior] | None — overrides merged with UC_DEFAULT_PRIORS
 ):
-    resolved = {**UC_DEFAULT_PRIORS, **(priors or {})}
+    resolved = merge_priors(UC_DEFAULT_PRIORS, priors)
     # 1. Sample priors only for enabled components
     # 2. Build composite transition_fn
     def transition_fn(carry, t):
@@ -565,8 +614,12 @@ def uc_model(
             state["trend"] = local_linear_trend_transition(...)  # or smooth/damped/...
             mu += state["trend"]
         if seasonal:
-            effect, state["seasonal"] = additive_seasonality_transition(...)  # or trigonometric
+            effect, state["seasonal"] = additive_seasonality_transition(...)
             mu += effect
+        if freq_seasonal:
+            for fs_config in freq_seasonal:
+                effect, state[f"freq_seasonal_{fs_config['period']}"] = trigonometric_seasonal_transition(...)
+                mu += effect
         if cycle:
             effect, state["cycle"] = stochastic_cycle_transition(...)
             mu += effect
@@ -608,6 +661,12 @@ uc_model(y_single, future=12, level=True, trend="smooth", seasonal=12)
 # Panel — y.shape == (100, 50) — same function, zero changes
 # Components broadcast over the 50-series batch dimension
 uc_model(y_panel, future=12, level=True, trend="smooth", seasonal=12)
+
+# Trigonometric seasonality (weekly + yearly)
+uc_model(y_daily, future=30, level=True, trend="smooth", freq_seasonal=[
+    {"period": 365.25, "harmonics": 6},
+    {"period": 7, "harmonics": 3},
+])
 
 # Override a prior — user only specifies what they want to change
 uc_model(y_single, future=12, level=True, priors={

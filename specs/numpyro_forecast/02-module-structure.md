@@ -123,7 +123,7 @@ def level_transition(carry, t, y, time, level_smoothing):
 
 Components are **pure functions** — no `numpyro.sample` calls for priors. The calling model function samples priors and passes them in.
 
-**Explicit exception:** `components/hsgp.py` uses `numpyro.sample` internally via `Prior.sample()`, following the same `DEFAULT_PRIORS` + override pattern as model functions. This is the only component that samples — all others are pure transition functions. The justification is that GP kernel hyperparameters are intrinsic to the component's definition and cannot be meaningfully separated. This must be documented in the component docstring.
+**Explicit exception:** `components/hsgp.py` provides two functions: `hsgp_basis_effect` (pure — takes resolved hyperparameters, no sampling) and `hsgp_covariate_effect` (sampling wrapper — samples priors then calls the pure function). The sampling wrapper is the only component that calls `numpyro.sample`. This split preserves testability (the pure function can be unit-tested deterministically) while keeping the user-facing API ergonomic. No future components should follow this sampling pattern unless there is an equally strong justification.
 
 ### Models (`models/`)
 
@@ -131,7 +131,7 @@ Complete **model functions** that assemble components, sample priors, and define
 
 ```python
 def level_model(y, *, future=0, priors=None):
-    resolved = {**LEVEL_DEFAULT_PRIORS, **(priors or {})}
+    resolved = merge_priors(LEVEL_DEFAULT_PRIORS, priors)
     level_smoothing = resolved["level_smoothing"].sample("level_smoothing")
     sigma = resolved["sigma"].sample("sigma")
     # Build transition_fn from components
@@ -167,6 +167,7 @@ from probcast.core import (
     MCMCParams,
     SVIParams,
     Prior,
+    merge_priors,
     ForecastResult,
     CVResult,
     LabelEncoderData,
@@ -195,7 +196,7 @@ from probcast.inference import check_diagnostics
 
 # Metrics
 from probcast.metrics import crps_empirical, per_obs_crps, energy_score
-from probcast.metrics import mae, rmse, mape, wape, log_score
+from probcast.metrics import mae, rmse, mape, wape, smape, mase, log_score
 
 # Cross-validation
 from probcast.cv import time_slice_cv, expanding_window_cv
@@ -220,6 +221,6 @@ core/  ←  components/  ←  models/
         plotting/
 ```
 
-No circular dependencies. `core/` depends on nothing internal (except external runtime dependencies such as `numpyro`, `pydantic`, `narwhals`, and `scikit-learn` for abstractions and encoding helpers). `nn/` is optional — only required for DeepAR/attention models (uses `flax.nnx`). There is no catch-all `utils/` module — each function lives in its natural domain: Fourier/periodic helpers in `components/seasonality.py`, data preparation callbacks in `cv/prepare.py`, and plotting in `plotting/`.
+No circular dependencies. `core/` depends on `numpyro` and `pydantic` at runtime. `core/encoding.py` additionally depends on `narwhals` and `scikit-learn`, which are optional dependencies installed via `pip install probcast[dataframes]` — encoding functions raise `ImportError` with clear install instructions if missing. `nn/` is optional — only required for DeepAR/attention models (uses `flax.nnx`). There is no catch-all `utils/` module — each function lives in its natural domain: Fourier/periodic helpers in `components/seasonality.py`, data preparation callbacks in `cv/prepare.py`, and plotting in `plotting/`.
 
 For canonical end-to-end usage and data/API contracts across model families, see [12-quickstart.md](12-quickstart.md).

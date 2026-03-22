@@ -10,16 +10,24 @@ The inference module wraps NumPyro's MCMC and SVI machinery into ergonomic helpe
 
 ### `run_mcmc`
 
+A single unified function for all MCMC inference. Defaults to NUTS when no sampler is provided; accepts a pre-built sampler for HMC, SA, BarkerMH, etc.
+
 ```python
 def run_mcmc(
     rng_key: Array,
     model: Callable,
     params: MCMCParams,
     *model_args,
+    sampler: MCMCSampler | None = None,
     model_kwargs: dict[str, Any] | None = None,
     **nuts_kwargs,
 ) -> MCMC:
-    """Run NUTS/MCMC inference on a model function.
+    """Run MCMC inference on a model function.
+
+    When ``sampler`` is None (default), creates a NUTS sampler with
+    ``**nuts_kwargs``. When ``sampler`` is provided, uses it directly
+    and ``nuts_kwargs`` must be empty (raises ``ValueError`` if both
+    are given).
 
     Parameters
     ----------
@@ -31,48 +39,36 @@ def run_mcmc(
         MCMC configuration (num_warmup, num_samples, num_chains).
     *model_args
         Positional arguments forwarded to the model function.
+    sampler
+        Optional pre-built MCMC kernel (``NUTS``, ``HMC``, ``SA``,
+        ``BarkerMH``). When None, a NUTS sampler is created with
+        ``**nuts_kwargs``.
     model_kwargs
         Keyword arguments forwarded to the model (e.g., ``future``,
         ``priors``, ``covariates``). Passed to ``mcmc.run()``.
     **nuts_kwargs
         Additional keyword arguments passed to ``numpyro.infer.NUTS``
-        (e.g., ``target_accept_prob``, ``max_tree_depth``,
-        ``forward_mode_differentiation``).
+        when ``sampler`` is None (e.g., ``target_accept_prob``,
+        ``max_tree_depth``, ``forward_mode_differentiation``).
+        Ignored (with warning) if ``sampler`` is provided.
 
     Returns
     -------
     MCMC
         Fitted MCMC object. Access samples via ``mcmc.get_samples()``.
+
+    Raises
+    ------
+    ValueError
+        If both ``sampler`` and ``nuts_kwargs`` are provided.
     """
-    sampler = NUTS(model, **nuts_kwargs)
-    mcmc = MCMC(
-        sampler=sampler,
-        num_warmup=params.num_warmup,
-        num_samples=params.num_samples,
-        num_chains=params.num_chains,
-    )
-    mcmc.run(rng_key, *model_args, **(model_kwargs or {}))
-    return mcmc
-
-
-def run_mcmc_custom(
-    rng_key: Array,
-    model: Callable,
-    sampler: MCMCSampler,
-    params: MCMCParams,
-    *model_args,
-    model_kwargs: dict[str, Any] | None = None,
-) -> MCMC:
-    """Run MCMC with a user-provided sampler (HMC, SA, BarkerMH, etc.).
-
-    Parameters
-    ----------
-    sampler
-        Any NumPyro MCMC kernel (``NUTS``, ``HMC``, ``SA``, ``BarkerMH``).
-    model_kwargs
-        Keyword arguments forwarded to the model (e.g., ``future``,
-        ``priors``, ``covariates``). Passed to ``mcmc.run()``.
-    """
+    if sampler is not None and nuts_kwargs:
+        raise ValueError(
+            "Cannot pass both `sampler` and `**nuts_kwargs`. "
+            "When using a custom sampler, configure it before passing."
+        )
+    if sampler is None:
+        sampler = NUTS(model, **nuts_kwargs)
     mcmc = MCMC(
         sampler=sampler,
         num_warmup=params.num_warmup,
@@ -85,7 +81,17 @@ def run_mcmc_custom(
 
 **Source:** `run_inference` in `exponential_smoothing_numpyro.ipynb`, `tsb_numpyro.ipynb`, `arma_numpyro.ipynb` (identical pattern).
 
-**Design note:** `nuts_kwargs` passthrough is critical for models that need `forward_mode_differentiation=True` (required when `scan` interacts with `condition` in some configurations).
+**Design note:** The optional `sampler` parameter replaces the previous `run_mcmc_custom` function — one entry point instead of two. `nuts_kwargs` passthrough is critical for models that need `forward_mode_differentiation=True` (required when `scan` interacts with `condition` in some configurations).
+
+**Usage examples:**
+```python
+# Default: NUTS with custom kwargs
+mcmc = run_mcmc(rng_key, model, params, y, forward_mode_differentiation=True)
+
+# Custom sampler: HMC
+from numpyro.infer import HMC
+mcmc = run_mcmc(rng_key, model, params, y, sampler=HMC(model, step_size=0.01))
+```
 
 ### `forecast`
 
@@ -120,9 +126,11 @@ def forecast(
         Additional keyword arguments forwarded to the model (for example
         ``covariates`` or ``future_covariates``).
     return_sites
-        Sites to return. If ``None``, uses NumPyro ``Predictive`` default
-        behavior (all sample and deterministic sites except plate dimensions).
-        For stable user-facing APIs, prefer passing an explicit list.
+        Sites to return. Defaults to ``["y_forecast"]`` — the standardized
+        primary forecast site across all models. Pass an explicit list to
+        include model-specific diagnostic sites (e.g., ``["y_forecast", "errors"]``
+        for ARMA). Pass ``None`` for NumPyro ``Predictive`` default behavior
+        (all sample and deterministic sites).
     coords
         Coordinate metadata (e.g. time index, series ids) passed to
         ``to_datatree()``.
@@ -136,6 +144,9 @@ def forecast(
         Named tuple with ``samples`` dict and ``datatree``
         (``xarray.DataTree`` via ArviZ >= 1.0.0).
     """
+    # Default to standardized primary forecast site
+    if return_sites is None:
+        return_sites = ["y_forecast"]
     predictive = Predictive(
         model=model,
         posterior_samples=samples,
@@ -151,10 +162,8 @@ def forecast(
     return ForecastResult(samples=pred_samples, datatree=dt, coords=coords, dims=dims)
 ```
 
-**Source:** `forecast` helper in all notebooks. The `return_sites` parameter varies per model:
-- Exponential smoothing / UCM: `["y_forecast"]` for out-of-sample forecasts (`"pred"` is the full observed+future site)
-- Croston: `["z_forecast", "p_inv_forecast", "forecast"]`
-- TSB/ZI-TSB: `["ts_forecast"]`
+**Source:** `forecast` helper in all notebooks. All models expose `"y_forecast"` as the primary forecast site. Model-specific diagnostic sites are available by passing an explicit `return_sites` list:
+- Croston: `["y_forecast", "z_forecast", "p_inv_forecast"]`
 - ARMA: `["y_forecast", "errors"]`
 
 ## SVI Inference (`inference/svi.py`)
@@ -350,3 +359,19 @@ def to_datatree(
 ```
 
 This wraps `arviz.from_numpyro()` with sensible defaults and handles both MCMC and SVI outputs. When `prior_config` is provided, the `Prior` objects are serialized via `model_dump()` and stored as DataTree attributes so that the exact prior configuration is recoverable from saved results.
+
+## Model Serialization (Future — Phase 4-5)
+
+**Gap:** Users need to save fitted models to disk and reload them for reproducibility, sharing, and deployment without re-running inference.
+
+**Design direction:** Leverage existing serialization capabilities:
+- `ForecastResult.datatree` is an `xr.DataTree` with native NetCDF/Zarr serialization.
+- `Prior.model_dump()` gives JSON-serializable prior configs.
+- MCMC samples are plain `dict[str, Array]` (saveable via `jnp.save` or pickle).
+
+A future `save_result(path, result, model_config)` / `load_result(path)` pair should:
+1. Save the DataTree (with posterior predictive samples and prior config in attrs) to NetCDF.
+2. Save model configuration (prior keys, component toggles, model function name) as JSON metadata.
+3. Optionally save raw MCMC samples as a separate artifact for re-forecasting.
+
+This is deferred to Phase 4-5 but should be specced before the core release to ensure `to_datatree` stores sufficient metadata for round-tripping.

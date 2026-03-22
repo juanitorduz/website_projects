@@ -29,28 +29,44 @@ Most docs online are old arviz. So use the migration guide to the new arviz 1.0 
 
 - `core/types.py` — `ModelFn` protocol, `ForecastResult`, `CVResult`
 - `core/params.py` — `MCMCParams`, `SVIParams`
-- `core/prior.py` — `Prior` Pydantic class for prior injection and hierarchical composition
-- `inference/mcmc.py` — `run_mcmc()`, `forecast()`
+- `core/prior.py` — `Prior` Pydantic class, `merge_priors()` helper for prior injection, hierarchical composition, and key validation
+- `inference/mcmc.py` — `run_mcmc()` (unified: defaults to NUTS, accepts optional custom sampler), `forecast()`
 - `inference/svi.py` — `run_svi()`, `forecast_svi()`
 - `inference/diagnostics.py` — `check_diagnostics()`
 - `metrics/crps.py` — `crps_empirical()`, `per_obs_crps()`
-- `metrics/point.py` — `mae`, `rmse`, `mape`, `wape`
+- `metrics/point.py` — `mae`, `rmse`, `mape`, `wape`, `smape`, `mase`
 - `cv/prepare.py` — `train_test_split()`, `prepare_intermittent_data()`, `prepare_tsb_data()`
-- `core/encoding.py` — `LabelEncoderData`, `label_encode_column()`, `build_group_mapping()`, `build_levels_mapping()`
+- `core/encoding.py` — `LabelEncoderData`, `label_encode_column()`, `build_group_mapping()`, `build_levels_mapping()` (optional dependency: `probcast[dataframes]`)
 - `pyproject.toml` — project metadata, dependencies, ruff config
 - `tests/conftest.py` + unit tests for metrics and cv/prepare helpers
 - `tests/test_core/test_encoding.py` — deterministic encoding/mapping tests (pandas + Polars parity via Narwhals)
+- `tests/test_inference/test_scan_condition.py` — **dedicated `scan`+`condition` correctness tests** (see below)
 
 ### Why first?
 
 These are the most duplicated pieces across notebooks. Every notebook has its own `run_inference`, `forecast`, and `InferenceParams`. Consolidating them provides immediate value and establishes the API patterns that models and CV build on.
 
+### `scan`+`condition` correctness test suite
+
+This is the single biggest implementation risk. Add a dedicated test suite (`tests/test_inference/test_scan_condition.py`) in Phase 1 that validates:
+
+1. **Known analytical cases:** `scan` + `condition` produces correct log-density for a simple random walk model where the analytical posterior is known.
+2. **Forward-mode vs reverse-mode AD parity:** Both `forward_mode_differentiation=True` and `False` give identical results (within numerical tolerance) on a test model.
+3. **`y_forecast` deterministic correctness:** The `y_forecast` site captures only the future slice (`predictions[-future:]`), not the conditioned observations.
+4. **Edge case `future=0`:** No forecasting, conditioning only — model runs without error and `y_forecast` site is absent.
+5. **Batch dimension:** `scan` + `condition` works correctly for both `(time,)` and `(time, n_series)` inputs.
+
+These tests must pass before any model implementation begins (Phase 2+).
+
 ### Exit criteria
 
 - Core types/configs compile and are importable from package root.
 - `Prior` class supports flat and nested (hierarchical) prior trees with `sample()`.
+- `merge_priors()` validates unknown keys and raises `ValueError`.
+- `Prior.sample()` validates distribution names and raises `ValueError` for unknown distributions.
 - `future` usage is keyword-only in documented public call patterns.
 - Metrics/utils unit tests pass with deterministic fixtures.
+- `scan`+`condition` correctness tests pass with both forward and reverse mode AD.
 
 ## Phase 2: Components (Building Blocks)
 
@@ -75,7 +91,12 @@ Components are extracted *from* the models. Having the core and inference layer 
 ### Exit criteria
 
 - Every component has deterministic unit tests for univariate and batch shapes.
-- HSGP exception is explicitly documented as the only component-level sampling exception.
+- HSGP split is implemented: `hsgp_basis_effect` (pure, unit-testable) + `hsgp_covariate_effect` (sampling wrapper). Both are tested.
+- Batch dimension shape tests specifically cover:
+  - `additive_seasonality_transition` with `previous_seasonality.shape = (12, 50)` (12 seasons, 50 series)
+  - `trigonometric_seasonal_transition` with state shape `(2, 4, 50)` (2 state dims, 4 harmonics, 50 series)
+  - `update_lags` with `y_lags.shape = (3, 50)` (3 lags, 50 series)
+  - `ma_error_step` raises `ValueError` for batched input with clear message directing users to `jax.vmap`
 - No unresolved shape-contract issues remain for component composition.
 
 ## Phase 3: Pre-built Models (Classical)

@@ -83,13 +83,16 @@ dependencies = [
     "pydantic>=2.0",
     "jaxtyping>=0.2",
     "beartype>=0.18",
-    "narwhals>=2.0",
-    "scikit-learn>=1.5",
     "arviz>=1.0.0",
     "matplotlib>=3.8",
+    "tqdm>=4.60",
 ]
 
 [project.optional-dependencies]
+dataframes = [
+    "narwhals>=2.0",
+    "scikit-learn>=1.5",
+]  # For backend-agnostic encoding/mapping helpers (core/encoding.py)
 nn = [
     "flax>=0.10",
 ]  # For DeepAR / attention models (uses flax.nnx API)
@@ -109,7 +112,7 @@ docs = [
     "myst-nb>=1.0",
     "sphinx-book-theme",
 ]
-all = ["probcast[nn,dev,docs]"]
+all = ["probcast[dataframes,nn,dev,docs]"]
 
 [project.urls]
 Homepage = "https://juanitorduz.github.io"
@@ -148,8 +151,8 @@ The structure should be explicit in the design review:
 Recommended dependency policy:
 
 - Keep `jax` in core dependencies, but do not hard-code `jaxlib` in the initial package spec. Installation of accelerator-specific wheels should be documented separately because CPU/GPU/TPU installs vary by platform.
-- Keep `narwhals` in core dependencies for dataframe-backend interoperability in encoding/mapping helpers.
-- Keep `scikit-learn` in core dependencies for `LabelEncoder`-based categorical mapping utilities.
+- Keep `narwhals` and `scikit-learn` as optional dependencies under `[dataframes]` extra. Encoding helpers in `core/encoding.py` raise `ImportError` with install instructions if missing. Users who only use univariate models or JAX arrays directly do not need these dependencies.
+- Add `tqdm` as a core dependency for progress bars in CV and inference.
 - Keep `arviz >= 1.0.0` and `matplotlib` in core dependencies because DataTree conversion and plotting are part of the core contract.
 - Do not add `seaborn`.
 - Do not add explicit `xarray` dependency unless a direct import requirement appears outside ArviZ's dependency chain.

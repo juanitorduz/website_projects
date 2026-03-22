@@ -93,6 +93,16 @@ Build a model from scratch using components. Shows the `scan + condition` patter
 
 **Covers:** `components/`, `ModelFn` protocol, `run_mcmc`, `forecast`.
 
+**Must include:**
+- Template for a minimal custom `ModelFn` (complete working example)
+- Example of composing existing components (`level_transition` + `trigonometric_seasonal_transition` + custom likelihood) into a new model
+- Checklist: "Your model works with probcast's toolkit if it follows these rules":
+  1. Signature matches `(y, *args, *, future=0, **kwargs) -> None`
+  2. Uses `numpyro.sample` / `numpyro.deterministic` for all random variables
+  3. Exposes a `"y_forecast"` deterministic site when `future > 0`
+- Example of adding a custom component to the UCM (e.g., a custom trend or a holiday effect)
+- Demonstration that the custom model works with `run_mcmc`, `forecast`, `time_slice_cv`, and `crps_empirical` without modification
+
 ### 5. Batch & Panel Forecasting (`tutorials/batch_panel.ipynb`)
 
 Shows how the same model works on a single series and a panel of series. Demonstrates `numpyro.plate` for shared/hierarchical priors vs `jax.vmap` for independent fits.

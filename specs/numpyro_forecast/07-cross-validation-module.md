@@ -30,6 +30,7 @@ def time_slice_cv(
     prepare_data_fn: Callable[..., tuple[tuple, dict]] | None = None,
     return_sites: list[str] | None = None,
     metrics_fn: Callable | None = None,
+    progress_bar: bool = True,
     **model_kwargs,
 ) -> CVResult:
     """Rolling-origin time-slice cross-validation.
@@ -70,6 +71,10 @@ def time_slice_cv(
     metrics_fn
         Optional function ``(y_true, y_pred_samples) -> dict[str, float]``
         to compute per-fold metrics. Defaults to ``crps_empirical``.
+    progress_bar
+        If True (default), display fold-level progress via ``tqdm``.
+        Also logs per-fold MCMC diagnostics summary (divergences, max R-hat)
+        so users can spot inference issues early without waiting for all folds.
     **model_kwargs
         Keyword arguments forwarded to the model.
 
@@ -135,6 +140,7 @@ def expanding_window_cv(
     prepare_data_fn: Callable[..., tuple[tuple, dict]] | None = None,
     return_sites: list[str] | None = None,
     metrics_fn: Callable | None = None,
+    progress_bar: bool = True,
     **model_kwargs,
 ) -> CVResult:
     """Expanding-window cross-validation.
@@ -296,7 +302,7 @@ cv_result = time_slice_cv(
     n_splits=20,
     inference_params=params,
     prepare_data_fn=prepare_tsb_data,
-    return_sites=["ts_forecast"],
+    return_sites=["y_forecast"],
 )
 
 print(f"Mean CRPS: {cv_result.metrics['crps_mean']:.3f}")

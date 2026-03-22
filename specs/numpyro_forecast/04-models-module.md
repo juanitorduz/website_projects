@@ -4,7 +4,7 @@
 
 Pre-built models are **plain functions** that follow the `ModelFn` protocol. Priors are injectable via a `priors: dict[str, Prior] | None = None` parameter with sensible defaults defined in a module-level `*_DEFAULT_PRIORS` constant. Each model:
 
-1. Merges user-provided priors with `DEFAULT_PRIORS`: `resolved = {**DEFAULT_PRIORS, **(priors or {})}`.
+1. Merges user-provided priors with `DEFAULT_PRIORS` via `merge_priors()`, which validates that all user keys are known (see [03-core-abstractions.md](03-core-abstractions.md)).
 2. Samples each resolved prior via `resolved["key"].sample("key")`.
 3. Defines a transition function using components from `components/`.
 4. Runs `scan` + `condition` for inference.
@@ -20,10 +20,53 @@ Models validate inputs at entry and raise `ValueError` for:
 - `y.shape[0] < n_lags` (series shorter than required lag order)
 - `future > 0` with `covariates` provided but `future_covariates` missing
 - `future_covariates.shape[0] != future` shape mismatch
+- Unknown prior keys (via `merge_priors()` — see [03-core-abstractions.md](03-core-abstractions.md))
+- `y.ndim not in (1, 2)` — only 1D (univariate) and 2D (panel) are supported; higher-rank inputs raise `ValueError`
+- ARMA with `q > 0` and `y.ndim > 1` — MA terms are univariate-only; raise `ValueError` with message directing users to `jax.vmap`
+
+### Shape assertions at model entry
+
+All models must validate the input array rank at entry:
+
+```python
+if y.ndim not in (1, 2):
+    raise ValueError(f"y must be 1D (univariate) or 2D (panel), got ndim={y.ndim}")
+n_series = y.shape[1] if y.ndim == 2 else None
+```
+
+This prevents silent broadcasting bugs where accidentally compatible shapes produce wrong results (e.g., a `(50,)` prior broadcasting against `(50, 50)` panel data).
 
 NaN policy: Models do not handle NaN internally. Users must impute or mask before passing to model functions. Document this in model docstrings.
 
 **Batch dimension:** All models accept `y: Float[Array, "time *batch"]`. When `*batch` is empty it's univariate; when `(n_series,)` it's panel data. Components broadcast over batch dims automatically.
+
+## Standardized Return Sites
+
+All models expose `"y_forecast"` as their primary forecast output site. The `forecast()` function defaults to `return_sites=["y_forecast"]` when no explicit sites are provided.
+
+Each model module also exports a `*_RETURN_SITES` constant listing all available forecast sites:
+
+```python
+# models/uc.py
+UC_RETURN_SITES = ["y_forecast"]
+
+# models/intermittent.py
+CROSTON_RETURN_SITES = ["y_forecast", "z_forecast", "p_inv_forecast"]
+TSB_RETURN_SITES = ["y_forecast"]
+ZI_TSB_RETURN_SITES = ["y_forecast"]
+
+# models/arma.py
+ARMA_RETURN_SITES = ["y_forecast", "errors"]
+
+# models/var.py
+VAR_RETURN_SITES = ["y_forecast"]
+```
+
+**Design:** The primary forecast site is always `"y_forecast"` across all model families. This eliminates the need for users to know model-specific site names for the common case. Model-specific diagnostic sites (Croston's `"z_forecast"`, ARMA's `"errors"`) are available as additional optional sites.
+
+For Croston, the `"y_forecast"` site replaces the previous `"forecast"` deterministic, computed as `z_forecast * p_inv_forecast`. The sub-component sites remain available for diagnostics.
+
+For TSB/ZI-TSB, the `"y_forecast"` site replaces the previous `"ts_forecast"`.
 
 ## Unobserved Components Model (`models/uc.py`) — **Core Model**
 
@@ -69,24 +112,29 @@ def uc_model(
     future: int = 0,
     # --- Structural component toggles ---
     level: bool = True,
-    trend: str | None = None,           # "local linear", "smooth", "deterministic", "damped", or None
-    seasonal: int | dict | None = None, # int = additive HW with n_seasons; dict = trigonometric config
+    trend: str | None = None,                      # "local linear", "smooth", "deterministic", "damped", or None
+    seasonal: int | None = None,                    # int = additive HW with n_seasons
+    freq_seasonal: list[dict] | None = None,        # trigonometric seasonality (one or more periods)
     cycle: bool = False,
-    autoregressive: int = 0,            # AR order on the irregular component
+    autoregressive: int = 0,                        # AR order on the irregular component
     covariates: Float[Array, "time n_features *batch"] | None = None,
     future_covariates: Float[Array, "future n_features *batch"] | None = None,
     group_mapping: Float[Array, "n_series"] | None = None,
     # --- Prior overrides ---
     priors: dict[str, Prior] | None = None,
 ) -> None:
-    resolved = {**UC_DEFAULT_PRIORS, **(priors or {})}
+    if y.ndim not in (1, 2):
+        raise ValueError(f"y must be 1D (univariate) or 2D (panel), got ndim={y.ndim}")
+    resolved = merge_priors(UC_DEFAULT_PRIORS, priors)
     # Only sample priors for enabled components ...
 ```
 
 **Key design:**
 - Only samples priors and creates state for **enabled** components — no wasted computation.
 - Transition function composes enabled components additively: `mu = level + trend + seasonal + cycle + ar + regression`.
-- `seasonal` accepts either `int` (additive HW with `n_seasons`) or `dict` for trigonometric: `{"type": "trigonometric", "period": 12, "harmonics": 4}` or a list of dicts for multiple seasonal periods.
+- `seasonal` accepts `int | None` for additive HW seasonality (number of seasons) — mirrors statsmodels `seasonal` parameter.
+- `freq_seasonal` accepts `list[dict] | None` for trigonometric (Fourier state-space) seasonality. Each dict has keys `"period"` (float) and `"harmonics"` (int). Supports multiple seasonal periods simultaneously (e.g., weekly + yearly) — mirrors statsmodels `freq_seasonal` parameter.
+- `seasonal` and `freq_seasonal` can be used together (e.g., additive HW for weekly + trigonometric for yearly).
 - `trend` accepts string matching statsmodels conventions: `"local linear"`, `"smooth"`, `"deterministic"`, `"damped"`.
 - Works seamlessly on `(time,)` or `(time, n_series)` via broadcasting.
 - Valid prior keys: all keys in `UC_DEFAULT_PRIORS`. The model only samples priors for components that are enabled.
@@ -118,25 +166,32 @@ After prior sampling and state initialisation, every model follows this pattern:
 
 The `condition` handler pins the first `y.shape[0]` values of `pred` to the observed data. During the `future` steps no observed data exists, so those `pred` samples are drawn from the prior predictive — this is how the model generates forecasts. The `y_forecast` deterministic makes the forecast slice easy to extract from posterior samples via `return_sites=["y_forecast"]`.
 
-**Seasonal config grammar:**
-- `None` — no seasonality
-- `int` — additive HW seasonality with that many seasons
-- `dict` — trigonometric: `{"type": "trigonometric", "period": float, "harmonics": int}`
-- `list[dict]` — multiple trigonometric periods: `[{"type": "trigonometric", "period": 365.25, "harmonics": 6}, {"type": "trigonometric", "period": 7, "harmonics": 3}]`
+**Seasonality parameter grammar:**
+
+`seasonal` (additive HW):
+- `None` — no additive seasonality
+- `int` — additive HW seasonality with that many seasons (e.g., `seasonal=12` for monthly data)
+
+`freq_seasonal` (trigonometric / Fourier):
+- `None` — no trigonometric seasonality
+- `list[dict]` — one or more trigonometric periods: `[{"period": 365.25, "harmonics": 6}, {"period": 7, "harmonics": 3}]`
+
+Both parameters can be used simultaneously. This split mirrors the separate `seasonal` and `freq_seasonal` parameters in statsmodels `UnobservedComponents` and avoids type-union confusion.
 
 **Identifiability:** Not all component combinations are well-identified. The model does not enforce identifiability constraints — users should check R-hat and ESS via `check_diagnostics()` and consult the UCM tutorial for recommended configurations.
 
 ### UCM Configuration Recipes
 
-| Recipe | level | trend | seasonal | cycle | AR | Equivalent |
-|--------|-------|-------|----------|-------|----|------------|
-| Local level | True | None | None | False | 0 | `local_level_model` |
-| Local linear trend | True | "local linear" | None | False | 0 | `local_linear_trend_model` |
-| Smooth trend | True | "smooth" | None | False | 0 | `smooth_trend_model` |
-| Holt-Winters | True | "local linear" | n_seasons | False | 0 | `holt_winters_model` |
-| Damped HW | True | "damped" | n_seasons | False | 0 | `holt_winters_model(damped=True)` |
-| BSM (basic structural) | True | "local linear" | {"type": "trigonometric", ...} | True | 0 | — |
-| UCM + AR | True | "smooth" | n_seasons | False | 2 | — |
+| Recipe | level | trend | seasonal | freq_seasonal | cycle | AR | Equivalent |
+|--------|-------|-------|----------|---------------|-------|----|------------|
+| Local level | True | None | None | None | False | 0 | `local_level_model` |
+| Local linear trend | True | "local linear" | None | None | False | 0 | `local_linear_trend_model` |
+| Smooth trend | True | "smooth" | None | None | False | 0 | `smooth_trend_model` |
+| Holt-Winters | True | "local linear" | n_seasons | None | False | 0 | `holt_winters_model` |
+| Damped HW | True | "damped" | n_seasons | None | False | 0 | `holt_winters_model(damped=True)` |
+| BSM (basic structural) | True | "local linear" | None | `[{"period": s, "harmonics": h}]` | True | 0 | — |
+| UCM + AR | True | "smooth" | n_seasons | None | False | 2 | — |
+| Weekly + yearly | True | "smooth" | None | `[{"period": 365.25, "harmonics": 6}, {"period": 7, "harmonics": 3}]` | False | 0 | — |
 
 ### Convenience aliases
 
@@ -298,7 +353,7 @@ def croston_model(
     future: int = 0,
     priors: dict[str, Prior] | None = None,
 ) -> None:
-    resolved = {**CROSTON_DEFAULT_PRIORS, **(priors or {})}
+    resolved = merge_priors(CROSTON_DEFAULT_PRIORS, priors)
     ...
 ```
 
@@ -337,7 +392,7 @@ def tsb_model(
     future: int = 0,
     priors: dict[str, Prior] | None = None,
 ) -> None:
-    resolved = {**TSB_DEFAULT_PRIORS, **(priors or {})}
+    resolved = merge_priors(TSB_DEFAULT_PRIORS, priors)
     ...
 ```
 
@@ -366,7 +421,7 @@ def zi_tsb_model(
     future: int = 0,
     priors: dict[str, Prior] | None = None,
 ) -> None:
-    resolved = {**ZI_TSB_DEFAULT_PRIORS, **(priors or {})}
+    resolved = merge_priors(ZI_TSB_DEFAULT_PRIORS, priors)
     ...
 ```
 
@@ -402,7 +457,7 @@ def arma_model(
     group_mapping: Float[Array, "n_series"] | None = None,
     priors: dict[str, Prior] | None = None,
 ) -> None:
-    resolved = {**ARMA_DEFAULT_PRIORS, **(priors or {})}
+    resolved = merge_priors(ARMA_DEFAULT_PRIORS, priors)
     ...
 ```
 
@@ -446,7 +501,7 @@ def var_model(
     group_mapping: Float[Array, "n_vars"] | None = None,
     priors: dict[str, Prior] | None = None,
 ) -> None:
-    resolved = {**VAR_DEFAULT_PRIORS, **(priors or {})}
+    resolved = merge_priors(VAR_DEFAULT_PRIORS, priors)
     ...
 ```
 
@@ -495,7 +550,7 @@ The previous `local_level_fourier_model` from `numpyro_forecasting_univariate.ip
 uc_model(
     y, future=12,
     level=True, trend=None,
-    seasonal={"type": "trigonometric", "period": 365.25, "harmonics": 6},
+    freq_seasonal=[{"period": 365.25, "harmonics": 6}],
 )
 ```
 
@@ -536,7 +591,7 @@ def sarimax_model(
     group_mapping: Float[Array, "n_series"] | None = None,
     priors: dict[str, Prior] | None = None,
 ) -> None:
-    resolved = {**SARIMAX_DEFAULT_PRIORS, **(priors or {})}
+    resolved = merge_priors(SARIMAX_DEFAULT_PRIORS, priors)
     ...
 ```
 
@@ -720,7 +775,7 @@ def holt_winters_model(
     group_mapping: Float[Array, "n_series"] | None = None,
     priors: dict[str, Prior] | None = None,
 ) -> None:
-    resolved = {**UC_DEFAULT_PRIORS, **(priors or {})}
+    resolved = merge_priors(UC_DEFAULT_PRIORS, priors)
     n_time, n_series = y.shape[0], y.shape[1] if y.ndim > 1 else None
 
     if group_mapping is not None:
@@ -805,7 +860,7 @@ def deepar_model(
     group_mapping: Float[Array, "n_series"] | None = None,
     priors: dict[str, Prior] | None = None,
 ) -> None:
-    resolved = {**DEEPAR_DEFAULT_PRIORS, **(priors or {})}
+    resolved = merge_priors(DEEPAR_DEFAULT_PRIORS, priors)
 
     # Register NN with NumPyro
     if bayesian_nn:

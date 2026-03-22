@@ -157,7 +157,12 @@ class Prior(BaseModel):
                 resolved[k] = v.sample(f"{name}_{k}")
             else:
                 resolved[k] = v
-        dist_cls = getattr(dist, self.distribution)
+        dist_cls = getattr(dist, self.distribution, None)
+        if dist_cls is None:
+            raise ValueError(
+                f"Unknown distribution: {self.distribution!r}. "
+                f"Must be a class in numpyro.distributions."
+            )
         return numpyro.sample(name, dist_cls(**resolved))
 ```
 
@@ -242,9 +247,34 @@ Prior(
 
 ### `DEFAULT_PRIORS` pattern
 
-Each model defines a module-level `*_DEFAULT_PRIORS: dict[str, Prior]` constant. Model functions accept `priors: dict[str, Prior] | None = None` and merge user overrides:
+Each model defines a module-level `*_DEFAULT_PRIORS: dict[str, Prior]` constant. Model functions accept `priors: dict[str, Prior] | None = None` and merge user overrides via `merge_priors`, which validates that all user-supplied keys are known:
 
 ```python
+def merge_priors(
+    defaults: dict[str, Prior],
+    overrides: dict[str, Prior] | None,
+) -> dict[str, Prior]:
+    """Merge user prior overrides with defaults, validating keys.
+
+    Raises
+    ------
+    ValueError
+        If ``overrides`` contains keys not present in ``defaults``.
+    """
+    if overrides:
+        unknown = set(overrides) - set(defaults)
+        if unknown:
+            raise ValueError(
+                f"Unknown prior keys: {unknown}. Valid keys: {sorted(defaults)}"
+            )
+    return {**defaults, **(overrides or {})}
+```
+
+This helper lives in `core/prior.py` alongside the `Prior` class and is used by every model:
+
+```python
+from probcast.core.prior import Prior, merge_priors
+
 UC_DEFAULT_PRIORS: dict[str, Prior] = {
     "level_smoothing": Prior("Beta", params={"concentration1": 1.0, "concentration0": 1.0}),
     "level_init": Prior("Normal", params={"loc": 0.0, "scale": 1.0}),
@@ -253,12 +283,12 @@ UC_DEFAULT_PRIORS: dict[str, Prior] = {
 }
 
 def uc_model(y, *, future=0, priors=None, **config):
-    resolved = {**UC_DEFAULT_PRIORS, **(priors or {})}
+    resolved = merge_priors(UC_DEFAULT_PRIORS, priors)
     level_smoothing = resolved["level_smoothing"].sample("level_smoothing")
     ...
 ```
 
-Users only override what they need. Each model documents its valid prior keys (the keys in its `DEFAULT_PRIORS`).
+Users only override what they need. Typos in prior key names raise `ValueError` immediately instead of silently falling back to defaults. Each model documents its valid prior keys (the keys in its `DEFAULT_PRIORS`).
 
 ### Hierarchical priors
 
@@ -298,6 +328,8 @@ Prior.model_validate(d)  # round-trips via Pydantic
 ## Encoding and Mapping (`core/encoding.py`)
 
 Hierarchical models consume integer `group_mapping` arrays, but users may start from different dataframe backends. To keep the API backend-agnostic while preserving a Polars-like expression style, encoding helpers use **Narwhals-first** contracts (`narwhals.from_native(...)`) and return backend-neutral/JAX-ready artifacts.
+
+**Optional dependency:** Narwhals (and scikit-learn for `LabelEncoder`) are optional dependencies, installed via `pip install probcast[dataframes]`. The encoding functions raise `ImportError` with a clear install instruction if Narwhals or scikit-learn is missing. Users who only use univariate models or pass JAX arrays directly do not need these dependencies.
 
 ### `LabelEncoderData`
 
