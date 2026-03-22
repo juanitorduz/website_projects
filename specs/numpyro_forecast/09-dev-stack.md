@@ -83,6 +83,8 @@ dependencies = [
     "pydantic>=2.0",
     "jaxtyping>=0.2",
     "beartype>=0.18",
+    "narwhals>=2.0",
+    "scikit-learn>=1.5",
     "arviz>=1.0.0",
     "matplotlib>=3.8",
 ]
@@ -99,6 +101,8 @@ dev = [
     "pre-commit>=3.7",
     "mypy>=1.10",
     "statsmodels>=0.14",
+    "pandas>=2.2",
+    "polars>=1.0",
 ]
 docs = [
     "sphinx>=7",
@@ -144,6 +148,8 @@ The structure should be explicit in the design review:
 Recommended dependency policy:
 
 - Keep `jax` in core dependencies, but do not hard-code `jaxlib` in the initial package spec. Installation of accelerator-specific wheels should be documented separately because CPU/GPU/TPU installs vary by platform.
+- Keep `narwhals` in core dependencies for dataframe-backend interoperability in encoding/mapping helpers.
+- Keep `scikit-learn` in core dependencies for `LabelEncoder`-based categorical mapping utilities.
 - Keep `arviz >= 1.0.0` and `matplotlib` in core dependencies because DataTree conversion and plotting are part of the core contract.
 - Do not add `seaborn`.
 - Do not add explicit `xarray` dependency unless a direct import requirement appears outside ArviZ's dependency chain.
@@ -160,7 +166,8 @@ tests/
 ├── conftest.py              # Shared fixtures
 ├── test_core/
 │   ├── test_types.py        # Protocol compliance checks
-│   └── test_params.py       # Pydantic validation
+│   ├── test_params.py       # Pydantic validation
+│   └── test_encoding.py     # Narwhals mapping helpers (pandas/polars parity)
 ├── test_components/
 │   ├── test_level.py        # Deterministic transition checks
 │   └── ...
@@ -177,10 +184,14 @@ tests/
 │   └── test_forecast_plot.py
 └── integration/
     ├── test_es_pipeline.py      # model → inference → forecast → metrics
+    ├── test_uc.py               # includes TestUCStatsmodels
+    ├── test_exponential_smoothing.py  # includes TestESStatsmodels
+    ├── test_sarimax.py          # includes TestSARIMAXStatsmodels (ARIMA-config parity)
+    ├── test_arma.py             # includes TestARMAStatsmodels
+    ├── test_var.py              # includes TestVARStatsmodels
+    ├── test_hierarchical_mappings.py  # pandas/polars mapping parity -> group_mapping integration
     ├── test_intermittent.py
-    ├── test_var.py
-    ├── test_uc_statsmodels.py   # UCM vs statsmodels.UnobservedComponents
-    └── test_var_statsmodels.py  # VAR vs statsmodels.VAR (predictions, params, IRFs)
+    └── test_deepar.py
 ```
 
 ### Code Coverage
@@ -199,9 +210,10 @@ This produces both terminal and XML coverage reports. The XML report enables int
 
 ### Testing strategy
 
-- **Unit tests:** Deterministic checks on components (known input → known output), metric edge cases, data prep helpers.
-- **Integration tests:** End-to-end pipelines with short MCMC runs (`num_warmup=50, num_samples=50, num_chains=1`). Verify shapes, no NaN, reasonable posterior ranges.
+- **Unit tests:** Deterministic checks on components (known input → known output), metric edge cases, data prep helpers, and Narwhals encoding/mapping helpers.
+- **Integration tests:** End-to-end pipelines with short MCMC runs (`num_warmup=50, num_samples=50, num_chains=1`). Verify shapes, no NaN, reasonable posterior ranges, and hierarchical `group_mapping` behavior built from pandas/Polars via Narwhals.
 - **Property tests:** CRPS ≥ 0, CRPS of perfect forecast = 0, metrics monotonicity properties.
+- **Backend parity requirement:** CI must install both `pandas` and `polars` in the dev environment so `test_encoding.py` and `test_hierarchical_mappings.py` run on both backends.
 
 ### Fixtures (`conftest.py`)
 

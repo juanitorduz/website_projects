@@ -295,6 +295,116 @@ d = prior.model_dump()
 Prior.model_validate(d)  # round-trips via Pydantic
 ```
 
+## Encoding and Mapping (`core/encoding.py`)
+
+Hierarchical models consume integer `group_mapping` arrays, but users may start from different dataframe backends. To keep the API backend-agnostic while preserving a Polars-like expression style, encoding helpers use **Narwhals-first** contracts (`narwhals.from_native(...)`) and return backend-neutral/JAX-ready artifacts.
+
+### `LabelEncoderData`
+
+```python
+from pydantic import BaseModel, ConfigDict, Field
+from sklearn.preprocessing import LabelEncoder
+from jaxtyping import Array
+
+class LabelEncoderData(BaseModel):
+    """Container for one encoded categorical variable."""
+
+    name: str = Field(description="Encoded column name.")
+    label_encoder: LabelEncoder = Field(
+        description="Fitted sklearn LabelEncoder instance."
+    )
+    labels: Array = Field(
+        description="Encoded labels aligned with the dataframe row order."
+    )
+    classes: list[str] = Field(
+        description="Sorted classes as learned by LabelEncoder."
+    )
+
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        extra="forbid",
+        frozen=True,
+    )
+```
+
+### Helper contracts
+
+```python
+from typing import Any
+import narwhals as nw
+
+def label_encode_column(df: Any, column: str) -> LabelEncoderData:
+    """Encode one categorical column from any Narwhals-supported dataframe backend."""
+
+def build_group_mapping(
+    df: Any,
+    *,
+    series_col: str,
+    group_col: str,
+    sort_by: str | None = None,
+) -> Array:
+    """Build shape-(n_series,) group_mapping for panel-capable models."""
+
+def build_levels_mapping(
+    df: Any,
+    *,
+    higher_level_col: str,
+    lower_level_col: str,
+    sort_by: str | None = None,
+) -> Array:
+    """Build shape-(n_lower,) parent-index mapping.
+
+    Output contract:
+    - shape: ``(n_lower,)`` where ``n_lower`` is number of unique lower-level ids;
+    - dtype: ``int32`` (JAX-compatible integer array);
+    - index basis: position ``i`` corresponds to the i-th lower-level class in
+      deterministic lower-level class order;
+    - value semantics: ``mapping[i]`` is the integer class index of the parent
+      (higher-level) category for that lower-level class.
+    """
+```
+
+### Validation and determinism rules
+
+- Inputs are accepted from any Narwhals-supported backend (`pandas`, `polars`, `pyarrow`, etc.) via `nw.from_native`.
+- Required columns must exist; missing columns raise `ValueError` with explicit column names.
+- Each lower-level id must map to exactly one higher-level id (one-to-one parent relationship). Violations raise `ValueError`.
+- Mapping outputs are deterministic: classes and mapping indices are derived with stable ordering (`LabelEncoder` ordering plus explicit row-order policy via `sort_by` when provided).
+- Returned mapping arrays are `int32` and directly consumable as `group_mapping` in model calls.
+- `build_group_mapping(...)` output contract:
+  - shape is `(n_series,)` aligned with deterministic `series_col` class order;
+  - values are integer group ids in deterministic `group_col` class order.
+- `build_levels_mapping(...)` output contract:
+  - shape is `(n_lower,)` aligned with deterministic `lower_level_col` class order;
+  - values are parent indices in deterministic `higher_level_col` class order.
+- `sort_by` policy:
+  - when provided, ordering-sensitive preprocessing must be computed on data sorted by `sort_by`;
+  - when omitted, class ordering is still deterministic via encoder class ordering.
+- callback/evaluation note:
+  - callback-style mapping preparation (for example CV fold callbacks) expects eager dataframe inputs; lazy query plans must be materialized before encoding/mapping helpers are called.
+- required error cases:
+  - lower-level class mapped to multiple higher-level classes (`ValueError`);
+  - nulls in required mapping columns unless explicitly pre-cleaned (`ValueError`);
+  - empty post-filter input after required column selection (`ValueError`).
+
+### Unit-test contract (`tests/test_core/test_encoding.py`)
+
+`core/encoding.py` must be covered by deterministic unit tests with backend parity:
+
+- `test_label_encode_column_backend_parity`:
+  - run on equivalent pandas and Polars dataframes;
+  - assert identical `classes` and `labels` from `LabelEncoderData`.
+- `test_label_encode_column_missing_column_raises`:
+  - missing `column` raises `ValueError` with the missing name in the message.
+- `test_build_group_mapping_one_parent_per_series`:
+  - valid one-to-one series->group relationships produce integer mapping of shape `(n_series,)`.
+- `test_build_group_mapping_many_parents_raises`:
+  - one series mapped to multiple groups raises `ValueError`.
+- `test_build_levels_mapping_deterministic_with_sort_by`:
+  - repeated calls with the same input and `sort_by` produce identical mappings.
+- `test_build_levels_mapping_parent_child_integrity`:
+  - every lower-level id maps to exactly one higher-level id; violations raise `ValueError`.
+
 ## Result Containers
 
 ### `ForecastResult`
@@ -382,6 +492,7 @@ BatchTimeSeries = Float[Array, "time *batch"]
 PanelTimeSeries = Float[Array, "time n_series"]
 Samples = dict[str, Float[Array, "..."]]
 RNGKey = Array
+GroupMapping = Array
 ```
 
 These provide readable type hints throughout the codebase without introducing runtime overhead. Combined with `jaxtyping` + `beartype` (see [09-dev-stack.md](09-dev-stack.md)), they enable shape-checked function signatures as seen in `var_numpyro.ipynb`:

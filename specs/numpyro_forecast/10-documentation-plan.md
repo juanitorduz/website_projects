@@ -103,7 +103,7 @@ Shows how the same model works on a single series and a panel of series. Demonst
 
 Demonstrates hierarchical priors as a cross-cutting capability applicable to any panel-capable model. Uses `group_mapping` + nested `Prior` objects for multi-level pooling. The primary worked example is hierarchical Holt-Winters (3-level: global → state → series), with a brief second example showing the same pattern applied to ARMA to prove universality. Demonstrates SVI for scalability.
 
-**Covers:** `group_mapping` parameter, nested `Prior` hierarchies, `numpyro.plate`, `LocScaleReparam`, `run_svi`, `forecast_svi`, `prepare_hierarchical_mapping`. Shows that the same pattern works across model families.
+**Covers:** `group_mapping` parameter, nested `Prior` hierarchies, `numpyro.plate`, `LocScaleReparam`, `run_svi`, `forecast_svi`, `label_encode_column`, `build_group_mapping`, `build_levels_mapping`. Shows that the same pattern works across model families.
 
 **Adapted from:** `hierarchical_exponential_smoothing.ipynb`.
 

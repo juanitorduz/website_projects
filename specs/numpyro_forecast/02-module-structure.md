@@ -11,7 +11,8 @@ probcast/
 │   ├── __init__.py
 │   ├── types.py                 # ModelFn protocol, ForecastResult, CVResult
 │   ├── params.py                # MCMCParams, SVIParams (Pydantic)
-│   └── prior.py                 # Prior class (Pydantic) for prior injection and hierarchical composition
+│   ├── prior.py                 # Prior class (Pydantic) for prior injection and hierarchical composition
+│   └── encoding.py              # Narwhals-first label encoding + hierarchical mapping helpers
 │
 ├── components/                  # Composable building blocks (transition functions)
 │   ├── __init__.py
@@ -54,7 +55,7 @@ probcast/
 ├── cv/                          # Cross-validation routines
 │   ├── __init__.py
 │   ├── time_series.py           # time_slice_cv(), expanding_window_cv(), train_test_split()
-│   └── prepare.py               # prepare_intermittent_data(), prepare_tsb_data(), prepare_hierarchical_mapping()
+│   └── prepare.py               # train_test_split(), prepare_intermittent_data(), prepare_tsb_data()
 │
 └── plotting/                    # Visualization helpers
     ├── __init__.py
@@ -67,6 +68,7 @@ probcast/
 tests/
 ├── conftest.py                  # Shared fixtures (RNG keys, sample data)
 ├── test_core/
+│   └── test_encoding.py         # Narwhals mapping helpers (pandas/polars parity)
 ├── test_components/
 ├── test_models/
 ├── test_nn/
@@ -75,9 +77,11 @@ tests/
 ├── test_cv/
 ├── test_plotting/
 └── integration/                 # End-to-end tests (model → inference → forecast → metrics)
-    ├── test_uc_statsmodels.py
+    ├── test_uc.py
     ├── test_exponential_smoothing.py
     ├── test_sarimax.py
+    ├── test_arma.py
+    ├── test_hierarchical_mappings.py
     ├── test_intermittent.py
     ├── test_var.py
     └── test_deepar.py
@@ -159,7 +163,17 @@ The following canonical imports define the public API. These are re-exported fro
 
 ```python
 # Core abstractions
-from probcast.core import MCMCParams, SVIParams, Prior, ForecastResult, CVResult
+from probcast.core import (
+    MCMCParams,
+    SVIParams,
+    Prior,
+    ForecastResult,
+    CVResult,
+    LabelEncoderData,
+    label_encode_column,
+    build_group_mapping,
+    build_levels_mapping,
+)
 
 # Models
 from probcast.models import (
@@ -206,6 +220,6 @@ core/  ←  components/  ←  models/
         plotting/
 ```
 
-No circular dependencies. `core/` depends on nothing internal (except `numpyro` and `pydantic` for the `Prior` class). `nn/` is optional — only required for DeepAR/attention models (uses `flax.nnx`). There is no catch-all `utils/` module — each function lives in its natural domain: Fourier/periodic helpers in `components/seasonality.py`, data preparation callbacks in `cv/prepare.py`, and plotting in `plotting/`.
+No circular dependencies. `core/` depends on nothing internal (except external runtime dependencies such as `numpyro`, `pydantic`, `narwhals`, and `scikit-learn` for abstractions and encoding helpers). `nn/` is optional — only required for DeepAR/attention models (uses `flax.nnx`). There is no catch-all `utils/` module — each function lives in its natural domain: Fourier/periodic helpers in `components/seasonality.py`, data preparation callbacks in `cv/prepare.py`, and plotting in `plotting/`.
 
 For canonical end-to-end usage and data/API contracts across model families, see [12-quickstart.md](12-quickstart.md).

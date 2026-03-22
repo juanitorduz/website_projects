@@ -171,7 +171,7 @@ def smooth_trend_model(
 
 ### Validation: UCM vs statsmodels
 
-The UCM implementation must be validated against [`statsmodels.tsa.statespace.structural.UnobservedComponents`](https://www.statsmodels.org/stable/generated/statsmodels.tsa.statespace.structural.UnobservedComponents.html). A dedicated integration test suite (`tests/integration/test_uc_statsmodels.py`) should:
+The UCM implementation must be validated against [`statsmodels.tsa.statespace.structural.UnobservedComponents`](https://www.statsmodels.org/stable/generated/statsmodels.tsa.statespace.structural.UnobservedComponents.html). A dedicated integration test suite (`tests/integration/test_uc.py`, class `TestUCStatsmodels`) should:
 
 1. Fit both `probcast.models.uc_model` (with weakly informative priors and MCMC) and `statsmodels.UnobservedComponents` on the same dataset for each UCM configuration recipe (local level, local linear trend, smooth trend, Holt-Winters, BSM).
 2. Compare the **posterior mean of predictions** against the statsmodels MLE point forecasts (within reasonable tolerance, accounting for Bayesian vs frequentist differences).
@@ -261,6 +261,16 @@ When `damped=True`, the `"damping"` prior key is additionally used.
 Retained only for backward compatibility. Prefer `holt_winters_model(..., damped=True)` in all new code and docs.
 
 **Source:** `exponential_smoothing_numpyro.ipynb`
+
+### Validation: ES / SARIMAX / ARMA vs statsmodels
+
+Statsmodels parity checks should be organized as class-based blocks inside per-model integration files:
+
+- `tests/integration/test_exponential_smoothing.py` with `TestESStatsmodels`
+- `tests/integration/test_sarimax.py` with `TestSARIMAXStatsmodels` (including ARIMA-style settings such as `seasonal_order=(0, 0, 0, 1)` and no exogenous regressors)
+- `tests/integration/test_arma.py` with `TestARMAStatsmodels` for stationary ARMA parity
+
+These tests should compare posterior-mean forecasts and key inferred parameters against the corresponding statsmodels baselines with documented tolerances.
 
 ## Intermittent Demand (`models/intermittent.py`)
 
@@ -467,7 +477,7 @@ Computes MA(∞) representation via `lax.scan`. JIT-compilable with `static_argn
 
 ### Validation: VAR vs statsmodels
 
-The VAR implementation must be validated against [`statsmodels.tsa.vector_ar.var_model.VAR`](https://www.statsmodels.org/stable/vector_ar.html). A dedicated test suite (`tests/test_models/test_var_statsmodels.py`) should:
+The VAR implementation must be validated against [`statsmodels.tsa.vector_ar.var_model.VAR`](https://www.statsmodels.org/stable/vector_ar.html). A dedicated integration suite (`tests/integration/test_var.py`, class `TestVARStatsmodels`) should:
 
 1. Fit both `probcast.var_model` (with weakly informative priors and MCMC) and `statsmodels.VAR` on the same publicly available dataset (from the [var_numpyro blog post](https://juanitorduz.github.io/var_numpyro/)).
 2. Compare **posterior mean predictions** against the OLS point forecasts.

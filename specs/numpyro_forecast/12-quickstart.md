@@ -49,6 +49,101 @@ For all covered model families, the expected usage flow is:
 - `future` is always keyword-only.
 - `run_mcmc(..., model_kwargs=...)` and `run_svi(..., model_kwargs=...)` are the canonical forwarding pattern.
 - Use `check_diagnostics()` on MCMC runs before treating forecasts as baseline-ready.
+- Fit-stage kwargs should not include forecast horizon. Pass horizon via `forecast(..., future=horizon, ...)`.
+
+### Narwhals encoding contracts (hierarchical workflows)
+
+Use Narwhals-first helpers so mapping creation is backend-agnostic:
+
+```python
+from probcast.core import label_encode_column, build_group_mapping, build_levels_mapping
+
+# `data_native` may be pandas/polars/pyarrow/etc.
+sku_encoder = label_encode_column(data_native, "sku_id")
+state_encoder = label_encode_column(data_native, "state")
+group_mapping = build_group_mapping(
+    data_native,
+    series_col="sku_id",
+    group_col="state",
+    sort_by="date",
+)
+```
+
+#### Pandas input example
+
+```python
+import pandas as pd
+from probcast.core import build_group_mapping
+from probcast.models import holt_winters_model
+
+df_pd = pd.DataFrame(
+    {
+        "date": ["2024-01-01", "2024-01-02", "2024-01-01", "2024-01-02"],
+        "sku_id": ["sku_a", "sku_a", "sku_b", "sku_b"],
+        "state": ["CA", "CA", "NY", "NY"],
+    }
+)
+
+group_mapping = build_group_mapping(
+    df_pd,
+    series_col="sku_id",
+    group_col="state",
+    sort_by="date",
+)
+
+fit_model_kwargs = {"group_mapping": group_mapping}
+# run_mcmc(..., holt_winters_model, ..., model_kwargs=fit_model_kwargs)
+# forecast(..., future=12, model_kwargs=fit_model_kwargs)
+```
+
+#### Polars input example
+
+```python
+import polars as pl
+from probcast.core import build_group_mapping
+from probcast.models import arma_model
+
+df_pl = pl.DataFrame(
+    {
+        "date": ["2024-01-01", "2024-01-02", "2024-01-01", "2024-01-02"],
+        "sku_id": ["sku_a", "sku_a", "sku_b", "sku_b"],
+        "state": ["CA", "CA", "NY", "NY"],
+    }
+)
+
+group_mapping = build_group_mapping(
+    df_pl,
+    series_col="sku_id",
+    group_col="state",
+    sort_by="date",
+)
+
+fit_model_kwargs = {"order": (1, 1), "group_mapping": group_mapping}
+# run_mcmc(..., arma_model, ..., model_kwargs=fit_model_kwargs)
+# forecast(..., future=12, model_kwargs=fit_model_kwargs)
+```
+
+Both examples must produce equivalent integer mappings for equivalent tabular content.
+
+Multi-level parent-child mapping (for hierarchical priors with intermediate plates):
+
+```python
+# level3 -> sku mapping and level2 -> level3 mapping
+level3_to_sku = build_levels_mapping(
+    data_native,
+    higher_level_col="level3_category",
+    lower_level_col="sku_id",
+    sort_by="date",
+)
+level2_to_level3 = build_levels_mapping(
+    data_native,
+    higher_level_col="level2_category",
+    lower_level_col="level3_category",
+    sort_by="date",
+)
+```
+
+Mapping outputs are integer arrays and plug directly into model kwargs such as `group_mapping`.
 
 ## Shared E2E Skeleton
 
@@ -62,13 +157,17 @@ from probcast.plotting import plot_forecast
 rng_key = jax.random.PRNGKey(42)
 params = MCMCParams(num_warmup=1_000, num_samples=1_000, num_chains=2)
 
+fit_model_kwargs = {}
+# Default: forecast uses the same kwargs as fit.
+forecast_model_kwargs = fit_model_kwargs
+
 # 1) fit
 mcmc = run_mcmc(
     rng_key,
     model_fn,
     params,
     *model_args,
-    model_kwargs=model_kwargs,  # optional
+    model_kwargs=fit_model_kwargs,  # optional
 )
 
 # 2) diagnose
@@ -81,7 +180,7 @@ result = forecast(
     mcmc.get_samples(),
     *model_args,
     future=horizon,
-    model_kwargs=model_kwargs,
+    model_kwargs=forecast_model_kwargs,
     return_sites=return_sites,
     coords=coords,
     dims=dims,
@@ -118,8 +217,7 @@ from probcast.models import uc_model, local_level_model, local_linear_trend_mode
 # Canonical direct UCM call
 model_fn = uc_model
 model_args = (y,)
-model_kwargs = {
-    "future": horizon,
+fit_model_kwargs = {
     "level": True,
     "trend": "local linear",
     "seasonal": 12,
@@ -128,12 +226,14 @@ model_kwargs = {
 
 # Local alias equivalent
 # model_fn = local_linear_trend_model
-# model_kwargs = {"future": horizon}
+# fit_model_kwargs = {}
+# forecast_model_kwargs = fit_model_kwargs
 ```
 
 ### Step 3-6 — inference, forecast, diagnostics, metrics, plotting
 
 ```python
+forecast_model_kwargs = fit_model_kwargs
 return_sites = ["y_forecast"]
 coords = {"time": time_index_future}
 dims = {"y_forecast": ["time"]}
@@ -156,8 +256,7 @@ from probcast.models import holt_winters_model
 
 model_fn = holt_winters_model
 model_args = (y, 12)  # n_seasons
-model_kwargs = {
-    "future": horizon,
+fit_model_kwargs = {
     "damped": False,  # set True for damped Holt-Winters
     # "group_mapping": group_mapping,  # panel hierarchy
 }
@@ -166,6 +265,7 @@ model_kwargs = {
 ### Step 3-6
 
 ```python
+forecast_model_kwargs = fit_model_kwargs
 return_sites = ["y_forecast"]
 coords = {"time": time_index_future}
 dims = {"y_forecast": ["time"]}
@@ -190,12 +290,14 @@ from probcast.models import sarimax_model
 
 model_fn = sarimax_model
 model_args = (y,)
-model_kwargs = {
+fit_model_kwargs = {
     "order": (1, 1, 1),
     "seasonal_order": (1, 0, 1, 12),
     "covariates": covariates,
+}
+forecast_model_kwargs = {
+    **fit_model_kwargs,
     "future_covariates": future_covariates,
-    "future": horizon,
 }
 ```
 
@@ -203,6 +305,10 @@ model_kwargs = {
 
 ```python
 return_sites = ["y_forecast"]
+forecast_model_kwargs = {
+    **fit_model_kwargs,
+    "future_covariates": future_covariates,
+}
 coords = {"time": time_index_future}
 dims = {"y_forecast": ["time"]}
 ```
@@ -231,7 +337,8 @@ from probcast.models import croston_model, tsb_model, zi_tsb_model
 # Croston
 model_fn = croston_model
 model_args = (z, p_inv)
-model_kwargs = {"future": horizon}
+fit_model_kwargs = {}
+forecast_model_kwargs = fit_model_kwargs
 return_sites = ["z_forecast", "p_inv_forecast", "forecast"]
 
 # TSB
@@ -250,6 +357,7 @@ Note: for Croston, full diagnostics often use all three sites above. In CV workf
 ### Step 3-6
 
 ```python
+forecast_model_kwargs = fit_model_kwargs
 coords = {"time": time_index_future}
 dims = {site: ["time"] for site in return_sites}
 ```
@@ -271,9 +379,8 @@ from probcast.models import arma_model
 
 model_fn = arma_model
 model_args = (y,)
-model_kwargs = {
+fit_model_kwargs = {
     "order": (1, 1),  # (p, q)
-    "future": horizon,
     # "group_mapping": group_mapping,  # panel hierarchy
 }
 ```
@@ -281,6 +388,7 @@ model_kwargs = {
 ### Step 3-6
 
 ```python
+forecast_model_kwargs = fit_model_kwargs
 return_sites = ["y_forecast", "errors"]
 coords = {"time": time_index_future}
 dims = {"y_forecast": ["time"], "errors": ["time"]}
@@ -303,12 +411,14 @@ from probcast.models import var_model
 
 model_fn = var_model
 model_args = (y,)
-model_kwargs = {"n_lags": 2, "future": horizon}
+fit_model_kwargs = {"n_lags": 2}
+forecast_model_kwargs = fit_model_kwargs
 ```
 
 ### Step 3-6
 
 ```python
+forecast_model_kwargs = fit_model_kwargs
 return_sites = ["y_forecast", "irf"]
 coords = {"time": time_index_future, "var": var_names}
 dims = {"y_forecast": ["time", "var"], "irf": ["horizon", "shock_var", "response_var"]}

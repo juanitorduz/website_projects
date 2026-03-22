@@ -28,7 +28,7 @@ The core strength of the package is **customizability** — reducing the boilerp
 
 6. **ArviZ integration.** Inference results convert to `xarray.DataTree` via `arviz.from_numpyro` (ArviZ >= 1.0.0) for diagnostics, plotting, and comparison. Forecast outputs align with ArviZ's `posterior_predictive` conventions.
 
-7. **Typed-by-default core dependencies.** Core: `numpyro`, `jax`, `jaxlib`, `pydantic`, `jaxtyping`, `beartype`, `arviz`, `matplotlib`. Optional extras are reserved for non-core capabilities (for example neural-network backends and docs tooling).
+7. **Typed-by-default core dependencies.** Core: `numpyro`, `jax`, `pydantic`, `jaxtyping`, `beartype`, `arviz`, `matplotlib`, `narwhals`, `scikit-learn`. Optional extras are reserved for non-core capabilities (for example neural-network backends and docs tooling).
 
 8. **AI-friendly.** The repository includes `AGENTS.md` and `SKILLS.md` to make it easy for AI coding assistants to understand and contribute to the project.
 
@@ -42,7 +42,7 @@ The core strength of the package is **customizability** — reducing the boilerp
 
 - Not a black-box AutoML forecasting tool (see StatsForecast, Prophet).
 - Not a replacement for NumPyro — it builds on top of it.
-- Not tied to a specific data format — models operate on JAX arrays; data wrangling is the user's responsibility.
+- Not tied to a specific dataframe backend — models operate on JAX arrays; encoding helpers accept Narwhals-supported dataframe inputs and produce backend-neutral mappings.
 
 ## Source Notebooks
 

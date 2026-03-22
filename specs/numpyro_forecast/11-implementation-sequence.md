@@ -35,9 +35,11 @@ Most docs online are old arviz. So use the migration guide to the new arviz 1.0 
 - `inference/diagnostics.py` — `check_diagnostics()`
 - `metrics/crps.py` — `crps_empirical()`, `per_obs_crps()`
 - `metrics/point.py` — `mae`, `rmse`, `mape`, `wape`
-- `cv/prepare.py` — `train_test_split()`, `prepare_intermittent_data()`, `prepare_tsb_data()`, `prepare_hierarchical_mapping()`
+- `cv/prepare.py` — `train_test_split()`, `prepare_intermittent_data()`, `prepare_tsb_data()`
+- `core/encoding.py` — `LabelEncoderData`, `label_encode_column()`, `build_group_mapping()`, `build_levels_mapping()`
 - `pyproject.toml` — project metadata, dependencies, ruff config
 - `tests/conftest.py` + unit tests for metrics and cv/prepare helpers
+- `tests/test_core/test_encoding.py` — deterministic encoding/mapping tests (pandas + Polars parity via Narwhals)
 
 ### Why first?
 
@@ -89,6 +91,7 @@ Components are extracted *from* the models. Having the core and inference layer 
 - `models/arma.py` — `arma_model`. Accepts `group_mapping`.
 - `models/var.py` — `var_model`, `compute_irf`. Accepts `group_mapping`.
 - Integration tests for each model (short MCMC runs, **shape checks for both univariate and panel**, hierarchical prior tests with `group_mapping`)
+- Hierarchical mapping integration tests verifying pandas and Polars inputs produce equivalent `group_mapping` arrays through Narwhals helpers before model invocation
 
 ### Why third?
 
@@ -100,9 +103,14 @@ Models compose components + core. They are the user-facing API and need both lay
 - Every model defines a `*_DEFAULT_PRIORS` constant and accepts `priors: dict[str, Prior] | None = None`.
 - All panel-capable models accept `group_mapping` and correctly create `plate("groups")` + `plate("series")` when it is provided.
 - Hierarchical behavior is validated via nested `Prior` objects with `numpyro.plate` on at least two model families (e.g., ES and ARMA).
+- Hierarchical integration tests confirm mapping parity across pandas and Polars inputs (`build_group_mapping` / `build_levels_mapping`) and successful model execution with the produced mappings.
 - Baseline model docs include identifiability/stability notes where applicable (ARMA/SARIMAX/VAR/HSGP/UCM).
 - Forecast outputs expose stable and documented `return_sites`.
+- Statsmodels parity tests are organized as classes inside per-model integration files (for example `TestUCStatsmodels`, `TestESStatsmodels`, `TestSARIMAXStatsmodels`, `TestARMAStatsmodels`, `TestVARStatsmodels`).
 - UCM comparison tests against `statsmodels.UnobservedComponents` pass for all UCM configuration recipes (local level, local linear trend, smooth trend, Holt-Winters, BSM) — posterior mean predictions and parameter estimates must be within reasonable tolerance of MLE.
+- Exponential smoothing parity tests against statsmodels exponential-smoothing baselines pass for level/trend/Holt-Winters configurations with documented tolerances.
+- SARIMAX parity tests against statsmodels include ARIMA-style settings (`seasonal_order=(0, 0, 0, 1)` and no exogenous regressors) and pass with documented tolerances.
+- ARMA stationary parity tests against statsmodels pass for representative ARMA(p, q) configurations.
 - VAR comparison tests against `statsmodels.VAR` pass — posterior mean predictions, AR coefficients, and IRFs must be within reasonable tolerance of OLS estimates.
 
 ## Phase 4: Cross-Validation

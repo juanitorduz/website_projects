@@ -14,7 +14,9 @@ Functions that would traditionally live in a `utils/` directory are instead plac
 | `train_test_split()` | `cv/prepare.py` | Used in CV and evaluation contexts |
 | `prepare_intermittent_data()` | `cv/prepare.py` | Croston data preparation for CV callbacks |
 | `prepare_tsb_data()` | `cv/prepare.py` | TSB data preparation for CV callbacks |
-| `prepare_hierarchical_mapping()` | `cv/prepare.py` | Group mapping encoding used in hierarchical CV |
+| `label_encode_column()` | `core/encoding.py` | Backend-agnostic categorical encoding via Narwhals + LabelEncoder |
+| `build_group_mapping()` | `core/encoding.py` | Build `(n_series,)` integer mapping for hierarchical priors |
+| `build_levels_mapping()` | `core/encoding.py` | Build multi-level parent-child index mappings |
 | `plot_forecast()` | `plotting/forecast.py` | Forecast visualization |
 | `plot_cv_results()` | `plotting/cv.py` | CV results visualization |
 | `plot_irf()` | `plotting/irf.py` | VAR impulse response function plotting |

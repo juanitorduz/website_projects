@@ -212,29 +212,45 @@ def train_test_split(
     return y[:-n_test], y[-n_test:]
 ```
 
-### `prepare_hierarchical_mapping`
+### Hierarchical mapping helpers
+
+Hierarchical encoding is not CV-specific. Use shared helpers from `core/encoding.py`:
 
 ```python
-def prepare_hierarchical_mapping(
-    group_labels: Sequence[str],
-) -> tuple[Float[Array, " n_series"], int]:
-    """Encode group labels as integer indices.
-
-    Parameters
-    ----------
-    group_labels
-        Group membership for each series (e.g., state names).
-
-    Returns
-    -------
-    mapping_idx
-        Integer array mapping each series to its group index.
-    n_groups
-        Number of unique groups.
-    """
+from probcast.core import label_encode_column, build_group_mapping, build_levels_mapping
 ```
 
-**Source:** `LabelEncoder` usage in `hierarchical_exponential_smoothing.ipynb`.
+Use `build_group_mapping(...)` when you need a direct `(n_series,)` mapping for `group_mapping`. Use `build_levels_mapping(...)` for multi-level hierarchies (for example state -> SKU and region -> state), then pass the resulting arrays into model kwargs per fold when hierarchical priors are enabled.
+
+CV integration pattern (hierarchical model kwargs resolved per fold):
+
+```python
+import narwhals as nw
+
+def prepare_hierarchical_fold_kwargs(
+    y_train,
+    *,
+    fold_idx: int,
+    train_end_idx: int,
+    horizon: int,
+    mapping_df_native,
+    **_,
+):
+    # Normalize backend first; callbacks should receive eager tabular inputs.
+    mapping_df = nw.from_native(mapping_df_native)
+    # Keep mapping leakage-safe by slicing to fold-visible rows when mappings depend on time.
+    mapping_df_fold = mapping_df.head(train_end_idx).to_native()
+    group_mapping = build_group_mapping(
+        mapping_df_fold,
+        series_col="sku_id",
+        group_col="state",
+        sort_by="date",
+    )
+    return (y_train,), {"group_mapping": group_mapping}
+```
+
+This callback can be composed with covariate slicing callbacks; final `model_kwargs` must include only fold-valid arrays.
+Use eager dataframes in callbacks (e.g., pandas/Polars DataFrame), not lazy query plans.
 
 ## `prepare_data_fn` Callbacks
 
