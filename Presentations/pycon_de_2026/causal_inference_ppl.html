@@ -431,52 +431,55 @@
 </section>
 <section id="the-do-operator" class="slide level2">
 <h2>The <code>do</code> Operator</h2>
-<div class="columns">
-<div class="column" style="width:50%;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="im">from</span> pymc.model.transform.conditioning <span class="im">import</span> (</span>
-<span id="cb4-2"><a href=""></a>    do, observe,</span>
-<span id="cb4-3"><a href=""></a>)</span>
-<span id="cb4-4"><a href=""></a></span>
-<span id="cb4-5"><a href=""></a><span class="co"># Condition on observed data</span></span>
-<span id="cb4-6"><a href=""></a>conditioned_model <span class="op">=</span> observe(</span>
-<span id="cb4-7"><a href=""></a>    earnings_model,</span>
-<span id="cb4-8"><a href=""></a>    {<span class="st">"treat"</span>: training_obs,</span>
-<span id="cb4-9"><a href=""></a>     <span class="st">"earnings"</span>: earnings_obs},</span>
-<span id="cb4-10"><a href=""></a>)</span>
-<span id="cb4-11"><a href=""></a></span>
-<span id="cb4-12"><a href=""></a><span class="co"># Counterfactual interventions</span></span>
-<span id="cb4-13"><a href=""></a>do_0_model <span class="op">=</span> do(</span>
-<span id="cb4-14"><a href=""></a>    conditioned_model,</span>
-<span id="cb4-15"><a href=""></a>    {<span class="st">"treat"</span>: np.zeros(n_obs)}</span>
-<span id="cb4-16"><a href=""></a>)</span>
-<span id="cb4-17"><a href=""></a>do_1_model <span class="op">=</span> do(</span>
-<span id="cb4-18"><a href=""></a>    conditioned_model,</span>
-<span id="cb4-19"><a href=""></a>    {<span class="st">"treat"</span>: np.ones(n_obs)}</span>
-<span id="cb4-20"><a href=""></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div><div class="column" style="width:50%;">
-<div class="callout callout-tip callout-style-simple">
-<div class="callout-body">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-content">
 <p>The <code>do</code> operator implements Pearl’s intervention:</p>
 <p><span class="math display">\[P(Y \mid \text{do}(T = t))\]</span></p>
 <p>It <strong>cuts</strong> incoming edges to the treatment node, simulating a randomized experiment.</p>
-<p>ATE = <span class="math inline">\(\mathbb{E}[Y \mid \text{do}(T=1)] - \mathbb{E}[Y \mid \text{do}(T=0)]\)</span></p>
+<p>We can use the <code>do</code> operator to compute the ATE:</p>
+<p><span class="math display">\[
+ATE = \mathbb{E}[Y \mid \text{do}(T=1)] - \mathbb{E}[Y \mid \text{do}(T=0)]
+\]</span></p>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></p>
+</div>
+</section>
+<section id="do-operator-resulting-model-graph" class="slide level2">
+<h2>Do-Operator Resulting Model Graph</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-code-line-numbers="1|2-4|5-10"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="im">from</span> pymc.model.transform.conditioning <span class="im">import</span> do</span>
+<span id="cb4-2"><a href=""></a><span class="co"># Counterfactual interventions</span></span>
+<span id="cb4-3"><a href=""></a>do_0_model <span class="op">=</span> do(conditioned_earnings_model, {<span class="st">"treat"</span>: np.zeros(n_obs)})</span>
+<span id="cb4-4"><a href=""></a>do_1_model <span class="op">=</span> do(conditioned_earnings_model, {<span class="st">"treat"</span>: np.ones(n_obs)})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="bordered">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="causal_inference_ppl_files/static/images/intro_causal_inference_ppl_pymc_45_0.svg" class="quarto-figure quarto-figure-center" width="1000"></p>
+</figure>
 </div>
 </div>
-</div>
-</div></div>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></p>
 </div>
 </section>
 <section id="individual-counterfactual-predictions" class="slide level2">
 <h2>Individual Counterfactual Predictions</h2>
-<!-- TODO: export counterfactual HDI plot from intro_causal_inference_ppl_pymc.ipynb -->
-
-<img data-src="causal_inference_ppl_files/static/images/intro_causal_inference_ppl_pymc/counterfactual_hdi.png" class="quarto-figure quarto-figure-center r-stretch" width="900"><div class="footer">
+<div class="columns">
+<div class="column" style="width:50%;">
+<div class="bordered">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="causal_inference_ppl_files/static/images/intro_causal_inference_ppl_pymc_51_0.png" class="quarto-figure quarto-figure-center" width="1000"></p>
+</figure>
+</div>
+</div>
+</div><div class="column" style="width:50%;">
+<div class="bordered">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="causal_inference_ppl_files/static/images/intro_causal_inference_ppl_pymc_58_0.png" class="quarto-figure quarto-figure-center" width="1000"></p>
+</figure>
+</div>
+</div>
+</div></div>
+<div class="footer">
 <p><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></p>
 </div>
 </section>

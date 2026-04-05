@@ -245,49 +245,33 @@ conditioned_earnings_model = observe(
 
 ## The `do` Operator
 
-::: {.columns}
-::: {.column width="50%"}
-
-```{.python}
-from pymc.model.transform.conditioning import (
-    do, observe,
-)
-
-# Condition on observed data
-conditioned_model = observe(
-    earnings_model,
-    {"treat": training_obs,
-     "earnings": earnings_obs},
-)
-
-# Counterfactual interventions
-do_0_model = do(
-    conditioned_model,
-    {"treat": np.zeros(n_obs)}
-)
-do_1_model = do(
-    conditioned_model,
-    {"treat": np.ones(n_obs)}
-)
-```
-
-:::
-
-::: {.column width="50%"}
-
-::: {.callout-tip appearance="simple"}
-
 The `do` operator implements Pearl's intervention:
 
 $$P(Y \mid \text{do}(T = t))$$
 
 It **cuts** incoming edges to the treatment node, simulating a randomized experiment.
 
-ATE = $\mathbb{E}[Y \mid \text{do}(T=1)] - \mathbb{E}[Y \mid \text{do}(T=0)]$
+We can use the `do` operator to compute the ATE:
 
+$$
+ATE = \mathbb{E}[Y \mid \text{do}(T=1)] - \mathbb{E}[Y \mid \text{do}(T=0)]
+$$
+
+::: footer
+[Introduction to Causal Inference with PPLs](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/)
 :::
 
-:::
+## Do-Operator Resulting Model Graph
+
+```{.python code-line-numbers="1|2-4|5-10"}
+from pymc.model.transform.conditioning import do
+# Counterfactual interventions
+do_0_model = do(conditioned_earnings_model, {"treat": np.zeros(n_obs)})
+do_1_model = do(conditioned_earnings_model, {"treat": np.ones(n_obs)})
+```
+
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/intro_causal_inference_ppl_pymc_45_0.svg){fig-align="center" width="1000"}
 :::
 
 ::: footer
@@ -296,8 +280,24 @@ ATE = $\mathbb{E}[Y \mid \text{do}(T=1)] - \mathbb{E}[Y \mid \text{do}(T=0)]$
 
 ## Individual Counterfactual Predictions
 
-<!-- TODO: export counterfactual HDI plot from intro_causal_inference_ppl_pymc.ipynb -->
-![](causal_inference_ppl_files/static/images/intro_causal_inference_ppl_pymc/counterfactual_hdi.png){fig-align="center" width="900"}
+::: {.columns}
+::: {.column width="50%"}
+
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/intro_causal_inference_ppl_pymc_51_0.png){fig-align="center" width="1000"}
+:::
+
+:::
+
+::: {.column width="50%"}
+
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/intro_causal_inference_ppl_pymc_58_0.png){fig-align="center" width="1000"}
+:::
+
+:::
+:::
+
 
 ::: footer
 [Introduction to Causal Inference with PPLs](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/)
