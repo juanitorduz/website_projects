@@ -471,6 +471,7 @@ ATE = \mathbb{E}[Y \mid \text{do}(T=1)] - \mathbb{E}[Y \mid \text{do}(T=0)]
 </div>
 </div>
 </div><div class="column" style="width:50%;">
+<p>Computing the ATE using the <code>do</code> operator yields the same result as the regression coefficient approach.</p>
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
@@ -483,51 +484,17 @@ ATE = \mathbb{E}[Y \mid \text{do}(T=1)] - \mathbb{E}[Y \mid \text{do}(T=0)]
 <p><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></p>
 </div>
 </section>
-<section id="gamma-glm-a-better-likelihood" class="slide level2">
-<h2>Gamma GLM: A Better Likelihood</h2>
-<div class="columns">
-<div class="column" style="width:50%;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" data-code-line-numbers="|1-2|4-5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href=""></a>    <span class="co"># Non-negative earnings</span></span>
-<span id="cb5-2"><a href=""></a>    <span class="co"># via softplus link</span></span>
-<span id="cb5-3"><a href=""></a>    mu_earnings <span class="op">=</span> pm.Deterministic(</span>
-<span id="cb5-4"><a href=""></a>        <span class="st">"mu_earnings"</span>,</span>
-<span id="cb5-5"><a href=""></a>        pt.softplus(raw_mu_earnings),</span>
-<span id="cb5-6"><a href=""></a>        dims<span class="op">=</span>(<span class="st">"obs_idx"</span>,),</span>
-<span id="cb5-7"><a href=""></a>    )</span>
-<span id="cb5-8"><a href=""></a>    <span class="co"># Gamma likelihood</span></span>
-<span id="cb5-9"><a href=""></a>    pm.Gamma(</span>
-<span id="cb5-10"><a href=""></a>        <span class="st">"earnings"</span>,</span>
-<span id="cb5-11"><a href=""></a>        mu<span class="op">=</span>mu_earnings,</span>
-<span id="cb5-12"><a href=""></a>        sigma<span class="op">=</span>sigma_earnings,</span>
-<span id="cb5-13"><a href=""></a>        dims<span class="op">=</span>(<span class="st">"obs_idx"</span>,),</span>
-<span id="cb5-14"><a href=""></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div><div class="column" style="width:50%;">
-<!-- TODO: export posterior predictive check from intro_causal_inference_ppl_pymc.ipynb -->
+<section id="a-more-meaningful-likelihood" class="slide level2">
+<h2>A more meaningful likelihood</h2>
+<h3 id="gamma-generalized-linear-model">Gamma Generalized Linear Model</h3>
+<div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="causal_inference_ppl_files/static/images/intro_causal_inference_ppl_pymc/ppc_glm.png" class="quarto-figure quarto-figure-center" width="500"></p>
+<p><img data-src="causal_inference_ppl_files/static/images/intro_causal_inference_ppl_pymc_78_0.png" class="quarto-figure quarto-figure-center" width="600"></p>
 </figure>
-</div>
-</div></div>
-<div class="callout callout-tip callout-style-simple">
-<div class="callout-body">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-content">
-<p>Non-negative earnings constraint via <code>softplus</code> link + <code>Gamma</code> likelihood. Substantially better fit by LOO cross-validation.</p>
-</div>
 </div>
 </div>
 <div class="footer">
-<p><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></p>
-</div>
-</section>
-<section id="ate-comparison-all-methods" class="slide level2">
-<h2>ATE Comparison: All Methods</h2>
-<!-- TODO: export ATE forest plot from intro_causal_inference_ppl_pymc.ipynb -->
-
-<img data-src="causal_inference_ppl_files/static/images/intro_causal_inference_ppl_pymc/ate_comparison_all.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
 <p><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></p>
 </div>
 </section>
@@ -535,40 +502,38 @@ ATE = \mathbb{E}[Y \mid \text{do}(T=1)] - \mathbb{E}[Y \mid \text{do}(T=0)]
 <h2>Fixed &amp; Random Effects</h2>
 <h3 id="group-level-confounding">Group-Level Confounding</h3>
 <div class="columns">
-<div class="column" style="width:40%;">
-<!-- TODO: export DAG from fixed_random.ipynb -->
+<div class="column" style="width:35.5%;">
+<div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="causal_inference_ppl_files/static/images/fixed_random/dag.png" class="quarto-figure quarto-figure-center" width="350"></p>
+<p><img data-src="causal_inference_ppl_files/static/images/fixed_random_2_0.svg" class="quarto-figure quarto-figure-center" width="350"></p>
 </figure>
 </div>
-</div><div class="column" style="width:60%;">
-<div class="callout callout-tip callout-style-simple">
-<div class="callout-body">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
 </div>
-<div class="callout-content">
-<p><strong>Problem:</strong> True causal effect of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span> is <strong>zero</strong>, but naive regression shows a positive effect.</p>
-<ul>
-<li>Variable <span class="math inline">\(Z\)</span> confounds <span class="math inline">\(X \to Y\)</span></li>
-<li>Group <span class="math inline">\(G\)</span> influences both <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> through an unobserved group-level effect <span class="math inline">\(U_G\)</span></li>
-</ul>
+</div><div class="column" style="width:64.5%;">
+<p><strong>Problem:</strong> Syntetic dataset where the true causal effect of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span> is <strong>zero</strong>. We have <strong>group-level confounding</strong> through group-level effect <span class="math inline">\(U_G\)</span>.</p>
+<div class="bordered">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="causal_inference_ppl_files/static/images/fixed_random_22_0.png" class="quarto-figure quarto-figure-center" width="650"></p>
+</figure>
 </div>
 </div>
-</div>
-<p>Inspired by Richard McElreath’s <em>Statistical Rethinking</em> (2026 Lectures).</p>
 </div></div>
+<p><em>Taken from Richard McElreath’s Statistical Rethinking <a href="https://youtube.com/watch?v=XNNcN8sU8us">(2026 Lectures)</a>.</em></p>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/fixed_random/">Fixed and Random Effects Models: A Simulated Study</a></p>
 </div>
 </section>
 <section id="five-estimation-strategies" class="slide level2">
 <h2>Five Estimation Strategies</h2>
-<div class="callout callout-tip callout-style-simple">
+<div class="callout callout-note callout-titled callout-style-default">
 <div class="callout-body">
+<div class="callout-title">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
+</div>
+<p><strong>Model Structure</strong></p>
 </div>
 <div class="callout-content">
 <table class="caption-top">
@@ -610,6 +575,9 @@ ATE = \mathbb{E}[Y \mid \text{do}(T=1)] - \mathbb{E}[Y \mid \text{do}(T=0)]
 </div>
 </div>
 </div>
+<p><span class="math display">\[
+y = \beta_{xy}x + \beta_{zy}z + \square + \varepsilon
+\]</span></p>
 <div class="callout callout-tip callout-style-simple">
 <div class="callout-body">
 <div class="callout-icon-container">
@@ -624,11 +592,41 @@ ATE = \mathbb{E}[Y \mid \text{do}(T=1)] - \mathbb{E}[Y \mid \text{do}(T=0)]
 <p><a href="https://juanitorduz.github.io/fixed_random/">Fixed and Random Effects Models: A Simulated Study</a></p>
 </div>
 </section>
-<section id="mundlak-trick-results" class="slide level2">
-<h2>Mundlak Trick: Results</h2>
-<!-- TODO: export forest plot comparison from fixed_random.ipynb -->
-
-<img data-src="causal_inference_ppl_files/static/images/fixed_random/comparison.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="footer">
+<section id="results-the-mundlak-latent-model" class="slide level2 smaller">
+<h2>Results: The Mundlak <code>Latent</code> Model</h2>
+<div class="columns">
+<div class="column" style="width:60%;">
+<div class="bordered">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="causal_inference_ppl_files/static/images/fixed_random_54_0.png" class="quarto-figure quarto-figure-center" width="550"></p>
+</figure>
+</div>
+</div>
+</div><div class="column" style="width:40%;">
+<ul>
+<li>Fixed effects</li>
+</ul>
+<p><code>y ~ 0 + x + z + C(g)</code></p>
+<ul>
+<li>Multilevel</li>
+</ul>
+<p><code>y ~ x + z + (1 | g)</code></p>
+<ul>
+<li>Mundlak</li>
+</ul>
+<p><code>y ~ x + z + (1 | g) + x_bar</code></p>
+<ul>
+<li>Mundlak Latent</li>
+</ul>
+<p><span class="math display">\[\begin{align*}
+\color{red}{u_{[g]}} &amp; \sim \text{Normal}(\mu_u, \sigma_u) \\
+x &amp;= \alpha_x + \beta_{ux}{\color{red}{u_{[g]}}} + \varepsilon_x \\
+y &amp;= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_{[g]}}} + \varepsilon_y
+\end{align*}\]</span></p>
+</div></div>
+<p>:::</p>
+<div class="footer">
 <p><a href="https://juanitorduz.github.io/fixed_random/">Fixed and Random Effects Models: A Simulated Study</a></p>
 </div>
 </section>
@@ -636,20 +634,22 @@ ATE = \mathbb{E}[Y \mid \text{do}(T=1)] - \mathbb{E}[Y \mid \text{do}(T=0)]
 <h2>Latent Variable Modeling</h2>
 <h3 id="unobserved-confounders">Unobserved Confounders</h3>
 <div class="columns">
-<div class="column" style="width:40%;">
-<!-- TODO: export DAG from online_game_ate.ipynb -->
+<div class="column" style="width:50%;">
+<div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="causal_inference_ppl_files/static/images/online_game_ate/dag.png" class="quarto-figure quarto-figure-center" width="350"></p>
+<p><img data-src="causal_inference_ppl_files/static/images/online_game_ate_6_0.svg" class="quarto-figure quarto-figure-center" width="450"></p>
 </figure>
 </div>
-</div><div class="column" style="width:60%;">
+</div>
+</div><div class="column" style="width:50%;">
 <ul>
-<li class="fragment">Online game dataset: does guild membership increase total hours?</li>
-<li class="fragment"><strong>Unobserved confounder</strong> <span class="math inline">\(Z\)</span> (player motivation) affects both treatment and outcome</li>
-<li class="fragment">Standard backdoor adjustment is <strong>not possible</strong></li>
-<li class="fragment">Solution: <strong>CEVAE</strong> framework (Louizos et al., NeurIPS 2017) – learn a latent representation of <span class="math inline">\(Z\)</span> using variational inference</li>
+<li class="fragment">Online game dataset: <code>Does side-quest engagement increase in-game purchases?</code></li>
+<li class="fragment"><strong>Unobserved confounder</strong> <span class="math inline">\(Z\)</span> (player motivation) affects both treatment and outcome.</li>
+<li class="fragment">Standard backdoor adjustment is <strong>not possible</strong>.</li>
+<li class="fragment">Solution: <strong>CEVAE</strong> framework (Louizos et al., NeurIPS 2017): learn a latent representation of <span class="math inline">\(Z\)</span>.</li>
 </ul>
+<p><em>Taken from Robert. O. N. ’s book: <a href="https://www.robertosazuwaness.com/causal-ai-book/">Causal AI</a>.</em></p>
 </div></div>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/online_game_ate/">Causal Effect Estimation with Variational Inference and Latent Confounders</a></p>
@@ -676,24 +676,6 @@ ATE = \mathbb{E}[Y \mid \text{do}(T=1)] - \mathbb{E}[Y \mid \text{do}(T=0)]
 <!-- TODO: export model diagram or architecture from online_game_ate.ipynb -->
 
 <img data-src="causal_inference_ppl_files/static/images/online_game_ate/architecture.png" class="quarto-figure quarto-figure-center r-stretch" width="800"><div class="footer">
-<p><a href="https://juanitorduz.github.io/online_game_ate/">Causal Effect Estimation with Variational Inference and Latent Confounders</a></p>
-</div>
-</section>
-<section id="cevae-results" class="slide level2">
-<h2>CEVAE: Results</h2>
-<!-- TODO: export ATE comparison from online_game_ate.ipynb -->
-
-<img data-src="causal_inference_ppl_files/static/images/online_game_ate/ate_comparison.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="callout callout-tip callout-style-simple">
-<div class="callout-body">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-content">
-<p>CEVAE recovers a treatment effect consistent with the DoWhy frontdoor estimate, <strong>despite never observing the confounder</strong>.</p>
-</div>
-</div>
-</div>
-<div class="footer">
 <p><a href="https://juanitorduz.github.io/online_game_ate/">Causal Effect Estimation with Variational Inference and Latent Confounders</a></p>
 </div>
 </section>
@@ -797,25 +779,25 @@ sub_disorder ~ Bernoulli(logistic(gender, conflict, fam_int, dev_peer, sub_exp))
 </section>
 <section id="correlated-priors-the-right-approach" class="slide level2">
 <h2>Correlated Priors: The Right Approach</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" data-code-line-numbers="|4-7|9-12|14-19"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href=""></a><span class="im">import</span> pymc <span class="im">as</span> pm</span>
-<span id="cb7-2"><a href=""></a></span>
-<span id="cb7-3"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> correlated_model:</span>
-<span id="cb7-4"><a href=""></a>    <span class="co"># Set a prior on the control conversion rate</span></span>
-<span id="cb7-5"><a href=""></a>    conversion_rate_control <span class="op">=</span> pm.Beta(</span>
-<span id="cb7-6"><a href=""></a>      <span class="st">"conversion_rate_control"</span>, alpha<span class="op">=</span><span class="dv">15</span>, beta<span class="op">=</span><span class="dv">600</span></span>
-<span id="cb7-7"><a href=""></a>    )</span>
-<span id="cb7-8"><a href=""></a></span>
-<span id="cb7-9"><a href=""></a>    <span class="co"># Set a prior on the relative lift</span></span>
-<span id="cb7-10"><a href=""></a>    relative_lift <span class="op">=</span> pm.Normal(</span>
-<span id="cb7-11"><a href=""></a>      <span class="st">"relative_lift"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="fl">0.1</span></span>
-<span id="cb7-12"><a href=""></a>    )</span>
-<span id="cb7-13"><a href=""></a></span>
-<span id="cb7-14"><a href=""></a>    <span class="co"># Convert the relative lift to a conversion rate for the treatment</span></span>
-<span id="cb7-15"><a href=""></a>    <span class="co"># group deterministically</span></span>
-<span id="cb7-16"><a href=""></a>    conversion_rate_treatment <span class="op">=</span> pm.Deterministic(</span>
-<span id="cb7-17"><a href=""></a>        <span class="st">"conversion_rate_treatment"</span>,</span>
-<span id="cb7-18"><a href=""></a>        conversion_rate_control <span class="op">*</span> (<span class="dv">1</span> <span class="op">+</span> relative_lift)</span>
-<span id="cb7-19"><a href=""></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" data-code-line-numbers="|4-7|9-12|14-19"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a><span class="im">import</span> pymc <span class="im">as</span> pm</span>
+<span id="cb6-2"><a href=""></a></span>
+<span id="cb6-3"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> correlated_model:</span>
+<span id="cb6-4"><a href=""></a>    <span class="co"># Set a prior on the control conversion rate</span></span>
+<span id="cb6-5"><a href=""></a>    conversion_rate_control <span class="op">=</span> pm.Beta(</span>
+<span id="cb6-6"><a href=""></a>      <span class="st">"conversion_rate_control"</span>, alpha<span class="op">=</span><span class="dv">15</span>, beta<span class="op">=</span><span class="dv">600</span></span>
+<span id="cb6-7"><a href=""></a>    )</span>
+<span id="cb6-8"><a href=""></a></span>
+<span id="cb6-9"><a href=""></a>    <span class="co"># Set a prior on the relative lift</span></span>
+<span id="cb6-10"><a href=""></a>    relative_lift <span class="op">=</span> pm.Normal(</span>
+<span id="cb6-11"><a href=""></a>      <span class="st">"relative_lift"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="fl">0.1</span></span>
+<span id="cb6-12"><a href=""></a>    )</span>
+<span id="cb6-13"><a href=""></a></span>
+<span id="cb6-14"><a href=""></a>    <span class="co"># Convert the relative lift to a conversion rate for the treatment</span></span>
+<span id="cb6-15"><a href=""></a>    <span class="co"># group deterministically</span></span>
+<span id="cb6-16"><a href=""></a>    conversion_rate_treatment <span class="op">=</span> pm.Deterministic(</span>
+<span id="cb6-17"><a href=""></a>        <span class="st">"conversion_rate_treatment"</span>,</span>
+<span id="cb6-18"><a href=""></a>        conversion_rate_control <span class="op">*</span> (<span class="dv">1</span> <span class="op">+</span> relative_lift)</span>
+<span id="cb6-19"><a href=""></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/prior_predictive_ab_testing/">Prior Predictive Modeling in Bayesian A/B Testing</a></p>
 </div>

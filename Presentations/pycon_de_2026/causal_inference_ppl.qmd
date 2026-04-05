@@ -291,6 +291,8 @@ do_1_model = do(conditioned_earnings_model, {"treat": np.ones(n_obs)})
 
 ::: {.column width="50%"}
 
+Computing the ATE using the `do` operator yields the same result as the regression coefficient approach.
+
 ::: {.bordered}
 ![](causal_inference_ppl_files/static/images/intro_causal_inference_ppl_pymc_58_0.png){fig-align="center" width="1000"}
 :::
@@ -303,50 +305,12 @@ do_1_model = do(conditioned_earnings_model, {"treat": np.ones(n_obs)})
 [Introduction to Causal Inference with PPLs](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/)
 :::
 
-## Gamma GLM: A Better Likelihood
+## A more meaningful likelihood
+### Gamma Generalized Linear Model
 
-::: {.columns}
-::: {.column width="50%"}
-
-```{.python code-line-numbers="|1-2|4-5"}
-    # Non-negative earnings
-    # via softplus link
-    mu_earnings = pm.Deterministic(
-        "mu_earnings",
-        pt.softplus(raw_mu_earnings),
-        dims=("obs_idx",),
-    )
-    # Gamma likelihood
-    pm.Gamma(
-        "earnings",
-        mu=mu_earnings,
-        sigma=sigma_earnings,
-        dims=("obs_idx",),
-    )
-```
-
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/intro_causal_inference_ppl_pymc_78_0.png){fig-align="center" width="600"}
 :::
-
-::: {.column width="50%"}
-
-<!-- TODO: export posterior predictive check from intro_causal_inference_ppl_pymc.ipynb -->
-![](causal_inference_ppl_files/static/images/intro_causal_inference_ppl_pymc/ppc_glm.png){fig-align="center" width="500"}
-
-:::
-:::
-
-::: {.callout-tip appearance="simple"}
-Non-negative earnings constraint via `softplus` link + `Gamma` likelihood. Substantially better fit by LOO cross-validation.
-:::
-
-::: footer
-[Introduction to Causal Inference with PPLs](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/)
-:::
-
-## ATE Comparison: All Methods
-
-<!-- TODO: export ATE forest plot from intro_causal_inference_ppl_pymc.ipynb -->
-![](causal_inference_ppl_files/static/images/intro_causal_inference_ppl_pymc/ate_comparison_all.png){fig-align="center" width="1000"}
 
 ::: footer
 [Introduction to Causal Inference with PPLs](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/)
@@ -357,26 +321,26 @@ Non-negative earnings constraint via `softplus` link + `Gamma` likelihood. Subst
 ### Group-Level Confounding
 
 ::: {.columns}
-::: {.column width="40%"}
+::: {.column width="35.5%"}
 
-<!-- TODO: export DAG from fixed_random.ipynb -->
-![](causal_inference_ppl_files/static/images/fixed_random/dag.png){fig-align="center" width="350"}
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/fixed_random_2_0.svg){fig-align="center" width="350"}
+:::
 
 :::
 
-::: {.column width="60%"}
+::: {.column width="64.5%"}
 
-::: {.callout-tip appearance="simple"}
-**Problem:** True causal effect of $X$ on $Y$ is **zero**, but naive regression shows a positive effect.
+**Problem:** Syntetic dataset where the true causal effect of $X$ on $Y$ is **zero**. We have **group-level confounding** through group-level effect $U_G$.
 
-- Variable $Z$ confounds $X \to Y$
-- Group $G$ influences both $X$ and $Y$  through an unobserved group-level effect $U_G$
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/fixed_random_22_0.png){fig-align="center" width="650"}
 :::
-
-Inspired by Richard McElreath's *Statistical Rethinking* (2026 Lectures).
 
 :::
 :::
+
+*Taken from Richard McElreath's Statistical Rethinking [(2026 Lectures)](https://youtube.com/watch?v=XNNcN8sU8us).*
 
 ::: footer
 [Fixed and Random Effects Models: A Simulated Study](https://juanitorduz.github.io/fixed_random/)
@@ -384,7 +348,8 @@ Inspired by Richard McElreath's *Statistical Rethinking* (2026 Lectures).
 
 ## Five Estimation Strategies
 
-::: {.callout-tip appearance="simple"}
+::: {.callout-note}
+## Model Structure
 
 | Model | Approach | Recovers true effect? |
 |-------|----------|----------------------|
@@ -396,6 +361,10 @@ Inspired by Richard McElreath's *Statistical Rethinking* (2026 Lectures).
 
 :::
 
+$$
+y = \beta_{xy}x + \beta_{zy}z + \square + \varepsilon
+$$
+
 ::: {.callout-tip appearance="simple"}
 
 **Key insight (Mundlak trick):** Including group-level means as predictors absorbs the between-group confounding while preserving partial pooling benefits.
@@ -406,10 +375,43 @@ Inspired by Richard McElreath's *Statistical Rethinking* (2026 Lectures).
 [Fixed and Random Effects Models: A Simulated Study](https://juanitorduz.github.io/fixed_random/)
 :::
 
-## Mundlak Trick: Results
+## Results: The Mundlak `Latent` Model {.smaller}
 
-<!-- TODO: export forest plot comparison from fixed_random.ipynb -->
-![](causal_inference_ppl_files/static/images/fixed_random/comparison.png){fig-align="center" width="1000"}
+::: {.columns}
+::: {.column width="60%"}
+
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/fixed_random_54_0){fig-align="center" width="550"}
+:::
+
+:::
+
+::: {.column width="40%"}
+
+- Fixed effects
+
+`y ~ 0 + x + z + C(g)`
+
+- Multilevel
+
+`y ~ x + z + (1 | g)`
+
+- Mundlak
+
+`y ~ x + z + (1 | g) + x_bar`
+
+- Mundlak Latent
+
+\begin{align*}
+\color{red}{u_{[g]}} & \sim \text{Normal}(\mu_u, \sigma_u) \\
+x &= \alpha_x + \beta_{ux}{\color{red}{u_{[g]}}} + \varepsilon_x \\
+y &= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_{[g]}}} + \varepsilon_y
+\end{align*}
+
+:::
+
+:::
+:::
 
 ::: footer
 [Fixed and Random Effects Models: A Simulated Study](https://juanitorduz.github.io/fixed_random/)
@@ -420,23 +422,26 @@ Inspired by Richard McElreath's *Statistical Rethinking* (2026 Lectures).
 ### Unobserved Confounders
 
 ::: {.columns}
-::: {.column width="40%"}
+::: {.column width="50%"}
 
-<!-- TODO: export DAG from online_game_ate.ipynb -->
-![](causal_inference_ppl_files/static/images/online_game_ate/dag.png){fig-align="center" width="350"}
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/online_game_ate_6_0.svg){fig-align="center" width="450"}
+:::
 
 :::
 
-::: {.column width="60%"}
+::: {.column width="50%"}
 
 ::: incremental
 
-- Online game dataset: does guild membership increase total hours?
-- **Unobserved confounder** $Z$ (player motivation) affects both treatment and outcome
-- Standard backdoor adjustment is **not possible**
-- Solution: **CEVAE** framework (Louizos et al., NeurIPS 2017) -- learn a latent representation of $Z$ using variational inference
+- Online game dataset: `Does side-quest engagement increase in-game purchases?`
+- **Unobserved confounder** $Z$ (player motivation) affects both treatment and outcome.
+- Standard backdoor adjustment is **not possible**.
+- Solution: **CEVAE** framework (Louizos et al., NeurIPS 2017): learn a latent representation of $Z$.
 
 :::
+
+*Taken from Robert. O. N. 's book: [Causal AI](https://www.robertosazuwaness.com/causal-ai-book/).*
 
 :::
 :::
@@ -465,18 +470,6 @@ Inspired by Richard McElreath's *Statistical Rethinking* (2026 Lectures).
 [Causal Effect Estimation with Variational Inference and Latent Confounders](https://juanitorduz.github.io/online_game_ate/)
 :::
 
-## CEVAE: Results
-
-<!-- TODO: export ATE comparison from online_game_ate.ipynb -->
-![](causal_inference_ppl_files/static/images/online_game_ate/ate_comparison.png){fig-align="center" width="1000"}
-
-::: {.callout-tip appearance="simple"}
-CEVAE recovers a treatment effect consistent with the DoWhy frontdoor estimate, **despite never observing the confounder**.
-:::
-
-::: footer
-[Causal Effect Estimation with Variational Inference and Latent Confounders](https://juanitorduz.github.io/online_game_ate/)
-:::
 
 ## Mediation Analysis {.smaller}
 
