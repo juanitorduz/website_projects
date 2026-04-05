@@ -230,6 +230,65 @@
 </ol>
 </div></div>
 </section>
+<section id="what-is-causal-inference" class="slide level2 smaller">
+<h2>What is Causal Inference?</h2>
+<ul>
+<li><strong>Goal:</strong> Estimate the effect of a treatment <span class="math inline">\(T\)</span> on an outcome <span class="math inline">\(Y\)</span>.</li>
+<li><strong>Potential outcomes</strong> (Rubin, 1974): For each unit <span class="math inline">\(i\)</span>, there exist two potential outcomes:
+<ul>
+<li><span class="math inline">\(Y_i(1)\)</span>: outcome if treated</li>
+<li><span class="math inline">\(Y_i(0)\)</span>: outcome if not treated</li>
+</ul></li>
+<li><strong>Individual Treatment Effect:</strong> <span class="math inline">\(\tau_i = Y_i(1) - Y_i(0)\)</span></li>
+<li><strong>Average Treatment Effect (ATE):</strong></li>
+</ul>
+<p><span class="math display">\[
+\text{ATE} = \mathbb{E}[Y(1) - Y(0)]
+\]</span></p>
+<div class="callout callout-warning callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>The Fundamental Problem of Causal Inference</strong></p>
+</div>
+<div class="callout-content">
+<p>We can <strong>never observe both</strong> <span class="math inline">\(Y_i(1)\)</span> and <span class="math inline">\(Y_i(0)\)</span> for the same unit. One potential outcome is always <strong>missing</strong> (counterfactual).</p>
+<p><span class="math display">\[
+\text{Observed: } Y_i = T_i \cdot Y_i(1) + (1 - T_i) \cdot Y_i(0)
+\]</span></p>
+<p>This is why naive comparisons (treated vs.&nbsp;untreated) can be <strong>biased</strong>:the groups may differ systematically due to <strong>confounders</strong>.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="what-is-bayesian-statistics" class="slide level2 smaller">
+<h2>What is Bayesian Statistics?</h2>
+<p><strong>Bayes’ theorem:</strong> Update beliefs about parameters <span class="math inline">\(\theta\)</span> after observing data <span class="math inline">\(y\)</span>:</p>
+<p><span class="math display">\[
+\underbrace{p(\theta \mid y)}_{\text{posterior}} \propto \underbrace{p(y \mid \theta)}_{\text{likelihood}} \cdot \underbrace{p(\theta)}_{\text{prior}}
+\]</span></p>
+<ul>
+<li class="fragment"><strong>Prior</strong> <span class="math inline">\(p(\theta)\)</span>: encodes domain knowledge before seeing data.</li>
+<li class="fragment"><strong>Likelihood</strong> <span class="math inline">\(p(y \mid \theta)\)</span>: how probable the data is given the parameters.</li>
+<li class="fragment"><strong>Posterior</strong> <span class="math inline">\(p(\theta \mid y)\)</span>: updated beliefs after observing data.</li>
+<li class="fragment">In a <strong>generative graphical model</strong>, all distributions start as priors over the data generating process. Once we <strong>condition on observed data</strong>, they become likelihoods.</li>
+</ul>
+<div class="callout callout-note callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Probabilistic Programming Languages (PPLs)</strong></p>
+</div>
+<div class="callout-content">
+<p>PPLs let you write generative models as code and automate posterior inference. Examples: <a href="https://www.pymc.io/">PyMC</a>, <a href="https://num.pyro.ai/">NumPyro</a>, <a href="https://mc-stan.org/">Stan</a>.</p>
+</div>
+</div>
+</div>
+</section>
 <section id="why-ppls-for-causal-inference" class="slide level2">
 <h2>Why PPLs for Causal Inference?</h2>
 <div class="callout callout-tip callout-style-simple">
@@ -239,25 +298,11 @@
 </div>
 <div class="callout-content">
 <ul>
-<li><strong>Interpretability</strong>
-<ul>
-<li>Explicit causal assumptions via DAGs</li>
-<li>Code transparently represents the data generating process</li>
-</ul></li>
-<li><strong>Uncertainty quantification</strong>
-<ul>
-<li>Full posterior distributions over causal effects</li>
-<li>Risk assessment and decision making</li>
-</ul></li>
-<li><strong>Customization</strong>
-<ul>
-<li>Swap likelihoods, add latent variables, encode domain knowledge</li>
-<li>Non-linear and hierarchical approaches</li>
-</ul></li>
-<li><strong>Unified framework</strong>
-<ul>
-<li>Same PPL for all causal tasks in this talk</li>
-</ul></li>
+<li><p><strong>Model = DAG:</strong> Writing the generative process forces you to explicitly state your causal assumptions — this alone is valuable</p></li>
+<li><p><strong>Uncertainty for free:</strong> Posterior distributions over causal effects, not just point estimates</p></li>
+<li><p><strong>Flexible modeling:</strong> Swap likelihoods (Normal <span class="math inline">\(\to\)</span> Gamma), add hierarchical structure (Mundlak), or latent variables for unobserved confounders (CEVAE)</p></li>
+<li><p><strong><code>do</code>-operator:</strong> Intervene on the generative model for counterfactual reasoning</p></li>
+<li><p><strong>Fast inference:</strong> Modern MCMC (NUTS) and SVI make posterior computation scalable and reliable</p></li>
 </ul>
 </div>
 </div>
@@ -655,70 +700,53 @@ y &amp;= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_
 <p><a href="https://juanitorduz.github.io/online_game_ate/">Causal Effect Estimation with Variational Inference and Latent Confounders</a></p>
 </div>
 </section>
-<section id="cevae-architecture" class="slide level2">
+<section id="cevae-architecture" class="slide level2 smaller">
 <h2>CEVAE Architecture</h2>
-<div class="callout callout-tip callout-style-simple">
-<div class="callout-body">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-content">
-<p><strong>Causal Effect Variational Autoencoder (CEVAE):</strong></p>
 <ul>
-<li><strong>Encoder:</strong> Flax (NNX) neural network maps observed data to latent confounder <span class="math inline">\(Z\)</span></li>
-<li><strong>Decoder:</strong> Generative model for treatment and outcome given <span class="math inline">\(Z\)</span></li>
-<li><strong>Inference:</strong> Stochastic Variational Inference (SVI) in NumPyro/PyMC</li>
-<li><strong>Key trick:</strong> Use identical <span class="math inline">\(Z\)</span> samples when computing <span class="math inline">\(Y(\text{do}(T=0))\)</span> and <span class="math inline">\(Y(\text{do}(T=1))\)</span> for consistent counterfactual comparisons</li>
+<li class="fragment"><strong>Model = Decoder (generative process):</strong> Follows the causal ordering:
+<ol type="1">
+<li class="fragment"><span class="math inline">\(Z\)</span> (player motivation) <span class="math inline">\(\sim \text{Normal}(0, 1)\)</span>.</li>
+<li class="fragment">Engagement (treatment) <span class="math inline">\(\sim \text{Bernoulli}(f_\theta(\text{guild membership}, Z))\)</span>.</li>
+<li class="fragment">Purchases (outcome) <span class="math inline">\(\sim \text{Normal}(g_\theta(\text{won items}, \text{guild membership}, Z))\)</span>.</li>
+</ol></li>
+<li class="fragment"><strong>Guide = Encoder (recognition network):</strong> Flax (NNX) neural network that maps observed data <span class="math inline">\((\text{guild membership}, \text{engagement}, \text{purchases})\)</span> to the approximate posterior <span class="math inline">\(q_\phi(Z \mid \cdot) = \text{Normal}(\mu_\phi, \sigma_\phi)\)</span>
+<ul>
+<li class="fragment">Instead of optimizing separate <span class="math inline">\((\mu_i, \sigma_i)\)</span> per observation, a single network with shared weights <span class="math inline">\(\phi\)</span> learns the mapping for all observations (amortized inference).</li>
+</ul></li>
+<li class="fragment"><strong>Inference:</strong> SVI maximizes the ELBO, jointly training the decoder parameters <span class="math inline">\(\theta\)</span> and encoder parameters <span class="math inline">\(\phi\)</span> (NumPyro)</li>
+<li class="fragment"><strong>Key trick:</strong> Use <strong>identical</strong> <span class="math inline">\(Z\)</span> samples for both <span class="math inline">\(Y(\text{do}(T\!=\!0))\)</span> and <span class="math inline">\(Y(\text{do}(T\!=\!1))\)</span> via <code>condition</code> + <code>do</code> handlers.</li>
 </ul>
-</div>
-</div>
-</div>
-<!-- TODO: export model diagram or architecture from online_game_ate.ipynb -->
-
-<img data-src="causal_inference_ppl_files/static/images/online_game_ate/architecture.png" class="quarto-figure quarto-figure-center r-stretch" width="800"><div class="footer">
+<div class="footer">
 <p><a href="https://juanitorduz.github.io/online_game_ate/">Causal Effect Estimation with Variational Inference and Latent Confounders</a></p>
 </div>
 </section>
-<section id="mediation-analysis" class="slide level2 smaller">
-<h2>Mediation Analysis</h2>
-<h3 id="indirect-effects">(In)Direct Effects</h3>
+<section id="mediation-analysis-indirect-effects" class="slide level2 smaller">
+<h2>Mediation Analysis: (In)Direct Effects</h2>
+<p><strong>Question:</strong> How does family intervention reduce substance use disorder? Decompose total effect into direct and indirect pathways.</p>
 <div class="columns">
-<div class="column" style="width:40%;">
-<!-- TODO: export DAG from mediation.ipynb -->
+<div class="column" style="width:50%;">
+<div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="causal_inference_ppl_files/static/images/mediation/dag.png" class="quarto-figure quarto-figure-center" width="350"></p>
+<p><img data-src="causal_inference_ppl_files/static/images/mediation_5_0.svg" class="quarto-figure quarto-figure-center" width="450"></p>
 </figure>
 </div>
-</div><div class="column" style="width:60%;">
+</div>
+</div><div class="column" style="width:50%;">
 <ul>
-<li class="fragment">Family intervention study (<span class="math inline">\(N = 553\)</span>)</li>
-<li class="fragment"><strong>Treatment:</strong> Family intervention program</li>
-<li class="fragment"><strong>Outcome:</strong> Substance use disorder</li>
-<li class="fragment"><strong>Two mediators:</strong> Deviant peers, substance experimentation</li>
-<li class="fragment"><strong>Question:</strong> How much of the effect goes through each pathway?</li>
+<li>Synthetic dataset (<span class="math inline">\(N = 410\)</span>) studying family intervention effects during adolescence.</li>
+<li><strong>Covariates:</strong> <code>gender</code> (binary), <code>conflict</code> (ordinal family conflict level).</li>
+<li><strong>Treatment:</strong> <code>fam_int</code> (family intervention program, binary).</li>
+<li><strong>Two mediators:</strong> <code>dev_peer</code> (deviant peer engagement), <code>sub_exp</code> (drug experimentation).</li>
+<li><strong>Outcome:</strong> <code>sub_disorder</code> (substance use disorder diagnosis, binary).</li>
 </ul>
 </div></div>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/mediation/">Mediation Analysis and (In)Direct Effects with PyMC</a></p>
 </div>
 </section>
-<section id="mediation-model-structure" class="slide level2">
-<h2>Mediation: Model Structure</h2>
-<div class="callout callout-tip callout-style-simple">
-<div class="callout-body">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-content">
-<p><strong>Four Bernoulli likelihoods with logistic links:</strong></p>
-<pre><code>fam_int      ~ Bernoulli(logistic(gender, conflict))
-dev_peer     ~ Bernoulli(logistic(gender, conflict, fam_int))
-sub_exp      ~ Bernoulli(logistic(gender, conflict, fam_int))
-sub_disorder ~ Bernoulli(logistic(gender, conflict, fam_int, dev_peer, sub_exp))</code></pre>
-</div>
-</div>
-</div>
+<section id="decomposition-via-do-operator" class="slide level2 smaller">
+<h2>Decomposition via <code>do</code>-Operator</h2>
 <div class="callout callout-tip callout-style-simple">
 <div class="callout-body">
 <div class="callout-icon-container">
@@ -726,11 +754,51 @@ sub_disorder ~ Bernoulli(logistic(gender, conflict, fam_int, dev_peer, sub_exp))
 </div>
 <div class="callout-content">
 <p><strong>Effect decomposition:</strong></p>
-<ul>
-<li><strong>Direct Effect (DE):</strong> <code>fam_int</code> <span class="math inline">\(\to\)</span> <code>sub_disorder</code></li>
-<li><strong>Indirect Effects (IIE):</strong> Through each mediator</li>
-<li><strong>Interaction (INT):</strong> Joint mediator contributions</li>
-</ul>
+<p>Define <span class="math inline">\(E_{t, t', t''}\)</span> as the expected outcome when <code>fam_int</code> <span class="math inline">\(= t\)</span> in the outcome equation, <code>dev_peer</code> follows its <span class="math inline">\(\text{do}(T\!=\!t')\)</span> distribution, and <code>sub_exp</code> follows its <span class="math inline">\(\text{do}(T\!=\!t'')\)</span> distribution.</p>
+<p><span class="math display">\[E_{t,t',t''} = \sum_{m_1, m_2} P(M_1\!=\!m_1 \mid \text{do}(T\!=\!t')) \cdot P(M_2\!=\!m_2 \mid \text{do}(T\!=\!t''))\]</span> <span class="math display">\[\quad \cdot \; P(Y\!=\!1 \mid \text{do}(T\!=\!t, M_1\!=\!m_1, M_2\!=\!m_2))\]</span></p>
+<p>The mediators factor because there is <strong>no edge</strong> between <code>dev_peer</code> and <code>sub_exp</code> in the DAG.</p>
+<p>We can compute the effects using the <code>do</code>-operator:</p>
+<table class="caption-top">
+<colgroup>
+<col style="width: 24%">
+<col style="width: 27%">
+<col style="width: 48%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Effect</th>
+<th>Formula</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>TE</strong> (Total)</td>
+<td><span class="math inline">\(E_{1,1,1} - E_{0,0,0}\)</span></td>
+<td>Full treatment effect</td>
+</tr>
+<tr class="even">
+<td><strong>DE</strong> (Direct)</td>
+<td><span class="math inline">\(E_{1,0,0} - E_{0,0,0}\)</span></td>
+<td><code>fam_int</code> <span class="math inline">\(\to\)</span> <code>sub_disorder</code>, mediators at control</td>
+</tr>
+<tr class="odd">
+<td><strong>IIE<span class="math inline">\(_1\)</span></strong> (via <code>dev_peer</code>)</td>
+<td><span class="math inline">\(E_{0,1,0} - E_{0,0,0}\)</span></td>
+<td>Shift <code>dev_peer</code> to treated, hold rest at control</td>
+</tr>
+<tr class="even">
+<td><strong>IIE<span class="math inline">\(_2\)</span></strong> (via <code>sub_exp</code>)</td>
+<td><span class="math inline">\(E_{0,0,1} - E_{0,0,0}\)</span></td>
+<td>Shift <code>sub_exp</code> to treated, hold rest at control</td>
+</tr>
+<tr class="odd">
+<td><strong>INT</strong> (Interaction)</td>
+<td><span class="math inline">\(E_{0,1,1} - E_{0,1,0} - E_{0,0,1} + E_{0,0,0}\)</span></td>
+<td>Joint mediator contribution beyond individual effects</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
@@ -738,18 +806,13 @@ sub_disorder ~ Bernoulli(logistic(gender, conflict, fam_int, dev_peer, sub_exp))
 <p><a href="https://juanitorduz.github.io/mediation/">Mediation Analysis and (In)Direct Effects with PyMC</a></p>
 </div>
 </section>
-<section id="mediation-analytical-vs-do-operator" class="slide level2">
-<h2>Mediation: Analytical vs <code>do</code>-Operator</h2>
-<!-- TODO: export effects comparison from mediation.ipynb -->
-
-<img data-src="causal_inference_ppl_files/static/images/mediation/effects_comparison.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="callout callout-tip callout-style-simple">
-<div class="callout-body">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-content">
-<p>Both analytical and <code>do</code>-operator approaches yield <strong>identical results</strong>, validating the implementation.</p>
-</div>
+<section id="mediation-decomposition" class="slide level2">
+<h2>Mediation Decomposition</h2>
+<div class="bordered">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="causal_inference_ppl_files/static/images/mediation_55_0.png" class="quarto-figure quarto-figure-center" width="950"></p>
+</figure>
 </div>
 </div>
 <div class="footer">
@@ -779,25 +842,25 @@ sub_disorder ~ Bernoulli(logistic(gender, conflict, fam_int, dev_peer, sub_exp))
 </section>
 <section id="correlated-priors-the-right-approach" class="slide level2">
 <h2>Correlated Priors: The Right Approach</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" data-code-line-numbers="|4-7|9-12|14-19"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a><span class="im">import</span> pymc <span class="im">as</span> pm</span>
-<span id="cb6-2"><a href=""></a></span>
-<span id="cb6-3"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> correlated_model:</span>
-<span id="cb6-4"><a href=""></a>    <span class="co"># Set a prior on the control conversion rate</span></span>
-<span id="cb6-5"><a href=""></a>    conversion_rate_control <span class="op">=</span> pm.Beta(</span>
-<span id="cb6-6"><a href=""></a>      <span class="st">"conversion_rate_control"</span>, alpha<span class="op">=</span><span class="dv">15</span>, beta<span class="op">=</span><span class="dv">600</span></span>
-<span id="cb6-7"><a href=""></a>    )</span>
-<span id="cb6-8"><a href=""></a></span>
-<span id="cb6-9"><a href=""></a>    <span class="co"># Set a prior on the relative lift</span></span>
-<span id="cb6-10"><a href=""></a>    relative_lift <span class="op">=</span> pm.Normal(</span>
-<span id="cb6-11"><a href=""></a>      <span class="st">"relative_lift"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="fl">0.1</span></span>
-<span id="cb6-12"><a href=""></a>    )</span>
-<span id="cb6-13"><a href=""></a></span>
-<span id="cb6-14"><a href=""></a>    <span class="co"># Convert the relative lift to a conversion rate for the treatment</span></span>
-<span id="cb6-15"><a href=""></a>    <span class="co"># group deterministically</span></span>
-<span id="cb6-16"><a href=""></a>    conversion_rate_treatment <span class="op">=</span> pm.Deterministic(</span>
-<span id="cb6-17"><a href=""></a>        <span class="st">"conversion_rate_treatment"</span>,</span>
-<span id="cb6-18"><a href=""></a>        conversion_rate_control <span class="op">*</span> (<span class="dv">1</span> <span class="op">+</span> relative_lift)</span>
-<span id="cb6-19"><a href=""></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" data-code-line-numbers="|4-7|9-12|14-19"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href=""></a><span class="im">import</span> pymc <span class="im">as</span> pm</span>
+<span id="cb5-2"><a href=""></a></span>
+<span id="cb5-3"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> correlated_model:</span>
+<span id="cb5-4"><a href=""></a>    <span class="co"># Set a prior on the control conversion rate</span></span>
+<span id="cb5-5"><a href=""></a>    conversion_rate_control <span class="op">=</span> pm.Beta(</span>
+<span id="cb5-6"><a href=""></a>      <span class="st">"conversion_rate_control"</span>, alpha<span class="op">=</span><span class="dv">15</span>, beta<span class="op">=</span><span class="dv">600</span></span>
+<span id="cb5-7"><a href=""></a>    )</span>
+<span id="cb5-8"><a href=""></a></span>
+<span id="cb5-9"><a href=""></a>    <span class="co"># Set a prior on the relative lift</span></span>
+<span id="cb5-10"><a href=""></a>    relative_lift <span class="op">=</span> pm.Normal(</span>
+<span id="cb5-11"><a href=""></a>      <span class="st">"relative_lift"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="fl">0.1</span></span>
+<span id="cb5-12"><a href=""></a>    )</span>
+<span id="cb5-13"><a href=""></a></span>
+<span id="cb5-14"><a href=""></a>    <span class="co"># Convert the relative lift to a conversion rate for the treatment</span></span>
+<span id="cb5-15"><a href=""></a>    <span class="co"># group deterministically</span></span>
+<span id="cb5-16"><a href=""></a>    conversion_rate_treatment <span class="op">=</span> pm.Deterministic(</span>
+<span id="cb5-17"><a href=""></a>        <span class="st">"conversion_rate_treatment"</span>,</span>
+<span id="cb5-18"><a href=""></a>        conversion_rate_control <span class="op">*</span> (<span class="dv">1</span> <span class="op">+</span> relative_lift)</span>
+<span id="cb5-19"><a href=""></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/prior_predictive_ab_testing/">Prior Predictive Modeling in Bayesian A/B Testing</a></p>
 </div>

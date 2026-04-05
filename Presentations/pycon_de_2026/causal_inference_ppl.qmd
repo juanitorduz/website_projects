@@ -46,25 +46,72 @@ format:
 :::
 :::
 
+## What is Causal Inference? {.smaller}
+
+- **Goal:** Estimate the effect of a treatment $T$ on an outcome $Y$.
+- **Potential outcomes** (Rubin, 1974): For each unit $i$, there exist two potential outcomes:
+  - $Y_i(1)$: outcome if treated
+  - $Y_i(0)$: outcome if not treated
+- **Individual Treatment Effect:** $\tau_i = Y_i(1) - Y_i(0)$
+- **Average Treatment Effect (ATE):** 
+
+$$
+\text{ATE} = \mathbb{E}[Y(1) - Y(0)]
+$$
+
+
+::: {.callout-warning}
+
+## The Fundamental Problem of Causal Inference
+
+We can **never observe both** $Y_i(1)$ and $Y_i(0)$ for the same unit. One potential outcome is always **missing** (counterfactual).
+
+$$
+\text{Observed: } Y_i = T_i \cdot Y_i(1) + (1 - T_i) \cdot Y_i(0)
+$$
+
+This is why naive comparisons (treated vs. untreated) can be **biased**:the groups may differ systematically due to **confounders**.
+
+:::
+
+## What is Bayesian Statistics? {.smaller}
+
+**Bayes' theorem:** Update beliefs about parameters $\theta$ after observing data $y$:
+
+$$
+\underbrace{p(\theta \mid y)}_{\text{posterior}} \propto \underbrace{p(y \mid \theta)}_{\text{likelihood}} \cdot \underbrace{p(\theta)}_{\text{prior}}
+$$
+
+::: incremental
+
+- **Prior** $p(\theta)$: encodes domain knowledge before seeing data.
+- **Likelihood** $p(y \mid \theta)$: how probable the data is given the parameters.
+- **Posterior** $p(\theta \mid y)$: updated beliefs after observing data.
+- In a **generative graphical model**, all distributions start as priors over the data generating process. Once we **condition on observed data**, they become likelihoods.
+
+:::
+
+::: {.callout-note}
+
+## Probabilistic Programming Languages (PPLs)
+
+PPLs let you write generative models as code and automate posterior inference. Examples: [PyMC](https://www.pymc.io/), [NumPyro](https://num.pyro.ai/), [Stan](https://mc-stan.org/).
+
+:::
 
 ## Why PPLs for Causal Inference?
 
 ::: {.callout-tip appearance="simple"}
 
-- **Interpretability**
-  - Explicit causal assumptions via DAGs
-  - Code transparently represents the data generating process
+- **Model = DAG:** Writing the generative process forces you to explicitly state your causal assumptions — this alone is valuable
 
-- **Uncertainty quantification**
-  - Full posterior distributions over causal effects
-  - Risk assessment and decision making
+- **Uncertainty for free:** Posterior distributions over causal effects, not just point estimates
 
-- **Customization**
-  - Swap likelihoods, add latent variables, encode domain knowledge
-  - Non-linear and hierarchical approaches
+- **Flexible modeling:** Swap likelihoods (Normal $\to$ Gamma), add hierarchical structure (Mundlak), or latent variables for unobserved confounders (CEVAE)
 
-- **Unified framework**
-  - Same PPL for all causal tasks in this talk
+- **`do`-operator:** Intervene on the generative model for counterfactual reasoning
+
+- **Fast inference:** Modern MCMC (NUTS) and SVI make posterior computation scalable and reliable
 
 :::
 
@@ -450,50 +497,48 @@ y &= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_{[g]
 [Causal Effect Estimation with Variational Inference and Latent Confounders](https://juanitorduz.github.io/online_game_ate/)
 :::
 
-## CEVAE Architecture
+## CEVAE Architecture {.smaller}
 
-::: {.callout-tip appearance="simple"}
+::: incremental
 
-**Causal Effect Variational Autoencoder (CEVAE):**
+- **Model = Decoder (generative process):** Follows the causal ordering:
+  1. $Z$ (player motivation) $\sim \text{Normal}(0, 1)$.
+  2. Engagement (treatment) $\sim \text{Bernoulli}(f_\theta(\text{guild membership}, Z))$.
+  3. Purchases (outcome) $\sim \text{Normal}(g_\theta(\text{won items}, \text{guild membership}, Z))$.
 
-- **Encoder:** Flax (NNX) neural network maps observed data to latent confounder $Z$
-- **Decoder:** Generative model for treatment and outcome given $Z$
-- **Inference:** Stochastic Variational Inference (SVI) in NumPyro/PyMC
-- **Key trick:** Use identical $Z$ samples when computing $Y(\text{do}(T=0))$ and $Y(\text{do}(T=1))$ for consistent counterfactual comparisons
+- **Guide = Encoder (recognition network):** Flax (NNX) neural network that maps observed data $(\text{guild membership}, \text{engagement}, \text{purchases})$ to the approximate posterior $q_\phi(Z \mid \cdot) = \text{Normal}(\mu_\phi, \sigma_\phi)$
+  - Instead of optimizing separate $(\mu_i, \sigma_i)$ per observation, a single network with shared weights $\phi$ learns the mapping for all observations (amortized inference).
+
+- **Inference:** SVI maximizes the ELBO, jointly training the decoder parameters $\theta$ and encoder parameters $\phi$ (NumPyro)
+- **Key trick:** Use **identical** $Z$ samples for both $Y(\text{do}(T\!=\!0))$ and $Y(\text{do}(T\!=\!1))$ via `condition` + `do` handlers.
 
 :::
-
-<!-- TODO: export model diagram or architecture from online_game_ate.ipynb -->
-![](causal_inference_ppl_files/static/images/online_game_ate/architecture.png){fig-align="center" width="800"}
 
 ::: footer
 [Causal Effect Estimation with Variational Inference and Latent Confounders](https://juanitorduz.github.io/online_game_ate/)
 :::
 
 
-## Mediation Analysis {.smaller}
+## Mediation Analysis: (In)Direct Effects {.smaller}
 
-### (In)Direct Effects
+**Question:** How does family intervention reduce substance use disorder? Decompose total effect into direct and indirect pathways.
 
 ::: {.columns}
-::: {.column width="40%"}
+::: {.column width="50%"}
 
-<!-- TODO: export DAG from mediation.ipynb -->
-![](causal_inference_ppl_files/static/images/mediation/dag.png){fig-align="center" width="350"}
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/mediation_5_0.svg){fig-align="center" width="450"}
+:::
 
 :::
 
-::: {.column width="60%"}
+::: {.column width="50%"}
 
-::: incremental
-
-- Family intervention study ($N = 553$)
-- **Treatment:** Family intervention program
-- **Outcome:** Substance use disorder
-- **Two mediators:** Deviant peers, substance experimentation
-- **Question:** How much of the effect goes through each pathway?
-
-:::
+- Synthetic dataset ($N = 410$) studying family intervention effects during adolescence.
+- **Covariates:** `gender` (binary), `conflict` (ordinal family conflict level).
+- **Treatment:** `fam_int` (family intervention program, binary).
+- **Two mediators:** `dev_peer` (deviant peer engagement), `sub_exp` (drug experimentation).
+- **Outcome:** `sub_disorder` (substance use disorder diagnosis, binary).
 
 :::
 :::
@@ -502,28 +547,28 @@ y &= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_{[g]
 [Mediation Analysis and (In)Direct Effects with PyMC](https://juanitorduz.github.io/mediation/)
 :::
 
-## Mediation: Model Structure
-
-::: {.callout-tip appearance="simple"}
-
-**Four Bernoulli likelihoods with logistic links:**
-
-```
-fam_int      ~ Bernoulli(logistic(gender, conflict))
-dev_peer     ~ Bernoulli(logistic(gender, conflict, fam_int))
-sub_exp      ~ Bernoulli(logistic(gender, conflict, fam_int))
-sub_disorder ~ Bernoulli(logistic(gender, conflict, fam_int, dev_peer, sub_exp))
-```
-
-:::
+## Decomposition via `do`-Operator {.smaller}
 
 ::: {.callout-tip appearance="simple"}
 
 **Effect decomposition:**
 
-- **Direct Effect (DE):** `fam_int` $\to$ `sub_disorder`
-- **Indirect Effects (IIE):** Through each mediator
-- **Interaction (INT):** Joint mediator contributions
+Define $E_{t, t', t''}$ as the expected outcome when `fam_int` $= t$ in the outcome equation, `dev_peer` follows its $\text{do}(T\!=\!t')$ distribution, and `sub_exp` follows its $\text{do}(T\!=\!t'')$ distribution.
+
+$$E_{t,t',t''} = \sum_{m_1, m_2} P(M_1\!=\!m_1 \mid \text{do}(T\!=\!t')) \cdot P(M_2\!=\!m_2 \mid \text{do}(T\!=\!t''))$$
+$$\quad \cdot \; P(Y\!=\!1 \mid \text{do}(T\!=\!t, M_1\!=\!m_1, M_2\!=\!m_2))$$
+
+The mediators factor because there is **no edge** between `dev_peer` and `sub_exp` in the DAG.
+
+We can compute the effects using the `do`-operator:
+
+| Effect | Formula | Interpretation |
+|--------|---------|----------------|
+| **TE** (Total) | $E_{1,1,1} - E_{0,0,0}$ | Full treatment effect |
+| **DE** (Direct) | $E_{1,0,0} - E_{0,0,0}$ | `fam_int` $\to$ `sub_disorder`, mediators at control |
+| **IIE$_1$** (via `dev_peer`) | $E_{0,1,0} - E_{0,0,0}$ | Shift `dev_peer` to treated, hold rest at control |
+| **IIE$_2$** (via `sub_exp`) | $E_{0,0,1} - E_{0,0,0}$ | Shift `sub_exp` to treated, hold rest at control |
+| **INT** (Interaction) | $E_{0,1,1} - E_{0,1,0} - E_{0,0,1} + E_{0,0,0}$ | Joint mediator contribution beyond individual effects |
 
 :::
 
@@ -531,19 +576,16 @@ sub_disorder ~ Bernoulli(logistic(gender, conflict, fam_int, dev_peer, sub_exp))
 [Mediation Analysis and (In)Direct Effects with PyMC](https://juanitorduz.github.io/mediation/)
 :::
 
-## Mediation: Analytical vs `do`-Operator
 
-<!-- TODO: export effects comparison from mediation.ipynb -->
-![](causal_inference_ppl_files/static/images/mediation/effects_comparison.png){fig-align="center" width="1000"}
+## Mediation Decomposition
 
-::: {.callout-tip appearance="simple"}
-Both analytical and `do`-operator approaches yield **identical results**, validating the implementation.
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/mediation_55_0.png){fig-align="center" width="950"}
 :::
 
 ::: footer
 [Mediation Analysis and (In)Direct Effects with PyMC](https://juanitorduz.github.io/mediation/)
 :::
-
 
 ## Bayesian A/B Testing
 
