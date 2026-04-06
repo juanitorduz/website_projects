@@ -115,6 +115,224 @@ PPLs let you write generative models as code and automate posterior inference. E
 
 :::
 
+## Bayesian A/B Testing {.smaller}
+
+Simple Bayesian A/B test model to estimate the relative lift between a control and a treatment groups in a balanced experiment.
+
+```{.python code-line-numbers="1||2-4|5-7|8-11|"}
+with pm.Model() as non_informative_model:
+    conversion_rate_control = pm.Uniform(
+      "conversion_rate_control", lower=0, upper=1
+    )
+    conversion_rate_treatment = pm.Uniform(
+        "conversion_rate_treatment", lower=0, upper=1
+    )
+    relative_lift = pm.Deterministic(
+        "relative_lift",
+        conversion_rate_treatment / conversion_rate_control - 1,
+    )
+```
+::: {.columns}
+::: {.column width="70%"}
+
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing_5_0.svg){fig-align="center" width="650"}
+:::
+
+:::
+::: {.column width="30%"}
+
+
+\begin{align*}
+\text{cr}_\text{c} & \sim \text{Beta}(1, 1) \\
+\text{cr}_\text{t} & \sim \text{Beta}(1, 1) \\
+\text{lift} & = \text{cr}_\text{t} / \text{cr}_\text{c} - 1 \\
+N_{\text{c}} & \sim \text{Binomial}(N, \text{cr}_\text{c}) \\
+N_{\text{t}} & \sim \text{Binomial}(N, \text{cr}_\text{t}) \\
+\end{align*}
+
+:::
+:::
+
+::: footer
+[Prior Predictive Modeling in Bayesian A/B Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
+:::
+
+## Uninformative Priors: Implications
+
+::: {.callout-important}
+## Uninformative Priors yield implausible values for the relative lift.
+
+Setting uninformative priors for the conversion rates yields implausible values for the relative lifts as this is a ratio of two random variables, so it can blow up to infinity or zero.
+
+:::
+
+::: {.columns}
+::: {.column width="40.5%"}
+
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing_11_0.png){fig-align="center" width="700"}
+:::
+
+:::
+::: {.column width="59.5%"}
+
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing_14_0.png){fig-align="center" width="700"}
+:::
+
+:::
+:::
+
+::: footer
+[Prior Predictive Modeling in Bayesian A/B Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
+:::
+
+## Informative Priors: Implications {.smaller}
+
+::: {.columns}
+::: {.column width="30%"}
+
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing_23_0.png){fig-align="center" width="400"}
+
+![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing_25_0.png){fig-align="center" width="400"}
+:::
+
+:::
+
+::: {.column width="70%"}
+
+::: {.callout-warning}
+## Informative Priors
+
+Even if we set informative priors for the conversion rates, the relative lift range is still unreasonable wide.
+
+:::
+
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing_27_0.png){fig-align="center" width="800"}
+:::
+
+:::
+
+:::
+
+::: footer
+[Prior Predictive Modeling in Bayesian A/B Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
+:::
+
+
+## Correlated Priors: Implications {.smaller}
+
+```{.python code-line-numbers="|4-7|9-12|14-19"}
+with pm.Model() as correlated_model:
+    conversion_rate_control = pm.Beta(
+      "conversion_rate_control", alpha=15, beta=600
+    )
+    relative_lift = pm.Normal(
+      "relative_lift", mu=0, sigma=0.1
+    )
+    conversion_rate_treatment = pm.Deterministic(
+        "conversion_rate_treatment",
+        conversion_rate_control * (1 + relative_lift)
+    )
+```
+
+::: footer
+[Prior Predictive Modeling in Bayesian A/B Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
+:::
+
+## Correlated Priors: Prior vs Posterior
+
+<!-- TODO: export prior vs posterior from prior_predictive_ab_testing.ipynb -->
+![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing/prior_vs_posterior.png){fig-align="center" width="1000"}
+
+::: footer
+[Prior Predictive Modeling in Bayesian A/B Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
+:::
+
+## Bayesian Power Analysis {.smaller}
+
+::: {.callout-tip appearance="simple"}
+
+### HDI + ROPE Framework
+
+Declare significance when the 94% HDI of the posterior lift **excludes the ROPE** (Region of Practical Equivalence) around zero.
+
+**Five-step process:**
+
+1. Generate parameter values from a hypothetical distribution
+2. Simulate data samples using the planned sampling methods
+3. Compute posterior estimates with Bayesian analysis
+4. Assess whether the HDI excludes the ROPE
+5. Repeat to approximate statistical power
+
+:::
+
+::: footer
+- [Introduction to Bayesian Power Analysis](https://juanitorduz.github.io/power_sample_size_exclude_null/)
+- [Bayesian Power Analysis for A/B Testing](https://juanitorduz.github.io/bayesian_power_ab_testing/)
+:::
+
+## Power Curves: Prior Specification Matters
+
+<!-- TODO: export power curves from bayesian_power_ab_testing.ipynb -->
+![](causal_inference_ppl_files/static/images/bayesian_power_ab_testing/power_curves.png){fig-align="center" width="1000"}
+
+::: {.callout-tip appearance="simple"}
+Correlated model is **most conservative** but controls false positive rate. Non-informative priors $\approx$ frequentist z-test.
+:::
+
+::: footer
+[Bayesian Power Analysis for A/B Testing](https://juanitorduz.github.io/bayesian_power_ab_testing/)
+:::
+
+## Bayesian CUPED
+
+::: {.columns}
+::: {.column width="50%"}
+
+**Three approaches:**
+
+1. **Difference-in-means** (baseline)
+2. **Full Bayesian CUPED** (joint model)
+3. **Graph surgery** (`do` operator)
+
+$$Y_{\text{cuped}} = Y_{\text{post}} - \theta(Y_{\text{pre}} - \bar{Y}_{\text{pre}})$$
+
+:::
+
+::: {.column width="50%"}
+
+::: {.callout-tip appearance="simple"}
+
+**CUPED** (Controlled Use of Pre-Experiment Data): use pre-treatment outcome as a covariate to **reduce posterior variance**.
+
+Same idea as classical CUPED but with full uncertainty quantification.
+
+:::
+
+:::
+:::
+
+::: footer
+[Bayesian CUPED](https://juanitorduz.github.io/bayesian_cuped/)
+:::
+
+## Bayesian CUPED: Results
+
+<!-- TODO: export posterior comparison from bayesian_cuped.ipynb -->
+![](causal_inference_ppl_files/static/images/bayesian_cuped/posterior_comparison.png){fig-align="center" width="1000"}
+
+::: {.callout-tip appearance="simple"}
+Minimal difference between full Bayesian CUPED and graph surgery -- both achieve substantial variance reduction compared to difference-in-means.
+:::
+
+::: footer
+[Bayesian CUPED](https://juanitorduz.github.io/bayesian_cuped/)
+:::
+
 ## The Lalonde Dataset {.smaller}
 
 Job training program (National Supported Work, 1970s): Does job training increase earnings?
@@ -585,139 +803,6 @@ We can compute the effects using the `do`-operator:
 
 ::: footer
 [Mediation Analysis and (In)Direct Effects with PyMC](https://juanitorduz.github.io/mediation/)
-:::
-
-## Bayesian A/B Testing
-
-### The Bet Test Problem
-
-![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing/priors_comparison.png){fig-align="center" width="1000"}
-
-::: {.callout-tip appearance="simple"}
-Would you **bet your own money** on the A/B test result before seeing data? Independent informative priors can imply implausible prior lift distributions.
-:::
-
-::: footer
-- [The Bet Test (Eppo)](https://www.geteppo.com/blog/the-bet-test-problems-in-bayesian-ab-test-analysis)
-- [Prior Predictive Modeling in Bayesian A/B Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
-:::
-
-## Correlated Priors: The Right Approach
-
-```{.python code-line-numbers="|4-7|9-12|14-19"}
-import pymc as pm
-
-with pm.Model() as correlated_model:
-    # Set a prior on the control conversion rate
-    conversion_rate_control = pm.Beta(
-      "conversion_rate_control", alpha=15, beta=600
-    )
-
-    # Set a prior on the relative lift
-    relative_lift = pm.Normal(
-      "relative_lift", mu=0, sigma=0.1
-    )
-
-    # Convert the relative lift to a conversion rate for the treatment
-    # group deterministically
-    conversion_rate_treatment = pm.Deterministic(
-        "conversion_rate_treatment",
-        conversion_rate_control * (1 + relative_lift)
-    )
-```
-
-::: footer
-[Prior Predictive Modeling in Bayesian A/B Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
-:::
-
-## Correlated Priors: Prior vs Posterior
-
-<!-- TODO: export prior vs posterior from prior_predictive_ab_testing.ipynb -->
-![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing/prior_vs_posterior.png){fig-align="center" width="1000"}
-
-::: footer
-[Prior Predictive Modeling in Bayesian A/B Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
-:::
-
-## Bayesian Power Analysis {.smaller}
-
-::: {.callout-tip appearance="simple"}
-
-### HDI + ROPE Framework
-
-Declare significance when the 94% HDI of the posterior lift **excludes the ROPE** (Region of Practical Equivalence) around zero.
-
-**Five-step process:**
-
-1. Generate parameter values from a hypothetical distribution
-2. Simulate data samples using the planned sampling methods
-3. Compute posterior estimates with Bayesian analysis
-4. Assess whether the HDI excludes the ROPE
-5. Repeat to approximate statistical power
-
-:::
-
-::: footer
-- [Introduction to Bayesian Power Analysis](https://juanitorduz.github.io/power_sample_size_exclude_null/)
-- [Bayesian Power Analysis for A/B Testing](https://juanitorduz.github.io/bayesian_power_ab_testing/)
-:::
-
-## Power Curves: Prior Specification Matters
-
-<!-- TODO: export power curves from bayesian_power_ab_testing.ipynb -->
-![](causal_inference_ppl_files/static/images/bayesian_power_ab_testing/power_curves.png){fig-align="center" width="1000"}
-
-::: {.callout-tip appearance="simple"}
-Correlated model is **most conservative** but controls false positive rate. Non-informative priors $\approx$ frequentist z-test.
-:::
-
-::: footer
-[Bayesian Power Analysis for A/B Testing](https://juanitorduz.github.io/bayesian_power_ab_testing/)
-:::
-
-## Bayesian CUPED
-
-::: {.columns}
-::: {.column width="50%"}
-
-**Three approaches:**
-
-1. **Difference-in-means** (baseline)
-2. **Full Bayesian CUPED** (joint model)
-3. **Graph surgery** (`do` operator)
-
-$$Y_{\text{cuped}} = Y_{\text{post}} - \theta(Y_{\text{pre}} - \bar{Y}_{\text{pre}})$$
-
-:::
-
-::: {.column width="50%"}
-
-::: {.callout-tip appearance="simple"}
-
-**CUPED** (Controlled Use of Pre-Experiment Data): use pre-treatment outcome as a covariate to **reduce posterior variance**.
-
-Same idea as classical CUPED but with full uncertainty quantification.
-
-:::
-
-:::
-:::
-
-::: footer
-[Bayesian CUPED](https://juanitorduz.github.io/bayesian_cuped/)
-:::
-
-## Bayesian CUPED: Results
-
-<!-- TODO: export posterior comparison from bayesian_cuped.ipynb -->
-![](causal_inference_ppl_files/static/images/bayesian_cuped/posterior_comparison.png){fig-align="center" width="1000"}
-
-::: {.callout-tip appearance="simple"}
-Minimal difference between full Bayesian CUPED and graph surgery -- both achieve substantial variance reduction compared to difference-in-means.
-:::
-
-::: footer
-[Bayesian CUPED](https://juanitorduz.github.io/bayesian_cuped/)
 :::
 
 ## The Unifying Thread
