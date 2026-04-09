@@ -225,7 +225,10 @@ Even if we set informative priors for the conversion rates, the relative lift ra
 
 ## Correlated Priors: Implications {.smaller}
 
-```{.python code-line-numbers="|4-7|9-12|14-19"}
+::: {.columns}
+::: {.column width="55%"}
+
+```{.python code-line-numbers="|2-4|5-7|8-11|"}
 with pm.Model() as correlated_model:
     conversion_rate_control = pm.Beta(
       "conversion_rate_control", alpha=15, beta=600
@@ -239,14 +242,60 @@ with pm.Model() as correlated_model:
     )
 ```
 
+:::bordered
+![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing_37_0.png){fig-align="center" width="400"}
+:::
+
+:::
+
+
+::: {.column width="45%"}
+
+:::bordered
+![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing_31_0.svg){fig-align="center" width="450"}
+:::
+
+:::bordered
+![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing_39_0.png){fig-align="center" width="450"}
+:::
+
+:::
+:::
+
 ::: footer
 [Prior Predictive Modeling in Bayesian A/B Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
 :::
 
-## Correlated Priors: Prior vs Posterior
+## Inference with Correlated Priors
 
-<!-- TODO: export prior vs posterior from prior_predictive_ab_testing.ipynb -->
-![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing/prior_vs_posterior.png){fig-align="center" width="1000"}
+```{.python code-line-numbers="|2-4|5-7|"}
+with correlated_model:
+    pm.Binomial(
+      "n_control", n=n, p=conversion_rate_control, observed=n_c
+    )
+    pm.Binomial(
+      "n_treatment", n=n, p=conversion_rate_treatment, observed=n_t
+    )
+```
+::: {.columns}
+::: {.column width="47%"}
+
+:::bordered
+![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing_50_0.svg){fig-align="center" width="400"}
+:::
+
+:::
+
+::: {.column width="53%"}
+
+:::bordered
+![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing_54_0.png){fig-align="center" width="600"}
+:::
+
+:::
+:::
+
+
 
 ::: footer
 [Prior Predictive Modeling in Bayesian A/B Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
