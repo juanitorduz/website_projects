@@ -217,15 +217,16 @@
 <div class="column" style="width:50%;">
 <ol type="1">
 <li>Why Bayes in Causal Inference?</li>
-<li>Causal Inference with PPLs (PyMC)</li>
-<li>Fixed &amp; Random Effects</li>
-<li>Latent Variable Modeling (CEVAE)</li>
+<li>Bayesian A/B Testing</li>
+<li>Bayesian Power Analysis</li>
+<li>Bayesian CUPED</li>
 </ol>
 </div><div class="column" style="width:50%;">
 <ol start="5" type="1">
+<li>Confounders: An Example</li>
+<li>Fixed &amp; Random Effects</li>
+<li>Latent Variable Modeling</li>
 <li>Mediation Analysis</li>
-<li>Bayesian A/B Testing</li>
-<li>Bayesian CUPED</li>
 <li>References</li>
 </ol>
 </div></div>
@@ -258,7 +259,7 @@
 <p><span class="math display">\[
 \text{Observed: } Y_i = T_i \cdot Y_i(1) + (1 - T_i) \cdot Y_i(0)
 \]</span></p>
-<p>This is why naive comparisons (treated vs.&nbsp;untreated) can be <strong>biased</strong>:the groups may differ systematically due to <strong>confounders</strong>.</p>
+<p>This is why naive comparisons (treated vs.&nbsp;untreated) can be <strong>biased</strong>: the groups may differ systematically due to <strong>confounders</strong>.</p>
 </div>
 </div>
 </div>
@@ -310,7 +311,7 @@
 </section>
 <section id="bayesian-ab-testing" class="slide level2 smaller">
 <h2>Bayesian A/B Testing</h2>
-<p>Simple Bayesian A/B test model to estimate the relative lift between a control and a treatment groups in a balanced experiment.</p>
+<p>Simple Bayesian A/B test model to estimate the relative lift between control and treatment groups in a balanced experiment.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-code-line-numbers="1||2-4|5-7|8-11|"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> non_informative_model:</span>
 <span id="cb1-2"><a href=""></a>    conversion_rate_control <span class="op">=</span> pm.Uniform(</span>
 <span id="cb1-3"><a href=""></a>      <span class="st">"conversion_rate_control"</span>, lower<span class="op">=</span><span class="dv">0</span>, upper<span class="op">=</span><span class="dv">1</span></span>
@@ -407,7 +408,7 @@ N_{\text{t}} &amp; \sim \text{Binomial}(N, \text{cr}_\text{t}) \\
 <p><strong>Informative Priors</strong></p>
 </div>
 <div class="callout-content">
-<p>Even if we set informative priors for the conversion rates, the relative lift range is still unreasonable wide.</p>
+<p>Even if we set informative priors for the conversion rates, the relative lift range is still unreasonably wide.</p>
 </div>
 </div>
 </div>
@@ -498,7 +499,9 @@ N_{\text{t}} &amp; \sim \text{Binomial}(N, \text{cr}_\text{t}) \\
 </section>
 <section id="bayesian-power-analysis" class="slide level2 smaller">
 <h2>Bayesian Power Analysis</h2>
-<div class="callout callout-tip callout-titled callout-style-simple">
+<div class="columns">
+<div class="column" style="width:78%;">
+<div class="callout callout-tip callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
 <div class="callout-icon-container">
@@ -507,87 +510,85 @@ N_{\text{t}} &amp; \sim \text{Binomial}(N, \text{cr}_\text{t}) \\
 <p><strong>HDI + ROPE Framework</strong></p>
 </div>
 <div class="callout-content">
-<p>Declare significance when the 94% HDI of the posterior lift <strong>excludes the ROPE</strong> (Region of Practical Equivalence) around zero.</p>
+<p><a href="https://link.springer.com/content/pdf/10.3758/s13423-016-1221-4.pdf">The Bayesian New Statistics: Hypothesis testing, estimation, meta-analysis, and power analysis from a Bayesian perspective</a></p>
+<p>Declare significance when the <span class="math inline">\(94\%\)</span> HDI of the posterior lift <strong>excludes the ROPE</strong> (Region of Practical Equivalence) around zero.</p>
+</div>
+</div>
+</div>
 <p><strong>Five-step process:</strong></p>
 <ol type="1">
 <li>Generate parameter values from a hypothetical distribution</li>
 <li>Simulate data samples using the planned sampling methods</li>
-<li>Compute posterior estimates with Bayesian analysis</li>
-<li>Assess whether the HDI excludes the ROPE</li>
+<li>Compute posterior estimates with Bayesian analysis for various sample sizes</li>
+<li>Assess whether the <span class="math inline">\(94\%\)</span> HDI excludes the ROPE</li>
 <li>Repeat to approximate statistical power</li>
 </ol>
+</div><div class="column" style="width:22%;">
+<div class="bordered">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="causal_inference_ppl_files/static/images/power_sample_size_exclude_null_31_0.png" class="quarto-figure quarto-figure-center" width="600"></p>
+</figure>
 </div>
 </div>
-</div>
+</div></div>
 <div class="footer">
-<ul>
-<li><a href="https://juanitorduz.github.io/power_sample_size_exclude_null/">Introduction to Bayesian Power Analysis</a></li>
-<li><a href="https://juanitorduz.github.io/bayesian_power_ab_testing/">Bayesian Power Analysis for A/B Testing</a></li>
-</ul>
+<p><a href="https://juanitorduz.github.io/power_sample_size_exclude_null/">Introduction to Bayesian Power Analysis: Exclude a Null Value</a></p>
 </div>
 </section>
-<section id="power-curves-prior-specification-matters" class="slide level2">
-<h2>Power Curves: Prior Specification Matters</h2>
-<!-- TODO: export power curves from bayesian_power_ab_testing.ipynb -->
-
-<img data-src="causal_inference_ppl_files/static/images/bayesian_power_ab_testing/power_curves.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="callout callout-tip callout-style-simple">
-<div class="callout-body">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-content">
-<p>Correlated model is <strong>most conservative</strong> but controls false positive rate. Non-informative priors <span class="math inline">\(\approx\)</span> frequentist z-test.</p>
-</div>
+<section id="power-curves" class="slide level2">
+<h2>Power Curves</h2>
+<div class="bordered">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="causal_inference_ppl_files/static/images/bayesian_power_ab_testing_42_0.png" class="quarto-figure quarto-figure-center" width="930"></p>
+</figure>
 </div>
 </div>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/bayesian_power_ab_testing/">Bayesian Power Analysis for A/B Testing</a></p>
 </div>
 </section>
-<section id="bayesian-cuped" class="slide level2">
+<section id="bayesian-cuped" class="slide level2 smaller">
 <h2>Bayesian CUPED</h2>
+<div class="bordered">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="causal_inference_ppl_files/static/images/bayesian_cuped_16_0.svg" class="quarto-figure quarto-figure-center" width="650"></p>
+</figure>
+</div>
+</div>
 <div class="columns">
-<div class="column" style="width:50%;">
-<p><strong>Three approaches:</strong></p>
-<ol type="1">
-<li><strong>Difference-in-means</strong> (baseline)</li>
-<li><strong>Full Bayesian CUPED</strong> (joint model)</li>
-<li><strong>Graph surgery</strong> (<code>do</code> operator)</li>
-</ol>
-<p><span class="math display">\[Y_{\text{cuped}} = Y_{\text{post}} - \theta(Y_{\text{pre}} - \bar{Y}_{\text{pre}})\]</span></p>
-</div><div class="column" style="width:50%;">
+<div class="column" style="width:60%;">
 <div class="callout callout-tip callout-style-simple">
 <div class="callout-body">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-content">
-<p><strong>CUPED</strong> (Controlled Use of Pre-Experiment Data): use pre-treatment outcome as a covariate to <strong>reduce posterior variance</strong>.</p>
-<p>Same idea as classical CUPED but with full uncertainty quantification.</p>
+<p><strong>CUPED:</strong> Use pre-treatment outcome as a covariate to <strong>reduce posterior variance</strong>.</p>
+<ol type="1">
+<li><p>Regress <span class="math inline">\(y_{\text{post}}\)</span> on <span class="math inline">\(y_{\text{pre}}\)</span> and estimate the <span class="math inline">\(\theta\)</span> coefficient.</p></li>
+<li><p>Compute <span class="math inline">\(y_{\text{cuped}, i} = y_{\text{post}, i} - \theta \, (y_{\text{pre}, i} - \bar{y}_{\text{pre}})\)</span> for each unit <span class="math inline">\(i\)</span>.</p></li>
+<li><p>Compute the difference in means of <span class="math inline">\(y_{\text{cuped}}\)</span> between treatment and control group.</p></li>
+</ol>
+<p><span class="math display">\[
+y_{\text{cuped}} = \alpha + \beta_{\text{cuped}} \times \text{treatment} + \varepsilon
+\]</span></p>
 </div>
+</div>
+</div>
+</div><div class="column" style="width:40%;">
+<div class="bordered">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="causal_inference_ppl_files/static/images/bayesian_cuped_25_0.png" class="quarto-figure quarto-figure-center" width="450"></p>
+</figure>
 </div>
 </div>
 </div></div>
 <div class="footer">
-<p><a href="https://juanitorduz.github.io/bayesian_cuped/">Bayesian CUPED</a></p>
-</div>
-</section>
-<section id="bayesian-cuped-results" class="slide level2">
-<h2>Bayesian CUPED: Results</h2>
-<!-- TODO: export posterior comparison from bayesian_cuped.ipynb -->
-
-<img data-src="causal_inference_ppl_files/static/images/bayesian_cuped/posterior_comparison.png" class="quarto-figure quarto-figure-center r-stretch" width="1000"><div class="callout callout-tip callout-style-simple">
-<div class="callout-body">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-content">
-<p>Minimal difference between full Bayesian CUPED and graph surgery – both achieve substantial variance reduction compared to difference-in-means.</p>
-</div>
-</div>
-</div>
-<div class="footer">
-<p><a href="https://juanitorduz.github.io/bayesian_cuped/">Bayesian CUPED</a></p>
+<p><a href="https://juanitorduz.github.io/bayesian_cuped/">Bayesian CUPED &amp; Sensitivity Analysis</a></p>
 </div>
 </section>
 <section id="the-lalonde-dataset" class="slide level2 smaller">
@@ -599,7 +600,7 @@ N_{\text{t}} &amp; \sim \text{Binomial}(N, \text{cr}_\text{t}) \\
 <li class="fragment"><strong>Treatment:</strong> Participation in a job training program</li>
 <li class="fragment"><strong>Outcome:</strong> Earnings in 1978 (<code>re78</code>)</li>
 <li class="fragment"><strong>Covariates:</strong> Education, age, prior earnings (<code>re75</code>), race/ethnicity, marital status, degree</li>
-<li class="fragment"><strong>Naive comparison</strong> (difference in means): treated earned <strong>$-635</strong> less than untreated</li>
+<li class="fragment"><strong>Naive comparison</strong> (difference in means): treated earned <strong>$635 less</strong> than untreated</li>
 <li class="fragment">But treatment was <strong>not</strong> randomly assigned…</li>
 <li class="fragment"><strong>Confounders</strong> create a spurious association!</li>
 </ul>
@@ -838,7 +839,7 @@ ATE = \mathbb{E}[Y \mid \text{do}(T=1)] - \mathbb{E}[Y \mid \text{do}(T=0)]
 </div>
 </div>
 </div><div class="column" style="width:64.5%;">
-<p><strong>Problem:</strong> Syntetic dataset where the true causal effect of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span> is <strong>zero</strong>. We have <strong>group-level confounding</strong> through group-level effect <span class="math inline">\(U_G\)</span>.</p>
+<p><strong>Problem:</strong> Synthetic dataset where the true causal effect of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span> is <strong>zero</strong>. We have <strong>group-level confounding</strong> through group-level effect <span class="math inline">\(U_G\)</span>.</p>
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
@@ -976,7 +977,7 @@ y &amp;= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_
 <li class="fragment">Standard backdoor adjustment is <strong>not possible</strong>.</li>
 <li class="fragment">Solution: <strong>CEVAE</strong> framework (Louizos et al., NeurIPS 2017): learn a latent representation of <span class="math inline">\(Z\)</span>.</li>
 </ul>
-<p><em>Taken from Robert. O. N. ’s book: <a href="https://www.robertosazuwaness.com/causal-ai-book/">Causal AI</a>.</em></p>
+<p><em>Taken from Robert O. Ness’s book: <a href="https://www.robertosazuwaness.com/causal-ai-book/">Causal AI</a>.</em></p>
 </div></div>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/online_game_ate/">Causal Effect Estimation with Variational Inference and Latent Confounders</a></p>
@@ -1101,27 +1102,6 @@ y &amp;= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_
 <p><a href="https://juanitorduz.github.io/mediation/">Mediation Analysis and (In)Direct Effects with PyMC</a></p>
 </div>
 </section>
-<section id="the-unifying-thread" class="slide level2">
-<h2>The Unifying Thread</h2>
-<div class="callout callout-tip callout-style-simple">
-<div class="callout-body">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-content">
-<p><span style="font-size: 1.3em;"> Probabilistic programming languages provide a <strong>single, unified language</strong> for expressing causal assumptions, fitting models, computing counterfactuals, and quantifying uncertainty. </span></p>
-</div>
-</div>
-</div>
-<ul>
-<li class="fragment"><strong>Backdoor adjustment</strong> – Lalonde dataset (OLS + GLM)</li>
-<li class="fragment"><strong>Group-level confounding</strong> – Fixed/Random effects, Mundlak trick</li>
-<li class="fragment"><strong>Latent confounders</strong> – CEVAE with variational inference</li>
-<li class="fragment"><strong>Mediation analysis</strong> – Direct/Indirect effect decomposition</li>
-<li class="fragment"><strong>A/B testing</strong> – Prior specification &amp; power analysis</li>
-<li class="fragment"><strong>Variance reduction</strong> – Bayesian CUPED with graph surgery</li>
-</ul>
-</section>
 <section id="references" class="slide level2 smaller">
 <h2>References</h2>
 <h4 id="blog-posts">Blog Posts</h4>
@@ -1135,24 +1115,32 @@ y &amp;= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_
 <li><a href="https://juanitorduz.github.io/bayesian_power_ab_testing/">Bayesian Power Analysis for A/B Testing</a></li>
 <li><a href="https://juanitorduz.github.io/bayesian_cuped/">Bayesian CUPED</a></li>
 </ul>
-</section>
-<section id="references-1" class="slide level2 smaller">
-<h2>References</h2>
-<h4 id="books-papers">Books &amp; Papers</h4>
-<ul>
-<li>Pearl, J. <em>Causality: Models, Reasoning and Inference</em></li>
-<li>McElreath, R. <em>Statistical Rethinking</em> (2nd ed.)</li>
-<li>Facure, M. <em>Causal Inference for The Brave and True</em></li>
-<li>Louizos, C. et al.&nbsp;<em>Causal Effect Inference with Deep Latent-Variable Models</em> (NeurIPS 2017)</li>
-<li>Kruschke, J. <em>Doing Bayesian Data Analysis</em></li>
-</ul>
 <h4 id="packages">Packages</h4>
 <ul>
 <li><a href="https://www.pymc.io/">PyMC</a> / <a href="https://num.pyro.ai/">NumPyro</a></li>
 <li><a href="https://github.com/py-why/dowhy">DoWhy</a></li>
 <li><a href="https://causalpy.readthedocs.io/">CausalPy</a></li>
-<li><a href="https://www.pymc-marketing.io/">PyMC-Marketing</a></li>
 </ul>
+</section>
+<section id="references-1" class="slide level2 smaller">
+<h2>References</h2>
+<h4 id="books">Books</h4>
+<ul>
+<li>Pearl, J. <em>Causality: Models, Reasoning and Inference</em></li>
+<li>McElreath, R. <em>Statistical Rethinking</em> (2nd ed.)</li>
+<li>Facure, M. <em>Causal Inference for The Brave and True</em></li>
+<li>Ness, R. O. <em>Causal AI</em> (Manning)</li>
+</ul>
+<h4 id="papers">Papers</h4>
+<ul>
+<li>Rubin, D. B. (1974). <em>Estimating causal effects of treatments in randomized and nonrandomized studies.</em></li>
+<li>Mundlak, Y. (1978). <em>On the Pooling of Time Series and Cross Section Data.</em></li>
+<li>Kruschke, J. K. &amp; Liddell, T. M. (2018). <em>The Bayesian New Statistics: hypothesis testing, estimation, meta-analysis, and power analysis from a Bayesian perspective.</em></li>
+<li>Louizos, C. et al.&nbsp;(2017). <em>Causal Effect Inference with Deep Latent-Variable Models</em> (NeurIPS).</li>
+</ul>
+</section>
+<section id="references-2" class="slide level2 smaller">
+<h2>References</h2>
 </section>
 <section id="thank-you" class="slide level2" data-background-image="causal_inference_ppl_files/static/images/logos/juanitorduz_logo_small.png" data-background-opacity="0.15">
 <h2>Thank you!</h2>

@@ -30,18 +30,19 @@ format:
 ::: {.column width="50%"}
 
 1. Why Bayes in Causal Inference?
-2. Causal Inference with PPLs (PyMC)
-3. Fixed & Random Effects
-4. Latent Variable Modeling (CEVAE)
+2. Bayesian A/B Testing
+3. Bayesian Power Analysis
+4. Bayesian CUPED
 
 :::
 
 ::: {.column width="50%"}
 
-5. Mediation Analysis
-6. Bayesian A/B Testing
-7. Bayesian CUPED
-8. References
+5. Confounders: An Example
+6. Fixed & Random Effects
+7. Latent Variable Modeling
+8. Mediation Analysis
+9. References
 
 :::
 :::
@@ -70,7 +71,7 @@ $$
 \text{Observed: } Y_i = T_i \cdot Y_i(1) + (1 - T_i) \cdot Y_i(0)
 $$
 
-This is why naive comparisons (treated vs. untreated) can be **biased**:the groups may differ systematically due to **confounders**.
+This is why naive comparisons (treated vs. untreated) can be **biased**: the groups may differ systematically due to **confounders**.
 
 :::
 
@@ -117,7 +118,7 @@ PPLs let you write generative models as code and automate posterior inference. E
 
 ## Bayesian A/B Testing {.smaller}
 
-Simple Bayesian A/B test model to estimate the relative lift between a control and a treatment groups in a balanced experiment.
+Simple Bayesian A/B test model to estimate the relative lift between control and treatment groups in a balanced experiment.
 
 ```{.python code-line-numbers="1||2-4|5-7|8-11|"}
 with pm.Model() as non_informative_model:
@@ -206,7 +207,7 @@ Setting uninformative priors for the conversion rates yields implausible values 
 ::: {.callout-warning}
 ## Informative Priors
 
-Even if we set informative priors for the conversion rates, the relative lift range is still unreasonable wide.
+Even if we set informative priors for the conversion rates, the relative lift range is still unreasonably wide.
 
 :::
 
@@ -242,7 +243,7 @@ with pm.Model() as correlated_model:
     )
 ```
 
-:::bordered
+::: bordered
 ![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing_37_0.png){fig-align="center" width="400"}
 :::
 
@@ -251,11 +252,11 @@ with pm.Model() as correlated_model:
 
 ::: {.column width="45%"}
 
-:::bordered
+::: bordered
 ![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing_31_0.svg){fig-align="center" width="450"}
 :::
 
-:::bordered
+::: bordered
 ![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing_39_0.png){fig-align="center" width="450"}
 :::
 
@@ -280,7 +281,7 @@ with correlated_model:
 ::: {.columns}
 ::: {.column width="47%"}
 
-:::bordered
+::: bordered
 ![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing_50_0.svg){fig-align="center" width="400"}
 :::
 
@@ -288,14 +289,12 @@ with correlated_model:
 
 ::: {.column width="53%"}
 
-:::bordered
+::: bordered
 ![](causal_inference_ppl_files/static/images/prior_predictive_ab_testing_54_0.png){fig-align="center" width="600"}
 :::
 
 :::
 :::
-
-
 
 ::: footer
 [Prior Predictive Modeling in Bayesian A/B Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
@@ -303,83 +302,92 @@ with correlated_model:
 
 ## Bayesian Power Analysis {.smaller}
 
-::: {.callout-tip appearance="simple"}
+::: {.columns}
+::: {.column width="78%"}
+
+::: {.callout-tip}
 
 ### HDI + ROPE Framework
 
-Declare significance when the 94% HDI of the posterior lift **excludes the ROPE** (Region of Practical Equivalence) around zero.
+[The Bayesian New Statistics: Hypothesis testing, estimation, meta-analysis, and power analysis from a Bayesian perspective](https://link.springer.com/content/pdf/10.3758/s13423-016-1221-4.pdf)
+
+Declare significance when the $94\%$ HDI of the posterior lift **excludes the ROPE** (Region of Practical Equivalence) around zero.
+
+:::
 
 **Five-step process:**
 
 1. Generate parameter values from a hypothetical distribution
 2. Simulate data samples using the planned sampling methods
-3. Compute posterior estimates with Bayesian analysis
-4. Assess whether the HDI excludes the ROPE
+3. Compute posterior estimates with Bayesian analysis for various sample sizes
+4. Assess whether the $94\%$ HDI excludes the ROPE
 5. Repeat to approximate statistical power
 
 :::
 
-::: footer
-- [Introduction to Bayesian Power Analysis](https://juanitorduz.github.io/power_sample_size_exclude_null/)
-- [Bayesian Power Analysis for A/B Testing](https://juanitorduz.github.io/bayesian_power_ab_testing/)
+::: {.column width="22%"}
+
+::: bordered
+![](causal_inference_ppl_files/static/images/power_sample_size_exclude_null_31_0.png){fig-align="center" width="600"}
 :::
 
-## Power Curves: Prior Specification Matters
+:::
+:::
 
-<!-- TODO: export power curves from bayesian_power_ab_testing.ipynb -->
-![](causal_inference_ppl_files/static/images/bayesian_power_ab_testing/power_curves.png){fig-align="center" width="1000"}
+::: footer
+[Introduction to Bayesian Power Analysis: Exclude a Null Value](https://juanitorduz.github.io/power_sample_size_exclude_null/)
+:::
 
-::: {.callout-tip appearance="simple"}
-Correlated model is **most conservative** but controls false positive rate. Non-informative priors $\approx$ frequentist z-test.
+## Power Curves
+
+::: bordered
+![](causal_inference_ppl_files/static/images/bayesian_power_ab_testing_42_0.png){fig-align="center" width="930"}
 :::
 
 ::: footer
 [Bayesian Power Analysis for A/B Testing](https://juanitorduz.github.io/bayesian_power_ab_testing/)
 :::
 
-## Bayesian CUPED
+## Bayesian CUPED {.smaller}
+
+::: bordered
+![](causal_inference_ppl_files/static/images/bayesian_cuped_16_0.svg){fig-align="center" width="650"}
+:::
+
 
 ::: {.columns}
-::: {.column width="50%"}
-
-**Three approaches:**
-
-1. **Difference-in-means** (baseline)
-2. **Full Bayesian CUPED** (joint model)
-3. **Graph surgery** (`do` operator)
-
-$$Y_{\text{cuped}} = Y_{\text{post}} - \theta(Y_{\text{pre}} - \bar{Y}_{\text{pre}})$$
-
-:::
-
-::: {.column width="50%"}
+::: {.column width="60%"}
 
 ::: {.callout-tip appearance="simple"}
 
-**CUPED** (Controlled Use of Pre-Experiment Data): use pre-treatment outcome as a covariate to **reduce posterior variance**.
+**CUPED:** Use pre-treatment outcome as a covariate to **reduce posterior variance**.
 
-Same idea as classical CUPED but with full uncertainty quantification.
+1. Regress $y_{\text{post}}$ on $y_{\text{pre}}$ and estimate the $\theta$ coefficient.
 
+2. Compute $y_{\text{cuped}, i} = y_{\text{post}, i} - \theta \, (y_{\text{pre}, i} - \bar{y}_{\text{pre}})$ for each unit $i$.
+
+3. Compute the difference in means of $y_{\text{cuped}}$ between treatment and control group.
+
+$$
+y_{\text{cuped}} = \alpha + \beta_{\text{cuped}} \times \text{treatment} + \varepsilon
+$$
+
+:::
+
+
+:::
+
+::: {.column width="40%"}
+
+::: bordered
+![](causal_inference_ppl_files/static/images/bayesian_cuped_25_0.png){fig-align="center" width="450"}
 :::
 
 :::
 :::
 
 ::: footer
-[Bayesian CUPED](https://juanitorduz.github.io/bayesian_cuped/)
-:::
-
-## Bayesian CUPED: Results
-
-<!-- TODO: export posterior comparison from bayesian_cuped.ipynb -->
-![](causal_inference_ppl_files/static/images/bayesian_cuped/posterior_comparison.png){fig-align="center" width="1000"}
-
-::: {.callout-tip appearance="simple"}
-Minimal difference between full Bayesian CUPED and graph surgery -- both achieve substantial variance reduction compared to difference-in-means.
-:::
-
-::: footer
-[Bayesian CUPED](https://juanitorduz.github.io/bayesian_cuped/)
+[Bayesian CUPED & Sensitivity Analysis](https://juanitorduz.github.io/bayesian_cuped/)
 :::
 
 ## The Lalonde Dataset {.smaller}
@@ -394,7 +402,7 @@ Job training program (National Supported Work, 1970s): Does job training increas
 - **Treatment:** Participation in a job training program
 - **Outcome:** Earnings in 1978 (`re78`)
 - **Covariates:** Education, age, prior earnings (`re75`), race/ethnicity, marital status, degree
-- **Naive comparison** (difference in means): treated earned **$-635** less than untreated
+- **Naive comparison** (difference in means): treated earned **\$635 less** than untreated
 - But treatment was **not** randomly assigned...
 - **Confounders** create a spurious association!
 
@@ -645,7 +653,7 @@ Computing the ATE using the `do` operator yields the same result as the regressi
 
 ::: {.column width="64.5%"}
 
-**Problem:** Syntetic dataset where the true causal effect of $X$ on $Y$ is **zero**. We have **group-level confounding** through group-level effect $U_G$.
+**Problem:** Synthetic dataset where the true causal effect of $X$ on $Y$ is **zero**. We have **group-level confounding** through group-level effect $U_G$.
 
 ::: {.bordered}
 ![](causal_inference_ppl_files/static/images/fixed_random_22_0.png){fig-align="center" width="650"}
@@ -695,7 +703,7 @@ $$
 ::: {.column width="60%"}
 
 ::: {.bordered}
-![](causal_inference_ppl_files/static/images/fixed_random_54_0){fig-align="center" width="550"}
+![](causal_inference_ppl_files/static/images/fixed_random_54_0.png){fig-align="center" width="550"}
 :::
 
 :::
@@ -755,7 +763,7 @@ y &= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_{[g]
 
 :::
 
-*Taken from Robert. O. N. 's book: [Causal AI](https://www.robertosazuwaness.com/causal-ai-book/).*
+*Taken from Robert O. Ness's book: [Causal AI](https://www.robertosazuwaness.com/causal-ai-book/).*
 
 :::
 :::
@@ -854,27 +862,6 @@ We can compute the effects using the `do`-operator:
 [Mediation Analysis and (In)Direct Effects with PyMC](https://juanitorduz.github.io/mediation/)
 :::
 
-## The Unifying Thread
-
-::: {.callout-tip appearance="simple"}
-
-<span style="font-size: 1.3em;">
-Probabilistic programming languages provide a **single, unified language** for expressing causal assumptions, fitting models, computing counterfactuals, and quantifying uncertainty.
-</span>
-
-:::
-
-::: incremental
-
-- **Backdoor adjustment** -- Lalonde dataset (OLS + GLM)
-- **Group-level confounding** -- Fixed/Random effects, Mundlak trick
-- **Latent confounders** -- CEVAE with variational inference
-- **Mediation analysis** -- Direct/Indirect effect decomposition
-- **A/B testing** -- Prior specification & power analysis
-- **Variance reduction** -- Bayesian CUPED with graph surgery
-
-:::
-
 ## References {.smaller}
 
 #### Blog Posts
@@ -888,22 +875,31 @@ Probabilistic programming languages provide a **single, unified language** for e
 - [Bayesian Power Analysis for A/B Testing](https://juanitorduz.github.io/bayesian_power_ab_testing/)
 - [Bayesian CUPED](https://juanitorduz.github.io/bayesian_cuped/)
 
-## References {.smaller}
-
-#### Books & Papers
-
-- Pearl, J. *Causality: Models, Reasoning and Inference*
-- McElreath, R. *Statistical Rethinking* (2nd ed.)
-- Facure, M. *Causal Inference for The Brave and True*
-- Louizos, C. et al. *Causal Effect Inference with Deep Latent-Variable Models* (NeurIPS 2017)
-- Kruschke, J. *Doing Bayesian Data Analysis*
-
 #### Packages
 
 - [PyMC](https://www.pymc.io/) / [NumPyro](https://num.pyro.ai/)
 - [DoWhy](https://github.com/py-why/dowhy)
 - [CausalPy](https://causalpy.readthedocs.io/)
-- [PyMC-Marketing](https://www.pymc-marketing.io/)
+
+## References {.smaller}
+
+#### Books
+
+- Pearl, J. *Causality: Models, Reasoning and Inference*
+- McElreath, R. *Statistical Rethinking* (2nd ed.)
+- Facure, M. *Causal Inference for The Brave and True*
+- Ness, R. O. *Causal AI* (Manning)
+
+#### Papers
+
+- Rubin, D. B. (1974). *Estimating causal effects of treatments in randomized and nonrandomized studies.*
+- Mundlak, Y. (1978). *On the Pooling of Time Series and Cross Section Data.*
+- Kruschke, J. K. & Liddell, T. M. (2018). *The Bayesian New Statistics: hypothesis testing, estimation, meta-analysis, and power analysis from a Bayesian perspective.*
+- Louizos, C. et al. (2017). *Causal Effect Inference with Deep Latent-Variable Models* (NeurIPS).
+
+## References {.smaller}
+
+
 
 ## Thank you! {background-image="causal_inference_ppl_files/static/images/logos/juanitorduz_logo_small.png" background-opacity="0.15"}
 
