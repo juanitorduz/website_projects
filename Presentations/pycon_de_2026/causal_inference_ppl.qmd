@@ -781,20 +781,39 @@ y &= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_{[g]
 
 ## CEVAE Architecture {.smaller}
 
+::: {.columns}
+::: {.column width="65%"}
+
 ::: incremental
 
 - **Model = Decoder (generative process):** Follows the causal ordering:
-  1. $Z$ (player motivation) $\sim \text{Normal}(0, 1)$.
-  2. Engagement (treatment) $\sim \text{Bernoulli}(f_\theta(\text{guild membership}, Z))$.
-  3. Purchases (outcome) $\sim \text{Normal}(g_\theta(\text{won items}, \text{guild membership}, Z))$.
+  1. $Z$ (player motivation) $\sim \text{Normal}(0, 1)$
+  2. Engagement (treatment) $\sim \text{Bernoulli}(f_\theta(\text{guild membership}, Z))$
+  3. Purchases (outcome) $\sim \text{Normal}(g_\theta(\text{won items}, \text{guild membership}, Z))$
 
 - **Guide = Encoder (recognition network):** Flax (NNX) neural network that maps observed data $(\text{guild membership}, \text{engagement}, \text{purchases})$ to the approximate posterior $q_\phi(Z \mid \cdot) = \text{Normal}(\mu_\phi, \sigma_\phi)$
-  - Instead of optimizing separate $(\mu_i, \sigma_i)$ per observation, a single network with shared weights $\phi$ learns the mapping for all observations (amortized inference).
 
 - **Inference:** SVI maximizes the ELBO, jointly training the decoder parameters $\theta$ and encoder parameters $\phi$ (NumPyro)
-- **Key trick:** Use **identical** $Z$ samples for both $Y(\text{do}(T\!=\!0))$ and $Y(\text{do}(T\!=\!1))$ via `condition` + `do` handlers.
 
 :::
+
+:::
+
+::: {.column width="35%"}
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/online_game_ate_6_0.svg){fig-align="center" width="400"}
+:::
+::: {.callout-tip appearance="simple"}
+## Simulation Study
+Here is a simpler parameter recovery study for the CEVAE:
+[CATE Estimation with Causal Effect Variational Autoencoders](https://juanitorduz.github.io/cate_nn/)
+
+:::
+:::
+
+:::
+
+
 
 ::: footer
 [Causal Effect Estimation with Variational Inference and Latent Confounders](https://juanitorduz.github.io/online_game_ate/)
@@ -901,6 +920,8 @@ We can compute the effects using the `do`-operator:
 
 ## References {.smaller}
 
+::: {.columns}
+::: {.column width="70%"}
 #### Blog Posts
 
 - [Introduction to Causal Inference with PPLs](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/)
@@ -911,12 +932,19 @@ We can compute the effects using the `do`-operator:
 - [Introduction to Bayesian Power Analysis](https://juanitorduz.github.io/power_sample_size_exclude_null/)
 - [Bayesian Power Analysis for A/B Testing](https://juanitorduz.github.io/bayesian_power_ab_testing/)
 - [Bayesian CUPED](https://juanitorduz.github.io/bayesian_cuped/)
-
+:::
+::: {.column width="30%"}
 #### Packages
 
-- [PyMC](https://www.pymc.io/) / [NumPyro](https://num.pyro.ai/)
+- [CausalPy](https://causalpy.readthedocs.io/)
+- [ChiRho](https://basisresearch.github.io/chirho/index.html)
 - [DoWhy](https://github.com/py-why/dowhy)
-- [CausalPy](https://causalpy.readthedocs.io/) / [PyMC-Marketing](https://www.pymc-marketing.io/)
+- [NumPyro](https://num.pyro.ai/)
+- [PyMC](https://www.pymc.io/)
+- [PyMC-Marketing](https://www.pymc-marketing.io/)
+
+:::
+:::
 
 ## References {.smaller}
 

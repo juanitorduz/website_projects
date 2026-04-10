@@ -997,20 +997,40 @@ y &amp;= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_
 </section>
 <section id="cevae-architecture" class="slide level2 smaller">
 <h2>CEVAE Architecture</h2>
+<div class="columns">
+<div class="column" style="width:65%;">
 <ul>
-<li class="fragment"><strong>Model = Decoder (generative process):</strong> Follows the causal ordering:
+<li class="fragment"><p><strong>Model = Decoder (generative process):</strong> Follows the causal ordering:</p>
 <ol type="1">
-<li class="fragment"><span class="math inline">\(Z\)</span> (player motivation) <span class="math inline">\(\sim \text{Normal}(0, 1)\)</span>.</li>
-<li class="fragment">Engagement (treatment) <span class="math inline">\(\sim \text{Bernoulli}(f_\theta(\text{guild membership}, Z))\)</span>.</li>
-<li class="fragment">Purchases (outcome) <span class="math inline">\(\sim \text{Normal}(g_\theta(\text{won items}, \text{guild membership}, Z))\)</span>.</li>
+<li class="fragment"><span class="math inline">\(Z\)</span> (player motivation) <span class="math inline">\(\sim \text{Normal}(0, 1)\)</span></li>
+<li class="fragment">Engagement (treatment) <span class="math inline">\(\sim \text{Bernoulli}(f_\theta(\text{guild membership}, Z))\)</span></li>
+<li class="fragment">Purchases (outcome) <span class="math inline">\(\sim \text{Normal}(g_\theta(\text{won items}, \text{guild membership}, Z))\)</span></li>
 </ol></li>
-<li class="fragment"><strong>Guide = Encoder (recognition network):</strong> Flax (NNX) neural network that maps observed data <span class="math inline">\((\text{guild membership}, \text{engagement}, \text{purchases})\)</span> to the approximate posterior <span class="math inline">\(q_\phi(Z \mid \cdot) = \text{Normal}(\mu_\phi, \sigma_\phi)\)</span>
-<ul>
-<li class="fragment">Instead of optimizing separate <span class="math inline">\((\mu_i, \sigma_i)\)</span> per observation, a single network with shared weights <span class="math inline">\(\phi\)</span> learns the mapping for all observations (amortized inference).</li>
-</ul></li>
-<li class="fragment"><strong>Inference:</strong> SVI maximizes the ELBO, jointly training the decoder parameters <span class="math inline">\(\theta\)</span> and encoder parameters <span class="math inline">\(\phi\)</span> (NumPyro)</li>
-<li class="fragment"><strong>Key trick:</strong> Use <strong>identical</strong> <span class="math inline">\(Z\)</span> samples for both <span class="math inline">\(Y(\text{do}(T\!=\!0))\)</span> and <span class="math inline">\(Y(\text{do}(T\!=\!1))\)</span> via <code>condition</code> + <code>do</code> handlers.</li>
+<li class="fragment"><p><strong>Guide = Encoder (recognition network):</strong> Flax (NNX) neural network that maps observed data <span class="math inline">\((\text{guild membership}, \text{engagement}, \text{purchases})\)</span> to the approximate posterior <span class="math inline">\(q_\phi(Z \mid \cdot) = \text{Normal}(\mu_\phi, \sigma_\phi)\)</span></p></li>
+<li class="fragment"><p><strong>Inference:</strong> SVI maximizes the ELBO, jointly training the decoder parameters <span class="math inline">\(\theta\)</span> and encoder parameters <span class="math inline">\(\phi\)</span> (NumPyro)</p></li>
 </ul>
+</div><div class="column" style="width:35%;">
+<div class="bordered">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="causal_inference_ppl_files/static/images/online_game_ate_6_0.svg" class="quarto-figure quarto-figure-center" width="400"></p>
+</figure>
+</div>
+</div>
+<div class="callout callout-tip callout-titled callout-style-simple">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Simulation Study</strong></p>
+</div>
+<div class="callout-content">
+<p>Here is a simpler parameter recovery study for the CEVAE: <a href="https://juanitorduz.github.io/cate_nn/">CATE Estimation with Causal Effect Variational Autoencoders</a></p>
+</div>
+</div>
+</div>
+</div></div>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/online_game_ate/">Causal Effect Estimation with Variational Inference and Latent Confounders</a></p>
 </div>
@@ -1157,6 +1177,8 @@ y &amp;= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_
 </section>
 <section id="references" class="slide level2 smaller">
 <h2>References</h2>
+<div class="columns">
+<div class="column" style="width:70%;">
 <h4 id="blog-posts">Blog Posts</h4>
 <ul>
 <li><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></li>
@@ -1168,12 +1190,17 @@ y &amp;= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_
 <li><a href="https://juanitorduz.github.io/bayesian_power_ab_testing/">Bayesian Power Analysis for A/B Testing</a></li>
 <li><a href="https://juanitorduz.github.io/bayesian_cuped/">Bayesian CUPED</a></li>
 </ul>
+</div><div class="column" style="width:30%;">
 <h4 id="packages">Packages</h4>
 <ul>
-<li><a href="https://www.pymc.io/">PyMC</a> / <a href="https://num.pyro.ai/">NumPyro</a></li>
+<li><a href="https://causalpy.readthedocs.io/">CausalPy</a></li>
+<li><a href="https://basisresearch.github.io/chirho/index.html">ChiRho</a></li>
 <li><a href="https://github.com/py-why/dowhy">DoWhy</a></li>
-<li><a href="https://causalpy.readthedocs.io/">CausalPy</a> / <a href="https://www.pymc-marketing.io/">PyMC-Marketing</a></li>
+<li><a href="https://num.pyro.ai/">NumPyro</a></li>
+<li><a href="https://www.pymc.io/">PyMC</a></li>
+<li><a href="https://www.pymc-marketing.io/">PyMC-Marketing</a></li>
 </ul>
+</div></div>
 </section>
 <section id="references-1" class="slide level2 smaller">
 <h2>References</h2>
