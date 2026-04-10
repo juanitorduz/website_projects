@@ -29,7 +29,7 @@ format:
 ::: {.columns}
 ::: {.column width="50%"}
 
-1. Why Bayes in Causal Inference?
+1. Why PPLs for Causal Inference?
 2. Bayesian A/B Testing
 3. Bayesian Power Analysis
 4. Bayesian CUPED
@@ -120,7 +120,7 @@ PPLs let you write generative models as code and automate posterior inference. E
 :::
 
 ::: {.callout-warning appearance="simple"}
-This **does not not** imply that Bayesian methods are better than frequentist methods! For every framework, you need to know the assumptions and the limitations.
+This **does not** imply that Bayesian methods are better than frequentist methods! For every framework, you need to know the assumptions and the limitations.
 :::
 
 ## Bayesian A/B Testing {.smaller}
@@ -397,9 +397,11 @@ $$
 [Bayesian CUPED & Sensitivity Analysis](https://juanitorduz.github.io/bayesian_cuped/)
 :::
 
-## The Lalonde Dataset {.smaller}
+## Confounders: An Example {.smaller}
 
-Job training program (National Supported Work, 1970s): Does job training increase earnings?
+**The Lalonde Dataset:** Job training program (National Supported Work, 1970s)
+
+**Question:** Does job training increase earnings?
 
 ::: {.columns}
 ::: {.column width="60%"}
@@ -691,7 +693,7 @@ Computing the ATE using the `do` operator yields the same result as the regressi
 :::
 
 $$
-y = \beta_{xy}x + \beta_{zy}z + \square + \varepsilon
+y = \beta_{xy}x + \beta_{zy}z + \text{?} + \varepsilon
 $$
 
 ::: {.callout-tip appearance="simple"}
@@ -770,7 +772,7 @@ y &= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_{[g]
 
 :::
 
-*Taken from Robert O. Ness's book: [Causal AI](https://www.robertosazuwaness.com/causal-ai-book/).*
+*Taken from Robert O. Ness's book: [Causal AI](https://github.com/altdeep/causalAI).*
 
 :::
 :::
@@ -848,18 +850,24 @@ Here is a simpler parameter recovery study for the CEVAE:
 [Mediation Analysis and (In)Direct Effects with PyMC](https://juanitorduz.github.io/mediation/)
 :::
 
-## Decomposition via `do`-Operator {.smaller}
+## Mediation Analysis {.smaller}
 
-::: {.callout-tip appearance="simple"}
+::: {.callout-tip}
 
-**Effect decomposition:**
+### Effect decomposition
 
-Define $E_{t, t', t''}$ as the expected outcome when `fam_int` $= t$ in the outcome equation, `dev_peer` follows its $\text{do}(T\!=\!t')$ distribution, and `sub_exp` follows its $\text{do}(T\!=\!t'')$ distribution.
+Define $E_{t, t', t''}$ as the expected outcome when `fam_int` $= t$ in the outcome equation, `dev_peer` follows its $\text{do}(T\!=\!t')$ distribution, and `sub_exp` follows its $\text{do}(T\!=\!t'')$ distribution:
 
-$$E_{t,t',t''} = \sum_{m_1, m_2} P(M_1\!=\!m_1 \mid \text{do}(T\!=\!t')) \cdot P(M_2\!=\!m_2 \mid \text{do}(T\!=\!t''))$$
-$$\quad \cdot \; P(Y\!=\!1 \mid \text{do}(T\!=\!t, M_1\!=\!m_1, M_2\!=\!m_2))$$
+$$
+E_{t,t',t''} = \sum_{m_1, m_2}
+\color{blue}{P(M_1\!=\!m_1 \mid \text{do}(T\!=\!t'))} 
+\color{red}{P(M_2\!=\!m_2 \mid \text{do}(T\!=\!t''))} 
+\color{green}{P(Y\!=\!1 \mid \text{do}(T\!=\!t, M_1\!=\!m_1, M_2\!=\!m_2))}
+$$
 
 The mediators factor because there is **no edge** between `dev_peer` and `sub_exp` in the DAG.
+
+---
 
 We can compute the effects using the `do`-operator:
 

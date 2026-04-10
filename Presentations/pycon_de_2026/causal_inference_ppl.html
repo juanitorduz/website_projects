@@ -216,7 +216,7 @@
 <div class="columns">
 <div class="column" style="width:50%;">
 <ol type="1">
-<li>Why Bayes in Causal Inference?</li>
+<li>Why PPLs for Causal Inference?</li>
 <li>Bayesian A/B Testing</li>
 <li>Bayesian Power Analysis</li>
 <li>Bayesian CUPED</li>
@@ -316,7 +316,7 @@
 <i class="callout-icon"></i>
 </div>
 <div class="callout-content">
-<p>This <strong>does not not</strong> imply that Bayesian methods are better than frequentist methods! For every framework, you need to know the assumptions and the limitations.</p>
+<p>This <strong>does not</strong> imply that Bayesian methods are better than frequentist methods! For every framework, you need to know the assumptions and the limitations.</p>
 </div>
 </div>
 </div>
@@ -603,9 +603,10 @@ y_{\text{cuped}} = \alpha + \beta_{\text{cuped}} \times \text{treatment} + \vare
 <p><a href="https://juanitorduz.github.io/bayesian_cuped/">Bayesian CUPED &amp; Sensitivity Analysis</a></p>
 </div>
 </section>
-<section id="the-lalonde-dataset" class="slide level2 smaller">
-<h2>The Lalonde Dataset</h2>
-<p>Job training program (National Supported Work, 1970s): Does job training increase earnings?</p>
+<section id="confounders-an-example" class="slide level2 smaller">
+<h2>Confounders: An Example</h2>
+<p><strong>The Lalonde Dataset:</strong> Job training program (National Supported Work, 1970s)</p>
+<p><strong>Question:</strong> Does job training increase earnings?</p>
 <div class="columns">
 <div class="column" style="width:60%;">
 <ul>
@@ -916,7 +917,7 @@ ATE = \mathbb{E}[Y \mid \text{do}(T=1)] - \mathbb{E}[Y \mid \text{do}(T=0)]
 </div>
 </div>
 <p><span class="math display">\[
-y = \beta_{xy}x + \beta_{zy}z + \square + \varepsilon
+y = \beta_{xy}x + \beta_{zy}z + \text{?} + \varepsilon
 \]</span></p>
 <div class="callout callout-tip callout-style-simple">
 <div class="callout-body">
@@ -989,7 +990,7 @@ y &amp;= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_
 <li class="fragment">Standard backdoor adjustment is <strong>not possible</strong>.</li>
 <li class="fragment">Solution: <strong>CEVAE</strong> framework (Louizos et al., NeurIPS 2017): learn a latent representation of <span class="math inline">\(Z\)</span>.</li>
 </ul>
-<p><em>Taken from Robert O. Ness’s book: <a href="https://www.robertosazuwaness.com/causal-ai-book/">Causal AI</a>.</em></p>
+<p><em>Taken from Robert O. Ness’s book: <a href="https://github.com/altdeep/causalAI">Causal AI</a>.</em></p>
 </div></div>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/online_game_ate/">Causal Effect Estimation with Variational Inference and Latent Confounders</a></p>
@@ -1060,18 +1061,26 @@ y &amp;= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_
 <p><a href="https://juanitorduz.github.io/mediation/">Mediation Analysis and (In)Direct Effects with PyMC</a></p>
 </div>
 </section>
-<section id="decomposition-via-do-operator" class="slide level2 smaller">
-<h2>Decomposition via <code>do</code>-Operator</h2>
-<div class="callout callout-tip callout-style-simple">
+<section id="mediation-analysis" class="slide level2 smaller">
+<h2>Mediation Analysis</h2>
+<div class="callout callout-tip callout-titled callout-style-default">
 <div class="callout-body">
+<div class="callout-title">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
+<p><strong>Effect decomposition</strong></p>
+</div>
 <div class="callout-content">
-<p><strong>Effect decomposition:</strong></p>
 <p>Define <span class="math inline">\(E_{t, t', t''}\)</span> as the expected outcome when <code>fam_int</code> <span class="math inline">\(= t\)</span> in the outcome equation, <code>dev_peer</code> follows its <span class="math inline">\(\text{do}(T\!=\!t')\)</span> distribution, and <code>sub_exp</code> follows its <span class="math inline">\(\text{do}(T\!=\!t'')\)</span> distribution.</p>
-<p><span class="math display">\[E_{t,t',t''} = \sum_{m_1, m_2} P(M_1\!=\!m_1 \mid \text{do}(T\!=\!t')) \cdot P(M_2\!=\!m_2 \mid \text{do}(T\!=\!t''))\]</span> <span class="math display">\[\quad \cdot \; P(Y\!=\!1 \mid \text{do}(T\!=\!t, M_1\!=\!m_1, M_2\!=\!m_2))\]</span></p>
+<p><span class="math display">\[
+E_{t,t',t''} = \sum_{m_1, m_2}
+\color{blue}{P(M_1\!=\!m_1 \mid \text{do}(T\!=\!t'))}
+\color{red}{P(M_2\!=\!m_2 \mid \text{do}(T\!=\!t''))}
+\color{green}{P(Y\!=\!1 \mid \text{do}(T\!=\!t, M_1\!=\!m_1, M_2\!=\!m_2))}
+\]</span></p>
 <p>The mediators factor because there is <strong>no edge</strong> between <code>dev_peer</code> and <code>sub_exp</code> in the DAG.</p>
+<hr>
 <p>We can compute the effects using the <code>do</code>-operator:</p>
 <table class="caption-top">
 <colgroup>
