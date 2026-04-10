@@ -127,7 +127,7 @@ This **does not** imply that Bayesian methods are better than frequentist method
 
 Simple Bayesian A/B test model to estimate the relative lift between control and treatment groups in a balanced experiment.
 
-```{.python code-line-numbers="1||2-4|5-7|8-11|"}
+```{.python code-line-numbers="|1|2-4|5-7|8-11|"}
 with pm.Model() as non_informative_model:
     conversion_rate_control = pm.Uniform(
       "conversion_rate_control", lower=0, upper=1
@@ -482,7 +482,7 @@ It **cuts** incoming edges to the treatment node, simulating a randomized experi
 
 ## PyMC Model: Treatment Sub-model
 
-```{.python code-line-numbers="1|2-5|7-11|13-17|19-20"}
+```{.python code-line-numbers="|1|2-5|7-11|13-17|19-20"}
 with pm.Model(coords=coords) as earnings_model:
     # --- Data ---
     covariates_data = pm.Data(
@@ -594,7 +594,7 @@ $$
 
 ## Do-Operator Resulting Model Graph
 
-```{.python code-line-numbers="1|2-4|5-10"}
+```{.python code-line-numbers="|1|2-4|5-10"}
 from pymc.model.transform.conditioning import do
 # Counterfactual interventions
 do_0_model = do(conditioned_earnings_model, {"treat": np.zeros(n_obs)})
@@ -784,7 +784,7 @@ y &= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_{[g]
 ## CEVAE Architecture {.smaller}
 
 ::: {.columns}
-::: {.column width="65%"}
+::: {.column width="70%"}
 
 ::: incremental
 
@@ -801,10 +801,12 @@ y &= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_{[g]
 
 :::
 
-::: {.column width="35%"}
+::: {.column width="30%"}
+
 ::: {.bordered}
 ![](causal_inference_ppl_files/static/images/online_game_ate_6_0.svg){fig-align="center" width="400"}
 :::
+
 ::: {.callout-tip appearance="simple"}
 ## Simulation Study
 Here is a simpler parameter recovery study for the CEVAE:
@@ -814,8 +816,6 @@ Here is a simpler parameter recovery study for the CEVAE:
 :::
 
 :::
-
-
 
 ::: footer
 [Causal Effect Estimation with Variational Inference and Latent Confounders](https://juanitorduz.github.io/online_game_ate/)
@@ -850,7 +850,7 @@ Here is a simpler parameter recovery study for the CEVAE:
 [Mediation Analysis and (In)Direct Effects with PyMC](https://juanitorduz.github.io/mediation/)
 :::
 
-## Mediation Analysis {.smaller}
+## Mediation Analysis: (In)Direct Effects {.smaller}
 
 ::: {.callout-tip}
 
@@ -860,8 +860,8 @@ Define $E_{t, t', t''}$ as the expected outcome when `fam_int` $= t$ in the outc
 
 $$
 E_{t,t',t''} = \sum_{m_1, m_2}
-\color{blue}{P(M_1\!=\!m_1 \mid \text{do}(T\!=\!t'))} 
-\color{red}{P(M_2\!=\!m_2 \mid \text{do}(T\!=\!t''))} 
+\color{blue}{P(M_1\!=\!m_1 \mid \text{do}(T\!=\!t'))} \cdot
+\color{red}{P(M_2\!=\!m_2 \mid \text{do}(T\!=\!t''))} \cdot
 \color{green}{P(Y\!=\!1 \mid \text{do}(T\!=\!t, M_1\!=\!m_1, M_2\!=\!m_2))}
 $$
 
@@ -926,7 +926,7 @@ We can compute the effects using the `do`-operator:
 :::
 
 
-## References {.smaller}
+## References — Posts & Packages {.smaller}
 
 ::: {.columns}
 ::: {.column width="70%"}
@@ -954,7 +954,7 @@ We can compute the effects using the `do`-operator:
 :::
 :::
 
-## References {.smaller}
+## References — Books & Papers {.smaller}
 
 #### Books
 

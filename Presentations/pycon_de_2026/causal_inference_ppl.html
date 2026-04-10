@@ -324,7 +324,7 @@
 <section id="bayesian-ab-testing" class="slide level2 smaller">
 <h2>Bayesian A/B Testing</h2>
 <p>Simple Bayesian A/B test model to estimate the relative lift between control and treatment groups in a balanced experiment.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-code-line-numbers="1||2-4|5-7|8-11|"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> non_informative_model:</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-code-line-numbers="|1|2-4|5-7|8-11|"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> non_informative_model:</span>
 <span id="cb1-2"><a href=""></a>    conversion_rate_control <span class="op">=</span> pm.Uniform(</span>
 <span id="cb1-3"><a href=""></a>      <span class="st">"conversion_rate_control"</span>, lower<span class="op">=</span><span class="dv">0</span>, upper<span class="op">=</span><span class="dv">1</span></span>
 <span id="cb1-4"><a href=""></a>    )</span>
@@ -678,7 +678,7 @@ y_{\text{cuped}} = \alpha + \beta_{\text{cuped}} \times \text{treatment} + \vare
 </section>
 <section id="pymc-model-treatment-sub-model" class="slide level2">
 <h2>PyMC Model: Treatment Sub-model</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-code-line-numbers="1|2-5|7-11|13-17|19-20"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>coords) <span class="im">as</span> earnings_model:</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-code-line-numbers="|1|2-5|7-11|13-17|19-20"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>coords) <span class="im">as</span> earnings_model:</span>
 <span id="cb4-2"><a href=""></a>    <span class="co"># --- Data ---</span></span>
 <span id="cb4-3"><a href=""></a>    covariates_data <span class="op">=</span> pm.Data(</span>
 <span id="cb4-4"><a href=""></a>        <span class="st">"covariates_data"</span>, covariates_obs, dims<span class="op">=</span>(<span class="st">"obs_idx"</span>, <span class="st">"covariate"</span>)</span>
@@ -785,7 +785,7 @@ ATE = \mathbb{E}[Y \mid \text{do}(T=1)] - \mathbb{E}[Y \mid \text{do}(T=0)]
 </section>
 <section id="do-operator-resulting-model-graph" class="slide level2">
 <h2>Do-Operator Resulting Model Graph</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" data-code-line-numbers="1|2-4|5-10"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href=""></a><span class="im">from</span> pymc.model.transform.conditioning <span class="im">import</span> do</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" data-code-line-numbers="|1|2-4|5-10"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href=""></a><span class="im">from</span> pymc.model.transform.conditioning <span class="im">import</span> do</span>
 <span id="cb7-2"><a href=""></a><span class="co"># Counterfactual interventions</span></span>
 <span id="cb7-3"><a href=""></a>do_0_model <span class="op">=</span> do(conditioned_earnings_model, {<span class="st">"treat"</span>: np.zeros(n_obs)})</span>
 <span id="cb7-4"><a href=""></a>do_1_model <span class="op">=</span> do(conditioned_earnings_model, {<span class="st">"treat"</span>: np.ones(n_obs)})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -999,7 +999,7 @@ y &amp;= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_
 <section id="cevae-architecture" class="slide level2 smaller">
 <h2>CEVAE Architecture</h2>
 <div class="columns">
-<div class="column" style="width:65%;">
+<div class="column" style="width:70%;">
 <ul>
 <li class="fragment"><p><strong>Model = Decoder (generative process):</strong> Follows the causal ordering:</p>
 <ol type="1">
@@ -1010,7 +1010,7 @@ y &amp;= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_
 <li class="fragment"><p><strong>Guide = Encoder (recognition network):</strong> Flax (NNX) neural network that maps observed data <span class="math inline">\((\text{guild membership}, \text{engagement}, \text{purchases})\)</span> to the approximate posterior <span class="math inline">\(q_\phi(Z \mid \cdot) = \text{Normal}(\mu_\phi, \sigma_\phi)\)</span></p></li>
 <li class="fragment"><p><strong>Inference:</strong> SVI maximizes the ELBO, jointly training the decoder parameters <span class="math inline">\(\theta\)</span> and encoder parameters <span class="math inline">\(\phi\)</span> (NumPyro)</p></li>
 </ul>
-</div><div class="column" style="width:35%;">
+</div><div class="column" style="width:30%;">
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
@@ -1061,8 +1061,8 @@ y &amp;= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_
 <p><a href="https://juanitorduz.github.io/mediation/">Mediation Analysis and (In)Direct Effects with PyMC</a></p>
 </div>
 </section>
-<section id="mediation-analysis" class="slide level2 smaller">
-<h2>Mediation Analysis</h2>
+<section id="mediation-analysis-indirect-effects-1" class="slide level2 smaller">
+<h2>Mediation Analysis: (In)Direct Effects</h2>
 <div class="callout callout-tip callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
@@ -1072,11 +1072,11 @@ y &amp;= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_
 <p><strong>Effect decomposition</strong></p>
 </div>
 <div class="callout-content">
-<p>Define <span class="math inline">\(E_{t, t', t''}\)</span> as the expected outcome when <code>fam_int</code> <span class="math inline">\(= t\)</span> in the outcome equation, <code>dev_peer</code> follows its <span class="math inline">\(\text{do}(T\!=\!t')\)</span> distribution, and <code>sub_exp</code> follows its <span class="math inline">\(\text{do}(T\!=\!t'')\)</span> distribution.</p>
+<p>Define <span class="math inline">\(E_{t, t', t''}\)</span> as the expected outcome when <code>fam_int</code> <span class="math inline">\(= t\)</span> in the outcome equation, <code>dev_peer</code> follows its <span class="math inline">\(\text{do}(T\!=\!t')\)</span> distribution, and <code>sub_exp</code> follows its <span class="math inline">\(\text{do}(T\!=\!t'')\)</span> distribution:</p>
 <p><span class="math display">\[
 E_{t,t',t''} = \sum_{m_1, m_2}
-\color{blue}{P(M_1\!=\!m_1 \mid \text{do}(T\!=\!t'))}
-\color{red}{P(M_2\!=\!m_2 \mid \text{do}(T\!=\!t''))}
+\color{blue}{P(M_1\!=\!m_1 \mid \text{do}(T\!=\!t'))} \cdot
+\color{red}{P(M_2\!=\!m_2 \mid \text{do}(T\!=\!t''))} \cdot
 \color{green}{P(Y\!=\!1 \mid \text{do}(T\!=\!t, M_1\!=\!m_1, M_2\!=\!m_2))}
 \]</span></p>
 <p>The mediators factor because there is <strong>no edge</strong> between <code>dev_peer</code> and <code>sub_exp</code> in the DAG.</p>
@@ -1184,8 +1184,8 @@ E_{t,t',t''} = \sum_{m_1, m_2}
 <p><a href="https://github.com/pymc-labs">https://github.com/pymc-labs</a></p>
 </div>
 </section>
-<section id="references" class="slide level2 smaller">
-<h2>References</h2>
+<section id="references-posts-packages" class="slide level2 smaller">
+<h2>References — Posts &amp; Packages</h2>
 <div class="columns">
 <div class="column" style="width:70%;">
 <h4 id="blog-posts">Blog Posts</h4>
@@ -1211,8 +1211,8 @@ E_{t,t',t''} = \sum_{m_1, m_2}
 </ul>
 </div></div>
 </section>
-<section id="references-1" class="slide level2 smaller">
-<h2>References</h2>
+<section id="references-books-papers" class="slide level2 smaller">
+<h2>References — Books &amp; Papers</h2>
 <h4 id="books">Books</h4>
 <ul>
 <li>Pearl, J. <em>Causality: Models, Reasoning and Inference</em></li>
