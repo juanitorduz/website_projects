@@ -227,6 +227,7 @@
 <li>Fixed &amp; Random Effects</li>
 <li>Latent Variable Modeling</li>
 <li>Mediation Analysis</li>
+<li>Application: Marketing Mix Modeling</li>
 <li>References</li>
 </ol>
 </div></div>
@@ -299,12 +300,23 @@
 </div>
 <div class="callout-content">
 <ul>
-<li><p><strong>Model = DAG:</strong> Writing the generative process forces you to explicitly state your causal assumptions — this alone is valuable</p></li>
-<li><p><strong>Uncertainty for free:</strong> Posterior distributions over causal effects, not just point estimates</p></li>
-<li><p><strong>Flexible modeling:</strong> Swap likelihoods (Normal <span class="math inline">\(\to\)</span> Gamma), add hierarchical structure (Mundlak), or latent variables for unobserved confounders (CEVAE)</p></li>
-<li><p><strong><code>do</code>-operator:</strong> Intervene on the generative model for counterfactual reasoning</p></li>
-<li><p><strong>Fast inference:</strong> Modern MCMC (NUTS) and SVI make posterior computation scalable and reliable</p></li>
+<li><p><strong>Model = DAG:</strong> Writing the generative process forces you to explicitly state your causal assumptions: this alone is valuable!</p></li>
+<li><p><strong>Uncertainty for free:</strong> Posterior distributions over causal effects.</p></li>
+<li><p><strong>Prior Modeling:</strong> Setting priors to reflect our domain knowledge and to increase precision.</p></li>
+<li><p><strong>Flexible modeling:</strong> Swap likelihoods (Normal <span class="math inline">\(\to\)</span> Gamma), add hierarchical structure (Mundlak), or latent variables for unobserved confounders (CEVAE).</p></li>
+<li><p><strong><code>do</code>-operator:</strong> Intervene on the generative model for counterfactual reasoning.</p></li>
+<li><p><strong>Fast inference:</strong> Modern MCMC (NUTS) and SVI make posterior computation scalable and reliable.</p></li>
 </ul>
+</div>
+</div>
+</div>
+<div class="callout callout-warning callout-style-simple">
+<div class="callout-body">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-content">
+<p>This <strong>does not not</strong> imply that Bayesian methods are better than frequentist methods! For every framework, you need to know the assumptions and the limitations.</p>
 </div>
 </div>
 </div>
@@ -1102,6 +1114,47 @@ y &amp;= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_
 <p><a href="https://juanitorduz.github.io/mediation/">Mediation Analysis and (In)Direct Effects with PyMC</a></p>
 </div>
 </section>
+<section id="application-marketing-mix-modeling" class="slide level2">
+<h2>Application: Marketing Mix Modeling</h2>
+<div class="bordered">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="causal_inference_ppl_files/static/images/mmm_roas.png" class="quarto-figure quarto-figure-center" width="1000"></p>
+</figure>
+</div>
+</div>
+</section>
+<section id="pymc-labs-ecosystem" class="slide level2">
+<h2>PyMC-Labs Ecosystem</h2>
+<div class="columns">
+<div class="column" style="width:60.5%;">
+<div class="bordered">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="causal_inference_ppl_files/static/images/logos/pymc-marketing.jpg" class="quarto-figure quarto-figure-center" width="500"></p>
+</figure>
+</div>
+</div>
+</div><div class="column" style="width:39.5%;">
+<div class="bordered">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="causal_inference_ppl_files/static/images/logos/causalpy.png" class="quarto-figure quarto-figure-center" width="500"></p>
+</figure>
+</div>
+</div>
+</div></div>
+<div class="bordered">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="causal_inference_ppl_files/static/images/logos/decision-lab.png" class="quarto-figure quarto-figure-center" width="500"></p>
+</figure>
+</div>
+</div>
+<div class="footer">
+<p><a href="https://github.com/pymc-labs">https://github.com/pymc-labs</a></p>
+</div>
+</section>
 <section id="references" class="slide level2 smaller">
 <h2>References</h2>
 <h4 id="blog-posts">Blog Posts</h4>
@@ -1119,7 +1172,7 @@ y &amp;= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_
 <ul>
 <li><a href="https://www.pymc.io/">PyMC</a> / <a href="https://num.pyro.ai/">NumPyro</a></li>
 <li><a href="https://github.com/py-why/dowhy">DoWhy</a></li>
-<li><a href="https://causalpy.readthedocs.io/">CausalPy</a></li>
+<li><a href="https://causalpy.readthedocs.io/">CausalPy</a> / <a href="https://www.pymc-marketing.io/">PyMC-Marketing</a></li>
 </ul>
 </section>
 <section id="references-1" class="slide level2 smaller">
@@ -1139,13 +1192,10 @@ y &amp;= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_
 <li>Louizos, C. et al.&nbsp;(2017). <em>Causal Effect Inference with Deep Latent-Variable Models</em> (NeurIPS).</li>
 </ul>
 </section>
-<section id="references-2" class="slide level2 smaller">
-<h2>References</h2>
-</section>
-<section id="thank-you" class="slide level2" data-background-image="causal_inference_ppl_files/static/images/logos/juanitorduz_logo_small.png" data-background-opacity="0.15">
-<h2>Thank you!</h2>
-<p><a href="https://juanitorduz.github.io/"><strong>juanitorduz.github.io</strong></a></p>
-<p><img data-src="causal_inference_ppl_files/static/images/logos/juanitorduz.png" class="absolute" style="top: 0px; right: 0px; width: 600px; height: 600px; "></p>
+<section id="thank-you" class="slide level2" data-background-image="causal_inference_ppl_files/static/images/logos/pymc-labs-black.jpg">
+<h2><span style="color: white;">Thank You!</span></h2>
+<h4 id="juan.orduzpymc-labs.com"><a href="mailto:juan.orduz@pymc-labs.com" style="color: white;">juan.orduz@pymc-labs.com</a></h4>
+<p><img data-src="causal_inference_ppl_files/static/images/logos/juanitorduz.png" class="absolute" style="top: 400px; right: -100px; width: 250px; height: 250px; "></p>
 
 </section>
     </div>

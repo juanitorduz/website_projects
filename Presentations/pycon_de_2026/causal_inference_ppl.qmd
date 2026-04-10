@@ -42,7 +42,8 @@ format:
 6. Fixed & Random Effects
 7. Latent Variable Modeling
 8. Mediation Analysis
-9. References
+9. Application: Marketing Mix Modeling
+10. References
 
 :::
 :::
@@ -104,16 +105,22 @@ PPLs let you write generative models as code and automate posterior inference. E
 
 ::: {.callout-tip appearance="simple"}
 
-- **Model = DAG:** Writing the generative process forces you to explicitly state your causal assumptions — this alone is valuable
+- **Model = DAG:** Writing the generative process forces you to explicitly state your causal assumptions: this alone is valuable!
 
-- **Uncertainty for free:** Posterior distributions over causal effects, not just point estimates
+- **Uncertainty for free:** Posterior distributions over causal effects.
 
-- **Flexible modeling:** Swap likelihoods (Normal $\to$ Gamma), add hierarchical structure (Mundlak), or latent variables for unobserved confounders (CEVAE)
+- **Prior Modeling:** Setting priors to reflect our domain knowledge and to increase precision.
 
-- **`do`-operator:** Intervene on the generative model for counterfactual reasoning
+- **Flexible modeling:** Swap likelihoods (Normal $\to$ Gamma), add hierarchical structure (Mundlak), or latent variables for unobserved confounders (CEVAE).
 
-- **Fast inference:** Modern MCMC (NUTS) and SVI make posterior computation scalable and reliable
+- **`do`-operator:** Intervene on the generative model for counterfactual reasoning.
 
+- **Fast inference:** Modern MCMC (NUTS) and SVI make posterior computation scalable and reliable.
+
+:::
+
+::: {.callout-warning appearance="simple"}
+This **does not not** imply that Bayesian methods are better than frequentist methods! For every framework, you need to know the assumptions and the limitations.
 :::
 
 ## Bayesian A/B Testing {.smaller}
@@ -862,6 +869,36 @@ We can compute the effects using the `do`-operator:
 [Mediation Analysis and (In)Direct Effects with PyMC](https://juanitorduz.github.io/mediation/)
 :::
 
+## Application: Marketing Mix Modeling
+
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/mmm_roas.png){fig-align="center" width="1000"}
+:::
+
+## PyMC-Labs Ecosystem
+
+::: {.columns}
+::: {.column width="60.5%"}
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/logos/pymc-marketing.jpg){fig-align="center" width="500"}
+:::
+:::
+::: {.column width="39.5%"}
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/logos/causalpy.png){fig-align="center" width="500"}
+:::
+:::
+:::
+
+::: {.bordered}
+![](causal_inference_ppl_files/static/images/logos/decision-lab.png){fig-align="center" width="500"}
+:::
+
+::: footer
+[https://github.com/pymc-labs](https://github.com/pymc-labs)
+:::
+
+
 ## References {.smaller}
 
 #### Blog Posts
@@ -879,7 +916,7 @@ We can compute the effects using the `do`-operator:
 
 - [PyMC](https://www.pymc.io/) / [NumPyro](https://num.pyro.ai/)
 - [DoWhy](https://github.com/py-why/dowhy)
-- [CausalPy](https://causalpy.readthedocs.io/)
+- [CausalPy](https://causalpy.readthedocs.io/) / [PyMC-Marketing](https://www.pymc-marketing.io/)
 
 ## References {.smaller}
 
@@ -897,12 +934,8 @@ We can compute the effects using the `do`-operator:
 - Kruschke, J. K. & Liddell, T. M. (2018). *The Bayesian New Statistics: hypothesis testing, estimation, meta-analysis, and power analysis from a Bayesian perspective.*
 - Louizos, C. et al. (2017). *Causal Effect Inference with Deep Latent-Variable Models* (NeurIPS).
 
-## References {.smaller}
+## [Thank You!]{style="color: white;"} {background-image="causal_inference_ppl_files/static/images/logos/pymc-labs-black.jpg"}
 
+#### [juan.orduz@pymc-labs.com](mailto:juan.orduz@pymc-labs.com){style="color: white;"}
 
-
-## Thank you! {background-image="causal_inference_ppl_files/static/images/logos/juanitorduz_logo_small.png" background-opacity="0.15"}
-
-[**juanitorduz.github.io**](https://juanitorduz.github.io/)
-
-![](causal_inference_ppl_files/static/images/logos/juanitorduz.png){.absolute top=0 right=0 width=600 height=600}
+![](causal_inference_ppl_files/static/images/logos/juanitorduz.png){.absolute top=400 right=-100 width=250 height=250}
