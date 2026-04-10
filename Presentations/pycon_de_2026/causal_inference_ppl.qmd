@@ -89,8 +89,13 @@ $$
 - **Prior** $p(\theta)$: encodes domain knowledge before seeing data.
 - **Likelihood** $p(y \mid \theta)$: how probable the data is given the parameters.
 - **Posterior** $p(\theta \mid y)$: updated beliefs after observing data.
-- In a **generative graphical model**, all distributions start as priors over the data generating process. Once we **condition on observed data**, they become likelihoods.
 
+:::
+
+::: {.callout-tip}
+## The PPL bridge
+
+In a generative graphical model, every distribution **starts as a prior** over the data-generating process. Once we **condition on observed data**, those priors become **likelihoods**. A causal model and a Bayesian model are the **same object**, viewed before and after observing data.
 :::
 
 ::: {.callout-note}
@@ -101,7 +106,7 @@ PPLs let you write generative models as code and automate posterior inference. E
 
 :::
 
-## Why PPLs for Causal Inference?
+## Why PPLs for Causal Inference? 
 
 ::: {.callout-tip appearance="simple"}
 
@@ -109,7 +114,7 @@ PPLs let you write generative models as code and automate posterior inference. E
 
 - **Uncertainty for free:** Posterior distributions over causal effects.
 
-- **Prior Modeling:** Setting priors to reflect our domain knowledge and to increase precision.
+- **Prior Modeling:** Setting priors to reflect our domain knowledge.
 
 - **Flexible modeling:** Swap likelihoods (Normal $\to$ Gamma), add hierarchical structure (Mundlak), or latent variables for unobserved confounders (CEVAE).
 
@@ -119,13 +124,18 @@ PPLs let you write generative models as code and automate posterior inference. E
 
 :::
 
-::: {.callout-warning appearance="simple"}
+::: {.callout-warning appearance="simple" .smaller}
 This **does not** imply that Bayesian methods are better than frequentist methods! For every framework, you need to know the assumptions and the limitations.
+
+PPLs do not solve **identification**! They make **estimation** under causal assumptions.
 :::
 
 ## Bayesian A/B Testing {.smaller}
 
-Simple Bayesian A/B test model to estimate the relative lift between control and treatment groups in a balanced experiment.
+::: {.callout-tip appearance="simple"}
+A/B testing is the **gold standard of causal inference**: random assignment makes treatment independent of all confounders, observed and unobserved. The hard part shifts from **identification** to **estimation under uncertainty**.
+:::
+
 
 ```{.python code-line-numbers="|1|2-4|5-7|8-11|"}
 with pm.Model() as non_informative_model:
@@ -324,11 +334,14 @@ Declare significance when the $94\%$ HDI of the posterior lift **excludes the RO
 
 **Five-step process:**
 
+::: incremental
+
 1. Generate parameter values from a hypothetical distribution
 2. Simulate data samples using the planned sampling methods
 3. Compute posterior estimates with Bayesian analysis for various sample sizes
 4. Assess whether the $94\%$ HDI excludes the ROPE
 5. Repeat to approximate statistical power
+:::
 
 :::
 
@@ -367,7 +380,7 @@ Declare significance when the $94\%$ HDI of the posterior lift **excludes the RO
 
 ::: {.callout-tip appearance="simple"}
 
-**CUPED:** Use pre-treatment outcome as a covariate to **reduce posterior variance**.
+**CUPED:** Use pre-treatment outcome as a covariate to **reduce posterior variance of the causal effect estimate**.
 
 1. Regress $y_{\text{post}}$ on $y_{\text{pre}}$ and estimate the $\theta$ coefficient.
 
@@ -636,11 +649,28 @@ Computing the ATE using the `do` operator yields the same result as the regressi
 [Introduction to Causal Inference with PPLs](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/)
 :::
 
-## A more meaningful likelihood
+## A more meaningful likelihood {.smaller}
 ### Gamma Generalized Linear Model
+
+::: {.columns}
+::: {.column width="55%"}
 
 ::: {.bordered}
 ![](causal_inference_ppl_files/static/images/intro_causal_inference_ppl_pymc_78_0.png){fig-align="center" width="600"}
+:::
+
+:::
+::: {.column width="45%"}
+
+- Earnings are **non-negative and right-skewed** — Normal puts mass on impossible values.
+- **One-line model change:** `pm.Normal(...)` $\to$ `pm.Gamma(...)` with a log link.
+- ATE on the original scale comes for free via the `do`-operator.
+
+::: {.callout-tip appearance="simple"}
+**Why the `do`-operator now matters:** with a non-linear link, the regression coefficient is **not** the ATE. The `do`-operator handles non-linearity, individual counterfactuals, and joint interventions on multiple variables.
+:::
+
+:::
 :::
 
 ::: footer
@@ -879,6 +909,8 @@ We can compute the effects using the `do`-operator:
 | **IIE$_2$** (via `sub_exp`) | $E_{0,0,1} - E_{0,0,0}$ | Shift `sub_exp` to treated, hold rest at control |
 | **INT** (Interaction) | $E_{0,1,1} - E_{0,1,0} - E_{0,0,1} + E_{0,0,0}$ | Joint mediator contribution beyond individual effects |
 
+**Takeaway:** With PPLs, you decompose a single treatment effect into mechanism-specific pathways — each one a posterior distribution, each one a counterfactual query against the **same model**.
+
 :::
 
 ::: footer
@@ -896,10 +928,18 @@ We can compute the effects using the `do`-operator:
 [Mediation Analysis and (In)Direct Effects with PyMC](https://juanitorduz.github.io/mediation/)
 :::
 
-## Application: Marketing Mix Modeling
+## Application: Marketing Mix Modeling {.smaller}
+
+::: {.callout-tip appearance="simple"}
+### Marketing Mix Modeling (MMM) is by nature a causal inference problem.
+
+**Question:** How to optimally allocate the budget across channels to maximize the revenue in the next period?
+
+We need to estimate marketing efficiency per channel (ROAS) to then optimize the budget allocation.
+:::
 
 ::: {.bordered}
-![](causal_inference_ppl_files/static/images/mmm_roas.png){fig-align="center" width="1000"}
+![](causal_inference_ppl_files/static/images/mmm_roas.png){fig-align="center" width="800"}
 :::
 
 ## PyMC-Labs Ecosystem
@@ -925,6 +965,20 @@ We can compute the effects using the `do`-operator:
 [https://github.com/pymc-labs](https://github.com/pymc-labs)
 :::
 
+
+## Takeaways
+
+::: {.callout-tip}
+## What PPLs unlock for causal inference
+
+- **Model = DAG.** Writing the generative process *is* stating your assumptions. $\to$ *Lalonde, Mediation*
+- **Priors do real work.** Domain knowledge tightens estimates and rules out absurdity. $\to$ *A/B Testing, CUPED*
+- **Uncertainty for free.** Posterior credible intervals on every causal estimand. $\to$ *all results slides*
+- **Flexible likelihoods & structure.** Swap Normal $\to$ Gamma, add hierarchy, add latents. $\to$ *Gamma GLM, Mundlak, CEVAE*
+- **`do`-operator built in.** Counterfactuals are a model transformation, not a separate library. $\to$ *ATE, Mediation*
+- **Same machinery everywhere.** From the smallest A/B test to production MMM.
+
+:::
 
 ## References — Posts & Packages {.smaller}
 

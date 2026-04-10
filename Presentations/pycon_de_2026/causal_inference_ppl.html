@@ -275,8 +275,20 @@
 <li class="fragment"><strong>Prior</strong> <span class="math inline">\(p(\theta)\)</span>: encodes domain knowledge before seeing data.</li>
 <li class="fragment"><strong>Likelihood</strong> <span class="math inline">\(p(y \mid \theta)\)</span>: how probable the data is given the parameters.</li>
 <li class="fragment"><strong>Posterior</strong> <span class="math inline">\(p(\theta \mid y)\)</span>: updated beliefs after observing data.</li>
-<li class="fragment">In a <strong>generative graphical model</strong>, all distributions start as priors over the data generating process. Once we <strong>condition on observed data</strong>, they become likelihoods.</li>
 </ul>
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>The PPL bridge</strong></p>
+</div>
+<div class="callout-content">
+<p>In a generative graphical model, every distribution <strong>starts as a prior</strong> over the data-generating process. Once we <strong>condition on observed data</strong>, those priors become <strong>likelihoods</strong>. A causal model and a Bayesian model are the <strong>same object</strong>, viewed before and after observing data.</p>
+</div>
+</div>
+</div>
 <div class="callout callout-note callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
@@ -302,7 +314,7 @@
 <ul>
 <li><p><strong>Model = DAG:</strong> Writing the generative process forces you to explicitly state your causal assumptions: this alone is valuable!</p></li>
 <li><p><strong>Uncertainty for free:</strong> Posterior distributions over causal effects.</p></li>
-<li><p><strong>Prior Modeling:</strong> Setting priors to reflect our domain knowledge and to increase precision.</p></li>
+<li><p><strong>Prior Modeling:</strong> Setting priors to reflect our domain knowledge.</p></li>
 <li><p><strong>Flexible modeling:</strong> Swap likelihoods (Normal <span class="math inline">\(\to\)</span> Gamma), add hierarchical structure (Mundlak), or latent variables for unobserved confounders (CEVAE).</p></li>
 <li><p><strong><code>do</code>-operator:</strong> Intervene on the generative model for counterfactual reasoning.</p></li>
 <li><p><strong>Fast inference:</strong> Modern MCMC (NUTS) and SVI make posterior computation scalable and reliable.</p></li>
@@ -310,6 +322,7 @@
 </div>
 </div>
 </div>
+<div class="smaller">
 <div class="callout callout-warning callout-style-simple">
 <div class="callout-body">
 <div class="callout-icon-container">
@@ -317,13 +330,24 @@
 </div>
 <div class="callout-content">
 <p>This <strong>does not</strong> imply that Bayesian methods are better than frequentist methods! For every framework, you need to know the assumptions and the limitations.</p>
+<p>PPLs do not solve <strong>identification</strong>! They make <strong>estimation</strong> under causal assumptions.</p>
+</div>
 </div>
 </div>
 </div>
 </section>
 <section id="bayesian-ab-testing" class="slide level2 smaller">
 <h2>Bayesian A/B Testing</h2>
-<p>Simple Bayesian A/B test model to estimate the relative lift between control and treatment groups in a balanced experiment.</p>
+<div class="callout callout-tip callout-style-simple">
+<div class="callout-body">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-content">
+<p>A/B testing is the <strong>gold standard of causal inference</strong>: random assignment makes treatment independent of all confounders, observed and unobserved. The hard part shifts from <strong>identification</strong> to <strong>estimation under uncertainty</strong>.</p>
+</div>
+</div>
+</div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-code-line-numbers="|1|2-4|5-7|8-11|"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> non_informative_model:</span>
 <span id="cb1-2"><a href=""></a>    conversion_rate_control <span class="op">=</span> pm.Uniform(</span>
 <span id="cb1-3"><a href=""></a>      <span class="st">"conversion_rate_control"</span>, lower<span class="op">=</span><span class="dv">0</span>, upper<span class="op">=</span><span class="dv">1</span></span>
@@ -529,11 +553,11 @@ N_{\text{t}} &amp; \sim \text{Binomial}(N, \text{cr}_\text{t}) \\
 </div>
 <p><strong>Five-step process:</strong></p>
 <ol type="1">
-<li>Generate parameter values from a hypothetical distribution</li>
-<li>Simulate data samples using the planned sampling methods</li>
-<li>Compute posterior estimates with Bayesian analysis for various sample sizes</li>
-<li>Assess whether the <span class="math inline">\(94\%\)</span> HDI excludes the ROPE</li>
-<li>Repeat to approximate statistical power</li>
+<li class="fragment">Generate parameter values from a hypothetical distribution</li>
+<li class="fragment">Simulate data samples using the planned sampling methods</li>
+<li class="fragment">Compute posterior estimates with Bayesian analysis for various sample sizes</li>
+<li class="fragment">Assess whether the <span class="math inline">\(94\%\)</span> HDI excludes the ROPE</li>
+<li class="fragment">Repeat to approximate statistical power</li>
 </ol>
 </div><div class="column" style="width:22%;">
 <div class="bordered">
@@ -578,7 +602,7 @@ N_{\text{t}} &amp; \sim \text{Binomial}(N, \text{cr}_\text{t}) \\
 <i class="callout-icon"></i>
 </div>
 <div class="callout-content">
-<p><strong>CUPED:</strong> Use pre-treatment outcome as a covariate to <strong>reduce posterior variance</strong>.</p>
+<p><strong>CUPED:</strong> Use pre-treatment outcome as a covariate to <strong>reduce posterior variance of the causal effect estimate</strong>.</p>
 <ol type="1">
 <li><p>Regress <span class="math inline">\(y_{\text{post}}\)</span> on <span class="math inline">\(y_{\text{pre}}\)</span> and estimate the <span class="math inline">\(\theta\)</span> coefficient.</p></li>
 <li><p>Compute <span class="math inline">\(y_{\text{cuped}, i} = y_{\text{post}, i} - \theta \, (y_{\text{pre}, i} - \bar{y}_{\text{pre}})\)</span> for each unit <span class="math inline">\(i\)</span>.</p></li>
@@ -825,9 +849,11 @@ ATE = \mathbb{E}[Y \mid \text{do}(T=1)] - \mathbb{E}[Y \mid \text{do}(T=0)]
 <p><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></p>
 </div>
 </section>
-<section id="a-more-meaningful-likelihood" class="slide level2">
+<section id="a-more-meaningful-likelihood" class="slide level2 smaller">
 <h2>A more meaningful likelihood</h2>
 <h3 id="gamma-generalized-linear-model">Gamma Generalized Linear Model</h3>
+<div class="columns">
+<div class="column" style="width:55%;">
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
@@ -835,6 +861,23 @@ ATE = \mathbb{E}[Y \mid \text{do}(T=1)] - \mathbb{E}[Y \mid \text{do}(T=0)]
 </figure>
 </div>
 </div>
+</div><div class="column" style="width:45%;">
+<ul>
+<li>Earnings are <strong>non-negative and right-skewed</strong> — Normal puts mass on impossible values.</li>
+<li><strong>One-line model change:</strong> <code>pm.Normal(...)</code> <span class="math inline">\(\to\)</span> <code>pm.Gamma(...)</code> with a log link.</li>
+<li>ATE on the original scale comes for free via the <code>do</code>-operator.</li>
+</ul>
+<div class="callout callout-tip callout-style-simple">
+<div class="callout-body">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-content">
+<p><strong>Why the <code>do</code>-operator now matters:</strong> with a non-linear link, the regression coefficient is <strong>not</strong> the ATE. The <code>do</code>-operator handles non-linearity, individual counterfactuals, and joint interventions on multiple variables.</p>
+</div>
+</div>
+</div>
+</div></div>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></p>
 </div>
@@ -1123,6 +1166,7 @@ E_{t,t',t''} = \sum_{m_1, m_2}
 </tr>
 </tbody>
 </table>
+<p><strong>Takeaway:</strong> With PPLs, you decompose a single treatment effect into mechanism-specific pathways — each one a posterior distribution, each one a counterfactual query against the <strong>same model</strong>.</p>
 </div>
 </div>
 </div>
@@ -1143,12 +1187,26 @@ E_{t,t',t''} = \sum_{m_1, m_2}
 <p><a href="https://juanitorduz.github.io/mediation/">Mediation Analysis and (In)Direct Effects with PyMC</a></p>
 </div>
 </section>
-<section id="application-marketing-mix-modeling" class="slide level2">
+<section id="application-marketing-mix-modeling" class="slide level2 smaller">
 <h2>Application: Marketing Mix Modeling</h2>
+<div class="callout callout-tip callout-titled callout-style-simple">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Marketing Mix Modeling (MMM) is by nature a causal inference problem.</strong></p>
+</div>
+<div class="callout-content">
+<p><strong>Question:</strong> How to optimally allocate the budget across channels to maximize the revenue in the next period?</p>
+<p>We need to estimate marketing efficiency per channel (ROAS) to then optimize the budget allocation.</p>
+</div>
+</div>
+</div>
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="causal_inference_ppl_files/static/images/mmm_roas.png" class="quarto-figure quarto-figure-center" width="1000"></p>
+<p><img data-src="causal_inference_ppl_files/static/images/mmm_roas.png" class="quarto-figure quarto-figure-center" width="800"></p>
 </figure>
 </div>
 </div>
@@ -1182,6 +1240,29 @@ E_{t,t',t''} = \sum_{m_1, m_2}
 </div>
 <div class="footer">
 <p><a href="https://github.com/pymc-labs">https://github.com/pymc-labs</a></p>
+</div>
+</section>
+<section id="takeaways" class="slide level2">
+<h2>Takeaways</h2>
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>What PPLs unlock for causal inference</strong></p>
+</div>
+<div class="callout-content">
+<ul>
+<li><strong>Model = DAG.</strong> Writing the generative process <em>is</em> stating your assumptions. <span class="math inline">\(\to\)</span> <em>Lalonde, Mediation</em></li>
+<li><strong>Priors do real work.</strong> Domain knowledge tightens estimates and rules out absurdity. <span class="math inline">\(\to\)</span> <em>A/B Testing, CUPED</em></li>
+<li><strong>Uncertainty for free.</strong> Posterior credible intervals on every causal estimand. <span class="math inline">\(\to\)</span> <em>all results slides</em></li>
+<li><strong>Flexible likelihoods &amp; structure.</strong> Swap Normal <span class="math inline">\(\to\)</span> Gamma, add hierarchy, add latents. <span class="math inline">\(\to\)</span> <em>Gamma GLM, Mundlak, CEVAE</em></li>
+<li><strong><code>do</code>-operator built in.</strong> Counterfactuals are a model transformation, not a separate library. <span class="math inline">\(\to\)</span> <em>ATE, Mediation</em></li>
+<li><strong>Same machinery everywhere.</strong> From the smallest A/B test to production MMM.</li>
+</ul>
+</div>
+</div>
 </div>
 </section>
 <section id="references-posts-packages" class="slide level2 smaller">
