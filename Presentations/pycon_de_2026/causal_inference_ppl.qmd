@@ -337,7 +337,7 @@ Declare significance when the $94\%$ HDI of the posterior lift **excludes the RO
 ::: incremental
 
 1. Generate parameter values from a hypothetical distribution
-2. Simulate data samples using the planned sampling methods
+2. Simulate data samples using the generative model
 3. Compute posterior estimates with Bayesian analysis for various sample sizes
 4. Assess whether the $94\%$ HDI excludes the ROPE
 5. Repeat to approximate statistical power
@@ -798,7 +798,7 @@ y &= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_{[g]
 - Online game dataset: `Does side-quest engagement increase in-game purchases?`
 - **Unobserved confounder** $Z$ (player motivation) affects both treatment and outcome.
 - Standard backdoor adjustment is **not possible**.
-- Solution: **CEVAE** framework (Louizos et al., NeurIPS 2017): learn a latent representation of $Z$.
+- A solution: **CEVAE** framework (Louizos et al., NeurIPS 2017): learn a latent representation of $Z$.
 
 :::
 

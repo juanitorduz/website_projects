@@ -554,7 +554,7 @@ N_{\text{t}} &amp; \sim \text{Binomial}(N, \text{cr}_\text{t}) \\
 <p><strong>Five-step process:</strong></p>
 <ol type="1">
 <li class="fragment">Generate parameter values from a hypothetical distribution</li>
-<li class="fragment">Simulate data samples using the planned sampling methods</li>
+<li class="fragment">Simulate data samples using the generative model</li>
 <li class="fragment">Compute posterior estimates with Bayesian analysis for various sample sizes</li>
 <li class="fragment">Assess whether the <span class="math inline">\(94\%\)</span> HDI excludes the ROPE</li>
 <li class="fragment">Repeat to approximate statistical power</li>
@@ -1031,7 +1031,7 @@ y &amp;= \alpha_{y, [g]} + \beta_{xy}x + \beta_{zy}z + \beta_{yg}{\color{red}{u_
 <li class="fragment">Online game dataset: <code>Does side-quest engagement increase in-game purchases?</code></li>
 <li class="fragment"><strong>Unobserved confounder</strong> <span class="math inline">\(Z\)</span> (player motivation) affects both treatment and outcome.</li>
 <li class="fragment">Standard backdoor adjustment is <strong>not possible</strong>.</li>
-<li class="fragment">Solution: <strong>CEVAE</strong> framework (Louizos et al., NeurIPS 2017): learn a latent representation of <span class="math inline">\(Z\)</span>.</li>
+<li class="fragment">A solution: <strong>CEVAE</strong> framework (Louizos et al., NeurIPS 2017): learn a latent representation of <span class="math inline">\(Z\)</span>.</li>
 </ul>
 <p><em>Taken from Robert O. Ness’s book: <a href="https://github.com/altdeep/causalAI">Causal AI</a>.</em></p>
 </div></div>
