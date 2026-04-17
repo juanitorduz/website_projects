@@ -132,27 +132,32 @@ ax.set(xlabel="time", ylabel="y", title="Time Series Data Split")
 # %% [markdown]
 # ## Damped Holt-Winters State Space Model
 #
-# We keep the same priors as the `damped_holt_winters_model` of the original post — $\text{Beta}(2, 2)$ on the smoothing parameters, $\text{Beta}(2, 5)$ on the damping parameter $\phi$, $\mathcal{N}(0, 1)$ on the initial states (except $\mathcal{N}(0.5, 1)$ on the initial trend), and $\text{HalfNormal}(1)$ on the noise scale. The structural change is entirely inside `transition_fn`.
+# The structural change versus the component-form implementation is entirely inside `transition_fn`. We do tighten a few of the priors, though — not because the original priors are "wrong", but because the SSOE posterior has a very different *geometry* and the Beta$(2, 2)$ / $\mathcal{N}(0, 1)$ / $\text{HalfNormal}(1)$ priors of the original post land NUTS in high-curvature regions that produce divergences. The refinements below are aimed at sampling geometry only:
+#
+# - **Smoothing parameters $\alpha$, $\beta^\ast$, $\gamma^\ast$: $\text{Beta}(2, 2) \to \text{Beta}(5, 5)$.** The mode stays at $0.5$ but the density at the boundaries drops from $0$-linear to essentially flat-zero. This matters because the SSOE reparameterisation $\beta = \alpha \, \beta^\ast$, $\gamma = (1 - \alpha) \, \gamma^\ast$ creates *funnels* at $\alpha = 0$ and $\alpha = 1$: as $\alpha \to 0$ the trend coefficient $\beta$ collapses and $\beta^\ast$ becomes locally unidentifiable (flat likelihood, non-zero prior gradient); symmetrically at $\alpha \to 1$ for $\gamma^\ast$. With $\text{Beta}(2, 2)$ priors the sampler happily walks into those corners and diverges; $\text{Beta}(5, 5)$ simply keeps it away.
+# - **Initial level $l_0$: $\mathcal{N}(0, 1) \to \mathcal{N}(y_0, 1)$.** Anchoring on the first observation means the warmup does not have to walk $l_0$ across the data scale before the smoothing parameters can be identified. The variance is unchanged — the prior is still weakly informative.
+# - **Initial trend $b_0$: $\mathcal{N}(0.5, 1) \to \mathcal{N}(0, 0.1)$.** The original prior was oddly centred at $0.5$ and was much wider than any realistic one-step trend. With $\phi$ small, $b_0$ is only identified through the first few observations and the wide prior creates a long weakly-identified direction in the posterior.
+# - **Noise $\sigma$: $\text{HalfNormal}(1) \to \text{HalfNormal}(0.5)$.** Still comfortably above the true noise scale of the synthetic data ($\approx 0.2$), but tighter — this breaks the $\sigma$–$\alpha$ correlation (large $\alpha$ + small $\sigma$ and small $\alpha$ + large $\sigma$ give similar likelihoods) that the original wide prior left loose.
+# - **Damping $\phi \sim \text{Beta}(2, 5)$** and the seasonal initials $\mathcal{N}(0, 1)$ are left unchanged — the trace of the original SSOE fit shows both are already well identified.
+
 
 # %%
-def damped_holt_winters_ssm_model(
-    y: Array, n_seasons: int, future: int = 0
-) -> None:
+def damped_holt_winters_ssm_model(y: Array, n_seasons: int, future: int = 0) -> None:
     # Get time series length
     t_max = y.shape[0]
 
     # --- Priors ---
 
     ## Level
-    level_smoothing = numpyro.sample("level_smoothing", dist.Beta(2, 2))
-    level_init = numpyro.sample("level_init", dist.Normal(0, 1))
+    level_smoothing = numpyro.sample("level_smoothing", dist.Beta(5, 5))
+    level_init = numpyro.sample("level_init", dist.Normal(y[0], 1))
 
     ## Trend (component-form beta*; in SSOE form beta = beta* * alpha)
-    trend_smoothing = numpyro.sample("trend_smoothing", dist.Beta(2, 2))
-    trend_init = numpyro.sample("trend_init", dist.Normal(0.5, 1))
+    trend_smoothing = numpyro.sample("trend_smoothing", dist.Beta(5, 5))
+    trend_init = numpyro.sample("trend_init", dist.Normal(0, 0.1))
 
     ## Seasonality (component-form gamma*; in SSOE form gamma = gamma* * (1 - alpha))
-    seasonality_smoothing = numpyro.sample("seasonality_smoothing", dist.Beta(2, 2))
+    seasonality_smoothing = numpyro.sample("seasonality_smoothing", dist.Beta(5, 5))
     adj_seasonality_smoothing = seasonality_smoothing * (1 - level_smoothing)
 
     ## Damping
@@ -162,7 +167,7 @@ def damped_holt_winters_ssm_model(
         seasonality_init = numpyro.sample("seasonality_init", dist.Normal(0, 1))
 
     ## Noise
-    noise = numpyro.sample("noise", dist.HalfNormal(1))
+    noise = numpyro.sample("noise", dist.HalfNormal(0.5))
 
     # --- Transition Function ---
 
@@ -217,6 +222,7 @@ def damped_holt_winters_ssm_model(
 # ## Inference
 #
 # We reuse the same helper functions as the original post.
+
 
 # %%
 class InferenceParams(BaseModel):
@@ -278,6 +284,7 @@ plt.gcf().suptitle("Damped Holt-Winters (State Space) Trace", fontsize=16)
 
 # %% [markdown]
 # ## Forecast
+
 
 # %%
 def forecast(
