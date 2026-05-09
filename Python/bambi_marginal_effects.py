@@ -7,7 +7,7 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.19.1
 #   kernelspec:
-#     display_name: .venv
+#     display_name: default
 #     language: python
 #     name: python3
 # ---
@@ -30,6 +30,8 @@
 # ## Setup
 
 # %%
+from typing import NamedTuple
+
 import arviz as az
 import bambi as bmb
 import matplotlib.pyplot as plt
@@ -37,12 +39,18 @@ import numpy as np
 import polars as pl
 
 az.style.use("arviz-darkgrid")
-plt.rcParams["figure.figsize"] = [12, 7]
+plt.rcParams["figure.figsize"] = [10, 6]
 plt.rcParams["figure.dpi"] = 100
 plt.rcParams["figure.facecolor"] = "white"
 
-SEED = 42
-rng = np.random.default_rng(seed=SEED)
+# %load_ext autoreload
+# %autoreload 2
+# %config InlineBackend.figure_format = "retina"
+
+# %%
+seed: int = sum(map(ord, "marginaleffects"))
+rng: np.random.Generator = np.random.default_rng(seed=seed)
+
 
 # %% [markdown]
 # ## A data-generating process we can reason about
@@ -66,36 +74,44 @@ rng = np.random.default_rng(seed=SEED)
 # saturation window — so the function is $C^{\infty}$ everywhere with no joining knots.
 
 # %%
-def beta_roas(r: np.ndarray) -> np.ndarray:
-    rise = -0.5 + 1.0 / (1.0 + np.exp(-3.0 * (r - 1.0)))
-    saturation = 1.0 / (1.0 + np.exp(0.6 * (r - 4.0)))
+def beta_roas(roas: np.ndarray) -> np.ndarray:
+    rise = -0.5 + 1.0 / (1.0 + np.exp(-3.0 * (roas - 1.0)))
+    saturation = 1.0 / (1.0 + np.exp(0.6 * (roas - 4.0)))
     return rise * saturation
 
 
-def f_roas(r: np.ndarray) -> np.ndarray:
-    return beta_roas(r) * r
+def f_roas(roas: np.ndarray) -> np.ndarray:
+    return beta_roas(roas) * roas
 
 
 # %%
-roas_grid = np.linspace(0.0, 6.0, 400)
+roas_grid = np.linspace(0.0, 10.0, 500)
 
-fig, axes = plt.subplots(1, 2, figsize=(14, 5), sharex=True)
-axes[0].plot(roas_grid, beta_roas(roas_grid), color="C0")
+beta_roas_grid = beta_roas(roas_grid)
+f_roas_grid = f_roas(roas_grid)
+
+fig, axes = plt.subplots(
+    nrows=1,
+    ncols=2,
+    figsize=(12, 7),
+    sharex=True,
+    sharey=True,
+    layout="constrained",
+)
+axes[0].plot(roas_grid, beta_roas_grid, color="C0")
 axes[0].axhline(0.0, color="black", linewidth=0.8)
-axes[0].axvline(1.0, color="gray", linestyle=":", linewidth=0.8)
-axes[0].axvline(4.0, color="gray", linestyle=":", linewidth=0.8)
 axes[0].set_title(r"$\beta(\mathrm{roas})$ — the varying coefficient")
 axes[0].set_xlabel("roas")
 axes[0].set_ylabel(r"$\beta$")
 
-axes[1].plot(roas_grid, f_roas(roas_grid), color="C1")
+axes[1].plot(roas_grid, f_roas_grid, color="C1")
 axes[1].axhline(0.0, color="black", linewidth=0.8)
-axes[1].axvline(1.0, color="gray", linestyle=":", linewidth=0.8)
-axes[1].axvline(4.0, color="gray", linestyle=":", linewidth=0.8)
-axes[1].set_title(r"$\beta(\mathrm{roas}) \cdot \mathrm{roas}$ — contribution to $\log \mu$")
+axes[1].set_title(
+    r"$\beta(\mathrm{roas}) \cdot \mathrm{roas}$ — contribution to $\log \mu$"
+)
 axes[1].set_xlabel("roas")
-fig.suptitle("Ground truth ROAS effect", fontsize=14)
-fig.tight_layout()
+(fig.suptitle("Ground truth ROAS effect", fontsize=18, fontweight="bold"));
+
 
 # %% [markdown]
 # Negative for low ROAS, rising through zero around break-even, peaking in the sweet spot,
@@ -110,11 +126,21 @@ fig.tight_layout()
 # realistic month-to-month persistence.
 
 # %%
-N_STORES = 100
-N_MONTHS = 24
-INTERCEPT = 0.5
-COHORT_SLOPE = -0.02
-GAMMA_SHAPE = 8.0
+class DGP(NamedTuple):
+    n_stores: int
+    n_months: int
+    intercept: float
+    cohort_slope: float
+    gamma_shape: float
+
+
+dgp = DGP(
+    n_stores=100,
+    n_months=24,
+    intercept=0.5,
+    cohort_slope=-0.02,
+    gamma_shape=8.0,
+)
 
 
 def season(month_of_year: np.ndarray) -> np.ndarray:
@@ -123,34 +149,31 @@ def season(month_of_year: np.ndarray) -> np.ndarray:
     )
 
 
-# %%
-store_ids = np.arange(N_STORES)
-store_starts = rng.integers(low=-12, high=1, size=N_STORES)
-store_log_roas_mean = rng.normal(loc=np.log(2.5), scale=0.4, size=N_STORES)
+store_ids = np.arange(dgp.n_stores)
+store_starts = rng.integers(low=-12, high=1, size=dgp.n_stores)
+store_log_roas_mean = rng.normal(loc=np.log(2.5), scale=0.4, size=dgp.n_stores)
 
-log_roas = np.empty(shape=(N_STORES, N_MONTHS))
-log_roas[:, 0] = store_log_roas_mean + rng.normal(scale=0.3, size=N_STORES)
-for t in range(1, N_MONTHS):
+log_roas = np.empty(shape=(dgp.n_stores, dgp.n_months))
+log_roas[:, 0] = store_log_roas_mean + rng.normal(scale=0.3, size=dgp.n_stores)
+
+for t in range(1, dgp.n_months):
     log_roas[:, t] = (
         0.6 * log_roas[:, t - 1]
         + 0.4 * store_log_roas_mean
-        + rng.normal(scale=0.3, size=N_STORES)
+        + rng.normal(scale=0.3, size=dgp.n_stores)
     )
 roas = np.clip(np.exp(log_roas), 0.0, 8.0)
 
-month_idx = np.broadcast_to(np.arange(N_MONTHS), (N_STORES, N_MONTHS))
+month_idx = np.broadcast_to(np.arange(dgp.n_months), (dgp.n_stores, dgp.n_months))
 month_of_year = (month_idx % 12) + 1
 cohort_age = month_idx - store_starts[:, None]
 
 log_mu = (
-    INTERCEPT
-    + season(month_of_year)
-    + COHORT_SLOPE * cohort_age
-    + f_roas(roas)
+    dgp.intercept + season(month_of_year) + dgp.cohort_slope * cohort_age + f_roas(roas)
 )
 
 mu = np.exp(log_mu)
-budget_raw = rng.gamma(shape=GAMMA_SHAPE, scale=mu / GAMMA_SHAPE)
+budget_raw = rng.gamma(shape=dgp.gamma_shape, scale=mu / dgp.gamma_shape)
 
 # Inactive months: a small share of stores skip a month, especially in summer.
 inactive_prob = 0.05 + 0.10 * (np.isin(month_of_year, [7, 8])).astype(float)
@@ -159,7 +182,7 @@ budget = np.where(inactive, 0.0, budget_raw)
 
 panel = pl.DataFrame(
     {
-        "store_id": np.repeat(store_ids, N_MONTHS),
+        "store_id": np.repeat(store_ids, dgp.n_months),
         "month_idx": month_idx.ravel(),
         "month_of_year": month_of_year.ravel(),
         "cohort_age": cohort_age.ravel(),
@@ -191,23 +214,38 @@ active_share
 # Six random stores over time — seasonal humps, the occasional zero month.
 
 # %%
-sample_ids = rng.choice(store_ids, size=6, replace=False)
-fig, axes = plt.subplots(2, 3, figsize=(14, 7), sharex=True, sharey=True)
-for ax, sid in zip(axes.flat, sample_ids):
-    sub = panel.filter(pl.col("store_id") == sid).sort("month_idx")
-    ax.plot(sub["month_idx"].to_numpy(), sub["budget"].to_numpy(), marker="o", color="C0")
+n_random_stores = 12
+
+sample_ids = rng.choice(store_ids, size=n_random_stores, replace=False)
+
+fig, axes = plt.subplots(
+    nrows=3,
+    ncols=4,
+    figsize=(12, 7),
+    sharex=True,
+    sharey=True,
+    layout="constrained",
+)
+
+for ax, sid in zip(axes.flat, sample_ids, strict=True):
+    sub = panel.filter(pl.col("store_id").eq(pl.lit(sid))).sort("month_idx")
+    ax.plot(sub["month_idx"], sub["budget"], color="black")
     ax.set_title(f"store {sid}")
     ax.set_xlabel("month index")
-fig.suptitle("Monthly booked budget for six random stores", fontsize=14)
-fig.tight_layout()
+fig.suptitle(
+    "Monthly booked budget for six random stores", fontsize=18, fontweight="bold"
+);
 
 # %% [markdown]
 # Marginal distributions of the three drivers and the response.
 
 # %%
-active = panel.filter(~pl.col("inactive"))
+panel
 
-fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+# %%
+active = panel.filter(pl.col("inactive"))
+
+fig, axes = plt.subplots(1, 2, figsize=(15, 4))
 axes[0].hist(active["budget"].to_numpy(), bins=40, color="C0")
 axes[0].set_title("budget (active months)")
 axes[1].hist(panel["roas"].to_numpy(), bins=40, color="C1")
@@ -242,7 +280,9 @@ cohort_summary = (
 )
 
 fig, ax = plt.subplots(figsize=(12, 5))
-ax.scatter(active["cohort_age"].to_numpy(), active["budget"].to_numpy(), alpha=0.15, s=10)
+ax.scatter(
+    active["cohort_age"].to_numpy(), active["budget"].to_numpy(), alpha=0.15, s=10
+)
 ax.plot(
     cohort_summary["cohort_age"].to_numpy(),
     cohort_summary["mean_budget"].to_numpy(),
@@ -330,7 +370,9 @@ priors = {
     "alpha": bmb.Prior("HalfNormal", sigma=1.0),
 }
 
-model = bmb.Model(formula=formula, data=df_active, family="gamma", link="log", priors=priors)
+model = bmb.Model(
+    formula=formula, data=df_active, family="gamma", link="log", priors=priors
+)
 model.build()
 model
 
@@ -580,7 +622,9 @@ truth_age = np.exp(
 
 fig, ax = plt.subplots(figsize=(12, 5))
 ax.plot(ages, sum_age["mean"], color="C0", label="posterior mean")
-ax.fill_between(ages, sum_age["lo"], sum_age["hi"], alpha=0.25, color="C0", label="94% CI")
+ax.fill_between(
+    ages, sum_age["lo"], sum_age["hi"], alpha=0.25, color="C0", label="94% CI"
+)
 ax.plot(ages, truth_age, color="black", linestyle="--", label="ground truth")
 ax.set_xlabel("cohort age (months)")
 ax.set_ylabel("expected budget next month")
@@ -619,7 +663,9 @@ ax.bar(
     alpha=0.7,
     label="posterior mean ± 94% CI",
 )
-ax.plot(months, truth_month, color="black", linestyle="--", marker="o", label="ground truth")
+ax.plot(
+    months, truth_month, color="black", linestyle="--", marker="o", label="ground truth"
+)
 ax.set_xticks(months)
 ax.set_xlabel("month of year")
 ax.set_ylabel("expected budget next month")
