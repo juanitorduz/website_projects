@@ -1,0 +1,196 @@
+% UAI 2026 Workshop on Causality for Decision Making
+% Bibliography for "Experiment-Calibrated Media Mix Models".
+
+% --- Causal foundations ---------------------------------------------------
+
+@book{pearl2009causality,
+  author    = {Pearl, Judea},
+  title     = {Causality: Models, Reasoning, and Inference},
+  edition   = {2nd},
+  publisher = {Cambridge University Press},
+  year      = {2009}
+}
+
+@article{bareinboim2016causal,
+  author  = {Bareinboim, Elias and Pearl, Judea},
+  title   = {Causal Inference and the Data-Fusion Problem},
+  journal = {Proceedings of the National Academy of Sciences},
+  volume  = {113},
+  number  = {27},
+  pages   = {7345--7352},
+  year    = {2016}
+}
+
+@book{hernan2020causal,
+  author    = {Hern{\'a}n, Miguel A. and Robins, James M.},
+  title     = {Causal Inference: What If},
+  publisher = {Chapman \& Hall/CRC},
+  year      = {2020}
+}
+
+% --- Data fusion / RCT + observational ------------------------------------
+
+@article{colnet2024causal,
+  author  = {Colnet, B{\'e}n{\'e}dicte and Mayer, Imke and Chen, Guanhua and Dieng, Awa and Li, Ruohong and Varoquaux, Ga{\"e}l and Vert, Jean-Philippe and Josse, Julie and Yang, Shu},
+  title   = {Causal Inference Methods for Combining Randomized Trials and Observational Studies: A Review},
+  journal = {Statistical Science},
+  year    = {2024}
+}
+
+@inproceedings{kallus2018removing,
+  author    = {Kallus, Nathan and Puli, Aahlad and Shalit, Uri},
+  title     = {Removing Hidden Confounding by Experimental Grounding},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2018}
+}
+
+@article{yang2020combining,
+  author  = {Yang, Shu and Ding, Peng},
+  title   = {Combining Multiple Observational Data Sources to Estimate Causal Effects},
+  journal = {Journal of the American Statistical Association},
+  volume  = {115},
+  number  = {531},
+  pages   = {1540--1554},
+  year    = {2020}
+}
+
+% --- Frugal parameterization ----------------------------------------------
+
+@article{evans2024frugal,
+  author  = {Evans, Robin J. and Didelez, Vanessa},
+  title   = {Parameterizing and Simulating from Causal Models},
+  journal = {Journal of the Royal Statistical Society: Series B},
+  year    = {2024}
+}
+
+% --- Media mix modeling ---------------------------------------------------
+
+@techreport{jin2017bayesian,
+  author      = {Jin, Yuxue and Wang, Yueqing and Sun, Yuhong and Chan, David and Koehler, Jim},
+  title       = {Bayesian Methods for Media Mix Modeling with Carryover and Shape Effects},
+  institution = {Google Research},
+  year        = {2017}
+}
+
+@techreport{wurm2024mmmcalibration,
+  author      = {Wurm, Michael and Price, Bobby and Liu, Yan},
+  title       = {Media Mix Model Calibration with {B}ayesian Priors},
+  institution = {Google Research},
+  year        = {2024},
+  url         = {https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/}
+}
+
+@article{bajari2021multiple,
+  author  = {Bajari, Patrick and Burdick, Brian and Imbens, Guido W. and Masoero, Lorenzo and McQueen, James and Richardson, Thomas S. and Rosen, Ido M.},
+  title   = {Multiple Randomization Designs},
+  journal = {Management Science},
+  year    = {2023},
+  note    = {arXiv:2112.13495}
+}
+
+@article{cooprider2023amazon,
+  author  = {Cooprider, Joseph and Nassiri, Shima},
+  title   = {Science of Price Experimentation at {A}mazon},
+  journal = {Business Economics},
+  year    = {2023}
+}
+
+@misc{pymcmarketing2024,
+  author       = {{PyMC Labs}},
+  title        = {{PyMC-Marketing}: Bayesian Marketing Mix Modeling and Customer Lifetime Value Analytics},
+  howpublished = {Software},
+  year         = {2024},
+  url          = {https://www.pymc-marketing.io/}
+}
+
+% --- Off-policy evaluation / causal bandits -------------------------------
+
+@article{dudik2014ope,
+  author  = {Dud{\'\i}k, Miroslav and Erhan, Dumitru and Langford, John and Li, Lihong},
+  title   = {Doubly Robust Policy Evaluation and Optimization},
+  journal = {Statistical Science},
+  volume  = {29},
+  number  = {4},
+  pages   = {485--511},
+  year    = {2014}
+}
+
+@inproceedings{lattimore2016causalbandits,
+  author    = {Lattimore, Finnian and Lattimore, Tor and Reid, Mark D.},
+  title     = {Causal Bandits: Learning Good Interventions via Causal Inference},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2016}
+}
+
+% --- Bayesian methodology -------------------------------------------------
+
+@article{carpenter2017stan,
+  author  = {Carpenter, Bob and Gelman, Andrew and Hoffman, Matthew D. and Lee, Daniel and Goodrich, Ben and Betancourt, Michael and Brubaker, Marcus and Guo, Jiqiang and Li, Peter and Riddell, Allen},
+  title   = {{Stan}: A Probabilistic Programming Language},
+  journal = {Journal of Statistical Software},
+  volume  = {76},
+  number  = {1},
+  pages   = {1--32},
+  year    = {2017}
+}
+
+@article{salvatier2016pymc,
+  author  = {Salvatier, John and Wiecki, Thomas V. and Fonnesbeck, Christopher},
+  title   = {Probabilistic Programming in {P}ython Using {PyMC}3},
+  journal = {PeerJ Computer Science},
+  volume  = {2},
+  pages   = {e55},
+  year    = {2016}
+}
+
+@book{gelman2013bda,
+  author    = {Gelman, Andrew and Carlin, John B. and Stern, Hal S. and Dunson, David B. and Vehtari, Aki and Rubin, Donald B.},
+  title     = {Bayesian Data Analysis},
+  edition   = {3rd},
+  publisher = {Chapman \& Hall/CRC},
+  year      = {2013}
+}
+
+@article{ibrahim2000power,
+  author  = {Ibrahim, Joseph G. and Chen, Ming-Hui},
+  title   = {Power Prior Distributions for Regression Models},
+  journal = {Statistical Science},
+  volume  = {15},
+  number  = {1},
+  pages   = {46--60},
+  year    = {2000}
+}
+
+% --- Blog posts and complementary references -----------------------------
+
+@misc{vincent2026liftasymptote,
+  author       = {Vincent, Benjamin T.},
+  title        = {Why You Need More Than One Lift Test per Channel},
+  howpublished = {Blog post},
+  year         = {2026},
+  url          = {https://drbenvincent.github.io/posts/lift_asymptote.html}
+}
+
+@misc{vincent2026goodnessfit,
+  author       = {Vincent, Benjamin T.},
+  title        = {Goodness of Fit Is Not the Objective in Causal-First Projects},
+  howpublished = {Blog post},
+  year         = {2026},
+  url          = {https://drbenvincent.github.io/posts/goodness_of_fit_not_objective.html}
+}
+
+@misc{orduz2026nor2,
+  author       = {Orduz, Juan},
+  title        = {In-Sample {$R^2$} Is Not a Good Metric for Decision Making},
+  howpublished = {Blog post},
+  year         = {2026},
+  url          = {https://juanitorduz.github.io/no_r2/}
+}
+
+@misc{orduz2024frugal,
+  author       = {Orduz, Juan},
+  title        = {Frugal Parameterization with {PyMC}},
+  howpublished = {Blog post},
+  year         = {2024},
+  url          = {https://juanitorduz.github.io/frugal_parametrization_pymc/}
+}

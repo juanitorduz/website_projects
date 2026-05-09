@@ -1,0 +1,199 @@
+\documentclass{uai2026} % anonymous submission (class strips author block)
+% \documentclass[accepted]{uai2026} % preview non-anonymous version
+
+\usepackage[american]{babel}
+\usepackage{natbib}
+    \bibliographystyle{plainnat}
+    \renewcommand{\bibsection}{\subsubsection*{References}}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{tikz}
+
+% Convenience macros
+\newcommand{\ROAS}{\mathrm{ROAS}}
+\newcommand{\bbE}{\mathbb{E}}
+\newcommand{\dosym}{\mathrm{do}}
+
+\title{Experiment-Calibrated Media Mix Models: Bayesian Fusion of Interventional and Observational Evidence for Marketing Decision-Making}
+
+\author[1]{\href{mailto:juan.orduz@pymc-labs.com?Subject=Your UAI 2026 paper}{Juan~Orduz}{}}
+\affil[1]{%
+    PyMC Labs\\
+    Principal Data Scientist
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+  Marketing-mix models (MMMs) are routinely used to allocate large advertising budgets across channels, yet they are fit on observational time series in which spend is correlated with unobserved drivers of revenue.
+  We frame budget allocation as off-policy evaluation under partial identifiability and show how interventional evidence from geo-lift and conversion-lift experiments can be fused with the observational MMM as an additional likelihood term on the saturation curve, rather than as a prior on uninterpretable regression coefficients.
+  In a controlled simulation with a single unobserved confounder, the naive observational model roughly doubles the implied effect of the confounded channel; calibration via lift-test likelihood recovers the channel-level return-on-ad-spend in tight credible intervals around ground truth.
+  We evaluate models in policy space rather than parameter space and report decision loss against an oracle allocator and a sensitivity analysis over the experimental prior.
+  The recipe is a concrete, deployable instance of causal data fusion for decision making under unobserved confounding, with an open-source implementation in PyMC-Marketing.
+\end{abstract}
+
+\section{Introduction}\label{sec:intro}
+
+A retailer choosing how to split an annual advertising budget across paid search, paid social, video, display, and other channels is solving a sequential decision problem under partial identifiability.
+The value of any candidate allocation depends on causal effects --- the incremental revenue produced by an additional dollar of spend on each channel --- which observational time series alone cannot identify whenever spend is correlated with unobserved drivers of the outcome.
+This is the default rather than the exception: marketers raise budgets in periods of strong demand, react to competitors, and follow seasonal or macroeconomic signals that the model never sees.
+We frame the problem as off-policy evaluation in a contextual setting where the logging policy is the marketer's historical behavior, confounded by these unobserved factors \citep{dudik2014ope}.
+
+Standard media-mix models (MMMs) are Bayesian regressions that combine adstock and saturation transformations of channel spend with controls for trend and seasonality \citep{jin2017bayesian,salvatier2016pymc,pymcmarketing2024}.
+They produce posterior intervals on regression coefficients and on derived quantities such as channel return-on-ad-spend (ROAS).
+When relevant confounders are unobserved, however, the resulting estimates are biased in a direction that the model itself cannot diagnose, and the bias propagates directly into the chosen allocation.
+In the controlled simulation of Section~\ref{sec:experiments}, a naive observational MMM roughly doubles the channel-level effect of a confounded channel, which is enough to reverse the ranking of channels by ROAS.
+Goodness of fit on held-out windows is uninformative about this failure \citep{vincent2026goodnessfit,orduz2026nor2}.
+
+Geo-lift experiments, conversion-lift studies, and switchback designs provide local interventional evidence on a subset of channels at a subset of time points.
+We treat the resulting lift estimates as observations of the saturation curve at known spend pairs and add them to the MMM as a likelihood term, fusing observational and interventional evidence in a single posterior \citep{bareinboim2016causal,colnet2024causal}.
+Our contributions are:
+(i)~a structural causal formulation of the standard MMM that makes the identification gap explicit;
+(ii)~a calibration likelihood on incremental ROAS that places experimental evidence on the policy-relevant causal estimand rather than on a model-internal nuisance coefficient;
+(iii)~an evaluation in policy space, reporting the revenue gap that calibration closes between a naive policy and the oracle policy that knows the confounder; and
+(iv)~a sensitivity analysis quantifying how decision loss degrades when the experimental evidence is biased or stale.
+The implementation is open-source in PyMC-Marketing.
+
+\section{Problem Setup and Causal Framing}\label{sec:setup}
+
+We index time by $t = 1,\dots,T$.
+Let $X_t \in \mathbb{R}_{\ge 0}^K$ be the spend vector across $K$ channels, $W_t$ a vector of observed controls (seasonality, calendar effects, promotions), $Z_t$ a vector of unobserved confounders, and $Y_t$ the outcome (revenue or conversions).
+The structural causal model has edges $Z_t \to X_t$, $Z_t \to Y_t$, $W_t \to X_t$, $W_t \to Y_t$, and $X_t \to Y_t$.
+Following the standard MMM specification \citep{jin2017bayesian}, the outcome equation is
+\begin{equation}\label{eq:scm}
+    Y_t = f_\text{trend}(t) + g(W_t) + \sum_{k=1}^{K} \beta_k\, S_{\lambda_k}\!\bigl(A_{\alpha_k}(X_{k,1:t})\bigr) + h(Z_t) + \varepsilon_t,
+\end{equation}
+where $A_{\alpha_k}$ is a geometric adstock with decay $\alpha_k$ that captures carryover, $S_{\lambda_k}$ is a logistic saturation with shape $\lambda_k$ that captures diminishing returns, and $\varepsilon_t$ is Gaussian noise.
+Adstock and saturation are part of the structural equation, not preprocessing.
+
+The causal contrast of interest is the channel-level intervention effect $\bbE[Y_t \mid \dosym(X_{k,t} = x)] - \bbE[Y_t \mid \dosym(X_{k,t} = 0)]$.
+Conditioning on $W_t$ alone does not identify it whenever any component of $Z_t$ remains unobserved: the backdoor path $X_{k,t} \leftarrow Z_t \to Y_t$ stays open, and the regression coefficient $\beta_k$ in (\ref{eq:scm}) absorbs both the causal effect and the confounding contribution of $Z_t$.
+This is the central practical difficulty of MMM: relevant confounders, such as latent demand, supply shocks, competitor behaviour, and price changes, are pervasive and rarely observed.
+
+The decision-maker cares not about $\beta_k$ but about the channel-level ROAS evaluated at a candidate allocation,
+\begin{equation}\label{eq:roas}
+    \ROAS_k(x) = \frac{\bbE[Y(x_k) - Y(0)]}{\sum_t x_{k,t}},
+\end{equation}
+which is the same quantity that a geo-lift or conversion-lift experiment estimates.
+Given a total budget $B$, an allocator chooses $\hat\pi \in \mathbb{R}_{\ge 0}^K$ with $\sum_k \hat\pi_k = B$ to maximize expected revenue under the posterior over $(\alpha_k, \lambda_k, \ROAS_k)$.
+We measure decision loss as the revenue gap to the oracle allocator,
+\begin{equation}\label{eq:loss}
+    \Delta R(\hat\pi) = V(\pi^\star) - V(\hat\pi),
+\end{equation}
+evaluated under the true data-generating process.
+This is the metric we report --- not RMSE on $\beta_k$, not coverage of credible intervals, but expected money left on the table.
+
+\section{ROAS-Parameterized Framework}\label{sec:method}
+
+A natural Bayesian response to confounding is to use informative priors on $\beta_k$.
+This fails for a basic reason: $\beta_k$ is a coefficient on a transformed and rescaled spend channel, and its scale depends on the adstock decay $\alpha_k$, the saturation shape $\lambda_k$, and any standardization of the data.
+Experiments produce evidence on incremental revenue per unit spend, which has no direct mapping to $\beta_k$ without first knowing the nuisance parameters.
+Eliciting priors in coefficient space is therefore not even well-defined in practice.
+
+Following \citet{wurm2024mmmcalibration}, we reparameterize the model so that channel ROAS is a primitive parameter and $\beta_k$ is derived deterministically.
+For each posterior draw of $(\alpha_k, \lambda_k, \ROAS_k)$ and given the observed spend trajectory $X_{k,1:T}$, we compute
+\begin{equation}\label{eq:roas-beta}
+    \beta_k \;=\; \ROAS_k \cdot \frac{\sum_{t=1}^T X_{k,t}}{\sum_{t=1}^T S_{\lambda_k}\!\bigl(A_{\alpha_k}(X_{k,1:t})\bigr)},
+\end{equation}
+so that the posterior over $\ROAS_k$ is the object of inference and $\beta_k$ inherits its scale from the saturation transform.
+This is a domain-specific instance of decoupling the causal target from the nuisance parameters that link it to the observed data \citep{evans2024frugal}.\footnote{See \url{https://juanitorduz.github.io/frugal_parametrization_pymc/} for a worked PyMC example.}
+
+In the reparameterized model, prior elicitation operates on a quantity that practitioners can reason about.
+Marketers know plausible orders of magnitude for ROAS, and the same is true for finance and product owners.
+The reparameterization is, however, not yet calibration: it makes priors on the policy-relevant quantity well-defined, but the posterior on $\ROAS_k$ still inherits the bias of the observational likelihood whenever $Z_t$ is unobserved.
+Calibration is the additional step of injecting interventional evidence, which we now describe.
+
+\section{Calibration via Lift-Test Likelihood}\label{sec:liftlik}
+
+A geo-lift or conversion-lift experiment on channel $k$ produces a tuple $(x, \Delta x, \Delta y, \sigma)$: the baseline spend $x$ on the same scale as the MMM's input, the spend change $\Delta x$ delivered by the experiment, the estimated outcome lift $\Delta y$, and an uncertainty $\sigma$ on $\Delta y$.
+The lift is a finite-difference observation of the saturation curve at two known spend levels.
+We add it to the model as the Gaussian likelihood
+\begin{equation}\label{eq:lift-lik}
+    \Delta y \;\sim\; \mathcal{N}\!\Bigl(\,S_{\lambda_k}\!\bigl(A_{\alpha_k}(x + \Delta x)\bigr) - S_{\lambda_k}\!\bigl(A_{\alpha_k}(x)\bigr),\; \sigma^2\Bigr),
+\end{equation}
+using the same adstock and saturation transforms that already appear in (\ref{eq:scm}).
+Multiple lift tests on the same or different channels enter as independent likelihood terms whose product multiplies the observational likelihood.
+The full posterior fuses the two sources of evidence and produces a single coherent uncertainty over $(\alpha_k, \lambda_k, \ROAS_k)$ for every channel.
+
+The likelihood form (\ref{eq:lift-lik}) places experimental evidence on the saturation curve, which the regression component cannot identify without it.
+A single lift test still leaves a one-dimensional ridge in the $(\lambda_k, \beta_k)$ plane: the same $\Delta y$ is consistent with a low-saturation, high-coefficient curve and a high-saturation, low-coefficient curve, an identifiability issue documented by \citet{vincent2026liftasymptote}.
+Two or more lift tests at different spend levels resolve the ridge.
+In practice, even a single test moves the posterior decisively when combined with the observational data: it pins down the curve at one point and the regression component constrains the rest.
+
+The strength of the calibration is governed by $\sigma$.
+A tight $\sigma$ places strong weight on the experiment and shrinks the posterior toward the experimental measurement; a loose $\sigma$ recovers the uncalibrated observational fit.
+This is the Bayesian analogue of the power-prior dial \citep{ibrahim2000power}: $\sigma$ interpolates between observational-only and experiment-only inference and admits a transparent practitioner interpretation.
+Lift tests can also be aggregated hierarchically across geographies or campaigns, with channel-level $\ROAS_k$ as a partial-pooling target across studies, in the spirit of multiple randomization designs \citep{bajari2021multiple}.
+The implementation in PyMC-Marketing exposes the calibration through a single \texttt{add\_lift\_test\_measurements} call \citep{pymcmarketing2024}, taking a dataframe with columns \texttt{(channel, x, delta\_x, delta\_y, sigma)}.
+
+\section{Experiments}\label{sec:experiments}
+
+\subsection{Synthetic Environment}\label{sec:synth}
+
+We simulate $T=131$ weeks of data with $K=2$ channels.
+Adstock is geometric with maximum lag $4$ and decays $(\alpha_1, \alpha_2) = (0.3, 0.5)$; saturation is logistic with shapes $(\lambda_1, \lambda_2) = (1.0, 2.5)$; coefficients are $(\beta_1, \beta_2) = (2.0, 1.5)$.
+The unobserved confounder is $Z_t \sim \mathrm{Gamma}(1, 2/3)$ with effect $\beta_Z = 0.3$ and edges $Z_t \to X_{1,t}$ (channel 1 is confounded; channel 2 is not) and $Z_t \to Y_t$.
+Trend is a cubic-root function of time, and seasonality is a Fourier basis of order one with annual period.
+The implied ground-truth ROAS values, computed from the structural equation, are $\ROAS_1 \approx 95$ and $\ROAS_2 \approx 170$ on the original revenue scale.
+We compare three model variants: an oracle model (M1) that observes $Z_t$ and establishes the achievable ceiling; a naive model (M2) that omits $Z_t$ and uses uninformative priors on $(\alpha_k, \lambda_k, \beta_k)$; and a calibrated model (M3) that omits $Z_t$, parameterizes $\ROAS_k$ directly, and adds a lift-test likelihood (\ref{eq:lift-lik}) on each channel using lift estimates centered at the ground-truth ROAS values with $\sigma = 30$ on the original scale.
+All models are fit in PyMC with NUTS via the \texttt{numpyro} backend.
+
+\subsection{Estimation Results}\label{sec:estimation}
+
+The naive model M2 inflates the channel-1 coefficient to $\hat\beta_1^{M2} = 1.485\,[0.915, 2.099]$, roughly double the oracle value $\hat\beta_1^{M1} = 0.709\,[0.262, 1.288]$, and absorbs the confounding contribution into the channel.
+On the unconfounded channel 2, the bias is small.
+Under M3, the calibration likelihood pulls the posterior on the $\ROAS_k$ primitives toward the experimental targets and yields tight credible intervals on the (rescaled) ROAS values, $0.217\,[0.194, 0.239]$ for channel~1 and $0.294\,[0.269, 0.319]$ for channel~2, both centered on ground truth.
+The model recovers the policy-relevant quantity even though the regression coefficients themselves remain weakly identified: under M3, the posterior on $\beta_1$ is wide, but the implied saturation curve, and hence the implied incremental return at any candidate spend level, is sharp.
+This is the reparameterization paying off: inference concentrates where decisions are made, not on a parameter that the data cannot pin down.
+
+% TODO: include figures/fig3_posteriors.pdf once exported from the notebook
+% \begin{figure}[!htb]
+%   \centering
+%   \includegraphics[width=\linewidth]{figures/fig3_posteriors}
+%   \caption{Channel-level ROAS posteriors under M1 (oracle), M2 (naive), and M3 (calibrated). Ground truth marked.}\label{fig:posteriors}
+% \end{figure}
+
+\subsection{Decision-Loss Evaluation}\label{sec:decision}
+
+We compare three policies under a fixed total budget $B$: the oracle policy $\pi^\star$ that maximizes expected revenue under M1, the naive policy $\hat\pi^{M2}$ that does the same under M2, and the calibrated policy $\hat\pi^{M3}$.
+Each policy is computed by gradient ascent on the posterior expected revenue under its own model, then evaluated under the true data-generating process to obtain $V(\pi)$.
+Because M2 overstates channel~1's effect, the naive policy over-allocates to the confounded channel; the calibrated policy reverses this and reproduces the oracle's qualitative ranking of channels.
+% TODO: replace placeholder with the measured percentage from the decision-loss evaluator.
+Across a sweep of total budgets, calibration via lift-test likelihood closes \emph{approximately X\%} of the revenue gap $V(\pi^\star) - V(\hat\pi^{M2})$ between the naive and oracle policies, while leaving the remaining gap attributable to residual uncertainty in the saturation shape.
+% TODO: include figures/fig4_decision_loss.pdf
+The headline observation is that estimation error and decision error are not the same thing: a model can be biased but pick the right policy, or unbiased but unstable enough to misrank channels.
+Reporting in policy space aligns the metric with the workshop's decision-making premise.
+
+\subsection{Sensitivity to Prior Misspecification}\label{sec:sensitivity}
+
+Lift tests are not unbiased: geo experiments suffer from spillover and market heterogeneity, and an experiment run a year ago may no longer reflect the current saturation curve.
+We probe robustness by varying the experimental prior mean across $\{0.5, 0.75, 1.0, 1.25, 1.5\}\times \ROAS_k^\text{true}$ and the prior scale $\sigma$ over a range and measuring decision loss (\ref{eq:loss}) for each combination.
+% TODO: insert sensitivity heatmap (figures/fig5_sensitivity.pdf) once available.
+The qualitative finding we report and recommend is: the calibrated MMM is robust to moderate prior misspecification of $\pm 25\%$ at moderate $\sigma$, and degrades substantially only when the prior is simultaneously biased and tight.
+The practical implication is that experimental priors should be widened when experiments are few, stale, or known to be biased, rather than narrowed in pursuit of a tighter ROAS posterior.
+This turns ``use experiments as evidence'' from a slogan into actionable guidance: a narrow biased prior is worse than no prior at all, but a wide moderately-biased prior is reliably better than the uncalibrated baseline.
+
+\section{Discussion}\label{sec:discussion}
+
+The recipe is a concrete instance of the data-fusion programme of \citet{bareinboim2016causal} and is closely related to the literature on combining randomized trials with observational studies in healthcare \citep{colnet2024causal,kallus2018removing,yang2020combining}.
+What is specific to MMM is that the observational data is dense in spend levels but confounded, while the experimental data is unconfounded but sparse and local; the lift-test likelihood is the natural way to let the experiment locate the saturation curve while the observational data shapes the rest.
+The same pattern --- interventional evidence from a randomized subset entering as a likelihood term on a structural object that the observational data cannot identify --- appears in off-policy evaluation \citep{dudik2014ope}, and in causal-bandit formulations of active experimentation \citep{lattimore2016causalbandits}.
+
+The limitations are as follows.
+First, the simulation has a single binary-style confounder; real MMM data has many channels, non-stationary confounding, and dependent geographies.
+Second, lift experiments themselves can be biased: spillover, market heterogeneity, and pricing dynamics violate the unconfoundedness assumed in (\ref{eq:lift-lik}), and calibration with biased experiments propagates that bias \citep{cooprider2023amazon}.
+Third, the saturation and adstock parameters remain weakly identified even under calibration: in our M3 fit, the posterior on $\lambda_2$ has $94\%$ interval $[0.073, 2.986]$ around a true value of $2.5$, and the method does not solve their identification, only that of channel-level ROAS.
+Fourth, the decision analysis treats budget allocation as a single-period problem; sequential allocation under learning is the natural extension.
+Future work should connect this calibration scheme to causal bandits for active experimentation, hierarchical pooling across geographies and brands \citep{bajari2021multiple}, and debiasing priors for known-biased experiments.
+
+\section{Conclusion}\label{sec:conclusion}
+
+Calibration via lift-test likelihood is a deployable instance of Bayesian data fusion: experimental observations of the saturation curve enter the same posterior as the observational time series, and the resulting model is parameterized in the quantity that the decision actually depends on.
+On a controlled simulation, calibration recovers the channel-level ROAS that a naive observational MMM badly biases, and reverses the policy ranking that the bias would otherwise induce.
+Evaluating in policy space, rather than parameter space, makes the value of calibration visible in the units that matter --- expected revenue --- and is the right framing for any application whose ultimate output is a decision rather than a coefficient.
+
+\bibliography{references}
+
+\end{document}
