@@ -131,6 +131,7 @@ axes[1].set_xlabel("roas")
 # (no spend), it has no ROAS to report — that's encoded as `NaN`, and rows whose lagged
 # ROAS is `NaN` are dropped at modelling time.
 
+
 # %%
 class DGPParams(NamedTuple):
     n_stores: int = 100
@@ -290,7 +291,9 @@ active_share
 # %%
 n_random_stores = 12
 
-sample_ids = rng.choice(panel["store_id"].unique().to_numpy(), size=n_random_stores, replace=False)
+sample_ids = rng.choice(
+    panel["store_id"].unique().to_numpy(), size=n_random_stores, replace=False
+)
 
 fig, axes = plt.subplots(
     nrows=3,
@@ -303,7 +306,11 @@ fig, axes = plt.subplots(
 
 for ax, sid in zip(axes.flat, sample_ids, strict=True):
     sub = panel.filter(pl.col("store_id").eq(pl.lit(sid))).sort("predictor_month_idx")
-    ax.plot(sub["predictor_month_idx"].to_numpy(), sub["budget_next"].to_numpy(), color="black")
+    ax.plot(
+        sub["predictor_month_idx"].to_numpy(),
+        sub["budget_next"].to_numpy(),
+        color="black",
+    )
     ax.set_title(f"store {sid}")
     ax.set_xlabel("predictor month index")
 fig.suptitle(
@@ -322,7 +329,9 @@ active = panel.filter(~pl.col("inactive_next"))
 fig, axes = plt.subplots(1, 3, figsize=(15, 4))
 axes[0].hist(active["budget_next"].to_numpy(), bins=40, color="C0")
 axes[0].set_title("budget_next (active months)")
-axes[1].hist(panel.filter(pl.col("roas").is_not_nan())["roas"].to_numpy(), bins=40, color="C1")
+axes[1].hist(
+    panel.filter(pl.col("roas").is_not_nan())["roas"].to_numpy(), bins=40, color="C1"
+)
 axes[1].set_title("roas (predictor month)")
 axes[2].hist(panel["cohort_age"].to_numpy(), bins=40, color="C2")
 axes[2].set_title("cohort age")
@@ -440,7 +449,9 @@ fig.tight_layout()
 
 # %%
 df_fit = panel.filter(pl.col("roas").is_not_nan()).to_pandas()
-print(f"fit rows: {len(df_fit)}, of which {(df_fit['budget_next'] == 0).sum()} are zero")
+print(
+    f"fit rows: {len(df_fit)}, of which {(df_fit['budget_next'] == 0).sum()} are zero"
+)
 
 HSGP_M = 20
 HSGP_C = 1.5
@@ -575,9 +586,7 @@ def predict_marginal(model: bmb.Model, idata, grid_pl: pl.DataFrame) -> np.ndarr
     mu = new_idata.posterior["mu"]
     psi = new_idata.posterior["psi"]
     obs_dim = next(d for d in mu.dims if d not in ("chain", "draw"))
-    mu_arr = (
-        mu.stack(sample=("chain", "draw")).transpose("sample", obs_dim).to_numpy()
-    )
+    mu_arr = mu.stack(sample=("chain", "draw")).transpose("sample", obs_dim).to_numpy()
     psi_arr = psi.stack(sample=("chain", "draw")).to_numpy()  # shape (n_samples,)
     return psi_arr[:, None] * mu_arr
 
