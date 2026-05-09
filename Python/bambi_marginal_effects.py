@@ -73,6 +73,7 @@ rng: np.random.Generator = np.random.default_rng(seed=seed)
 # We build $\beta$ as a product of two analytic pieces — a smooth rise and a smooth
 # saturation window — so the function is $C^{\infty}$ everywhere with no joining knots.
 
+
 # %%
 def beta_roas(roas: np.ndarray) -> np.ndarray:
     rise = -0.5 + 1.0 / (1.0 + np.exp(-3.0 * (roas - 1.0)))
@@ -110,7 +111,7 @@ axes[1].set_title(
     r"$\beta(\mathrm{roas}) \cdot \mathrm{roas}$ — contribution to $\log \mu$"
 )
 axes[1].set_xlabel("roas")
-(fig.suptitle("Ground truth ROAS effect", fontsize=18, fontweight="bold"));
+(fig.suptitle("Ground truth ROAS effect", fontsize=18, fontweight="bold"))
 
 
 # %% [markdown]
@@ -124,23 +125,21 @@ axes[1].set_xlabel("roas")
 # 100 stores observed for 24 months. Each store has its own cohort start (so cohort age
 # varies across the panel) and its own ROAS process — an AR(1) on the log scale to get
 # realistic month-to-month persistence.
+#
+# The lag matters: each row pairs **this month's signals** with **next month's budget** —
+# the leading indicators a store could act on. When a store is inactive in a given month
+# (no spend), it has no ROAS to report — that's encoded as `NaN`, and rows whose lagged
+# ROAS is `NaN` are dropped at modelling time.
 
 # %%
-class DGP(NamedTuple):
-    n_stores: int
-    n_months: int
-    intercept: float
-    cohort_slope: float
-    gamma_shape: float
-
-
-dgp = DGP(
-    n_stores=100,
-    n_months=24,
-    intercept=0.5,
-    cohort_slope=-0.02,
-    gamma_shape=8.0,
-)
+class DGPParams(NamedTuple):
+    n_stores: int = 100
+    n_months: int = 24
+    intercept: float = 0.5
+    cohort_slope: float = -0.02
+    gamma_shape: float = 8.0
+    inactive_base_prob: float = 0.05
+    inactive_summer_bonus: float = 0.10
 
 
 def season(month_of_year: np.ndarray) -> np.ndarray:
@@ -149,48 +148,121 @@ def season(month_of_year: np.ndarray) -> np.ndarray:
     )
 
 
-store_ids = np.arange(dgp.n_stores)
-store_starts = rng.integers(low=-12, high=1, size=dgp.n_stores)
-store_log_roas_mean = rng.normal(loc=np.log(2.5), scale=0.4, size=dgp.n_stores)
+class DGP:
+    def __init__(self, rng: np.random.Generator) -> None:
+        self.rng = rng
 
-log_roas = np.empty(shape=(dgp.n_stores, dgp.n_months))
-log_roas[:, 0] = store_log_roas_mean + rng.normal(scale=0.3, size=dgp.n_stores)
+    def run(self, params: DGPParams) -> pl.DataFrame:
+        roas, month_of_year, cohort_age, store_ids, inactive = self._simulate_features(
+            params
+        )
+        budget_next, inactive_next = self._draw_response(
+            roas, month_of_year, cohort_age, inactive, params
+        )
+        return self._build_panel(
+            store_ids,
+            roas,
+            month_of_year,
+            cohort_age,
+            inactive,
+            budget_next,
+            inactive_next,
+            params,
+        )
 
-for t in range(1, dgp.n_months):
-    log_roas[:, t] = (
-        0.6 * log_roas[:, t - 1]
-        + 0.4 * store_log_roas_mean
-        + rng.normal(scale=0.3, size=dgp.n_stores)
-    )
-roas = np.clip(np.exp(log_roas), 0.0, 8.0)
+    def _simulate_features(
+        self, params: DGPParams
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """AR(1) ROAS, store-start offsets, derived month/cohort arrays, and per-cell
+        inactivity flags. Shapes (n_stores, n_months) except store_ids (n_stores,)."""
+        store_ids = np.arange(params.n_stores)
+        store_starts = self.rng.integers(low=-12, high=1, size=params.n_stores)
+        store_log_roas_mean = self.rng.normal(
+            loc=np.log(2.5), scale=0.4, size=params.n_stores
+        )
 
-month_idx = np.broadcast_to(np.arange(dgp.n_months), (dgp.n_stores, dgp.n_months))
-month_of_year = (month_idx % 12) + 1
-cohort_age = month_idx - store_starts[:, None]
+        log_roas = np.empty(shape=(params.n_stores, params.n_months))
+        log_roas[:, 0] = store_log_roas_mean + self.rng.normal(
+            scale=0.3, size=params.n_stores
+        )
+        for t in range(1, params.n_months):
+            log_roas[:, t] = (
+                0.6 * log_roas[:, t - 1]
+                + 0.4 * store_log_roas_mean
+                + self.rng.normal(scale=0.3, size=params.n_stores)
+            )
+        roas = np.clip(np.exp(log_roas), 0.0, 8.0)
 
-log_mu = (
-    dgp.intercept + season(month_of_year) + dgp.cohort_slope * cohort_age + f_roas(roas)
-)
+        month_idx = np.broadcast_to(
+            np.arange(params.n_months), (params.n_stores, params.n_months)
+        )
+        month_of_year = (month_idx % 12) + 1
+        cohort_age = month_idx - store_starts[:, None]
 
-mu = np.exp(log_mu)
-budget_raw = rng.gamma(shape=dgp.gamma_shape, scale=mu / dgp.gamma_shape)
+        inactive_prob = params.inactive_base_prob + params.inactive_summer_bonus * (
+            np.isin(month_of_year, [7, 8])
+        ).astype(float)
+        inactive = (
+            self.rng.uniform(size=(params.n_stores, params.n_months)) < inactive_prob
+        )
 
-# Inactive months: a small share of stores skip a month, especially in summer.
-inactive_prob = 0.05 + 0.10 * (np.isin(month_of_year, [7, 8])).astype(float)
-inactive = rng.uniform(size=budget_raw.shape) < inactive_prob
-budget = np.where(inactive, 0.0, budget_raw)
+        return roas, month_of_year, cohort_age, store_ids, inactive
 
-panel = pl.DataFrame(
-    {
-        "store_id": np.repeat(store_ids, dgp.n_months),
-        "month_idx": month_idx.ravel(),
-        "month_of_year": month_of_year.ravel(),
-        "cohort_age": cohort_age.ravel(),
-        "roas": roas.ravel(),
-        "budget": budget.ravel(),
-        "inactive": inactive.ravel(),
-    }
-)
+    def _draw_response(
+        self,
+        roas: np.ndarray,
+        month_of_year: np.ndarray,
+        cohort_age: np.ndarray,
+        inactive: np.ndarray,
+        params: DGPParams,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Lagged log_mu, gamma draw, target-month inactive mask. Both returned arrays
+        have shape (n_stores, n_months - 1)."""
+        log_mu_next = (
+            params.intercept
+            + season(month_of_year[:, :-1])
+            + params.cohort_slope * cohort_age[:, :-1]
+            + f_roas(roas[:, :-1])
+        )
+        budget_pos = self.rng.gamma(
+            shape=params.gamma_shape,
+            scale=np.exp(log_mu_next) / params.gamma_shape,
+        )
+        inactive_next = inactive[:, 1:]
+        budget_next = np.where(inactive_next, 0.0, budget_pos)
+        return budget_next, inactive_next
+
+    def _build_panel(
+        self,
+        store_ids: np.ndarray,
+        roas: np.ndarray,
+        month_of_year: np.ndarray,
+        cohort_age: np.ndarray,
+        inactive: np.ndarray,
+        budget_next: np.ndarray,
+        inactive_next: np.ndarray,
+        params: DGPParams,
+    ) -> pl.DataFrame:
+        """Long polars frame, one row per (store, predictor month t) for
+        t in [0, n_months - 2]. ROAS is masked to NaN when the predictor month was
+        inactive (no spend → no observable ROAS)."""
+        roas_observed = np.where(inactive, np.nan, roas)
+        n_pred = params.n_months - 1
+        return pl.DataFrame(
+            {
+                "store_id": np.repeat(store_ids, n_pred),
+                "predictor_month_idx": np.tile(np.arange(n_pred), params.n_stores),
+                "month_of_year": month_of_year[:, :-1].ravel(),
+                "cohort_age": cohort_age[:, :-1].ravel(),
+                "roas": roas_observed[:, :-1].ravel(),
+                "budget_next": budget_next.ravel(),
+                "inactive_next": inactive_next.ravel(),
+            }
+        )
+
+
+params = DGPParams()
+panel = DGP(rng=rng).run(params)
 panel.head()
 
 # %% [markdown]
@@ -205,18 +277,20 @@ panel.describe()
 # %%
 active_share = (
     panel.group_by("month_of_year")
-    .agg((1 - pl.col("inactive").cast(pl.Float64)).mean().alias("active_rate"))
+    .agg((1 - pl.col("inactive_next").cast(pl.Float64)).mean().alias("active_rate"))
     .sort("month_of_year")
 )
 active_share
 
 # %% [markdown]
-# Six random stores over time — seasonal humps, the occasional zero month.
+# Twelve random stores over time — each store's monthly budget; the model regresses each
+# point on the *prior* month's predictors. Watch for seasonal humps and the occasional
+# zero month.
 
 # %%
 n_random_stores = 12
 
-sample_ids = rng.choice(store_ids, size=n_random_stores, replace=False)
+sample_ids = rng.choice(panel["store_id"].unique().to_numpy(), size=n_random_stores, replace=False)
 
 fig, axes = plt.subplots(
     nrows=3,
@@ -228,13 +302,13 @@ fig, axes = plt.subplots(
 )
 
 for ax, sid in zip(axes.flat, sample_ids, strict=True):
-    sub = panel.filter(pl.col("store_id").eq(pl.lit(sid))).sort("month_idx")
-    ax.plot(sub["month_idx"], sub["budget"], color="black")
+    sub = panel.filter(pl.col("store_id").eq(pl.lit(sid))).sort("predictor_month_idx")
+    ax.plot(sub["predictor_month_idx"].to_numpy(), sub["budget_next"].to_numpy(), color="black")
     ax.set_title(f"store {sid}")
-    ax.set_xlabel("month index")
+    ax.set_xlabel("predictor month index")
 fig.suptitle(
-    "Monthly booked budget for six random stores", fontsize=18, fontweight="bold"
-);
+    "Next-month booked budget for twelve random stores", fontsize=18, fontweight="bold"
+)
 
 # %% [markdown]
 # Marginal distributions of the three drivers and the response.
@@ -243,13 +317,13 @@ fig.suptitle(
 panel
 
 # %%
-active = panel.filter(pl.col("inactive"))
+active = panel.filter(~pl.col("inactive_next"))
 
-fig, axes = plt.subplots(1, 2, figsize=(15, 4))
-axes[0].hist(active["budget"].to_numpy(), bins=40, color="C0")
-axes[0].set_title("budget (active months)")
-axes[1].hist(panel["roas"].to_numpy(), bins=40, color="C1")
-axes[1].set_title("roas")
+fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+axes[0].hist(active["budget_next"].to_numpy(), bins=40, color="C0")
+axes[0].set_title("budget_next (active months)")
+axes[1].hist(panel.filter(pl.col("roas").is_not_nan())["roas"].to_numpy(), bins=40, color="C1")
+axes[1].set_title("roas (predictor month)")
 axes[2].hist(panel["cohort_age"].to_numpy(), bins=40, color="C2")
 axes[2].set_title("cohort age")
 fig.tight_layout()
@@ -260,13 +334,13 @@ fig.tight_layout()
 # %%
 fig, ax = plt.subplots(figsize=(12, 5))
 month_groups = [
-    active.filter(pl.col("month_of_year") == m)["budget"].to_numpy()
+    active.filter(pl.col("month_of_year") == m)["budget_next"].to_numpy()
     for m in range(1, 13)
 ]
 ax.boxplot(month_groups, tick_labels=list(range(1, 13)), showfliers=False)
-ax.set_xlabel("month of year")
-ax.set_ylabel("budget")
-ax.set_title("Budget by month of year (active months only)")
+ax.set_xlabel("predictor month of year")
+ax.set_ylabel("budget_next")
+ax.set_title("Next-month budget by this-month's month-of-year (active rows)")
 fig.tight_layout()
 
 # %% [markdown]
@@ -275,13 +349,16 @@ fig.tight_layout()
 # %%
 cohort_summary = (
     active.group_by("cohort_age")
-    .agg(pl.col("budget").mean().alias("mean_budget"))
+    .agg(pl.col("budget_next").mean().alias("mean_budget"))
     .sort("cohort_age")
 )
 
 fig, ax = plt.subplots(figsize=(12, 5))
 ax.scatter(
-    active["cohort_age"].to_numpy(), active["budget"].to_numpy(), alpha=0.15, s=10
+    active["cohort_age"].to_numpy(),
+    active["budget_next"].to_numpy(),
+    alpha=0.15,
+    s=10,
 )
 ax.plot(
     cohort_summary["cohort_age"].to_numpy(),
@@ -291,19 +368,20 @@ ax.plot(
     label="binned mean",
 )
 ax.set_xlabel("cohort age (months)")
-ax.set_ylabel("budget")
-ax.set_title("Cohort-age trend in budget")
+ax.set_ylabel("budget_next")
+ax.set_title("Cohort-age trend in next-month budget")
 ax.legend()
 fig.tight_layout()
 
 # %% [markdown]
-# And the headline one: budget against last month's ROAS.
+# And the headline one: next-month budget against this-month's ROAS.
 
 # %%
 roas_bins = np.linspace(0, 8, 21)
 bin_centers = 0.5 * (roas_bins[:-1] + roas_bins[1:])
-roas_arr = active["roas"].to_numpy()
-budget_arr = active["budget"].to_numpy()
+scatter_df = active.filter(pl.col("roas").is_not_nan())
+roas_arr = scatter_df["roas"].to_numpy()
+budget_arr = scatter_df["budget_next"].to_numpy()
 bin_idx = np.digitize(roas_arr, roas_bins) - 1
 bin_idx = np.clip(bin_idx, 0, len(bin_centers) - 1)
 medians = np.array(
@@ -316,9 +394,9 @@ medians = np.array(
 fig, ax = plt.subplots(figsize=(12, 5))
 ax.scatter(roas_arr, budget_arr, alpha=0.15, s=10)
 ax.plot(bin_centers, medians, color="C3", linewidth=2, label="binned median")
-ax.set_xlabel("roas")
-ax.set_ylabel("budget")
-ax.set_title("Budget vs last month's ROAS")
+ax.set_xlabel("roas (predictor month)")
+ax.set_ylabel("budget_next")
+ax.set_title("Next-month budget vs this-month's ROAS")
 ax.legend()
 fig.tight_layout()
 
@@ -329,10 +407,17 @@ fig.tight_layout()
 # %% [markdown]
 # ## A Bambi model for the panel
 #
-# Booked budget is positive and right-skewed, so we use a **Gamma likelihood with a log
-# link**. Linear additivity on `log_mu` matches our DGP. We drop inactive months
-# (`budget == 0`) for this model — a hurdle/zero-inflated specification is the proper move
-# in production, but it would distract from the interpretation story.
+# Booked budget is non-negative with a real point-mass at zero (inactive months) and a
+# positive continuous tail otherwise. **Hurdle Gamma** is the natural fit: a Bernoulli for
+# "will the store spend at all next month", and a Gamma for "how much, given they spend".
+# Bambi exposes it as `family="hurdle_gamma"`. By default the formula drives the Gamma
+# mean and the zero-inflation probability $\psi$ is a single scalar — that's what we use
+# here; Bambi lets you pass a multi-formula if a stakeholder wants different drivers per
+# component.
+#
+# We keep every row in the fit dataframe whose lagged ROAS is observed (i.e. the store
+# wasn't inactive *last* month) — including rows with `budget_next = 0`. Those zeros are
+# the signal the hurdle component learns from.
 
 # %% [markdown]
 # ### Reading the formula
@@ -354,13 +439,14 @@ fig.tight_layout()
 # $\hat{\beta}(\mathrm{roas})$ post-hoc.
 
 # %%
-df_active = active.to_pandas()
+df_fit = panel.filter(pl.col("roas").is_not_nan()).to_pandas()
+print(f"fit rows: {len(df_fit)}, of which {(df_fit['budget_next'] == 0).sum()} are zero")
 
 HSGP_M = 20
 HSGP_C = 1.5
 
 formula = bmb.Formula(
-    f"budget ~ 1 + cohort_age + C(month_of_year) + hsgp(roas, m={HSGP_M}, c={HSGP_C})"
+    f"budget_next ~ 1 + cohort_age + C(month_of_year) + hsgp(roas, m={HSGP_M}, c={HSGP_C})"
 )
 
 priors = {
@@ -371,7 +457,7 @@ priors = {
 }
 
 model = bmb.Model(
-    formula=formula, data=df_active, family="gamma", link="log", priors=priors
+    formula=formula, data=df_fit, family="hurdle_gamma", link="log", priors=priors
 )
 model.build()
 model
@@ -382,13 +468,13 @@ model
 # Are the implied budgets in a sensible order of magnitude before the data is touched?
 
 # %%
-idata_prior = model.prior_predictive(draws=500, random_seed=SEED)
+idata_prior = model.prior_predictive(draws=500, random_seed=seed)
 
 # %%
 fig, ax = plt.subplots(figsize=(10, 5))
 az.plot_ppc(idata_prior, group="prior", ax=ax)
 ax.set_title("Prior predictive")
-ax.set_xlim(left=0, right=np.quantile(df_active["budget"], 0.99) * 3)
+ax.set_xlim(left=0, right=np.quantile(df_fit["budget_next"], 0.99) * 3)
 fig.tight_layout()
 
 # %% [markdown]
@@ -403,7 +489,7 @@ idata = model.fit(
     tune=1000,
     chains=4,
     target_accept=0.95,
-    random_seed=SEED,
+    random_seed=seed,
 )
 
 # %% [markdown]
@@ -412,14 +498,14 @@ idata = model.fit(
 # %%
 az.summary(
     idata,
-    var_names=["Intercept", "cohort_age", "C(month_of_year)", "alpha"],
+    var_names=["Intercept", "cohort_age", "C(month_of_year)", "alpha", "psi"],
     filter_vars="like",
 )
 
 # %%
 az.plot_trace(
     idata,
-    var_names=["Intercept", "cohort_age", "alpha"],
+    var_names=["Intercept", "cohort_age", "alpha", "psi"],
     compact=True,
     backend_kwargs={"layout": "constrained"},
 )
@@ -430,7 +516,7 @@ model.predict(idata, kind="response", inplace=True)
 fig, ax = plt.subplots(figsize=(10, 5))
 az.plot_ppc(idata, ax=ax)
 ax.set_title("Posterior predictive")
-ax.set_xlim(left=0, right=np.quantile(df_active["budget"], 0.99) * 2)
+ax.set_xlim(left=0, right=np.quantile(df_fit["budget_next"], 0.99) * 2)
 fig.tight_layout()
 
 # %% [markdown]
@@ -465,15 +551,35 @@ fig.tight_layout()
 # %% [markdown]
 # ### A small helper for the posterior over $\mathbb{E}[Y \mid \text{grid}]$
 
+
 # %%
 def predict_mu(model: bmb.Model, idata, grid_pl: pl.DataFrame) -> np.ndarray:
-    """Posterior samples of the response mean over a grid. Shape (n_samples, n_grid)."""
+    """Posterior samples of the *Gamma-conditional* response mean over a grid —
+    expected budget given the store is active next month. Shape (n_samples, n_grid)."""
     new_idata = model.predict(
         idata, data=grid_pl.to_pandas(), kind="response_params", inplace=False
     )
     mu = new_idata.posterior["mu"]
     obs_dim = next(d for d in mu.dims if d not in ("chain", "draw"))
     return mu.stack(sample=("chain", "draw")).transpose("sample", obs_dim).to_numpy()
+
+
+def predict_marginal(model: bmb.Model, idata, grid_pl: pl.DataFrame) -> np.ndarray:
+    """Posterior samples of the *marginal* response mean over a grid:
+    psi * mu where psi is Bambi's hurdle non-zero probability. This is the
+    stakeholder-facing 'expected next-month budget' (i.e. averaging over the
+    chance the store skips). Shape (n_samples, n_grid)."""
+    new_idata = model.predict(
+        idata, data=grid_pl.to_pandas(), kind="response_params", inplace=False
+    )
+    mu = new_idata.posterior["mu"]
+    psi = new_idata.posterior["psi"]
+    obs_dim = next(d for d in mu.dims if d not in ("chain", "draw"))
+    mu_arr = (
+        mu.stack(sample=("chain", "draw")).transpose("sample", obs_dim).to_numpy()
+    )
+    psi_arr = psi.stack(sample=("chain", "draw")).to_numpy()  # shape (n_samples,)
+    return psi_arr[:, None] * mu_arr
 
 
 def summarise(samples: np.ndarray, prob: float = 0.94) -> dict[str, np.ndarray]:
@@ -503,9 +609,9 @@ mu_roas = predict_mu(model, idata, grid_roas)
 sum_roas = summarise(mu_roas)
 
 truth_log_mu = (
-    INTERCEPT
+    params.intercept
     + season(np.full_like(roas_eval, 6))
-    + COHORT_SLOPE * 12
+    + params.cohort_slope * 12
     + f_roas(roas_eval)
 )
 truth_budget = np.exp(truth_log_mu)
@@ -517,14 +623,16 @@ ax.fill_between(
 )
 ax.plot(roas_eval, truth_budget, color="black", linestyle="--", label="ground truth")
 ax.set_xlabel("roas")
-ax.set_ylabel("expected budget next month")
+ax.set_ylabel("expected budget next month, given active")
 ax.set_title("Adjusted predictions across ROAS (cohort_age=12, month=6)")
 ax.legend()
 fig.tight_layout()
 
 # %% [markdown]
 # The recovered curve tracks the ground truth: shallow for low ROAS, climbing through
-# break-even, levelling off past 4.
+# break-even, levelling off past 4. We're plotting the **Gamma-conditional** mean here
+# (expected budget *given* the store spends); the hurdle's $\psi$ scales it down to the
+# unconditional expectation later on.
 
 # %% [markdown]
 # ### Recovering $\hat{\beta}(\text{roas})$ post-hoc
@@ -575,22 +683,26 @@ fig.tight_layout()
 # ### Comparisons — going from break-even to a strong campaign
 #
 # What's the expected lift in next-month budget if we move a store from ROAS=1 to ROAS=4?
+# This is the question the platform team actually asks, and it's the place where the
+# hurdle matters: the answer should be the *marginal* expectation $\psi \cdot \mu$, i.e.
+# averaged over the chance the store skips. We anchor on a non-summer predictor month
+# (February → target March) so the inactive baseline is clean.
 
 # %%
 grid_compare = pl.DataFrame(
     {
         "roas": [1.0, 4.0],
         "cohort_age": [12, 12],
-        "month_of_year": [6, 6],
+        "month_of_year": [2, 2],
     }
 )
-mu_compare = predict_mu(model, idata, grid_compare)
-diff_samples = mu_compare[:, 1] - mu_compare[:, 0]
+marg_compare = predict_marginal(model, idata, grid_compare)
+diff_samples = marg_compare[:, 1] - marg_compare[:, 0]
 diff_mean = float(diff_samples.mean())
 diff_lo, diff_hi = np.quantile(diff_samples, [0.03, 0.97])
 
 print(
-    f"E[budget | roas=4] - E[budget | roas=1] = "
+    f"E[budget_next | roas=4] - E[budget_next | roas=1] = "
     f"{diff_mean:.2f}  (94% CI: {diff_lo:.2f}, {diff_hi:.2f})"
 )
 
@@ -602,7 +714,7 @@ print(
 # ### Cohort-age effect
 
 # %%
-ages = np.arange(0, N_MONTHS)
+ages = np.arange(0, params.n_months)
 grid_age = pl.DataFrame(
     {
         "roas": np.full_like(ages, 2.5, dtype=float),
@@ -614,9 +726,9 @@ mu_age = predict_mu(model, idata, grid_age)
 sum_age = summarise(mu_age)
 
 truth_age = np.exp(
-    INTERCEPT
+    params.intercept
     + season(np.full_like(ages, 6, dtype=float))
-    + COHORT_SLOPE * ages
+    + params.cohort_slope * ages
     + f_roas(np.full_like(ages, 2.5, dtype=float))
 )
 
@@ -648,9 +760,9 @@ mu_month = predict_mu(model, idata, grid_month)
 sum_month = summarise(mu_month)
 
 truth_month = np.exp(
-    INTERCEPT
+    params.intercept
     + season(months.astype(float))
-    + COHORT_SLOPE * 12
+    + params.cohort_slope * 12
     + f_roas(np.full_like(months, 2.5, dtype=float))
 )
 
