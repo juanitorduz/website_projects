@@ -72,6 +72,14 @@
   year        = {2017}
 }
 
+@techreport{sun2017geolevel,
+  author      = {Sun, Yuxue and Wang, Yueqing and Jin, Yuhong and Chan, David and Koehler, Jim},
+  title       = {Geo-level {B}ayesian Hierarchical Media Mix Modeling},
+  institution = {Google Research},
+  year        = {2017},
+  url         = {https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45999.pdf}
+}
+
 @techreport{wurm2024mmmcalibration,
   author      = {Wurm, Michael and Price, Bobby and Liu, Yan},
   title       = {Media Mix Model Calibration with {B}ayesian Priors},
@@ -80,11 +88,12 @@
   url         = {https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/}
 }
 
-@article{bajari2021multiple,
-  author  = {Bajari, Patrick and Burdick, Brian and Imbens, Guido W. and Masoero, Lorenzo and McQueen, James and Richardson, Thomas S. and Rosen, Ido M.},
-  title   = {Multiple Randomization Designs},
-  journal = {Management Science},
-  year    = {2023},
+@article{masoero2025multiple,
+  author  = {Masoero, Lorenzo and Vijaykumar, Suhas and Richardson, Thomas S. and McQueen, James and Rosen, Ido and Burdick, Brian and Bajari, Patrick and Imbens, Guido W.},
+  title   = {Multiple Randomization Designs: Estimation and Inference with Interference},
+  journal = {Journal of the Royal Statistical Society Series B},
+  year    = {2025},
+  doi     = {10.1093/jrsssb/qkaf073},
   note    = {arXiv:2112.13495}
 }
 
@@ -101,6 +110,54 @@
   howpublished = {Software},
   year         = {2024},
   url          = {https://www.pymc-marketing.io/}
+}
+
+@misc{pymcmarketing_lift_test_source,
+  author       = {{PyMC Labs}},
+  title        = {{PyMC-Marketing} lift-test likelihood implementation (\texttt{lift\_test.py})},
+  howpublished = {Source code},
+  year         = {2024},
+  url          = {https://github.com/pymc-labs/pymc-marketing/blob/main/pymc_marketing/mmm/lift_test.py}
+}
+
+@misc{pymcmarketing_mmm_roas,
+  author       = {{PyMC Labs}},
+  title        = {{MMM} {ROAS} Calibration via Saturation Likelihood},
+  howpublished = {{PyMC-Marketing} example notebook},
+  year         = {2024},
+  url          = {https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_roas.html}
+}
+
+@misc{pymcmarketing_mmm_roas_parametrization,
+  author       = {{PyMC Labs}},
+  title        = {{ROAS}-Parameterized {MMM}},
+  howpublished = {{PyMC-Marketing} example notebook},
+  year         = {2024},
+  url          = {https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_roas_parametrization.html}
+}
+
+@misc{pymcmarketing_geolift_calibration,
+  author       = {{PyMC Labs}},
+  title        = {Geo-Lift Calibration for Hierarchical {MMM}},
+  howpublished = {{PyMC-Marketing} example notebook},
+  year         = {2024},
+  url          = {https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_geolift_calibration.html}
+}
+
+@misc{pymcmarketing_budget_allocation,
+  author       = {{PyMC Labs}},
+  title        = {{MMM} Budget Allocation Example},
+  howpublished = {{PyMC-Marketing} example notebook},
+  year         = {2024},
+  url          = {https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_budget_allocation_example.html}
+}
+
+@misc{pymcmarketing_allocation_assessment,
+  author       = {{PyMC Labs}},
+  title        = {Risk-Aware Budget Allocation Assessment},
+  howpublished = {{PyMC-Marketing} example notebook},
+  year         = {2024},
+  url          = {https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_allocation_assessment.html}
 }
 
 % --- Off-policy evaluation / causal bandits -------------------------------
