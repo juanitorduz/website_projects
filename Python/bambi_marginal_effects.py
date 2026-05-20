@@ -435,31 +435,8 @@ def predict_mu(model: bmb.Model, idata, grid_pl: pl.DataFrame) -> np.ndarray:
     new_idata = model.predict(
         idata, data=grid_pl.to_pandas(), kind="response_params", inplace=False
     )
-    mu = new_idata.posterior["mu"]
-    obs_dim = next(d for d in mu.dims if d not in ("chain", "draw"))
-    return mu.stack(sample=("chain", "draw")).transpose("sample", obs_dim).to_numpy()
+    return new_idata["posterior"]["mu"]
 
-
-def predict_marginal(model: bmb.Model, idata, grid_pl: pl.DataFrame) -> np.ndarray:
-    """Posterior samples of the *marginal* response mean over a grid:
-    $\\psi \\cdot \\mu$ for hurdle families (averaging over the chance the store skips),
-    plain $\\mu$ for non-hurdle families. Shape (n_samples, n_grid)."""
-    new_idata = model.predict(
-        idata, data=grid_pl.to_pandas(), kind="response_params", inplace=False
-    )
-    mu = new_idata.posterior["mu"]
-    obs_dim = next(d for d in mu.dims if d not in ("chain", "draw"))
-    mu_arr = mu.stack(sample=("chain", "draw")).transpose("sample", obs_dim).to_numpy()
-    if "psi" not in new_idata.posterior:
-        return mu_arr
-    psi = new_idata.posterior["psi"]
-    psi_arr = psi.stack(sample=("chain", "draw")).to_numpy()
-    return psi_arr[:, None] * mu_arr
-
-
-def summarise(samples: np.ndarray, prob: float = 0.94) -> dict[str, np.ndarray]:
-    lo, hi = np.quantile(samples, [(1 - prob) / 2, 1 - (1 - prob) / 2], axis=0)
-    return {"mean": samples.mean(axis=0), "lo": lo, "hi": hi}
 
 
 # %% [markdown]
@@ -526,11 +503,7 @@ fig, ax = plt.subplots(figsize=(10, 5))
 az.plot_ppc(idata_prior_lm, group="prior", ax=ax)
 ax.set(
     title="Baseline 1: prior predictive",
-    xlim=(
-        -np.quantile(df_fit["budget_next"], 0.99) * 2,
-        np.quantile(df_fit["budget_next"], 0.99) * 3,
-    ),
-)
+);
 
 # %% [markdown]
 # ### Fit
@@ -583,26 +556,26 @@ ax.set(
 # A single slope on ROAS bends to nothing. The posterior mean is a straight line, by construction. Compare to the true Gamma-conditional curve in dashed black.
 
 # %%
-mu_roas_lm = predict_mu(model_lm, idata_lm, grid_roas)
-sum_roas_lm = summarise(mu_roas_lm)
+idata_lm_mu_grid = predict_mu(model_lm, idata_lm, grid_roas)
 
 fig, ax = plt.subplots(figsize=(12, 6))
-ax.plot(roas_eval, sum_roas_lm["mean"], color="C0", label="posterior mean")
-ax.fill_between(
-    roas_eval,
-    sum_roas_lm["lo"],
-    sum_roas_lm["hi"],
-    alpha=0.25,
-    color="C0",
-    label="94% CI",
-)
+
+for i, hdi_prob in enumerate([0.94, 0.5]):
+    az.plot_hdi(
+        roas_eval,
+        idata_lm_mu_grid,
+        hdi_prob=hdi_prob,
+        color="C0",
+        fill_kwargs={"alpha": 0.2 + 0.2 * i, "label": f"{hdi_prob: .0%} CI"},
+        ax=ax,
+    )
 ax.plot(roas_eval, truth_budget, color="black", linestyle="--", label="ground truth")
+ax.legend()
 ax.set(
     xlabel="roas",
     ylabel="expected budget next month",
     title="Baseline 1: adjusted predictions across ROAS",
-)
-ax.legend()
+);
 
 # %% [markdown]
 # ## Baseline 2: Hurdle Gamma with a linear ROAS coefficient
@@ -641,7 +614,6 @@ fig, ax = plt.subplots(figsize=(10, 5))
 az.plot_ppc(idata_prior_hgl, group="prior", ax=ax)
 ax.set(
     title="Baseline 2: prior predictive",
-    xlim=(0, np.quantile(df_fit["budget_next"], 0.99) * 3),
 )
 
 # %% [markdown]
@@ -653,6 +625,7 @@ idata_hgl = model_hgl.fit(
     tune=1000,
     chains=4,
     target_accept=0.95,
+    inference_method="numpyro",
     random_seed=seed,
     idata_kwargs={"log_likelihood": True},
 )
@@ -691,19 +664,19 @@ ax.set(
 # Monotone exponential of a linear slope. Better than baseline 1 (the right family and scale) but still wrong shape: no peak, no saturation.
 
 # %%
-mu_roas_hgl = predict_mu(model_hgl, idata_hgl, grid_roas)
-sum_roas_hgl = summarise(mu_roas_hgl)
+idata_hgl_mu_grid = predict_mu(model_hgl, idata_hgl, grid_roas)
 
 fig, ax = plt.subplots(figsize=(12, 6))
-ax.plot(roas_eval, sum_roas_hgl["mean"], color="C0", label="posterior mean")
-ax.fill_between(
-    roas_eval,
-    sum_roas_hgl["lo"],
-    sum_roas_hgl["hi"],
-    alpha=0.25,
-    color="C0",
-    label="94% CI",
-)
+
+for i, hdi_prob in enumerate([0.94, 0.5]):
+    az.plot_hdi(
+        roas_eval,
+        idata_hgl_mu_grid,
+        hdi_prob=hdi_prob,
+        color="C0",
+        fill_kwargs={"alpha": 0.2 + 0.2 * i, "label": f"{hdi_prob: .0%} CI"},
+        ax=ax,
+    )
 ax.plot(roas_eval, truth_budget, color="black", linestyle="--", label="ground truth")
 ax.set(
     xlabel="roas",
@@ -762,7 +735,6 @@ fig, ax = plt.subplots(figsize=(10, 5))
 az.plot_ppc(idata_prior, group="prior", ax=ax)
 ax.set(
     title="Prior predictive",
-    xlim=(0, np.quantile(df_fit["budget_next"], 0.99) * 3),
 )
 
 # %% [markdown]
@@ -777,6 +749,7 @@ idata = model.fit(
     tune=1000,
     chains=4,
     target_accept=0.95,
+    inference_method="numpyro",
     random_seed=seed,
     idata_kwargs={"log_likelihood": True},
 )
@@ -835,14 +808,19 @@ ax.set(
 # Reuse the shared `grid_roas` (ROAS sweep at cohort age 12, month-of-year June) and the Gamma-conditional `truth_budget` defined earlier.
 
 # %%
-mu_roas = predict_mu(model, idata, grid_roas)
-sum_roas = summarise(mu_roas)
+idata_mu_grid = predict_mu(model, idata, grid_roas)
 
 fig, ax = plt.subplots(figsize=(12, 6))
-ax.plot(roas_eval, sum_roas["mean"], color="C0", label="posterior mean")
-ax.fill_between(
-    roas_eval, sum_roas["lo"], sum_roas["hi"], alpha=0.25, color="C0", label="94% CI"
-)
+
+for i, hdi_prob in enumerate([0.94, 0.5]):
+    az.plot_hdi(
+        roas_eval,
+        idata_mu_grid,
+        hdi_prob=hdi_prob,
+        color="C0",
+        fill_kwargs={"alpha": 0.2 + 0.2 * i, "label": f"{hdi_prob: .0%} CI"},
+        ax=ax,
+    )
 ax.plot(roas_eval, truth_budget, color="black", linestyle="--", label="ground truth")
 ax.set(
     xlabel="roas",
@@ -858,67 +836,6 @@ ax.legend()
 # ### Recovering $\hat{\beta}(\text{roas})$ post-hoc
 #
 # We modelled ROAS as a single smooth $g(\text{roas})$ on the log scale, but the DGP wrote it as $\beta(\text{roas}) \cdot \text{roas}$. We can recover $\hat{\beta}$ by isolating the GP contribution to $\log \mu$ (everything else cancels when we hold cohort age and month fixed) and dividing by ROAS.
-
-# %%
-roas_ref = 1.0
-grid_ref = pl.DataFrame(
-    {
-        "roas": [roas_ref],
-        "cohort_age": [12],
-        "month_of_year": [6],
-    }
-)
-mu_ref = predict_mu(model, idata, grid_ref)[:, 0]
-
-# log(mu(r)) - log(mu(r_ref)) is g(r) - g(r_ref) on the log scale.
-# Anchor at r_ref=1 using the truth f_roas(1) ≈ 0.
-g_anchor = float(f_roas(np.array([roas_ref]))[0])
-log_ratio = np.log(mu_roas) - np.log(mu_ref)[:, None]
-g_samples = log_ratio + g_anchor
-beta_samples = g_samples / roas_eval[None, :]
-sum_beta = summarise(beta_samples)
-
-fig, ax = plt.subplots(figsize=(12, 6))
-ax.plot(roas_eval, sum_beta["mean"], color="C0", label=r"$\hat{\beta}(\mathrm{roas})$")
-ax.fill_between(
-    roas_eval, sum_beta["lo"], sum_beta["hi"], alpha=0.25, color="C0", label="94% CI"
-)
-ax.plot(
-    roas_eval, beta_roas(roas_eval), color="black", linestyle="--", label="ground truth"
-)
-ax.axhline(0.0, color="gray", linewidth=0.8)
-ax.set(
-    xlabel="roas",
-    ylabel=r"$\beta$",
-    title="Recovered varying coefficient from a single-smooth model",
-)
-ax.legend()
-
-# %% [markdown]
-# The GP recovered the varying coefficient even though the formula didn't ask for one.
-
-# %% [markdown]
-# ### Comparisons: going from break-even to a strong campaign
-#
-# What's the expected lift in next-month budget if we move a store from ROAS=1 to ROAS=4? This is the question the platform team actually asks, and it's the place where the hurdle matters: the answer should be the *marginal* expectation $\psi \cdot \mu$, i.e. averaged over the chance the store skips. We anchor on a non-summer predictor month (February → target March) so the inactive baseline is clean.
-
-# %%
-grid_compare = pl.DataFrame(
-    {
-        "roas": [1.0, 4.0],
-        "cohort_age": [12, 12],
-        "month_of_year": [2, 2],
-    }
-)
-marg_compare = predict_marginal(model, idata, grid_compare)
-diff_samples = marg_compare[:, 1] - marg_compare[:, 0]
-diff_mean = float(diff_samples.mean())
-diff_lo, diff_hi = np.quantile(diff_samples, [0.03, 0.97])
-
-print(
-    f"E[budget_next | roas=4] - E[budget_next | roas=1] = "
-    f"{diff_mean:.2f}  (94% CI: {diff_lo:.2f}, {diff_hi:.2f})"
-)
 
 # %% [markdown]
 # One number, on the response scale, with uncertainty attached: exactly the language the platform team would use.
@@ -936,27 +853,25 @@ grid_age = pl.DataFrame(
     }
 )
 mu_age = predict_mu(model, idata, grid_age)
-sum_age = summarise(mu_age)
 
-truth_age = np.exp(
-    params.intercept
-    + season(np.full_like(ages, 6, dtype=float))
-    + params.cohort_slope * ages
-    + f_roas(np.full_like(ages, 2.5, dtype=float))
-)
+fig, ax = plt.subplots(figsize=(12, 6))
 
-fig, ax = plt.subplots(figsize=(12, 5))
-ax.plot(ages, sum_age["mean"], color="C0", label="posterior mean")
-ax.fill_between(
-    ages, sum_age["lo"], sum_age["hi"], alpha=0.25, color="C0", label="94% CI"
-)
-ax.plot(ages, truth_age, color="black", linestyle="--", label="ground truth")
+for i, hdi_prob in enumerate([0.94, 0.5]):
+    az.plot_hdi(
+        ages,
+        mu_age,
+        hdi_prob=hdi_prob,
+        color="C0",
+        fill_kwargs={"alpha": 0.2 + 0.2 * i, "label": f"{hdi_prob: .0%} CI"},
+        ax=ax,
+    )
+ax.legend()
 ax.set(
     xlabel="cohort age (months)",
     ylabel="expected budget next month",
     title="Cohort-age effect (roas=2.5, month=6)",
 )
-ax.legend()
+
 
 # %% [markdown]
 # ### Yearly seasonality
@@ -970,28 +885,29 @@ grid_month = pl.DataFrame(
         "month_of_year": months,
     }
 )
+
 mu_month = predict_mu(model, idata, grid_month)
-sum_month = summarise(mu_month)
 
-truth_month = np.exp(
-    params.intercept
-    + season(months.astype(float))
-    + params.cohort_slope * 12
-    + f_roas(np.full_like(months, 2.5, dtype=float))
-)
+fig, ax = plt.subplots(figsize=(12, 6))
 
-fig, ax = plt.subplots(figsize=(12, 5))
-ax.bar(
-    months,
-    sum_month["mean"],
-    yerr=[sum_month["mean"] - sum_month["lo"], sum_month["hi"] - sum_month["mean"]],
-    color="C0",
-    alpha=0.7,
-    label="posterior mean ± 94% CI",
+for i, hdi_prob in enumerate([0.94, 0.5]):
+    az.plot_hdi(
+        months,
+        mu_month,
+        hdi_prob=hdi_prob,
+        color="C0",
+        fill_kwargs={"alpha": 0.2 + 0.2 * i, "label": f"{hdi_prob: .0%} CI"},
+        ax=ax,
+    )
+ax.legend()
+ax.set(
+    xlabel="cohort age (months)",
+    ylabel="expected budget next month",
+    title="Cohort-age effect (roas=2.5, month=6)",
 )
-ax.plot(
-    months, truth_month, color="black", linestyle="--", marker="o", label="ground truth"
-)
+# ax.plot(
+#     months, truth_month, color="black", linestyle="--", marker="o", label="ground truth"
+# )
 ax.set(
     xticks=months,
     xlabel="month of year",
@@ -1052,135 +968,3 @@ compare_df
 
 # %%
 az.plot_compare(compare_df, insample_dev=False)
-
-# %% [markdown]
-# ### ROAS curve recovery
-#
-# Posterior mean ± 94% CI on the shared `roas_eval` grid for all three models, with the Gamma-conditional truth in dashed black. Baseline 1 is a straight line, baseline 2 is a monotone exponential of a line, only the varying-coefficient model bends through the peak and saturates past ROAS≈4.
-
-# %%
-mu_roas_vc = predict_mu(model, idata, grid_roas)
-sum_roas_vc = summarise(mu_roas_vc)
-
-model_curves = {
-    "linear_gaussian": (sum_roas_lm, "C0"),
-    "linear_hgamma": (sum_roas_hgl, "C1"),
-    "vc_hgamma": (sum_roas_vc, "C2"),
-}
-
-fig, ax = plt.subplots(figsize=(12, 6))
-for name, (summary, color) in model_curves.items():
-    ax.plot(roas_eval, summary["mean"], color=color, label=name)
-    ax.fill_between(roas_eval, summary["lo"], summary["hi"], alpha=0.15, color=color)
-ax.plot(roas_eval, truth_budget, color="black", linestyle="--", label="ground truth")
-ax.set(
-    xlabel="roas",
-    ylabel="expected budget next month, given active",
-    title="ROAS curve recovery: three models vs ground truth",
-)
-ax.legend()
-
-# %% [markdown]
-# ### Cohort-age slope
-#
-# Both log-scale models (`linear_hgamma` and `vc_hgamma`) parameterise `cohort_age` with a single slope on $\log \mu$, directly comparable to the DGP's `cohort_slope = -0.02`. Baseline 1's slope is on the data scale (not log), so we leave it off the forest plot.
-
-# %%
-az.plot_forest(
-    [idata_hgl, idata],
-    model_names=["linear_hgamma", "vc_hgamma"],
-    var_names=["cohort_age"],
-    combined=True,
-    figsize=(10, 3),
-)
-plt.axvline(params.cohort_slope, color="black", linestyle="--", label="truth")
-plt.legend()
-plt.title("Cohort-age slope: log-scale models vs truth")
-
-# %% [markdown]
-# ### Seasonality recovery
-#
-# Sweep month-of-year, hold cohort age at 12 and ROAS at 2.5. Plot all three models' posterior means against the Gamma-conditional truth `exp(season(month) + ...)`.
-
-# %%
-months = np.arange(1, 13)
-grid_month = pl.DataFrame(
-    {
-        "roas": np.full_like(months, 2.5, dtype=float),
-        "cohort_age": np.full_like(months, 12),
-        "month_of_year": months,
-    }
-)
-truth_month = np.exp(
-    params.intercept
-    + season(months.astype(float))
-    + params.cohort_slope * 12
-    + f_roas(np.full_like(months, 2.5, dtype=float))
-)
-
-month_curves = {
-    "linear_gaussian": (model_lm, idata_lm, "C0"),
-    "linear_hgamma": (model_hgl, idata_hgl, "C1"),
-    "vc_hgamma": (model, idata, "C2"),
-}
-
-fig, ax = plt.subplots(figsize=(12, 5))
-for name, (mdl, idt, color) in month_curves.items():
-    mu_m = predict_mu(mdl, idt, grid_month)
-    sum_m = summarise(mu_m)
-    ax.plot(months, sum_m["mean"], color=color, marker="o", label=name)
-    ax.fill_between(months, sum_m["lo"], sum_m["hi"], alpha=0.15, color=color)
-ax.plot(
-    months, truth_month, color="black", linestyle="--", marker="s", label="ground truth"
-)
-ax.set(
-    xticks=months,
-    xlabel="month of year",
-    ylabel="expected budget next month, given active",
-    title="Seasonality recovery: three models vs ground truth",
-)
-ax.legend()
-
-# %% [markdown]
-# ### Varying coefficient $\beta(\mathrm{roas})$
-#
-# The real payoff. For each model we isolate the implied ROAS contribution to $\log \mu$ at the reference scenario (`cohort_age=12`, `month=6`) and divide by ROAS to get an implied $\hat{\beta}(\mathrm{roas})$. Baselines collapse $\beta$ to a single value (constant for baseline 2 by construction); only the GP model traces the true curve.
-
-# %%
-roas_ref = 1.0
-grid_ref = pl.DataFrame({"roas": [roas_ref], "cohort_age": [12], "month_of_year": [6]})
-g_anchor = float(f_roas(np.array([roas_ref]))[0])
-
-
-def recover_beta(model_obj: bmb.Model, idata_obj) -> dict[str, np.ndarray]:
-    mu_grid = predict_mu(model_obj, idata_obj, grid_roas)
-    mu_anchor = predict_mu(model_obj, idata_obj, grid_ref)[:, 0]
-    log_ratio = np.log(mu_grid) - np.log(mu_anchor)[:, None]
-    return summarise((log_ratio + g_anchor) / roas_eval[None, :])
-
-
-fig, ax = plt.subplots(figsize=(12, 6))
-for name, (mdl, idt, color) in month_curves.items():
-    sum_b = recover_beta(mdl, idt)
-    ax.plot(roas_eval, sum_b["mean"], color=color, label=name)
-    ax.fill_between(roas_eval, sum_b["lo"], sum_b["hi"], alpha=0.15, color=color)
-ax.plot(
-    roas_eval, beta_roas(roas_eval), color="black", linestyle="--", label="ground truth"
-)
-ax.axhline(0.0, color="gray", linewidth=0.8)
-ax.set(
-    xlabel="roas",
-    ylabel=r"$\hat{\beta}(\mathrm{roas})$",
-    title="Varying coefficient recovery: only the GP model bends",
-)
-ax.legend()
-
-# %% [markdown]
-# The GP model is the only one that recovers $\beta(\mathrm{roas})$, and it's also the one that wins on LOO. The story closes: the right shape is also the right predictor.
-
-# %% [markdown]
-# ## Wrapping up
-#
-# Three models, three layers of flexibility, one true curve. The Gaussian linear model missed the response scale, missed the zero point-mass, and flattened the ROAS effect to a slope. Switching to Hurdle Gamma fixed the likelihood but left ROAS monotone. Only the Hurdle Gamma + HSGP model recovered both the shape of $\beta(\mathrm{roas})$ *and* won on LOO: predictive performance and structural recovery aligned.
-#
-# Once a model has a link function, a smooth term, or contrasts in it, raw posterior coefficients stop being a useful unit of communication. **Predictions** answer the scenario question and **comparisons** answer the counterfactual question, both in the data's own units, with uncertainty attached. The same recipe extends to **slopes** (the derivative question, $\partial \hat{Y} / \partial X$) by predicting on a grid nudged by $\pm \varepsilon$ and finite-differencing through the posterior. The [marginaleffects book](https://marginaleffects.com/) is the reference if you want to go further.
