@@ -175,6 +175,33 @@ class DGP:
             4 * np.pi * month_of_year / 12
         )
 
+    @staticmethod
+    def true_mu(
+        roas: np.ndarray,
+        cohort_age: np.ndarray,
+        month_of_year: np.ndarray,
+        params: "DGPParams",
+    ) -> np.ndarray:
+        """Ground-truth Gamma-conditional mean budget at the given predictor values.
+
+        Inputs may be scalars or arrays, including the (n_stores, n_months)
+        panel arrays used during simulation. NumPy broadcasting handles both
+        cases.
+        """
+        season_term = DGP.season(np.asarray(month_of_year, dtype=float))
+        roas_term = (
+            f_roas(np.asarray(roas, dtype=float))
+            * (1.0 + 1.0 / (1.0 + cohort_age))
+            * (1.0 + 0.5 * season_term)
+        )
+        log_mu = (
+            params.intercept
+            + season_term
+            + params.cohort_slope * cohort_age
+            + roas_term
+        )
+        return np.exp(log_mu)
+
     def _simulate_features(
         self, params: DGPParams
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -219,23 +246,12 @@ class DGP:
         inactive: np.ndarray,
         params: DGPParams,
     ) -> tuple[np.ndarray, np.ndarray]:
-
-        season_term = self.season(month_of_year[:, :-1])
-
-        roas_term = (
-            f_roas(roas[:, :-1])
-            * (1 + 1 / (1 + cohort_age[:, :-1]))
-            * (1 + 0.5 * season_term)
+        mu_next = self.true_mu(
+            roas=roas[:, :-1],
+            cohort_age=cohort_age[:, :-1],
+            month_of_year=month_of_year[:, :-1],
+            params=params,
         )
-
-        log_mu_next = (
-            params.intercept
-            + season_term
-            + params.cohort_slope * cohort_age[:, :-1]
-            + roas_term
-        )
-
-        mu_next = np.exp(log_mu_next)
         sigma_next = params.gamma_sigma
 
         shape = mu_next**2 / sigma_next**2
@@ -595,28 +611,6 @@ def predict_mu(model: bmb.Model, idata, grid_pl: pl.DataFrame) -> np.ndarray:
         idata, data=grid_pl.to_pandas(), kind="response_params", inplace=False
     )
     return new_idata["posterior"]["mu"]
-
-
-def truth_mu(
-    roas: np.ndarray,
-    cohort_age_value: float,
-    month_of_year_value: float,
-    params: DGPParams,
-) -> np.ndarray:
-    """Ground-truth Gamma-conditional mean budget at fixed cohort age and month."""
-    season_term = DGP.season(np.asarray(month_of_year_value, dtype=float))
-    roas_term = (
-        f_roas(roas)
-        * (1.0 + 1.0 / (1.0 + cohort_age_value))
-        * (1.0 + 0.5 * season_term)
-    )
-    log_mu = (
-        params.intercept
-        + season_term
-        + params.cohort_slope * cohort_age_value
-        + roas_term
-    )
-    return np.exp(log_mu)
 
 
 # %% [markdown]
@@ -1032,8 +1026,11 @@ ax.set_title(
 # Now the grid prediction with the ground-truth overlay. The DGP curve has a peak around ROAS≈3 and saturates past 4; a monotone exponential cannot reproduce either feature.
 
 # %%
-truth_budget_default = truth_mu(
-    roas_grid, cohort_age_default, month_of_year_default, params
+truth_budget_default = DGP.true_mu(
+    roas=roas_grid,
+    cohort_age=cohort_age_default,
+    month_of_year=month_of_year_default,
+    params=params,
 )
 
 idata_hgl_mu_grid = predict_mu(model_hgl, idata_hgl, roas_datagrid)
