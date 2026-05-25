@@ -881,6 +881,142 @@ ax.set_title(
 # - All of these effects are centered around zero. The reason for this is because we are using a [`ZeroSumNormal`](https://www.pymc.io/projects/docs/en/5.24.1/api/distributions/generated/pymc.ZeroSumNormal.html) distribution for this categorical variable. This means that all the sum of the coefficients is also zero.
 
 # %% [markdown]
+# ### The same answers via Bambi's `interpret` module
+#
+# Everything above we built by hand: a `datagrid`, a `predict_mu` pass through the posterior, and an ArviZ summary. Seeing that mechanic once is worth it because it makes explicit what a marginal-effects plot actually is. Day to day, though, Bambi ships an [`interpret` module](https://bambinos.github.io/bambi/notebooks/#tools-to-interpret-model-outputs) that packages the very same recipe behind three primitives: `predictions` ("what does the model predict over this grid?"), `comparisons` ("how does the prediction change from A to B?"), and `slopes` ("what is the local derivative?"). Each one takes a `conditional` dictionary in place of the polars grid we wrote by hand: the first key becomes the horizontal axis, a second key becomes the color grouping, and a third becomes the panel. Covariates we leave out are held at their mean (numeric) or mode (categorical), exactly like the defaults we chose above. The plotting helpers `plot_predictions`, `plot_comparisons`, and `plot_slopes` draw a single 94% HDI band where the custom plots layered a 94% and a 50% band, but the underlying numbers are identical: same posterior `idata_lm`, same grid, same `mu`.
+#
+# We introduce the module here on the linear baseline and reuse it for the next two models. Let's reproduce each plot from this section in turn, starting with the ROAS effect.
+
+# %%
+fig, ax = plt.subplots()
+bmb.interpret.plot_predictions(
+    model_lm,
+    idata_lm,
+    conditional={
+        "roas": roas_grid,
+        "cohort_age": cohort_age_default,
+        "month_of_year": month_of_year_default,
+    },
+    ax=ax,
+)
+ax.set_title(
+    "bmb.interpret: ROAS Effect on Next Month's Budget",
+    fontsize=18,
+    fontweight="bold",
+)
+
+# %% [markdown]
+# Splitting the ROAS effect by cohort age is just a second key in `conditional`, which Bambi maps to the color grouping. Compare this with the by-hand version above that stacked the HDI bands.
+
+# %%
+fig, ax = plt.subplots()
+bmb.interpret.plot_predictions(
+    model_lm,
+    idata_lm,
+    conditional={
+        "roas": roas_grid,
+        "cohort_age": list(cohort_age_grid[::6]),
+        "month_of_year": month_of_year_default,
+    },
+    ax=ax,
+)
+ax.set_title(
+    "bmb.interpret: ROAS Effect split by Cohort Age",
+    fontsize=18,
+    fontweight="bold",
+)
+
+# %% [markdown]
+# The same idea split by month of year:
+
+# %%
+fig, ax = plt.subplots()
+bmb.interpret.plot_predictions(
+    model_lm,
+    idata_lm,
+    conditional={
+        "roas": roas_grid,
+        "month_of_year": list(month_of_year_grid[::2]),
+        "cohort_age": cohort_age_default,
+    },
+    ax=ax,
+)
+ax.set_title(
+    "bmb.interpret: ROAS Effect split by Month of Year",
+    fontsize=18,
+    fontweight="bold",
+)
+
+# %% [markdown]
+# The month-3 versus month-9 contrast is a `comparisons` call: `contrast` names the variable and the two levels to difference (ordered low then high, so `[9, 3]` yields month-3 minus month-9), while `conditional` sets the grid over which we evaluate the difference. As before, the difference is constant in ROAS because the model is linear.
+
+# %%
+fig, ax = plt.subplots()
+bmb.interpret.plot_comparisons(
+    model_lm,
+    idata_lm,
+    contrast={"month_of_year": [month_of_year_1, month_of_year_0]},
+    conditional={"roas": roas_grid, "cohort_age": cohort_age_default},
+    ax=ax,
+)
+ax.set_title(
+    "bmb.interpret: Month 3 vs Month 9 ROAS Effect Difference",
+    fontsize=18,
+    fontweight="bold",
+)
+
+# %% [markdown]
+# The cohort-age effect: now `cohort_age` is the horizontal axis and ROAS, left unspecified, is held at its mean.
+
+# %%
+fig, ax = plt.subplots()
+bmb.interpret.plot_predictions(
+    model_lm,
+    idata_lm,
+    conditional={"cohort_age": cohort_age_grid, "month_of_year": month_of_year_default},
+    ax=ax,
+)
+ax.set_title(
+    "bmb.interpret: Cohort Age Effect on Next Month's Budget",
+    fontsize=18,
+    fontweight="bold",
+)
+
+# %% [markdown]
+# And the month-of-year effect. Because `month_of_year` enters the formula through `C(...)`, Bambi treats it as categorical and draws a point with an interval per level, the same information carried by the forest plot above.
+
+# %%
+fig, ax = plt.subplots()
+bmb.interpret.plot_predictions(
+    model_lm,
+    idata_lm,
+    conditional={"month_of_year": month_of_year_grid, "cohort_age": cohort_age_default},
+    ax=ax,
+)
+ax.set_title(
+    "bmb.interpret: Month of Year Effect on Next Month's Budget",
+    fontsize=18,
+    fontweight="bold",
+)
+
+# %% [markdown]
+# Finally the third primitive, `slopes`, which we skipped in the by-hand tour. It returns the local derivative $\partial \mu / \partial \text{roas}$. For a linear identity-link model this derivative is constant and equal to the ROAS regression coefficient we read off the trace plot, so the table below reports a single number that matches that posterior mean.
+
+# %%
+bmb.interpret.slopes(
+    model_lm,
+    idata_lm,
+    wrt="roas",
+    conditional={
+        "cohort_age": cohort_age_default,
+        "month_of_year": month_of_year_default,
+    },
+)
+
+# %% [markdown]
+# Same shapes, same intervals, a handful of lines instead of dozens. The by-hand `datagrid` plus `predict_mu` recipe stays the tool to reach for when a question does not map onto a built-in primitive; for everything that does, `interpret` is the faster path, and we lean on it for the next two models.
+
+# %% [markdown]
 # ## Baseline 2: Hurdle Gamma with a linear ROAS coefficient
 #
 # Same likelihood family as the model we ultimately want, but ROAS still enters linearly on the log scale. The log link turns the linear coefficient into a *multiplicative* effect: `exp(linear)` is monotone, so we get a curve rather than a line, but no peak and no saturation. The shape is still wrong; the comparison versus the GP model will quantify how wrong.
@@ -1010,6 +1146,8 @@ ax.set_title(
 # ### ROAS Effect on Next Month's Budget
 #
 # Same recipe as in the linear baseline; we just swap the model in `predict_mu`. Plots show the Gamma-conditional mean $\mu$ (expected budget given the store is active next month).
+#
+# We keep the by-hand `datagrid` plus `predict_mu` plots as the explanatory thread for this model too, but each of them could be reproduced in a single line with the Bambi `interpret` module introduced on the linear baseline, simply by pointing `plot_predictions` and `comparisons` at `model_hgl`.
 #
 # Let's start with the ROAS coefficient posterior. Because the link is logarithmic, this is now a *multiplicative* effect on $\mu$: a one-unit ROAS increase multiplies next month's budget by $\exp(\beta_{\text{roas}})$, regardless of the ROAS level.
 
@@ -1550,7 +1688,7 @@ ax.set_title(
 # %% [markdown]
 # ### The same answers via Bambi's `interpret` module
 #
-# Now that we've seen the mechanics, here's what you would actually write day to day. Bambi ships [interpretation tools](https://bambinos.github.io/bambi/notebooks/#tools-to-interpret-model-outputs) with the same three primitives, driven by a `conditional` dictionary in place of the polars grids we built by hand.
+# We introduced this module on the linear baseline, so here we simply point it at the HSGP model. The same `plot_predictions` and `comparisons` calls now trace the recovered non-linear ROAS curve with no extra work.
 
 # %%
 fig, ax = plt.subplots(figsize=(12, 6))
