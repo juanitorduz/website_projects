@@ -15,16 +15,16 @@
 # %% [markdown]
 # # Interpreting and Communicating Statistical Models
 #
-# In this notebook, we work out a example of how to interpret and communicate statistical models. We follow the ideas and techniques from the amazing book ["Model to Meaning: How to Interpret Statistical Models with marginaleffects for R and Python "](https://marginaleffects.com/). This exposition is by no means exhaustive, but it should give you a good starting point. For more details, check the book!
+# In this notebook, we work out an example of how to interpret and communicate statistical models. We follow the ideas and techniques from the amazing book ["Model to Meaning: How to Interpret Statistical Models with marginaleffects for R and Python "](https://marginaleffects.com/). This exposition is by no means exhaustive, but it should give you a good starting point. For more details, check the book!
 #
 # ## Motivating Example: Ads, ROAS and Budgets
 #
 # The following example is motivated by real applications in the ad-tech industry. We keep it simple, as we are not interested in a detailed statistical model, but rather in the interpretation and communication of the model results:
-# An ad platform offers advertising services to stores (say, to promote their products). It charges its stores per click and reports back ROAS (return on ad spend). The business strategy is that these stores are paying to get *incremental orders*. Stores keep spending while ROAS makes the campaigns worth it; when it doesn't, they pause for a month(s). The ad platform wants to predict next month's budget from this month's signals: ROAS, where the store is in its life-cycle, and the time of year. Their analytics team has seen that these factors are meaningful to explain the store's engagement to keep investing. One main question is the relationship between ROAS and budget. ROAS larger than one is good for the stores. Less than one simply means that the campaign is not profitable. One could wonder if the bidding algorithm should just push high ROAS on the marketplace to make it healthy and profitable. Nevertheless, the ad platform has seen that very high ROAS often leads to a drop in the following month's budget. The reasons is simple: as the stores have a fixed daily production capacity, they can just serve a limited number of orders. Hence, we expect a non-linear relationship between ROAS and next month's budget.
+# An ad platform offers advertising services to stores (say, to promote their products). It charges its stores per click and reports back ROAS (return on ad spend). The business strategy is that these stores are paying to get *incremental orders*. Stores keep spending while ROAS makes the campaigns worth it; when it doesn't, they pause for a month(s). The ad platform wants to predict next month's budget from this month's signals: ROAS, where the store is in its life-cycle, and the time of year. Their analytics team has seen that these factors are meaningful to explain the store's engagement to keep investing. One main question is the relationship between ROAS and budget. ROAS larger than one is good for the stores. Less than one simply means that the campaign is not profitable. One could wonder if the bidding algorithm should just push high ROAS on the marketplace to make it healthy and profitable. Nevertheless, the ad platform has seen that very high ROAS often leads to a drop in the following month's budget. The reason is simple: as the stores have a fixed daily production capacity, they can just serve a limited number of orders. Hence, we expect a non-linear relationship between ROAS and next month's budget.
 #
-# For this example, we generate synthetic data to mimic the mechanism described above. We generate a panel dataset for $100$ stores.  We'll fit three models of increasing flexibility on the same panel (a Gaussian linear baseline, a Hurdle-Gamma GLM with a linear ROAS coefficient, and a Hurdle-Gamma GLM with a Gaussian process on ROAS) to better understand the relationship between ROAS and next month's budget. We will do this using [`bambi`](https://bambinos.github.io/bambi/) to specify the models and the [`marginaleffects`](https://marginaleffects.com/) framework to interpret the results.
+# For this example, we generate synthetic data to mimic the mechanism described above. We generate a panel dataset for $100$ stores. We'll fit three models of increasing flexibility on the same panel (a Gaussian linear baseline, a Hurdle-Gamma GLM with a linear ROAS coefficient, and a Hurdle-Gamma GLM with a Gaussian process on ROAS) to better understand the relationship between ROAS and next month's budget. We will do this using [`bambi`](https://bambinos.github.io/bambi/) to specify the models and the [`marginaleffects`](https://marginaleffects.com/) framework to interpret the results.
 #
-# **Warning:** This is a oversimplified example. We are ignoring canibalization, other drivers and a more complex causal structure. In practice, this problem is much harder.
+# **Warning:** This is an oversimplified example. We are ignoring cannibalization, other drivers and a more complex causal structure. In practice, this problem is much harder.
 
 # %% [markdown]
 # ## Prepare Notebook
@@ -57,7 +57,7 @@ rng: np.random.Generator = np.random.default_rng(seed=seed)
 # %% [markdown]
 # ## Data Generation Process
 #
-# Let's start by generating the data. As budgets are positive, we model them through a gamma distribution.  On the log scale, next month's expected budget is simulated as follows:
+# Let's start by generating the data. As budgets are positive, we model them through a gamma distribution. On the log scale, next month's expected budget is simulated as follows:
 #
 # $$
 # \log \mu_{t+1} \;=\; \beta_0 \;+\; \text{season}(\text{month}_t) \;+\; \gamma \cdot \text{cohort\_age}_t \;+\; \beta(\text{roas}_t) \cdot g(\text{month}_t, \text{cohort\_age}_t) \cdot \text{roas}_t
@@ -115,7 +115,7 @@ axes[1].set(
     title=r"$\beta(\mathrm{roas}) \cdot \mathrm{roas}$: contribution to $\log \mu$",
     xlabel="roas",
 )
-fig.suptitle("Ground truth ROAS effect", fontsize=18, fontweight="bold")
+fig.suptitle("Ground truth ROAS effect", fontsize=18, fontweight="bold");
 
 
 # %% [markdown]
@@ -124,9 +124,9 @@ fig.suptitle("Ground truth ROAS effect", fontsize=18, fontweight="bold")
 # %% [markdown]
 # ### Generating the Panel Data
 #
-# We consider $100$ stores observed for $24$ months. Each store has its own cohort start (so cohort age varies across the panel) and its own ROAS process
+# We consider $100$ stores observed for $24$ months. Each store has its own cohort start (so cohort age varies across the panel) and its own ROAS process.
 #
-# **Remark:** The lag matters! Each row pairs **this month's signals** with **next month's budget**, the leading indicators a store could act on. When a store is inactive in a given month (no spend), it has no ROAS to report; that's encoded as `NaN`, and rows whose lagged ROAS is `NaN` are dropped at modelling time.
+# **Remark:** The lag matters! Each row pairs **this month's signals** with **next month's budget**, the leading indicators a store could act on. When a store is inactive in a given month (no spend), it has no ROAS to report; that's encoded as `NaN`, and rows whose lagged ROAS is `NaN` are dropped at modeling time.
 
 
 # %%
@@ -147,7 +147,7 @@ class DGPParams(NamedTuple):
         Relative noise scale for the Gamma response (coefficient of variation).
         Per-row standard deviation is $\\sigma = \\text{gamma\\_sigma} \\cdot \\mu$,
         so shape $= 1 / \\text{gamma\\_sigma}^2$ is constant across rows. The default
-        $1/\\sqrt{8}$ matches the original `gamma_shape = 8` parameterisation.
+        $1/\\sqrt{8}$ matches the original `gamma_shape = 8` parameterization.
     inactive_base_prob
         Per-month baseline probability that a store has no spend at all (the
         zero point-mass in the response).
@@ -348,7 +348,7 @@ for ax, sid in zip(axes.flat, sample_ids, strict=True):
     ax.set(title=f"store {sid}", xlabel="predictor month index")
 fig.suptitle(
     "Next-month booked budget for twelve random stores", fontsize=18, fontweight="bold"
-)
+);
 
 # %% [markdown]
 # We now plot the histograms for next month's budget and ROAS.
@@ -360,7 +360,7 @@ axes[0].set(xlabel="budget_next (active months)")
 axes[1].hist(
     panel.filter(pl.col("roas").is_not_nan())["roas"].to_numpy(), bins=40, color="C1"
 )
-axes[1].set(xlabel="roas (predictor month)")
+axes[1].set(xlabel="roas (predictor month)");
 
 # %% [markdown]
 # Let's visualize their relationship via a scatter plot.
@@ -388,7 +388,7 @@ ax.set(
     xlabel="roas (predictor month)",
     ylabel="budget_next",
 )
-ax.set_title("Next-month budget vs this-month's ROAS", fontsize=18, fontweight="bold")
+ax.set_title("Next-month budget vs this-month's ROAS", fontsize=18, fontweight="bold");
 
 # %% [markdown]
 # The non-linear shape is visible to the eye: budget rises with ROAS, levels off past ROAS≈4. That's the signal we want the model to pick up.
@@ -411,7 +411,7 @@ ax.set_title(
     "Next-month budget by this-month's month-of-year",
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # Cohort age vs budget: a mild downward drift as stores get older.
@@ -443,7 +443,7 @@ ax.set(
     xlabel="cohort age (months)",
     ylabel="budget_next",
 )
-ax.set_title("Cohort-age trend in next-month budget", fontsize=18, fontweight="bold")
+ax.set_title("Cohort-age trend in next-month budget", fontsize=18, fontweight="bold");
 
 # %% [markdown]
 # ## Baseline 1: linear Gaussian (identity link)
@@ -499,15 +499,15 @@ idata_prior_lm = model_lm.prior_predictive(draws=1_000, random_seed=rng)
 
 fig, ax = plt.subplots()
 az.plot_ppc(idata_prior_lm, group="prior", observed=True, ax=ax)
-ax.set_title("Linear Regression: Prior Predictive", fontsize=18, fontweight="bold")
+ax.set_title("Linear Regression: Prior Predictive", fontsize=18, fontweight="bold");
 
 # %% [markdown]
-# Overall, the prior predictive looks reasonable. Still, we see a conceptial problem with our model: we are allowing negative values for `budget_next`, which we know is non-negative. We will tackle this issue in the next model iteration below.
+# Overall, the prior predictive looks reasonable. Still, we see a conceptual problem with our model: we are allowing negative values for `budget_next`, which we know is non-negative. We will tackle this issue in the next model iteration below.
 
 # %% [markdown]
 # ### Model Fit
 #
-# We now fir the model to the data.
+# We now fit the model to the data.
 
 # %%
 idata_lm = model_lm.fit(
@@ -544,7 +544,7 @@ axes = az.plot_trace(
     backend_kwargs={"layout": "constrained"},
 )
 
-plt.gcf().suptitle("Linear Regression: Traceplot", fontsize=18, fontweight="bold")
+plt.gcf().suptitle("Linear Regression: Traceplot", fontsize=18, fontweight="bold");
 
 # %% [markdown]
 # We do not see any divergences and the traceplots look good. Let's look now at the posterior predictive distribution.
@@ -554,7 +554,7 @@ model_lm.predict(idata_lm, kind="response", inplace=True)
 
 fig, ax = plt.subplots()
 az.plot_ppc(idata_lm, num_pp_samples=1_000, ax=ax)
-ax.set_title("Linear Regression: Posterior Predictive", fontsize=18, fontweight="bold")
+ax.set_title("Linear Regression: Posterior Predictive", fontsize=18, fontweight="bold");
 
 # %% [markdown]
 # Besides the negative values, the posterior predictive distribution shows another issue: we are not capturing the large amount of zeros. We will also tackle this issue in the next model iteration below.
@@ -569,10 +569,10 @@ fig, ax = plt.subplots()
 az.plot_posterior(idata_lm, var_names="roas", ax=ax)
 ax.set_title(
     "Linear Regression: ROAS Regression Coefficient", fontsize=18, fontweight="bold"
-)
+);
 
 # %% [markdown]
-# We wan interpret this as follows: an increase of one unit in ROAS is associated with an increase of $0.23$ units in next month's budget, while holding the rest of the features constant. Note that, by design, this holds true regardless of the ROAS level. This goes against what we have seen in the exploratory data analysis above.
+# We can interpret this as follows: an increase of one unit in ROAS is associated with an increase of $0.23$ units in next month's budget, while holding the rest of the features constant. Note that, by design, this holds true regardless of the ROAS level. This goes against what we have seen in the exploratory data analysis above.
 
 # %% [markdown]
 # An alternative way to communicate this result is to study the posterior over a grid of values $\mathbb{E}[Y \mid \text{grid}]$. The idea is to explicitly show how varying ROAS affects the response. This method is described in detail in the book ["Model to Meaning: How to Interpret Statistical Models with marginaleffects for R and Python "](https://marginaleffects.com/).
@@ -644,7 +644,7 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # We see that the slope of this posterior predictive line(s) is exactly $0.23$, the same value we got from the regression coefficient.
@@ -692,10 +692,10 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
-# We see that the ROAS effect, as the slope of the lines, it is the same across all cohort ages. The only difference is the intercept, which varies with cohort age: the older the cohort the lower the estimated budget.
+# We see that the ROAS effect, as the slope of the lines, is the same across all cohort ages. The only difference is the intercept, which varies with cohort age: the older the cohort the lower the estimated budget.
 
 # %% [markdown]
 # We can do something similar for the month of year.
@@ -737,13 +737,13 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
-# We see that the ROAS effect is the same across all months of year. However, the intercept varies with the month of year. This variation in non-linear: the intercept for month $11$ is in between the intercepts for month $1$ and month $9$.
+# We see that the ROAS effect is the same across all months of year. However, the intercept varies with the month of year. This variation is non-linear: the intercept for month $11$ is in between the intercepts for month $1$ and month $9$.
 
 # %% [markdown]
-# Besides comparing predictions across grids, we can also compare them via differences or rations. For example, let's compute the difference between the ROAS grid predictions for month $3$ and month $9$.
+# Besides comparing predictions across grids, we can also compare them via differences or ratios. For example, let's compute the difference between the ROAS grid predictions for month $3$ and month $9$.
 
 # %%
 month_of_year_0 = 3
@@ -779,10 +779,10 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
-# It is not surprising that the difference is constant across ROAS. This is just because of the linearity of the model. As a matter of fact this contant value(s) is nothing else that the difference between the regression coefficients for month $3$ and month $9$:
+# It is not surprising that the difference is constant across ROAS. This is just because of the linearity of the model. As a matter of fact this constant value(s) is nothing other than the difference between the regression coefficients for month $3$ and month $9$:
 
 # %%
 month_of_year_beta_0 = (
@@ -807,7 +807,7 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # ### Cohort Age Effect on Next Month's Budget
@@ -845,7 +845,7 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # Again, this is not surprising given the regression coefficient is negative (see trace plot above).
@@ -872,12 +872,12 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # Here are some observations on this result:
 #
-# - Observe the HDI for month $1$ (index, $0$, i.e. January) is much narrower than the other months. This is also reflected in the ROAS effect plot above, when we split by month of year.
+# - Observe the HDI for month $1$ (index $0$, i.e. January) is much narrower than the other months. This is also reflected in the ROAS effect plot above, when we split by month of year.
 # - All of these effects are centered around zero. The reason for this is because we are using a [`ZeroSumNormal`](https://www.pymc.io/projects/docs/en/5.24.1/api/distributions/generated/pymc.ZeroSumNormal.html) distribution for this categorical variable. This means that all the sum of the coefficients is also zero.
 
 # %% [markdown]
@@ -903,7 +903,7 @@ ax.set_title(
     "bmb.interpret: ROAS Effect on Next Month's Budget",
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # Splitting the ROAS effect by cohort age is just a second key in `conditional`, which Bambi maps to the color grouping. Compare this with the by-hand version above that stacked the HDI bands.
@@ -924,7 +924,7 @@ ax.set_title(
     "bmb.interpret: ROAS Effect split by Cohort Age",
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # The same idea split by month of year:
@@ -945,7 +945,7 @@ ax.set_title(
     "bmb.interpret: ROAS Effect split by Month of Year",
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # The month-3 versus month-9 contrast is a `comparisons` call: `contrast` names the variable and the two levels to difference (ordered low then high, so `[9, 3]` yields month-3 minus month-9), while `conditional` sets the grid over which we evaluate the difference. As before, the difference is constant in ROAS because the model is linear.
@@ -963,7 +963,7 @@ ax.set_title(
     "bmb.interpret: Month 3 vs Month 9 ROAS Effect Difference",
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # The cohort-age effect: now `cohort_age` is the horizontal axis and ROAS, left unspecified, is held at its mean.
@@ -980,7 +980,7 @@ ax.set_title(
     "bmb.interpret: Cohort Age Effect on Next Month's Budget",
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # And the month-of-year effect. Because `month_of_year` enters the formula through `C(...)`, Bambi treats it as categorical and draws a point with an interval per level, the same information carried by the forest plot above.
@@ -997,7 +997,7 @@ ax.set_title(
     "bmb.interpret: Month of Year Effect on Next Month's Budget",
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # Finally the third primitive, `slopes`, which we skipped in the by-hand tour. It returns the local derivative $\partial \mu / \partial \text{roas}$. For a linear identity-link model this derivative is constant and equal to the ROAS regression coefficient we read off the trace plot, so the table below reports a single number that matches that posterior mean.
@@ -1043,7 +1043,7 @@ formula_hgl = bmb.Formula(
 #
 # A few short notes on each choice. The priors are tied to the data scale rather than left at Bambi's defaults so the sampler does not have to discover the right magnitudes on its own.
 #
-# - `Intercept ~ Normal(0, 0.5)`: on the log scale the DGP intercept is around $0.5$, so the prior is centred near the right order of magnitude and gently regularises.
+# - `Intercept ~ Normal(0, 0.5)`: on the log scale the DGP intercept is around $0.5$, so the prior is centered near the right order of magnitude and gently regularizes.
 # - `cohort_age ~ Normal(0, 0.1)`: `cohort_age` is unscaled with range roughly $-12$ to $23$, so a $1\sigma$ swing of $0.1$ still allows log-$\mu$ moves of $\pm 3.5$ across the panel without being absurd.
 # - `C(month_of_year) ~ ZeroSumNormal(\sigma=1.5)`: matches the linear-Gaussian baseline. The sum-to-zero contrast keeps the monthly effects identified against the intercept and reads cleanly in the forest plot.
 # - `roas ~ Normal(0, 1.0)`: ROAS spans $0$ to $8$ and the true effect on log-$\mu$ stays roughly within $\pm 1$, so a unit prior on the multiplicative slope is wide but reasonable.
@@ -1082,7 +1082,7 @@ ax.set_title(
     "Hurdle Gamma (linear ROAS): Prior Predictive",
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # ### Fit
@@ -1129,7 +1129,7 @@ axes = az.plot_trace(
 )
 plt.gcf().suptitle(
     "Hurdle Gamma (linear ROAS): Traceplot", fontsize=18, fontweight="bold"
-)
+);
 
 # %%
 model_hgl.predict(idata_hgl, kind="response", inplace=True)
@@ -1140,7 +1140,7 @@ ax.set_title(
     "Hurdle Gamma (linear ROAS): Posterior Predictive",
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # ### ROAS Effect on Next Month's Budget
@@ -1158,7 +1158,7 @@ ax.set_title(
     "Hurdle Gamma (linear ROAS): ROAS Regression Coefficient",
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # Now the grid prediction with the ground-truth overlay. The DGP curve has a peak around ROAS≈3 and saturates past 4; a monotone exponential cannot reproduce either feature.
@@ -1201,7 +1201,7 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # Splitting by cohort age now produces curves that are *parallel on the log scale* but fan out on the response scale: this is the visible signature of the log link. In the linear baseline the same plot was just a shifted line.
@@ -1236,7 +1236,7 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # Same story split by month of year:
@@ -1268,7 +1268,7 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # Now the month-3 vs month-9 contrast on the response scale. Unlike the linear baseline (where the contrast was a constant), here the gap *grows with ROAS* because the seasonal contrast acts multiplicatively after the log link.
@@ -1304,7 +1304,7 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # ### Cohort Age Effect on Next Month's Budget
@@ -1334,7 +1334,7 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # ### Month of Year Effect on Next Month's Budget
@@ -1352,7 +1352,7 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # The seasonal pattern is now expressed as multiplicative shifts on the budget scale. We've extracted everything the *linear* hurdle-Gamma model can offer; the shape of the ROAS effect is still wrong. Model 3 fixes that by replacing the linear ROAS term with a Gaussian-process basis.
@@ -1430,7 +1430,7 @@ idata_prior = model.prior_predictive(draws=500, random_seed=rng)
 # %%
 fig, ax = plt.subplots(figsize=(10, 5))
 az.plot_ppc(idata_prior, group="prior", ax=ax)
-ax.set_title("Hurdle Gamma + HSGP: Prior Predictive", fontsize=18, fontweight="bold")
+ax.set_title("Hurdle Gamma + HSGP: Prior Predictive", fontsize=18, fontweight="bold");
 
 # %% [markdown]
 # ### Model Fit
@@ -1483,7 +1483,7 @@ az.plot_trace(
     figsize=(12, 9),
     backend_kwargs={"layout": "constrained"},
 )
-plt.gcf().suptitle("Hurdle Gamma + HSGP: Traceplot", fontsize=18, fontweight="bold")
+plt.gcf().suptitle("Hurdle Gamma + HSGP: Traceplot", fontsize=18, fontweight="bold");
 
 # %%
 model.predict(idata, kind="response", inplace=True)
@@ -1493,7 +1493,7 @@ az.plot_ppc(idata, ax=ax)
 ax.set(xlim=(0, np.quantile(model_df["budget_next"], 0.99) * 2))
 ax.set_title(
     "Hurdle Gamma + HSGP: Posterior Predictive", fontsize=18, fontweight="bold"
-)
+);
 
 # %% [markdown]
 # ### ROAS Effect on Next Month's Budget
@@ -1534,7 +1534,7 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # Split by cohort age:
@@ -1569,7 +1569,7 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # Split by month of year:
@@ -1601,7 +1601,7 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # Month-3 vs month-9 contrast. The shape now reflects the curved $\log \mu$ pushed through the exponential link: the difference is non-constant even though the GP is on ROAS alone, because the multiplicative seasonal shift compounds with the GP's curvature.
@@ -1637,7 +1637,7 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # ### Cohort Age Effect on Next Month's Budget
@@ -1667,7 +1667,7 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # ### Month of Year Effect on Next Month's Budget
@@ -1683,7 +1683,7 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # ### The same answers via Bambi's `interpret` module
@@ -1704,7 +1704,7 @@ bmb.interpret.plot_predictions(
 )
 ax.set_title(
     "bmb.interpret.plot_predictions: ROAS effect", fontsize=18, fontweight="bold"
-)
+);
 
 # %%
 bmb.interpret.comparisons(
@@ -1725,7 +1725,7 @@ bmb.interpret.comparisons(
 #
 # Three models, one panel dataset, one evaluation grid. We compare on two axes:
 #
-# 1. Out-of-sample generalisation, via leave-one-out cross validation (LOO).
+# 1. Out-of-sample generalization, via leave-one-out cross validation (LOO).
 # 2. Curve recovery: how close are the three recovered ROAS effects to the ground truth on the response scale.
 
 # %% [markdown]
@@ -1745,7 +1745,7 @@ compare_df = az.compare(
 compare_df
 
 # %%
-az.plot_compare(compare_df, insample_dev=False)
+az.plot_compare(compare_df, insample_dev=False);
 
 # %% [markdown]
 # ### Recovered ROAS curves vs ground truth
@@ -1788,18 +1788,18 @@ ax.set_title(
     """,
     fontsize=18,
     fontweight="bold",
-)
+);
 
 # %% [markdown]
 # ## Conclusion
 #
-# We worked through three models of increasing flexibility on the same ad-tech panel. Each modelling choice bought us one thing:
+# We worked through three models of increasing flexibility on the same ad-tech panel. Each modeling choice bought us one thing:
 #
 # - **Linear Gaussian** gave us a single regression coefficient for ROAS but the wrong likelihood (allowed negative budgets, missed the zero mass) and the wrong shape (a line where the truth has a peak and a saturation).
 # - **Hurdle Gamma with a linear ROAS coefficient** fixed the likelihood: non-negative response, an explicit zero point-mass through $\psi$, and a log link that turned the coefficient into a multiplicative effect. The shape was still monotone, missing the peak and the saturation.
 # - **Hurdle Gamma with an HSGP on ROAS** kept the right likelihood and let the data shape the curve. The recovered $\mathbb{E}[\text{budget}_{t+1} \mid \text{roas}_t]$ tracked the true non-linearity, and the LOO comparison ranked it on top.
 #
-# Across all three models the *interpretation recipe* was identical: build a reference grid with `datagrid`, push it through the posterior with `predict_mu`, summarise on the response scale. This is the `marginaleffects` mental model: **predictions** ("what does the model say here?"), **comparisons** ("what changes from A to B?"), and **slopes** ("what is $\partial \hat{Y} / \partial X$ here?", which we skipped but is the same recipe with a finite-difference twist). Raw coefficients answer the wrong question once you leave identity-link land; data-grid summaries answer the right one.
+# Across all three models the *interpretation recipe* was identical: build a reference grid with `datagrid`, push it through the posterior with `predict_mu`, summarize on the response scale. This is the `marginaleffects` mental model: **predictions** ("what does the model say here?"), **comparisons** ("what changes from A to B?"), and **slopes** ("what is $\partial \hat{Y} / \partial X$ here?", which we met through `bmb.interpret.slopes` on the linear baseline rather than by hand, but is the same recipe with a finite-difference twist). Raw coefficients answer the wrong question once you leave identity-link land; data-grid summaries answer the right one.
 #
 # For more depth see the book ["Model to Meaning"](https://marginaleffects.com/) and the [Bambi `interpret` module](https://bambinos.github.io/bambi/notebooks/#tools-to-interpret-model-outputs), which ships a one-liner version of every plot we built by hand.
 
