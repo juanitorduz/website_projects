@@ -14,7 +14,7 @@ Do not use em-dashes (`—`) in any prose. Use the most natural alternative for 
 
 ## No hard line breaks in prose
 
-When writing text files (`.txt`, `.md`, `.qmd`, and similar), do **not** wrap prose at a fixed column. Write each paragraph as a single long line and let the editor/renderer handle visual wrapping.
+When writing text files (`.txt`, `.md`, `.qmd`, and similar), do **not** wrap prose at a fixed column. Write each paragraph as a single long line and let the editor/renderer handle visual wrapping. This also applied to Python Jupytext Notebooks or scripts (.py).
 
 - Yes: one line per paragraph, one line per bullet.
 - No: inserting newlines every 80 (or 100, or any other) characters inside a paragraph.
@@ -24,3 +24,11 @@ Exceptions: code blocks, tables, YAML front matter, and anything where the newli
 ## American English spelling
 
 Use American English spelling. Do not use British English spelling.
+
+## No fake citations
+
+Do not use fake citations. If you need to cite a source, ensure it exists.
+
+## Keep ; after the end of a plot
+
+In jupyter notebooks and Jupytext scripts, keep the `;` after the end of a plot.
