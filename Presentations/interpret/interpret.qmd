@@ -170,49 +170,30 @@ model_lm = bmb.Model(
 
 ## Linear Gaussian: Posterior Predictive {.smaller}
 
-::: {.columns}
-::: {.column width="60%"}
 
 ::: {.bordered}
-![](interpret_files/static/images/ads_roas_interpret_34_0.png){fig-align="center" width="650"}
+![](interpret_files/static/images/ads_roas_interpret_34_0.png){fig-align="center" width="700"}
 :::
 
-:::
-::: {.column width="40%"}
 
 ::: {.callout-important appearance="simple"}
 Two defects the wrong likelihood creates:
 
-- it puts mass on **negative** budgets, which are impossible,
-- it **misses the spike of zeros** from inactive stores.
-:::
-
-We will fix both with a Hurdle-Gamma likelihood later.
-
-:::
+- It puts mass on **negative** budgets, which are impossible.
+- It **misses the spike of zeros** from inactive stores.
 :::
 
 ## The Coefficient Trap {.smaller}
-
-::: {.columns}
-::: {.column width="55%"}
 
 ::: {.bordered}
 ![](interpret_files/static/images/ads_roas_interpret_37_0.png){fig-align="center" width="600"}
 :::
 
-:::
-::: {.column width="45%"}
 
 Read straight off the coefficient: an extra unit of ROAS is associated with $+0.23$ in next month's budget, **holding the rest constant**.
 
 ::: {.callout-warning appearance="simple"}
 By design this holds at **every** ROAS level: a single slope, no peak, no saturation. That directly contradicts what we just saw in the data.
-:::
-
-A single number is the wrong tool for a non-linear question.
-
-:::
 :::
 
 ## The Interpretation Recipe {.smaller}
@@ -230,70 +211,47 @@ roas_datagrid = datagrid(
 
 # 2. Push the grid through the posterior to get the response mean mu.
 def predict_mu(model, idata, grid_pl):
-    new_idata = model.predict(idata, data=grid_pl.to_pandas(), kind="response_params", inplace=False)
+    new_idata = model.predict(idata, data=grid_pl, kind="response_params", inplace=False)
     return new_idata["posterior"]["mu"]
 
-# 3. Summarize on the response scale (here: 50% and 94% HDI bands).
+# 3. Summarize on the response scale (here: 94% HDI bands).
 idata_lm_mu_grid = predict_mu(model_lm, idata_lm, roas_datagrid)
 az.plot_hdi(roas_grid, idata_lm_mu_grid, hdi_prob=0.94)
+...
 ```
 
 ## ROAS Effect on Next Month's Budget {.smaller}
-
-::: {.columns}
-::: {.column width="60%"}
 
 ::: {.bordered}
 ![](interpret_files/static/images/ads_roas_interpret_46_0.png){fig-align="center" width="650"}
 :::
 
-:::
-::: {.column width="40%"}
-
 The slope of this posterior line is exactly $0.23$: the same value as the regression coefficient.
 
+::: {.callout-tip appearance="simple"}
 For a linear identity-link model the grid view *equals* the coefficient. The point is that the same recipe **generalizes** to models where no single coefficient exists.
-
-:::
 :::
 
 ## Split by Cohort Age {.smaller}
 
-::: {.columns}
-::: {.column width="60%"}
+Adding a second variable to the grid splits the effect into one line per cohort age.
 
 ::: {.bordered}
 ![](interpret_files/static/images/ads_roas_interpret_49_0.png){fig-align="center" width="650"}
 :::
 
-:::
-::: {.column width="40%"}
-
-Adding a second variable to the grid splits the effect into one line per cohort age.
-
 The **slope (ROAS effect) is identical** across cohorts; only the **intercept** shifts down as cohorts get older. That is the linear model's rigid signature.
-
-:::
-:::
 
 ## Split by Month of Year {.smaller}
 
-::: {.columns}
-::: {.column width="60%"}
+Same story across months: the ROAS slope is shared, the intercept moves.
+
 
 ::: {.bordered}
 ![](interpret_files/static/images/ads_roas_interpret_52_0.png){fig-align="center" width="650"}
 :::
 
-:::
-::: {.column width="40%"}
-
-Same story across months: the ROAS slope is shared, the intercept moves.
-
 The variation is non-linear in the month index because of the `ZeroSumNormal` seasonal contrast, but ROAS itself still enters as one constant slope.
-
-:::
-:::
 
 ## Comparison: Month 3 vs Month 9 {.smaller}
 
@@ -399,24 +357,15 @@ y_i & \sim \text{HurdleGamma}(\psi, \mu_i, \alpha) \\
 
 ## Hurdle-Gamma: Posterior Predictive {.smaller}
 
-::: {.columns}
-::: {.column width="60%"}
-
 ::: {.bordered}
-![](interpret_files/static/images/ads_roas_interpret_94_0.png){fig-align="center" width="650"}
+![](interpret_files/static/images/ads_roas_interpret_94_0.png){fig-align="center" width="750"}
 :::
-
-:::
-::: {.column width="40%"}
 
 ::: {.callout-tip appearance="simple"}
 The likelihood is now right: **non-negative** response and an explicit **zero point-mass**.
 :::
 
-The fit is much closer to the data than the Gaussian baseline. The remaining problem is the **shape** of the ROAS effect, which we look at next.
-
-:::
-:::
+The fit is much closer to the data than the Gaussian baseline. However, there is still a room for improvement.
 
 ## Hurdle-Gamma: ROAS Effect {.smaller}
 
@@ -459,7 +408,7 @@ f & \sim \text{HSGP}(m, c)
 
 ```{.python code-line-numbers="|2"}
 formula = bmb.Formula(
-    "budget_next ~ 1 + cohort_age + C(month_of_year) + hsgp(roas, m=20, c=1.5, cov='Matern52', centered=True)"
+    "budget_next ~ 1 + cohort_age + C(month_of_year) + hsgp(roas, m=20, c=1.5, cov='Matern52')"
 )
 ```
 
@@ -469,39 +418,30 @@ See [A Conceptual and Practical Introduction to Hilbert Space GP Approximation M
 
 ## Hurdle-Gamma + HSGP: Posterior Predictive {.smaller}
 
-::: {.columns}
-::: {.column width="60%"}
-
 ::: {.bordered}
-![](interpret_files/static/images/ads_roas_interpret_131_0.png){fig-align="center" width="650"}
+![](interpret_files/static/images/ads_roas_interpret_131_0.png){fig-align="center" width="750"}
 :::
-
-:::
-::: {.column width="40%"}
 
 ::: {.callout-tip appearance="simple"}
 The best posterior predictive of the three models: it captures the zeros, the non-negativity, and the bulk of the budget distribution.
 :::
 
-:::
-:::
-
 ## Hurdle-Gamma + HSGP: ROAS Effect {.smaller}
 
 ::: {.columns}
-::: {.column width="50%"}
+::: {.column width="48.7%"}
 
 ::: {.bordered}
-![](interpret_files/static/images/ads_roas_interpret_134_0.png){fig-align="center" width="520"}
+![](interpret_files/static/images/ads_roas_interpret_134_0.png){fig-align="center" width="550"}
 :::
 
 The curve **rises then saturates past $\text{ROAS} \approx 4$**, exactly the mechanism we built into the problem.
 
 :::
-::: {.column width="50%"}
+::: {.column width="51.3%"}
 
 ::: {.bordered}
-![](interpret_files/static/images/ads_roas_interpret_137_0.png){fig-align="center" width="520"}
+![](interpret_files/static/images/ads_roas_interpret_137_0.png){fig-align="center" width="550"}
 :::
 
 Split by cohort age: same shape, smaller amplitude for older cohorts.
@@ -515,65 +455,54 @@ There is no single ROAS coefficient to report here. The grid-based prediction *i
 
 ## Model Comparison: LOO {.smaller}
 
-::: {.columns}
-::: {.column width="58%"}
-
 ::: {.bordered}
-![](interpret_files/static/images/ads_roas_interpret_154_0.png){fig-align="center" width="650"}
+![](interpret_files/static/images/ads_roas_interpret_154_0.png){fig-align="center" width="700"}
 :::
 
-:::
-::: {.column width="42%"}
 
 Leave-one-out cross-validation ranks out-of-sample fit (higher `elpd_loo` is better).
 
-::: incremental
 
 - **Hurdle-Gamma + HSGP** is best.
 - **Linear Hurdle-Gamma** second.
 - **Linear Gaussian** worst.
 
-:::
-
-:::
-:::
-
-## Recovered ROAS Curves vs Ground Truth {.smaller}
-
-::: {.columns}
-::: {.column width="60%"}
+## Recovered ROAS Curves vs True Curve
 
 ::: {.bordered}
-![](interpret_files/static/images/ads_roas_interpret_157_0.png){fig-align="center" width="650"}
+![](interpret_files/static/images/ads_roas_interpret_157_0.png){fig-align="center" width="750"}
 :::
-
-:::
-::: {.column width="40%"}
-
-The complementary check: how close is each recovered ROAS effect to the **ground-truth curve** on the response scale?
 
 ::: {.callout-tip appearance="simple"}
 The Hurdle-Gamma + HSGP model tracks the true non-linearity, peak and saturation included. The linear models cannot.
 :::
 
-:::
-:::
-
 ## Conclusion {.smaller}
 
-::: {.callout-tip}
-## One recipe, three models
+### Model Iteration:
 
 - **Linear Gaussian:** a single ROAS coefficient, but the wrong likelihood (negative budgets, missed zeros) and the wrong shape (a line, not a peak).
 - **Hurdle-Gamma (linear ROAS):** fixes the likelihood (non-negative, explicit zeros, multiplicative log link); shape still monotone.
 - **Hurdle-Gamma + HSGP:** right likelihood *and* a data-driven curve that recovers the truth and wins on LOO.
-:::
 
-::: {.callout-important appearance="simple"}
-Across all three models the **interpretation recipe is identical**: build a grid with `datagrid`, push it through the posterior with `predict_mu`, summarize on the response scale, with uncertainty. **Raw coefficients answer the wrong question once you leave identity-link land; grid-based predictions, comparisons, and slopes answer the right one.**
+::: {.callout-tip appearance="simple"}
+Across all three models the **interpretation recipe is identical**: build a grid with `datagrid`, push it through the posterior with `predict_mu`, summarize on the response scale, with uncertainty.
+
+**Raw coefficients answer the wrong question once you leave identity-link land.**
+
+**Grid-based predictions, comparisons, and slopes answer the right one.**
 :::
 
 ## References {.smaller}
+
+::: {.callout-tip}
+
+### Links
+
+- Notebook: [https://juanitorduz.github.io/ads_roas_interpret/](https://juanitorduz.github.io/ads_roas_interpret/)
+
+- Slides: [https://juanitorduz.github.io/html/interpret.html](https://juanitorduz.github.io/html/interpret.html)
+:::
 
 ::: {.columns}
 ::: {.column width="55%"}

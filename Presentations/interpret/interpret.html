@@ -366,16 +366,13 @@ y_i &amp; \sim \text{Normal}(\mu_i, \sigma^2) \\
 </section>
 <section id="linear-gaussian-posterior-predictive" class="slide level2 smaller">
 <h2>Linear Gaussian: Posterior Predictive</h2>
-<div class="columns">
-<div class="column" style="width:60%;">
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="interpret_files/static/images/ads_roas_interpret_34_0.png" class="quarto-figure quarto-figure-center" width="650"></p>
+<p><img data-src="interpret_files/static/images/ads_roas_interpret_34_0.png" class="quarto-figure quarto-figure-center" width="700"></p>
 </figure>
 </div>
 </div>
-</div><div class="column" style="width:40%;">
 <div class="callout callout-important callout-style-simple">
 <div class="callout-body">
 <div class="callout-icon-container">
@@ -384,19 +381,15 @@ y_i &amp; \sim \text{Normal}(\mu_i, \sigma^2) \\
 <div class="callout-content">
 <p>Two defects the wrong likelihood creates:</p>
 <ul>
-<li>it puts mass on <strong>negative</strong> budgets, which are impossible,</li>
-<li>it <strong>misses the spike of zeros</strong> from inactive stores.</li>
+<li>It puts mass on <strong>negative</strong> budgets, which are impossible.</li>
+<li>It <strong>misses the spike of zeros</strong> from inactive stores.</li>
 </ul>
 </div>
 </div>
 </div>
-<p>We will fix both with a Hurdle-Gamma likelihood later.</p>
-</div></div>
 </section>
 <section id="the-coefficient-trap" class="slide level2 smaller">
 <h2>The Coefficient Trap</h2>
-<div class="columns">
-<div class="column" style="width:55%;">
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
@@ -404,7 +397,6 @@ y_i &amp; \sim \text{Normal}(\mu_i, \sigma^2) \\
 </figure>
 </div>
 </div>
-</div><div class="column" style="width:45%;">
 <p>Read straight off the coefficient: an extra unit of ROAS is associated with <span class="math inline">\(+0.23\)</span> in next month’s budget, <strong>holding the rest constant</strong>.</p>
 <div class="callout callout-warning callout-style-simple">
 <div class="callout-body">
@@ -416,8 +408,6 @@ y_i &amp; \sim \text{Normal}(\mu_i, \sigma^2) \\
 </div>
 </div>
 </div>
-<p>A single number is the wrong tool for a non-linear question.</p>
-</div></div>
 </section>
 <section id="the-interpretation-recipe" class="slide level2 smaller">
 <h2>The Interpretation Recipe</h2>
@@ -432,17 +422,16 @@ y_i &amp; \sim \text{Normal}(\mu_i, \sigma^2) \\
 <span id="cb2-8"><a href=""></a></span>
 <span id="cb2-9"><a href=""></a><span class="co"># 2. Push the grid through the posterior to get the response mean mu.</span></span>
 <span id="cb2-10"><a href=""></a><span class="kw">def</span> predict_mu(model, idata, grid_pl):</span>
-<span id="cb2-11"><a href=""></a>    new_idata <span class="op">=</span> model.predict(idata, data<span class="op">=</span>grid_pl.to_pandas(), kind<span class="op">=</span><span class="st">"response_params"</span>, inplace<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb2-11"><a href=""></a>    new_idata <span class="op">=</span> model.predict(idata, data<span class="op">=</span>grid_pl, kind<span class="op">=</span><span class="st">"response_params"</span>, inplace<span class="op">=</span><span class="va">False</span>)</span>
 <span id="cb2-12"><a href=""></a>    <span class="cf">return</span> new_idata[<span class="st">"posterior"</span>][<span class="st">"mu"</span>]</span>
 <span id="cb2-13"><a href=""></a></span>
-<span id="cb2-14"><a href=""></a><span class="co"># 3. Summarize on the response scale (here: 50% and 94% HDI bands).</span></span>
+<span id="cb2-14"><a href=""></a><span class="co"># 3. Summarize on the response scale (here: 94% HDI bands).</span></span>
 <span id="cb2-15"><a href=""></a>idata_lm_mu_grid <span class="op">=</span> predict_mu(model_lm, idata_lm, roas_datagrid)</span>
-<span id="cb2-16"><a href=""></a>az.plot_hdi(roas_grid, idata_lm_mu_grid, hdi_prob<span class="op">=</span><span class="fl">0.94</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-16"><a href=""></a>az.plot_hdi(roas_grid, idata_lm_mu_grid, hdi_prob<span class="op">=</span><span class="fl">0.94</span>)</span>
+<span id="cb2-17"><a href=""></a>...</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="roas-effect-on-next-months-budget" class="slide level2 smaller">
 <h2>ROAS Effect on Next Month’s Budget</h2>
-<div class="columns">
-<div class="column" style="width:60%;">
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
@@ -450,15 +439,21 @@ y_i &amp; \sim \text{Normal}(\mu_i, \sigma^2) \\
 </figure>
 </div>
 </div>
-</div><div class="column" style="width:40%;">
 <p>The slope of this posterior line is exactly <span class="math inline">\(0.23\)</span>: the same value as the regression coefficient.</p>
+<div class="callout callout-tip callout-style-simple">
+<div class="callout-body">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-content">
 <p>For a linear identity-link model the grid view <em>equals</em> the coefficient. The point is that the same recipe <strong>generalizes</strong> to models where no single coefficient exists.</p>
-</div></div>
+</div>
+</div>
+</div>
 </section>
 <section id="split-by-cohort-age" class="slide level2 smaller">
 <h2>Split by Cohort Age</h2>
-<div class="columns">
-<div class="column" style="width:60%;">
+<p>Adding a second variable to the grid splits the effect into one line per cohort age.</p>
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
@@ -466,15 +461,11 @@ y_i &amp; \sim \text{Normal}(\mu_i, \sigma^2) \\
 </figure>
 </div>
 </div>
-</div><div class="column" style="width:40%;">
-<p>Adding a second variable to the grid splits the effect into one line per cohort age.</p>
 <p>The <strong>slope (ROAS effect) is identical</strong> across cohorts; only the <strong>intercept</strong> shifts down as cohorts get older. That is the linear model’s rigid signature.</p>
-</div></div>
 </section>
 <section id="split-by-month-of-year" class="slide level2 smaller">
 <h2>Split by Month of Year</h2>
-<div class="columns">
-<div class="column" style="width:60%;">
+<p>Same story across months: the ROAS slope is shared, the intercept moves.</p>
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
@@ -482,10 +473,7 @@ y_i &amp; \sim \text{Normal}(\mu_i, \sigma^2) \\
 </figure>
 </div>
 </div>
-</div><div class="column" style="width:40%;">
-<p>Same story across months: the ROAS slope is shared, the intercept moves.</p>
 <p>The variation is non-linear in the month index because of the <code>ZeroSumNormal</code> seasonal contrast, but ROAS itself still enters as one constant slope.</p>
-</div></div>
 </section>
 <section id="comparison-month-3-vs-month-9" class="slide level2 smaller">
 <h2>Comparison: Month 3 vs Month 9</h2>
@@ -584,16 +572,13 @@ y_i &amp; \sim \text{HurdleGamma}(\psi, \mu_i, \alpha) \\
 </section>
 <section id="hurdle-gamma-posterior-predictive" class="slide level2 smaller">
 <h2>Hurdle-Gamma: Posterior Predictive</h2>
-<div class="columns">
-<div class="column" style="width:60%;">
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="interpret_files/static/images/ads_roas_interpret_94_0.png" class="quarto-figure quarto-figure-center" width="650"></p>
+<p><img data-src="interpret_files/static/images/ads_roas_interpret_94_0.png" class="quarto-figure quarto-figure-center" width="750"></p>
 </figure>
 </div>
 </div>
-</div><div class="column" style="width:40%;">
 <div class="callout callout-tip callout-style-simple">
 <div class="callout-body">
 <div class="callout-icon-container">
@@ -604,8 +589,7 @@ y_i &amp; \sim \text{HurdleGamma}(\psi, \mu_i, \alpha) \\
 </div>
 </div>
 </div>
-<p>The fit is much closer to the data than the Gaussian baseline. The remaining problem is the <strong>shape</strong> of the ROAS effect, which we look at next.</p>
-</div></div>
+<p>The fit is much closer to the data than the Gaussian baseline. However, there is still a room for improvement.</p>
 </section>
 <section id="hurdle-gamma-roas-effect" class="slide level2 smaller">
 <h2>Hurdle-Gamma: ROAS Effect</h2>
@@ -650,7 +634,7 @@ y_i &amp; \sim \text{HurdleGamma}(\psi, \mu_i, \alpha) \\
 f &amp; \sim \text{HSGP}(m, c)
 \end{align*}\]</span></p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-code-line-numbers="|2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a>formula <span class="op">=</span> bmb.Formula(</span>
-<span id="cb4-2"><a href=""></a>    <span class="st">"budget_next ~ 1 + cohort_age + C(month_of_year) + hsgp(roas, m=20, c=1.5, cov='Matern52', centered=True)"</span></span>
+<span id="cb4-2"><a href=""></a>    <span class="st">"budget_next ~ 1 + cohort_age + C(month_of_year) + hsgp(roas, m=20, c=1.5, cov='Matern52')"</span></span>
 <span id="cb4-3"><a href=""></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="callout callout-note callout-style-simple">
 <div class="callout-body">
@@ -665,16 +649,13 @@ f &amp; \sim \text{HSGP}(m, c)
 </section>
 <section id="hurdle-gamma-hsgp-posterior-predictive" class="slide level2 smaller">
 <h2>Hurdle-Gamma + HSGP: Posterior Predictive</h2>
-<div class="columns">
-<div class="column" style="width:60%;">
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="interpret_files/static/images/ads_roas_interpret_131_0.png" class="quarto-figure quarto-figure-center" width="650"></p>
+<p><img data-src="interpret_files/static/images/ads_roas_interpret_131_0.png" class="quarto-figure quarto-figure-center" width="750"></p>
 </figure>
 </div>
 </div>
-</div><div class="column" style="width:40%;">
 <div class="callout callout-tip callout-style-simple">
 <div class="callout-body">
 <div class="callout-icon-container">
@@ -685,25 +666,24 @@ f &amp; \sim \text{HSGP}(m, c)
 </div>
 </div>
 </div>
-</div></div>
 </section>
 <section id="hurdle-gamma-hsgp-roas-effect" class="slide level2 smaller">
 <h2>Hurdle-Gamma + HSGP: ROAS Effect</h2>
 <div class="columns">
-<div class="column" style="width:50%;">
+<div class="column" style="width:48.7%;">
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="interpret_files/static/images/ads_roas_interpret_134_0.png" class="quarto-figure quarto-figure-center" width="520"></p>
+<p><img data-src="interpret_files/static/images/ads_roas_interpret_134_0.png" class="quarto-figure quarto-figure-center" width="550"></p>
 </figure>
 </div>
 </div>
 <p>The curve <strong>rises then saturates past <span class="math inline">\(\text{ROAS} \approx 4\)</span></strong>, exactly the mechanism we built into the problem.</p>
-</div><div class="column" style="width:50%;">
+</div><div class="column" style="width:51.3%;">
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="interpret_files/static/images/ads_roas_interpret_137_0.png" class="quarto-figure quarto-figure-center" width="520"></p>
+<p><img data-src="interpret_files/static/images/ads_roas_interpret_137_0.png" class="quarto-figure quarto-figure-center" width="550"></p>
 </figure>
 </div>
 </div>
@@ -722,37 +702,29 @@ f &amp; \sim \text{HSGP}(m, c)
 </section>
 <section id="model-comparison-loo" class="slide level2 smaller">
 <h2>Model Comparison: LOO</h2>
-<div class="columns">
-<div class="column" style="width:58%;">
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="interpret_files/static/images/ads_roas_interpret_154_0.png" class="quarto-figure quarto-figure-center" width="650"></p>
+<p><img data-src="interpret_files/static/images/ads_roas_interpret_154_0.png" class="quarto-figure quarto-figure-center" width="700"></p>
 </figure>
 </div>
 </div>
-</div><div class="column" style="width:42%;">
 <p>Leave-one-out cross-validation ranks out-of-sample fit (higher <code>elpd_loo</code> is better).</p>
 <ul>
-<li class="fragment"><strong>Hurdle-Gamma + HSGP</strong> is best.</li>
-<li class="fragment"><strong>Linear Hurdle-Gamma</strong> second.</li>
-<li class="fragment"><strong>Linear Gaussian</strong> worst.</li>
+<li><strong>Hurdle-Gamma + HSGP</strong> is best.</li>
+<li><strong>Linear Hurdle-Gamma</strong> second.</li>
+<li><strong>Linear Gaussian</strong> worst.</li>
 </ul>
-</div></div>
 </section>
-<section id="recovered-roas-curves-vs-ground-truth" class="slide level2 smaller">
-<h2>Recovered ROAS Curves vs Ground Truth</h2>
-<div class="columns">
-<div class="column" style="width:60%;">
+<section id="recovered-roas-curves-vs-true-curve" class="slide level2">
+<h2>Recovered ROAS Curves vs True Curve</h2>
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="interpret_files/static/images/ads_roas_interpret_157_0.png" class="quarto-figure quarto-figure-center" width="650"></p>
+<p><img data-src="interpret_files/static/images/ads_roas_interpret_157_0.png" class="quarto-figure quarto-figure-center" width="750"></p>
 </figure>
 </div>
 </div>
-</div><div class="column" style="width:40%;">
-<p>The complementary check: how close is each recovered ROAS effect to the <strong>ground-truth curve</strong> on the response scale?</p>
 <div class="callout callout-tip callout-style-simple">
 <div class="callout-body">
 <div class="callout-icon-container">
@@ -763,40 +735,46 @@ f &amp; \sim \text{HSGP}(m, c)
 </div>
 </div>
 </div>
-</div></div>
 </section>
 <section id="conclusion" class="slide level2 smaller">
 <h2>Conclusion</h2>
-<div class="callout callout-tip callout-titled callout-style-default">
-<div class="callout-body">
-<div class="callout-title">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<p><strong>One recipe, three models</strong></p>
-</div>
-<div class="callout-content">
+<h3 id="model-iteration">Model Iteration:</h3>
 <ul>
 <li><strong>Linear Gaussian:</strong> a single ROAS coefficient, but the wrong likelihood (negative budgets, missed zeros) and the wrong shape (a line, not a peak).</li>
 <li><strong>Hurdle-Gamma (linear ROAS):</strong> fixes the likelihood (non-negative, explicit zeros, multiplicative log link); shape still monotone.</li>
 <li><strong>Hurdle-Gamma + HSGP:</strong> right likelihood <em>and</em> a data-driven curve that recovers the truth and wins on LOO.</li>
 </ul>
-</div>
-</div>
-</div>
-<div class="callout callout-important callout-style-simple">
+<div class="callout callout-tip callout-style-simple">
 <div class="callout-body">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-content">
-<p>Across all three models the <strong>interpretation recipe is identical</strong>: build a grid with <code>datagrid</code>, push it through the posterior with <code>predict_mu</code>, summarize on the response scale, with uncertainty. <strong>Raw coefficients answer the wrong question once you leave identity-link land; grid-based predictions, comparisons, and slopes answer the right one.</strong></p>
+<p>Across all three models the <strong>interpretation recipe is identical</strong>: build a grid with <code>datagrid</code>, push it through the posterior with <code>predict_mu</code>, summarize on the response scale, with uncertainty.</p>
+<p><strong>Raw coefficients answer the wrong question once you leave identity-link land.</strong></p>
+<p><strong>Grid-based predictions, comparisons, and slopes answer the right one.</strong></p>
 </div>
 </div>
 </div>
 </section>
 <section id="references" class="slide level2 smaller">
 <h2>References</h2>
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Links</strong></p>
+</div>
+<div class="callout-content">
+<ul>
+<li><p>Notebook: <a href="https://juanitorduz.github.io/ads_roas_interpret/">https://juanitorduz.github.io/ads_roas_interpret/</a></p></li>
+<li><p>Slides: <a href="https://juanitorduz.github.io/html/interpret.html">https://juanitorduz.github.io/html/interpret.html</a></p></li>
+</ul>
+</div>
+</div>
+</div>
 <div class="columns">
 <div class="column" style="width:55%;">
 <h4 id="book-framework">Book &amp; framework</h4>
