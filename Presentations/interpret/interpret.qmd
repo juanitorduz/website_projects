@@ -24,10 +24,10 @@ format:
     highlight-style: github-dark
 ---
 
-## Why Communicating Models Matters {.smaller}
+## Why Communicating Models Matters? {.smaller}
 
 ::: {.callout-tip appearance="simple"}
-A model is only useful if a decision-maker can act on it. The hard part is rarely fitting; it is turning parameters into a statement someone trusts.
+**A model is only useful if a decision-maker can act on it.** The hard part is rarely fitting; it is turning parameters into a statement someone trusts.
 :::
 
 ::: incremental
@@ -40,7 +40,7 @@ A model is only useful if a decision-maker can act on it. The hard part is rarel
 
 :::
 
-::: {.callout-note appearance="simple"}
+::: {.callout-note .fragment appearance="simple"}
 We follow the mental model from the book [Model to Meaning: How to Interpret Statistical Models with marginaleffects](https://marginaleffects.com/): **predictions**, **comparisons**, and **slopes**.
 :::
 
@@ -70,56 +70,38 @@ We follow the mental model from the book [Model to Meaning: How to Interpret Sta
 
 ## The Business Problem {.smaller}
 
-An ad platform charges stores per click and reports back **ROAS** (return on ad spend). Stores keep spending while campaigns are worth it; when they are not, they pause.
+An ad platform sells digital realestates to stores to induce incremental sales. This platform charges stores per click and reports back **ROAS** (return on ad spend). Stores keep spending while campaigns are worth it; when they are not, they pause.
 
 ::: incremental
 
-- **Goal:** predict **next month's budget** from **this month's signals**: ROAS, where the store is in its life-cycle (cohort age), and the time of year.
+- **Goal:** understand the relationship between **next month's booked budget** and **this month's signals**: ROAS, where the store is in its life-cycle (cohort age), and the time of year.
 - ROAS $> 1$ is profitable, ROAS $< 1$ is not. So should the bidding engine just push ROAS as high as possible?
-- **No.** Stores have a fixed daily production capacity. Very high ROAS often *precedes a drop* in next month's budget: they hit an inventory ceiling.
+- **It seems so, but no.** Stores have a fixed daily production capacity. Very high ROAS often *precedes a drop* in next month's budget: they hit an inventory ceiling.
 - We therefore expect a **non-linear** relationship between ROAS and next month's budget.
 
 :::
 
-::: {.callout-warning appearance="simple"}
+::: {.callout-warning .fragment appearance="simple"}
 This is an oversimplified example: we ignore cannibalization, other drivers, and a richer causal structure. In practice this problem is much harder.
 :::
 
-## The Shape We Hope to Recover
-
-::: {.columns}
-::: {.column width="60%"}
+## Causal DAG
 
 ::: {.bordered}
-![](interpret_files/static/images/ads_roas_interpret_8_0.png){fig-align="center" width="700"}
-:::
-
-:::
-::: {.column width="40%"}
-
-The synthetic data is generated with a **ROAS coefficient that varies with ROAS itself**:
-
-- below $\text{ROAS}=1$: losing money, effect is negative,
-- between $1$ and $4$: the sweet spot, each extra unit pulls budget in,
-- past $\text{ROAS}=4$: capacity ceiling, the effect saturates.
-
-This curve is the ground truth. Can a model recover it?
-
-:::
+![](interpret_files/static/images/causal_dag.svg){fig-align="center" width="1000"}
 :::
 
 ## The Panel Data {.smaller}
 
 ::: {.columns}
-::: {.column width="50%"}
+::: {.column width="40%"}
 
 - **100 stores**, observed for **24 months** each.
 - Each row pairs **this month's signals** with **next month's budget** (the leading indicators a store could act on).
-- When a store is inactive (no spend), it has no ROAS to report: encoded as `NaN` and dropped at modeling time.
 - Budgets are **non-negative** and have **many zeros** (inactive months).
 
 :::
-::: {.column width="50%"}
+::: {.column width="60%"}
 
 ::: {.bordered}
 ![](interpret_files/static/images/ads_roas_interpret_13_0.png){fig-align="center" width="600"}
@@ -130,22 +112,26 @@ Next-month booked budget for twelve random stores.
 :::
 :::
 
-## What Is Already Visible in the Data {.smaller}
+## What Is Already Visible in the Data? {.smaller}
+
+### Exploratory data analysis hints at **non-linear relationships**.
 
 ::: {.columns}
-::: {.column width="58%"}
+::: {.column width="54.5%"}
 
 ::: {.bordered}
 ![](interpret_files/static/images/ads_roas_interpret_17_0.png){fig-align="center" width="650"}
 :::
 
+Next-month booked budget vs ROAS.
+
 :::
-::: {.column width="42%"}
+::: {.column width="45.5%"}
 
 The **non-linear shape** is visible to the eye: budget rises with ROAS, then levels off past $\text{ROAS} \approx 4$.
 
 ::: {.bordered}
-![](interpret_files/static/images/ads_roas_interpret_20_0.png){fig-align="center" width="450"}
+![](interpret_files/static/images/ads_roas_interpret_20_0.png){fig-align="center" width="650"}
 :::
 
 Yearly seasonality by month-of-year.
@@ -175,7 +161,7 @@ priors_lm = {
 
 model_lm = bmb.Model(
     formula=formula_lm,
-    data=model_df.to_pandas(),
+    data=model_df,
     family="gaussian",
     link="identity",
     priors=priors_lm,

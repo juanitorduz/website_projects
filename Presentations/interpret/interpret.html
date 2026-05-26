@@ -212,14 +212,14 @@
 
 </section>
 <section id="why-communicating-models-matters" class="slide level2 smaller">
-<h2>Why Communicating Models Matters</h2>
+<h2>Why Communicating Models Matters?</h2>
 <div class="callout callout-tip callout-style-simple">
 <div class="callout-body">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-content">
-<p>A model is only useful if a decision-maker can act on it. The hard part is rarely fitting; it is turning parameters into a statement someone trusts.</p>
+<p><strong>A model is only useful if a decision-maker can act on it.</strong> The hard part is rarely fitting; it is turning parameters into a statement someone trusts.</p>
 </div>
 </div>
 </div>
@@ -228,6 +228,7 @@
 <li class="fragment"><p><strong>Visualization carries the meaning.</strong> Showing the predicted response over a grid of inputs answers the question stakeholders actually ask: <em>what happens to the outcome if this input moves?</em></p></li>
 <li class="fragment"><p><strong>Uncertainty is part of the answer.</strong> Every prediction and every contrast comes with a posterior. Communicating the credible interval is as important as the point estimate.</p></li>
 </ul>
+<div class="fragment">
 <div class="callout callout-note callout-style-simple">
 <div class="callout-body">
 <div class="callout-icon-container">
@@ -235,6 +236,7 @@
 </div>
 <div class="callout-content">
 <p>We follow the mental model from the book <a href="https://marginaleffects.com/">Model to Meaning: How to Interpret Statistical Models with marginaleffects</a>: <strong>predictions</strong>, <strong>comparisons</strong>, and <strong>slopes</strong>.</p>
+</div>
 </div>
 </div>
 </div>
@@ -262,13 +264,14 @@
 </section>
 <section id="the-business-problem" class="slide level2 smaller">
 <h2>The Business Problem</h2>
-<p>An ad platform charges stores per click and reports back <strong>ROAS</strong> (return on ad spend). Stores keep spending while campaigns are worth it; when they are not, they pause.</p>
+<p>An ad platform sells digital realestates to stores to induce incremental sales. This platform charges stores per click and reports back <strong>ROAS</strong> (return on ad spend). Stores keep spending while campaigns are worth it; when they are not, they pause.</p>
 <ul>
-<li class="fragment"><strong>Goal:</strong> predict <strong>next month’s budget</strong> from <strong>this month’s signals</strong>: ROAS, where the store is in its life-cycle (cohort age), and the time of year.</li>
+<li class="fragment"><strong>Goal:</strong> understand the relationship between <strong>next month’s booked budget</strong> and <strong>this month’s signals</strong>: ROAS, where the store is in its life-cycle (cohort age), and the time of year.</li>
 <li class="fragment">ROAS <span class="math inline">\(&gt; 1\)</span> is profitable, ROAS <span class="math inline">\(&lt; 1\)</span> is not. So should the bidding engine just push ROAS as high as possible?</li>
-<li class="fragment"><strong>No.</strong> Stores have a fixed daily production capacity. Very high ROAS often <em>precedes a drop</em> in next month’s budget: they hit an inventory ceiling.</li>
+<li class="fragment"><strong>It seems so, but no.</strong> Stores have a fixed daily production capacity. Very high ROAS often <em>precedes a drop</em> in next month’s budget: they hit an inventory ceiling.</li>
 <li class="fragment">We therefore expect a <strong>non-linear</strong> relationship between ROAS and next month’s budget.</li>
 </ul>
+<div class="fragment">
 <div class="callout callout-warning callout-style-simple">
 <div class="callout-body">
 <div class="callout-icon-container">
@@ -279,39 +282,28 @@
 </div>
 </div>
 </div>
+</div>
 </section>
-<section id="the-shape-we-hope-to-recover" class="slide level2">
-<h2>The Shape We Hope to Recover</h2>
-<div class="columns">
-<div class="column" style="width:60%;">
+<section id="causal-dag" class="slide level2">
+<h2>Causal DAG</h2>
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="interpret_files/static/images/ads_roas_interpret_8_0.png" class="quarto-figure quarto-figure-center" width="700"></p>
+<p><img data-src="interpret_files/static/images/causal_dag.svg" class="quarto-figure quarto-figure-center" width="1000"></p>
 </figure>
 </div>
 </div>
-</div><div class="column" style="width:40%;">
-<p>The synthetic data is generated with a <strong>ROAS coefficient that varies with ROAS itself</strong>:</p>
-<ul>
-<li>below <span class="math inline">\(\text{ROAS}=1\)</span>: losing money, effect is negative,</li>
-<li>between <span class="math inline">\(1\)</span> and <span class="math inline">\(4\)</span>: the sweet spot, each extra unit pulls budget in,</li>
-<li>past <span class="math inline">\(\text{ROAS}=4\)</span>: capacity ceiling, the effect saturates.</li>
-</ul>
-<p>This curve is the ground truth. Can a model recover it?</p>
-</div></div>
 </section>
 <section id="the-panel-data" class="slide level2 smaller">
 <h2>The Panel Data</h2>
 <div class="columns">
-<div class="column" style="width:50%;">
+<div class="column" style="width:40%;">
 <ul>
 <li><strong>100 stores</strong>, observed for <strong>24 months</strong> each.</li>
 <li>Each row pairs <strong>this month’s signals</strong> with <strong>next month’s budget</strong> (the leading indicators a store could act on).</li>
-<li>When a store is inactive (no spend), it has no ROAS to report: encoded as <code>NaN</code> and dropped at modeling time.</li>
 <li>Budgets are <strong>non-negative</strong> and have <strong>many zeros</strong> (inactive months).</li>
 </ul>
-</div><div class="column" style="width:50%;">
+</div><div class="column" style="width:60%;">
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
@@ -323,9 +315,10 @@
 </div></div>
 </section>
 <section id="what-is-already-visible-in-the-data" class="slide level2 smaller">
-<h2>What Is Already Visible in the Data</h2>
+<h2>What Is Already Visible in the Data?</h2>
+<h3 id="exploratory-data-analysis-hints-at-non-linear-relationships.">Exploratory data analysis hints at <strong>non-linear relationships</strong>.</h3>
 <div class="columns">
-<div class="column" style="width:58%;">
+<div class="column" style="width:54.5%;">
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
@@ -333,12 +326,13 @@
 </figure>
 </div>
 </div>
-</div><div class="column" style="width:42%;">
+<p>Next-month booked budget vs ROAS.</p>
+</div><div class="column" style="width:45.5%;">
 <p>The <strong>non-linear shape</strong> is visible to the eye: budget rises with ROAS, then levels off past <span class="math inline">\(\text{ROAS} \approx 4\)</span>.</p>
 <div class="bordered">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="interpret_files/static/images/ads_roas_interpret_20_0.png" class="quarto-figure quarto-figure-center" width="450"></p>
+<p><img data-src="interpret_files/static/images/ads_roas_interpret_20_0.png" class="quarto-figure quarto-figure-center" width="650"></p>
 </figure>
 </div>
 </div>
@@ -364,7 +358,7 @@ y_i &amp; \sim \text{Normal}(\mu_i, \sigma^2) \\
 <span id="cb1-10"><a href=""></a></span>
 <span id="cb1-11"><a href=""></a>model_lm <span class="op">=</span> bmb.Model(</span>
 <span id="cb1-12"><a href=""></a>    formula<span class="op">=</span>formula_lm,</span>
-<span id="cb1-13"><a href=""></a>    data<span class="op">=</span>model_df.to_pandas(),</span>
+<span id="cb1-13"><a href=""></a>    data<span class="op">=</span>model_df,</span>
 <span id="cb1-14"><a href=""></a>    family<span class="op">=</span><span class="st">"gaussian"</span>,</span>
 <span id="cb1-15"><a href=""></a>    link<span class="op">=</span><span class="st">"identity"</span>,</span>
 <span id="cb1-16"><a href=""></a>    priors<span class="op">=</span>priors_lm,</span>
