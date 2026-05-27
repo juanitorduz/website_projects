@@ -27,7 +27,8 @@ format:
 ## Why Communicating Models Matters? {.smaller}
 
 ::: {.callout-tip appearance="simple"}
-**A model is only useful if a decision-maker can act on it.** The hard part is rarely fitting; it is turning parameters into a statement someone trusts.
+- **A model is only useful if a decision-maker can act on it.**
+- The hard part is rarely fitting; it is turning parameters into a statement someone trusts.
 :::
 
 ::: incremental
@@ -40,8 +41,13 @@ format:
 
 :::
 
-::: {.callout-note .fragment appearance="simple"}
+## Model to Meaning
+
+::: {.callout-note appearance="simple"}
 We follow the mental model from the book [Model to Meaning: How to Interpret Statistical Models with marginaleffects](https://marginaleffects.com/): **predictions**, **comparisons**, and **slopes**.
+
+![](interpret_files/static/images/model_to_meaning.png){fig-align="center" width="1000"}
+
 :::
 
 ## Outline
@@ -451,6 +457,20 @@ Split by cohort age: same shape, smaller amplitude for older cohorts.
 
 ::: {.callout-tip appearance="simple"}
 There is no single ROAS coefficient to report here. The grid-based prediction *is* the answer, and it reads cleanly off the plot.
+:::
+
+## Slopes: Marginal Effect of ROAS {.smaller}
+
+Derivative of the ROAS effect with respect to ROAS.
+
+::: {.bordered}
+![](interpret_files/static/images/ads_roas_interpret_158_0.png){fig-align="center" width="750"}
+:::
+
+::: {.callout-tip appearance="simple"}
+- From a ROAS values close to zero, the ROAS effect is negative.
+- ROAS values close to $1.5$ hve the largest sensitivity to ROAS changes (steeper slope).
+- We get a maximum ROAS effect of about $3.5$ and then the effect decreases (negative slope).
 :::
 
 ## Model Comparison: LOO {.smaller}

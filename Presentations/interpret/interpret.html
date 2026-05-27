@@ -219,7 +219,10 @@
 <i class="callout-icon"></i>
 </div>
 <div class="callout-content">
-<p><strong>A model is only useful if a decision-maker can act on it.</strong> The hard part is rarely fitting; it is turning parameters into a statement someone trusts.</p>
+<ul>
+<li><strong>A model is only useful if a decision-maker can act on it.</strong></li>
+<li>The hard part is rarely fitting; it is turning parameters into a statement someone trusts.</li>
+</ul>
 </div>
 </div>
 </div>
@@ -228,7 +231,9 @@
 <li class="fragment"><p><strong>Visualization carries the meaning.</strong> Showing the predicted response over a grid of inputs answers the question stakeholders actually ask: <em>what happens to the outcome if this input moves?</em></p></li>
 <li class="fragment"><p><strong>Uncertainty is part of the answer.</strong> Every prediction and every contrast comes with a posterior. Communicating the credible interval is as important as the point estimate.</p></li>
 </ul>
-<div class="fragment">
+</section>
+<section id="model-to-meaning" class="slide level2">
+<h2>Model to Meaning</h2>
 <div class="callout callout-note callout-style-simple">
 <div class="callout-body">
 <div class="callout-icon-container">
@@ -236,6 +241,10 @@
 </div>
 <div class="callout-content">
 <p>We follow the mental model from the book <a href="https://marginaleffects.com/">Model to Meaning: How to Interpret Statistical Models with marginaleffects</a>: <strong>predictions</strong>, <strong>comparisons</strong>, and <strong>slopes</strong>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="interpret_files/static/images/model_to_meaning.png" class="quarto-figure quarto-figure-center" width="1000"></p>
+</figure>
 </div>
 </div>
 </div>
@@ -696,6 +705,31 @@ f &amp; \sim \text{HSGP}(m, c)
 </div>
 <div class="callout-content">
 <p>There is no single ROAS coefficient to report here. The grid-based prediction <em>is</em> the answer, and it reads cleanly off the plot.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="slopes-marginal-effect-of-roas" class="slide level2 smaller">
+<h2>Slopes: Marginal Effect of ROAS</h2>
+<p>Derivative of the ROAS effect with respect to ROAS.</p>
+<div class="bordered">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="interpret_files/static/images/ads_roas_interpret_158_0.png" class="quarto-figure quarto-figure-center" width="750"></p>
+</figure>
+</div>
+</div>
+<div class="callout callout-tip callout-style-simple">
+<div class="callout-body">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-content">
+<ul>
+<li>From a ROAS values close to zero, the ROAS effect is negative.</li>
+<li>ROAS values close to <span class="math inline">\(1.5\)</span> hve the largest sensitivity to ROAS changes (steeper slope).</li>
+<li>We get a maximum ROAS effect of about <span class="math inline">\(3.5\)</span> and then the effect decreases (negative slope).</li>
+</ul>
 </div>
 </div>
 </div>
