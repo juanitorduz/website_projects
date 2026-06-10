@@ -8,6 +8,7 @@
 \bibliographystyle{model5-names}
 \biboptions{longnamesfirst}
 
+\usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{url}
@@ -109,7 +110,7 @@ A common worry about probabilistic programming is that productive use requires f
 \paragraph{\texttt{scan}.}
 Many time series models are defined recursively. An exponential smoothing state evolves from the previous state. A linear Gaussian state-space model passes a latent process through a transition function and an observation function. A vector autoregression updates a multivariate state by a linear map plus innovation noise. Intermittent-demand models such as Croston and TSB update a level and an interval (or probability) component on each step \citep{croston1972forecasting, teunter2011intermittent}. Even models not usually written as recursions, from moving-average processes to multi-horizon and attention-based forecasters, can be cast in this form.
 
-JAX exposes recursion through \texttt{jax.lax.scan}, and NumPyro provides a probabilistic counterpart that lets each step contain \texttt{sample} statements without breaking JIT compilation or gradient propagation. Operationally, \texttt{scan} is a compiled \texttt{for} loop with a fixed-shape carry. Almost every forecasting model in this paper is a single \texttt{scan} over a transition function \citep{orduz_exponential_smoothing, orduz_arma, orduz_var}.
+JAX exposes recursion through \texttt{jax.lax.scan}, and NumPyro provides a probabilistic counterpart that lets each step contain \texttt{sample} statements without breaking JIT compilation or gradient propagation. Operationally, \texttt{scan} is a compiled \texttt{for} loop with a fixed-shape carry. Almost every forecasting model in this paper is a single \texttt{scan} over a transition function \citep{orduz_exponential_smoothing, orduz_arma, orduz_var}. The case studies in Sections~\ref{sec:avail} and~\ref{sec:cens} illustrate a further payoff: the practitioner owns the transition body and can add conditional branches for operational rules while keeping the same \texttt{scan} skeleton.
 
 For example, a local linear trend model is a single \texttt{scan} whose transition advances level and slope and emits one observation per step; the body is an ordinary state update and \texttt{scan} supplies the time recursion \citep{orduz_exponential_smoothing_ssm, numpyro_time_series}.
 
@@ -177,34 +178,47 @@ We use ``hierarchical'' here in the Bayesian partial-pooling sense: unit-level p
 
 Retail demand often contains long runs of zeros. Some of those zeros reflect genuine absence of demand; others reflect stockouts where demand existed but could not be observed because the product was not on the shelf. Classical intermittent-demand methods such as Croston's method \citep{croston1972forecasting} and the Teunter-Syntetos-Babai (TSB) variant \citep{teunter2011intermittent} model demand as a product of an interval (or probability) component and a size component, but they do not distinguish supply-driven zeros from demand-driven zeros. Recent work has noted the importance of separating these mechanisms \citep{svetunkov_zeros, pedregal2024tobit}.
 
-The availability-aware TSB model \citep{orduz_availability_tsb} modifies the TSB transition to fold a known availability indicator into the probability update. When the product is observed unavailable, the demand-probability state is preserved rather than updated downward, so a long stockout does not corrupt the model into believing demand has vanished. The modification is mathematically small but operationally important: in the cited worked example, posterior predictive forecasts recover latent demand more faithfully than a standard TSB under simulated stockout regimes. Figure~\ref{fig:avail} shows the availability mask and the resulting forecast for a representative product.
+The availability-aware TSB model \citep{orduz_availability_tsb} modifies the TSB transition to fold a known availability indicator into the probability update. The model tracks a level $z_t$, an occurrence probability $p_t$, and an availability indicator $a_t \in \{0,1\}$ \citep{teunter2011intermittent}. When the product is available ($a_t=1$), the standard TSB rules apply:
+\begin{align}
+z_{t+1} &= \alpha y_t + (1-\alpha) z_t, \quad p_{t+1} = \beta + (1-\beta) p_t && \text{if } y_t > 0, \nonumber\\
+z_{t+1} &= z_t, \quad p_{t+1} = (1-\beta) p_t && \text{if } y_t = 0. \nonumber
+\end{align}
+When the product is unavailable ($a_t=0$), neither state updates: $z_{t+1}=z_t$, $p_{t+1}=p_t$. The forecast is $\hat{y}_{t+1} = a_{t+1}\, z_t\, p_t$. A long stockout therefore does not corrupt the model into believing demand has vanished.
+
+Classical TSB is already a \texttt{scan}; the availability extension is not a new framework feature but a conditional branch in the transition function the practitioner owns. Pre-packaged intermittent-demand methods have no hook for the operational rule ``freeze $p_t$ during stockouts''; here it is one \texttt{if} inside \texttt{scan}, scalable to thousands of series via \texttt{plate} and SVI as in the cited worked example. In the cited simulation, posterior predictive forecasts recover latent demand more faithfully than a standard TSB under stockout regimes. Figure~\ref{fig:avail} shows the availability mask and the resulting forecast for a representative product.
 
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.55\linewidth]{availability_tsb_12_0.png}\\[0.3ex]
-\includegraphics[width=0.55\linewidth]{availability_tsb_38_0.png}
+\includegraphics[width=0.62\linewidth]{availability_tsb_38_0.png}
 \caption{Top: an observed sales series with the corresponding availability mask. Long runs of zeros coincide with periods when the item was unavailable. Bottom: posterior predictive forecast from the availability-aware TSB model. The model recovers latent demand from intermittent and partially censored observations.}
 \label{fig:avail}
 \end{figure}
 
-The availability-aware TSB transition is not in any standard library because it encodes a particular operational reality. Implementing it requires only writing the modified transition inside a \texttt{scan}.
+Section~\ref{sec:cens} treats the same stockout reality with a censored-regression likelihood rather than a modified state update; the two approaches are complementary rather than competing.
 
 \subsection{Censored demand under stockouts}
 \label{sec:cens}
 
-A complementary view of the same operational reality is censored regression. Rather than treating stockouts as a state-update modifier, censored models treat observed sales during a stockout as a lower bound on true demand. The likelihood for an observation $y_t$ that is censored at capacity $c_t$ is the survival function of the assumed demand distribution evaluated at $c_t$; for uncensored observations it is the ordinary density. This insight, applied carefully to demand forecasting, is the subject of recent practitioner-led work \citep{caron_censored} and is implemented end-to-end in a NumPyro worked example \citep{orduz_censoring, orduz_demand}.
+A complementary view of the same operational reality is censored regression \citep{caron_censored, orduz_censoring}. Consider forecasting true demand for a single SKU when historical sales are censored in two ways: an availability mask zeros out stockout periods, and a hard per-period capacity ceiling caps observed sales even when the product is on the shelf. Classical ARIMA, ETS, or Croston methods fit observed sales and therefore tend to underestimate latent demand for replenishment planning \citep{orduz_demand}.
 
-In NumPyro the censored likelihood is expressed by combining a standard distribution for the latent demand process with a conditional log-probability that switches between density and survival depending on the censoring indicator. The mechanics are uneventful: a few lines of code inside a \texttt{scan} step. The consequence for the forecast is large. Figure~\ref{fig:cens} contrasts the posterior demand estimate under a naive model with that of the censored model.
+The worked example implements latent demand as an AR(2) process with Fourier seasonality inside a \texttt{scan}. At each step the transition emits a predictive mean $\mu_t$; the observation model switches between an ordinary density and a survival term depending on whether sales hit the capacity ceiling:
+\begin{align}
+\ell(y_t \mid \mu_t, \sigma) &= \log f(y_t \mid \mu_t, \sigma) && \text{uncensored}, \nonumber\\
+\ell(y_t \mid \mu_t, \sigma) &= \log S(c_t \mid \mu_t, \sigma) && \text{at capacity } c_t, \nonumber
+\end{align}
+where $f$ is the predictive density and $S$ the survival function. Periods when the product is unavailable are handled with \texttt{handlers.mask} so stockout steps do not update the autoregressive state. The switch between density and survival, the masking logic, and the AR carry are branch conditions inside the \texttt{scan} transition; a packaged forecaster offers no hook for this combination without forking the estimator.
+
+Figure~\ref{fig:cens} compares a statsmodels ARIMAX baseline with the censored NumPyro posterior on a held-out horizon. The ARIMAX mean forecast (orange) stays near the range of historical observed sales; the censored posterior mean and 50\%/94\% highest-density intervals (green) place mass above the \texttt{max\_capacity} line and track hold-out true demand more closely. Hold-out accuracy on censored sales alone can still favor the naive model, but the censored posterior is the right object for inventory planning because it forecasts the latent demand the business needs to provision against.
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.55\linewidth]{censoring_12_0.png}\\[0.3ex]
-\includegraphics[width=0.55\linewidth]{demand_25_0.png}
-\caption{Top: synthetic demand with a hard capacity ceiling and the associated censoring events. Bottom: latent demand recovered by the censored model. A model that ignores censoring underestimates the right tail; the censored model recovers it.}
+\includegraphics[width=0.88\linewidth]{demand_25_0.png}
+\caption{Censored AR(2) + Fourier forecast from \citet{orduz_demand}. Vertical dashed line: train-test split; horizontal dashed line: \texttt{max\_capacity}. Orange: statsmodels ARIMAX mean forecast. Green: censored NumPyro posterior mean and 50\%/94\% HDIs. Black and red: hold-out true demand and sales. A model fit to observed sales underestimates latent demand; the censored likelihood recovers it.}
 \label{fig:cens}
 \end{figure}
 
-The same pattern extends to any domain where observations are bounded by capacity: write the appropriate log-probability and let inference take care of the rest.
+The same pattern extends to any domain where observations are bounded by capacity: write the appropriate log-probability inside \texttt{scan} and let inference take care of the rest.
 
 \subsection{Bayesian vector autoregression}
 \label{sec:var}
@@ -258,7 +272,7 @@ The pattern uses ordinary \texttt{sample} statements with \texttt{obs=} argument
 
 The discussion so far has alternated between framework primitives and worked examples. That alternation is not incidental. Open-source forecasting is increasingly a two-layer story. The lower layer is composed of libraries: the substrates such as NumPyro, the pre-packaged forecasters such as the Nixtla ecosystem and sktime, the deep-learning forecasters such as GluonTS, and the classical statistical toolkits such as statsmodels \citep{nixtla2024, loning2019sktime, alexandrov2020gluonts, statsmodels}. The upper layer is composed of community content: tutorials, blog posts, accompanying notebooks, conference talks, forum threads, starter kits, and book-length open-access texts \citep{hyndman2021forecasting, svetunkov2023adam}.
 
-For a substrate-style library, the upper layer is not optional: recipes for hierarchical state-space models, availability-aware TSB transitions, and HSGP covariate effects live in tutorials and blog posts, not the API reference. The case studies in Section~\ref{sec:cases}, together with Pyro forecasting tutorials \citep{pyro_dlm_tutorial, pyro_m5_starter}, third-party expositions \citep{caron_censored, svetunkov_zeros}, and adjacent integrations \citep{pymc_marketing_lift, orduz_pymc_labs}, form an ecosystem of recipes that turns primitives into reproducible workflows.
+For a substrate-style library, the upper layer is not optional: recipes for hierarchical state-space models, availability-aware TSB transitions, censored-demand workflows, and HSGP covariate effects live in tutorials and blog posts, not the API reference. The case studies in Section~\ref{sec:cases}, together with Pyro forecasting tutorials \citep{pyro_dlm_tutorial, pyro_m5_starter}, third-party expositions \citep{caron_censored, svetunkov_zeros}, and adjacent integrations \citep{pymc_marketing_lift, orduz_pymc_labs}, form an ecosystem of recipes that turns primitives into reproducible workflows.
 
 The NumPyro and Pyro documentation sites carry an extensive collection of tutorials, and the blog repository underpinning many of the case studies above \citep{orduz_pymc_labs} is a living catalog of patterns. A library with strong primitives but no recipes is hard to adopt; one with excellent recipes but rigid primitives is hard to extend. Adding a clear worked example is often the highest-leverage contribution a practitioner can make.
 
