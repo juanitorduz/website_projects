@@ -185,7 +185,33 @@ z_{t+1} &= z_t, \quad p_{t+1} = (1-\beta) p_t && \text{if } y_t = 0. \nonumber
 \end{align}
 When the product is unavailable ($a_t=0$), neither state updates: $z_{t+1}=z_t$, $p_{t+1}=p_t$. The forecast is $\hat{y}_{t+1} = a_{t+1}\, z_t\, p_t$. A long stockout therefore does not corrupt the model into believing demand has vanished.
 
-Classical TSB is already a \texttt{scan}; the availability extension is not a new framework feature but a conditional branch in the transition function the practitioner owns. Pre-packaged intermittent-demand methods have no hook for the operational rule ``freeze $p_t$ during stockouts''; here it is one \texttt{if} inside \texttt{scan}, scalable to thousands of series via \texttt{plate} and SVI as in the cited worked example. In the cited simulation, posterior predictive forecasts recover latent demand more faithfully than a standard TSB under stockout regimes. Figure~\ref{fig:avail} shows the availability mask and the resulting forecast for a representative product.
+In code, this is the standard TSB recursion with the availability indicator folded into the zero branch of the probability update, and the forecast gated by availability on the way out (Listing~\ref{lst:avail}).
+
+\begin{lstlisting}[caption={Availability-aware TSB transition. The availability rule is one \texttt{jnp.where} branch inside the \texttt{scan} the practitioner owns.},label={lst:avail}]
+from numpyro.contrib.control_flow import scan
+
+def availability_tsb(counts, available, future=0):
+    t_max, n_series = counts.shape
+    with numpyro.plate("series", n_series):
+        z_sm = numpyro.sample("z_sm", dist.Beta(10, 40))
+        p_sm = numpyro.sample("p_sm", dist.Beta(10, 40))
+        noise = numpyro.sample("noise", dist.HalfNormal(1.0))
+
+    def transition(carry, t):
+        z_prev, p_prev = carry
+        pos = counts[t] > 0
+        z = jnp.where(pos, z_sm * counts[t] + (1 - z_sm) * z_prev, z_prev)
+        # availability enters only the zero branch
+        p = jnp.where(pos, p_sm + (1 - p_sm) * p_prev,
+                      (1 - available[t] * p_sm) * p_prev)
+        pred = numpyro.sample("pred", dist.Normal(z * p, noise))
+        return (z, p), available[t] * pred  # forecast gated
+
+    init = (counts[0], 0.5 * jnp.ones_like(counts[0]))
+    scan(transition, init, jnp.arange(t_max + future))
+\end{lstlisting}
+
+Classical TSB is already a \texttt{scan}; the availability extension is not a new framework feature but a conditional branch in the transition function the practitioner owns. Pre-packaged intermittent-demand methods have no hook for the operational rule ``freeze $p_t$ during stockouts''; here it is one \texttt{jnp.where} inside \texttt{scan}, scalable to thousands of series via \texttt{plate} and SVI as in the cited worked example. In the cited simulation, posterior predictive forecasts recover latent demand more faithfully than a standard TSB under stockout regimes. Figure~\ref{fig:avail} shows the availability mask and the resulting forecast for a representative product.
 
 \begin{figure}[!htbp]
 \centering
@@ -248,7 +274,28 @@ Hilbert-space approximate Gaussian processes (HSGP) \citep{riutort2022practical}
 
 The HSGP is a model component, not a separate library, and the same composability lets a practitioner express structured covariate effects that an off-the-shelf forecaster does not expose. A common need is an event or holiday feature whose temporal shape is shared across a panel of series but whose magnitude varies from one series to the next. This is a few lines: a shared basis with partially pooled, non-centered loadings.
 
-Expressing this kind of non-time-series structure, rather than passing a covariate into a black-box slot, is in our experience the single most useful affordance of a probabilistic substrate over a packaged forecaster: a shared basis with partially pooled, non-centered loadings is a few lines of host-language code.
+Expressing this kind of non-time-series structure, rather than passing a covariate into a black-box slot, is in our experience the single most useful affordance of a probabilistic substrate over a packaged forecaster: a shared basis with partially pooled, non-centered loadings is a few lines of host-language code (Listing~\ref{lst:event}).
+
+\begin{lstlisting}[caption={A covariate-effect basis with a temporal shape shared across the panel and partially pooled, non-centered per-series loadings.},label={lst:event}]
+import jax.numpy as jnp
+import numpyro
+import numpyro.distributions as dist
+
+def event_basis(X, n_nodes):  # X: (time, cov, basis)
+    n_time, n_cov, n_basis = X.shape
+    beta_loc = numpyro.sample("beta_loc", dist.Normal(0.0, 0.3))
+    beta_scale = numpyro.sample("beta_scale", dist.HalfNormal(0.3))
+    beta_raw = numpyro.sample("beta_raw", dist.Normal(0, 1).expand([n_cov, n_basis]))
+    beta = beta_loc + beta_scale * beta_raw  # shape per cov
+
+    load_loc = numpyro.sample("load_loc", dist.Normal(0, 0.3).expand([n_cov]))
+    load_scale = numpyro.sample("load_scale", dist.HalfNormal(0.3).expand([n_cov]))
+    load_raw = numpyro.sample("load_raw", dist.Normal(0, 1).expand([n_nodes, n_cov]))
+    loadings = load_loc + load_scale * load_raw  # per series
+
+    shape = jnp.einsum("tcb,cb->tc", X, beta)
+    return jnp.einsum("tc,jc->tj", shape, loadings)  # effect
+\end{lstlisting}
 
 \subsection{Calibration via additional likelihoods}
 \label{sec:calib}
