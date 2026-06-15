@@ -57,7 +57,7 @@ NumPyro, Composability, and Community}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{abstract}
-Open-source forecasting is often framed as a competition between turn-key libraries that wrap canonical models behind friendly APIs. This paper argues for a complementary mode: composable probabilistic substrates such as NumPyro, layered on the JAX ecosystem, where practitioners assemble bespoke models from a small set of primitives, supported by a community layer of tutorials and worked examples. We trace the Pyro lineage NumPyro inherits, isolate the two primitives that matter most for time series (\texttt{scan} for recursive state, \texttt{plate} for grouped panels), and review inference tooling that composes with the wider JAX stack. Six publicly available case studies exercise this flexibility across hierarchical pooling, intermittent and censored demand, Bayesian vector autoregression, Gaussian processes, and prior calibration. We discuss when a substrate complements pre-packaged forecasters, the steep learning curve and how the community lowers it, and open problems at the software--forecasting intersection.
+Open-source forecasting is often framed as a competition between turn-key libraries that wrap canonical models behind friendly APIs. This paper argues for a complementary mode: composable probabilistic substrates such as NumPyro, layered on the JAX ecosystem, where practitioners assemble bespoke models from a small set of primitives, supported by a community layer of tutorials and worked examples. We trace the Pyro lineage NumPyro inherits, isolate the two primitives that matter most for time series (\texttt{scan} for recursive state, \texttt{plate} for grouped panels), review inference tooling that composes with the wider JAX stack, and single out structured covariate handling as the affordance that most often justifies a substrate over a packaged forecaster. Six publicly available case studies exercise this flexibility across hierarchical pooling, intermittent and censored demand, Bayesian vector autoregression, Gaussian processes, and prior calibration. We discuss when a substrate complements pre-packaged forecasters, the steep learning curve and how the community lowers it, and open problems at the software--forecasting intersection.
 \end{abstract}
 
 \begin{keyword}
@@ -79,9 +79,9 @@ This paper is concerned with a different layer of the open-source forecasting st
 
 NumPyro \citep{phan2019composable} occupies this layer. It is a lightweight probabilistic programming substrate built on JAX \citep{jax2018github}, inheriting the design philosophy of Pyro \citep{bingham2019pyro} while compiling and accelerating inference through the same compositional transformations that power the rest of the JAX ecosystem. Its primitives are deliberately spare. A small number of them, together with the underlying JAX transforms and Optax optimizers \citep{optax2020github, deepmind2020jax}, are sufficient to express most of the recurring forecasting patterns encountered in practice. The cost is a steep learning curve, since users are exposed to Bayesian modeling, JAX semantics, and a particular control-flow style at the same time. The mitigation is community: a growing body of worked examples, tutorials, and blog posts that progressively close the gap between framework primitives and end-to-end forecasting workflows.
 
-The contributions are threefold. First, we situate NumPyro in the wider open-source forecasting landscape and explain when a composable substrate is the right answer and when a pre-packaged library is. Second, we present the small set of NumPyro primitives and inference tools that matter for time series, showing how forecasting demands shape the design philosophy and JAX-ecosystem composability of a substrate. Third, we survey six publicly available case studies and treat community content as a first-class part of the open-source forecasting story. Our emphasis is the intersection of software and forecasting: how forecasting problems inform the abstractions a substrate exposes.
+The contributions are threefold. First, we situate NumPyro in the wider open-source forecasting landscape and explain when a composable substrate is the right answer and when a pre-packaged library is. Second, we present the small set of NumPyro primitives and inference tools that matter for time series, showing how forecasting demands shape the design philosophy and JAX-ecosystem composability of a substrate, and we single out structured covariate handling as the affordance that most often makes the substrate worthwhile. Third, we survey six publicly available case studies and treat community content as a first-class part of the open-source forecasting story. Our emphasis is the intersection of software and forecasting: how forecasting problems inform the abstractions a substrate exposes.
 
-The remainder of the paper is organized as follows. Section~\ref{sec:giants} traces the Pyro lineage NumPyro builds upon. Section~\ref{sec:ecosystem} introduces the relevant software primitives and inference tools. Section~\ref{sec:cases} surveys six forecasting case studies. Section~\ref{sec:community} reflects on the community layer that supports the substrate. Section~\ref{sec:discussion} discusses the trade-offs, limitations, and open problems. Section~\ref{sec:conclusion} concludes.
+The remainder of the paper is organized as follows. Section~\ref{sec:giants} traces the Pyro lineage NumPyro builds upon. Section~\ref{sec:ecosystem} introduces the relevant software primitives and inference tools. Section~\ref{sec:covariates} isolates structured covariate handling as the affordance that most often justifies the substrate. Section~\ref{sec:cases} surveys six forecasting case studies. Section~\ref{sec:community} reflects on the community layer that supports the substrate. Section~\ref{sec:discussion} discusses the trade-offs, limitations, and open problems. Section~\ref{sec:conclusion} concludes.
 
 
 % =============================================================================
@@ -91,11 +91,11 @@ The remainder of the paper is organized as follows. Section~\ref{sec:giants} tra
 
 This section is gratitude, not comparison. NumPyro is best understood as the JAX-native continuation of an idea developed by the Pyro project at Uber AI Labs. The broader argument for composable probabilistic substrates applies to the class of tools that let practitioners write models in a host language rather than a separate modeling DSL, including Stan, PyMC, TensorFlow Probability, and Turing.jl; we study NumPyro because its JAX foundation makes ecosystem composition the central design payoff. What distinguishes the Pyro/NumPyro lineage is a design choice rather than a feature list: a model is an ordinary Python function written against an array library, so the model reads close to its mathematical statement.
 
-Pyro \citep{bingham2019pyro} introduced a programming model around two key ideas: probabilistic models as ordinary Python functions with \texttt{sample} statements, and the \emph{effect handler} abstraction that separates defining a generative model from interpreting it. The same model function can be traced, conditioned on data, replayed against a guide, or transformed for arbitrary inference strategies \citep{numpyro_effect_handlers}.
+Pyro \citep{bingham2019pyro} introduced a programming model around two key ideas: probabilistic models as ordinary Python functions with \texttt{sample} statements, and the \emph{effect handler} abstraction that separates defining a generative model from interpreting it. Effect handlers are the high-level abstraction that makes this separation possible: a handler is an enclosing context that intercepts the primitive statements a model executes (\texttt{sample}, \texttt{param}, \texttt{plate}) and reinterprets their effect, without the model body being aware of it or rewritten. Because the model is just a function emitting these primitives, the same function can be traced to record its execution, conditioned on observed data, replayed against a guide, or retargeted to an arbitrary inference strategy simply by running it under a different stack of handlers \citep{numpyro_effect_handlers}. This is what lets one model definition serve prior sampling, posterior inference, and predictive simulation interchangeably.
 
 The forecasting community owes Pyro a more specific debt. \texttt{pyro.contrib.forecast} distilled state-space forecasting into reusable infrastructure, and \texttt{pyro.contrib.epidemiology} applied the same \texttt{plate}-heavy machinery to compartmental disease models at scale \citep{obermeyer2022pyro}. The Pyro-M5 Starter Kit \citep{pyro_m5_starter} showed the primitives scaling to thousands of related series. The roles of \texttt{scan} and \texttt{plate} in this paper were sharpened within Pyro before being inherited by NumPyro.
 
-NumPyro \citep{phan2019composable} reimplements the same conceptual model on top of JAX. Models participate in the full transformation stack (\texttt{jit}, \texttt{vmap}, \texttt{grad}), inference reuses JAX-native NUTS and SVI \citep{hoffman2014no}, and the optimizer interface is delegated to Optax \citep{optax2020github} rather than reimplemented internally. Because JAX programs are pure functions, an entire inference routine compiles to a single fused program rather than executing eagerly operation by operation, which is the main practical gain over Pyro-on-PyTorch. The same property lets NumPyro plug into the surrounding ecosystem: \texttt{dynestyx} for dynamical systems \citep{dynestyx}, Flax \citep{flax2020github}, and a broad catalog of compatible tools \citep{awesome_jax, deepmind2020jax}. Custom intermittent-demand transitions, hierarchical priors, additional likelihoods, and Hilbert-space Gaussian processes all become natural to express because the substrate was designed to be composable rather than complete.
+NumPyro \citep{phan2019composable} reimplements the same conceptual model on top of JAX. Models participate in the full transformation stack (\texttt{jit}, \texttt{vmap}, \texttt{grad}), inference reuses JAX-native NUTS and SVI \citep{hoffman2014no}, and the optimizer interface is delegated to Optax \citep{optax2020github} rather than reimplemented internally. Because JAX programs are pure functions, an entire inference routine compiles to a single fused program rather than executing eagerly operation by operation, which is the main practical gain over Pyro-on-PyTorch. The same property lets NumPyro plug into the surrounding ecosystem: \texttt{dynestyx} for dynamical systems \citep{dynestyx}, Flax \citep{flax2020github}, and a broad catalog of compatible tools \citep{awesome_jax, deepmind2020jax}. The epidemiology thread that ran through Pyro continues in the JAX era: PyRenew, a Bayesian renewal-modeling package for infectious-disease forecasting, is built directly on NumPyro \citep{pyrenew}, evidence that the substrate is solid enough to carry domain-specific forecasting libraries downstream. Custom intermittent-demand transitions, hierarchical priors, additional likelihoods, and Hilbert-space Gaussian processes all become natural to express because the substrate was designed to be composable rather than complete.
 
 
 % =============================================================================
@@ -112,7 +112,7 @@ Many time series models are defined recursively. An exponential smoothing state 
 
 JAX exposes recursion through \texttt{jax.lax.scan}, and NumPyro provides a probabilistic counterpart that lets each step contain \texttt{sample} statements without breaking JIT compilation or gradient propagation. Operationally, \texttt{scan} is a compiled \texttt{for} loop with a fixed-shape carry. Almost every forecasting model in this paper is a single \texttt{scan} over a transition function \citep{orduz_exponential_smoothing, orduz_arma, orduz_var}. The case studies in Sections~\ref{sec:avail} and~\ref{sec:cens} illustrate a further payoff: the practitioner owns the transition body and can add conditional branches for operational rules while keeping the same \texttt{scan} skeleton.
 
-For example, a local linear trend model is a single \texttt{scan} whose transition advances level and slope and emits one observation per step; the body is an ordinary state update and \texttt{scan} supplies the time recursion \citep{orduz_exponential_smoothing_ssm, numpyro_time_series}.
+This makes classical state-space models strikingly easy to write. A full linear-Gaussian state-space model is nothing more than a transition function and an observation function wrapped in a single \texttt{scan}: a local linear trend model, for instance, is one \texttt{scan} whose transition advances level and slope and emits one observation per step, where the body is an ordinary state update and \texttt{scan} supplies the time recursion \citep{orduz_exponential_smoothing_ssm}. There is no separate filtering machinery to invoke and no special-case API; the worked exponential-smoothing-in-state-space-form example shows the entire model in a few lines \citep{orduz_exponential_smoothing_ssm, numpyro_time_series}. The Bayesian VAR of Section~\ref{sec:var} is the same idea carried to a multivariate state.
 
 \paragraph{\texttt{plate}.}
 Forecasting work is almost never single-series. Retailers track tens of thousands of stock-keeping units. Energy utilities forecast hundreds of substations. Transit agencies forecast every station-to-station flow. The probabilistic programming convention for expressing that a set of random variables are conditionally independent across an indexed dimension, within the joint Bayesian model, is the \texttt{plate} construct, which originates from graphical-model notation. The qualifier matters: the units are conditionally independent given shared population-level parameters, so they remain coupled through those hyperpriors and are fit jointly rather than as separate models, which is exactly what lets a short series borrow strength from the rest of the panel. In NumPyro a \texttt{plate} both annotates conditional independence and triggers efficient vectorized sampling along the corresponding axis. Hierarchical models, panel models, and any batched evaluation use \texttt{plate} to push parallelism down into the JAX compiler.
@@ -149,7 +149,42 @@ NumPyro inherits JAX's transformation stack. Just-in-time compilation through \t
 
 Deterministic pseudo-random keys are a JAX design choice that pays off doubly for forecasting. Backtests become exactly reproducible across machines. Time-series cross-validation, a distinctive software challenge for forecasting, is expressed as \texttt{vmap} over a stack of cutoff dates and distinct keys rather than a Python loop over folds. Reproducibility and transparent evaluation schemes are thus properties of the substrate rather than discipline imposed after the fact. The case studies in the next section are backed by openly licensed, runnable notebooks \citep{orduz_pymc_labs}, so every figure can be regenerated end to end. We do not report new benchmarks in this paper; readers interested in scaling should consult the JAX documentation and the NumPyro multi-device examples. The point we want to make is qualitative: scalability is a property of the ecosystem, not a feature one needs to opt into model by model.
 
-Taken together, the primitives and ecosystem pieces map recurring forecasting challenges to concrete abstractions. Recursive state dynamics map to \texttt{scan}; grouped panels map to \texttt{plate}; censored and intermittent likelihoods map to composable log-probabilities inside a transition; structured covariates map to ordinary host-language functions; reproducible backtesting maps to deterministic keys and \texttt{vmap} over evaluation folds; and linear-Gaussian substructure maps to parallelized filtering via libraries such as \texttt{cuthbert}. Forecasting problems do not merely run on the substrate. They shape which abstractions the substrate exposes and how practitioners compose them.
+Taken together, the primitives and ecosystem pieces map recurring forecasting challenges to concrete abstractions. Recursive state dynamics map to \texttt{scan}; grouped panels map to \texttt{plate}; censored and intermittent likelihoods map to composable log-probabilities inside a transition; structured covariates map to ordinary host-language functions, the affordance we single out in Section~\ref{sec:covariates}; reproducible backtesting maps to deterministic keys and \texttt{vmap} over evaluation folds; and linear-Gaussian substructure maps to parallelized filtering via libraries such as \texttt{cuthbert}. Forecasting problems do not merely run on the substrate. They shape which abstractions the substrate exposes and how practitioners compose them.
+
+
+% =============================================================================
+\section{Covariate Handling: The Most Useful Affordance}
+\label{sec:covariates}
+% =============================================================================
+
+Before turning to the case studies, we isolate the affordance that, in our experience, most often justifies reaching for a composable substrate over a packaged forecaster: full control over how covariates enter the model. A genuinely ``pure'' time series problem, where one only needs a black box mapping past values to future ones, is rare in practice. Far more common is a series that is business-as-usual most of the time but is reshaped by events: holidays, promotions, weather, price changes, policy interventions. The standard time series component can handle the business-as-usual dynamics, but the events demand structure.
+
+Consider the canonical example of a holiday or promotional event. Encoding it as a single indicator column, the only option many packaged forecasters expose, discards almost everything the practitioner knows: that the effect ramps up before the day and decays after it, that it has a characteristic temporal shape, that its magnitude differs across stores or products while its shape is roughly shared. On a probabilistic substrate the practitioner instead writes the covariate effect directly: a before-and-after window, a set of Fourier terms for a periodic effect, a bump function with a learnable width, or a smooth basis whose coefficients are themselves given a prior. The covariate is a piece of model structure expressed in host-language code, not a value passed into a slot.
+
+A particularly useful pattern, and one that recurs across panels of related series, is an event whose temporal shape is shared across the panel but whose magnitude varies from one series to the next. This is a shared basis with partially pooled, non-centered loadings, and it is a few lines of NumPyro (Listing~\ref{lst:event}): a shape per covariate that all series draw on, scaled by per-series loadings that are pooled toward a common mean. The shape borrows strength across the whole panel; the loadings let each series respond at its own amplitude.
+
+\begin{lstlisting}[caption={A covariate-effect basis with a temporal shape shared across the panel and partially pooled, non-centered per-series loadings.},label={lst:event}]
+import jax.numpy as jnp
+import numpyro
+import numpyro.distributions as dist
+
+def event_basis(X, n_nodes):  # X: (time, cov, basis)
+    n_time, n_cov, n_basis = X.shape
+    beta_loc = numpyro.sample("beta_loc", dist.Normal(0.0, 0.3))
+    beta_scale = numpyro.sample("beta_scale", dist.HalfNormal(0.3))
+    beta_raw = numpyro.sample("beta_raw", dist.Normal(0, 1).expand([n_cov, n_basis]))
+    beta = beta_loc + beta_scale * beta_raw  # shape per cov
+
+    load_loc = numpyro.sample("load_loc", dist.Normal(0, 0.3).expand([n_cov]))
+    load_scale = numpyro.sample("load_scale", dist.HalfNormal(0.3).expand([n_cov]))
+    load_raw = numpyro.sample("load_raw", dist.Normal(0, 1).expand([n_nodes, n_cov]))
+    loadings = load_loc + load_scale * load_raw  # per series
+
+    shape = jnp.einsum("tcb,cb->tc", X, beta)
+    return jnp.einsum("tc,jc->tj", shape, loadings)  # effect
+\end{lstlisting}
+
+Expressing this kind of non-time-series structure, rather than passing a covariate into a black-box slot, is in our experience the single most useful affordance of a probabilistic substrate over a packaged forecaster. The basis is deliberately left abstract: one natural choice is a Hilbert-space Gaussian process, which we use for a nonlinear temperature response in Section~\ref{sec:hsgp}, and the same machinery extends to auxiliary observations that calibrate a covariate effect against an external reference, as in Section~\ref{sec:calib}. The case studies that follow can be read as instances of this one idea, each pairing a business-as-usual time series component with structure the practitioner controls.
 
 
 % =============================================================================
@@ -272,30 +307,7 @@ Hilbert-space approximate Gaussian processes (HSGP) \citep{riutort2022practical}
 \label{fig:hsgp}
 \end{figure}
 
-The HSGP is a model component, not a separate library, and the same composability lets a practitioner express structured covariate effects that an off-the-shelf forecaster does not expose. A common need is an event or holiday feature whose temporal shape is shared across a panel of series but whose magnitude varies from one series to the next. This is a few lines: a shared basis with partially pooled, non-centered loadings.
-
-Expressing this kind of non-time-series structure, rather than passing a covariate into a black-box slot, is in our experience the single most useful affordance of a probabilistic substrate over a packaged forecaster: a shared basis with partially pooled, non-centered loadings is a few lines of host-language code (Listing~\ref{lst:event}).
-
-\begin{lstlisting}[caption={A covariate-effect basis with a temporal shape shared across the panel and partially pooled, non-centered per-series loadings.},label={lst:event}]
-import jax.numpy as jnp
-import numpyro
-import numpyro.distributions as dist
-
-def event_basis(X, n_nodes):  # X: (time, cov, basis)
-    n_time, n_cov, n_basis = X.shape
-    beta_loc = numpyro.sample("beta_loc", dist.Normal(0.0, 0.3))
-    beta_scale = numpyro.sample("beta_scale", dist.HalfNormal(0.3))
-    beta_raw = numpyro.sample("beta_raw", dist.Normal(0, 1).expand([n_cov, n_basis]))
-    beta = beta_loc + beta_scale * beta_raw  # shape per cov
-
-    load_loc = numpyro.sample("load_loc", dist.Normal(0, 0.3).expand([n_cov]))
-    load_scale = numpyro.sample("load_scale", dist.HalfNormal(0.3).expand([n_cov]))
-    load_raw = numpyro.sample("load_raw", dist.Normal(0, 1).expand([n_nodes, n_cov]))
-    loadings = load_loc + load_scale * load_raw  # per series
-
-    shape = jnp.einsum("tcb,cb->tc", X, beta)
-    return jnp.einsum("tc,jc->tj", shape, loadings)  # effect
-\end{lstlisting}
+The HSGP is a model component, not a separate library: because it is linear in its basis coefficients, it is just one more term in the host-language model and one more choice of basis for the structured covariate effects discussed in Section~\ref{sec:covariates}. The temperature-response curve here is exactly the shared-basis pattern from that section, instantiated with a Gaussian-process basis.
 
 \subsection{Calibration via additional likelihoods}
 \label{sec:calib}
@@ -347,7 +359,7 @@ The case studies surveyed in Section~\ref{sec:cases} are illustrative rather tha
 \label{sec:conclusion}
 % =============================================================================
 
-Open-source forecasting benefits from a layered view. Pre-packaged libraries solve standard problems behind friendly APIs. Composable probabilistic substrates such as NumPyro solve nonstandard problems through programmable primitives. The community layer of tutorials and worked examples connects the two. We have argued that forecasting problems shape the abstractions a composable substrate exposes: recursive state, grouped panels, censoring, structured covariates, and reproducible evaluation each map to concrete software primitives and ecosystem composition patterns. Six case studies exercise this flexibility, and an active community of recipe writers is lowering the steep learning curve. The worked examples surveyed here are our contribution to the upper layer of the same stack.
+Open-source forecasting benefits from a layered view. Pre-packaged libraries solve standard problems behind friendly APIs. Composable probabilistic substrates such as NumPyro solve nonstandard problems through programmable primitives. The community layer of tutorials and worked examples connects the two. We have argued that forecasting problems shape the abstractions a composable substrate exposes: recursive state, grouped panels, censoring, and reproducible evaluation each map to concrete software primitives and ecosystem composition patterns, and structured covariate handling, the freedom to write how events and interventions reshape a series rather than pass them into a fixed slot, is the affordance that most often makes the substrate worth its learning curve. Six case studies exercise this flexibility, and an active community of recipe writers is lowering the steep learning curve. The worked examples surveyed here are our contribution to the upper layer of the same stack.
 
 
 % =============================================================================
