@@ -56,13 +56,13 @@ NumPyro, Composability, and Community}
 %% AUTHORS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \author[jo]{Juan Orduz\corref{cor}}
 \ead{juan.orduz@pymc-labs.com}
-\author[goog]{Du Phan}
-% \ead{} % TODO: confirm coauthor email
+\author{Du Phan\fnref{dp}}
+\ead{fehiepsi@gmail.com}
 \author[amzn]{Theo Rashid}
 % \ead{} % TODO: confirm coauthor email
 \address[jo]{PyMC-Labs}
-\address[goog]{Google}
 \address[amzn]{Amazon}
+\fntext[dp]{Currently at Google DeepMind.}
 \cortext[cor]{Corresponding author.}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -151,7 +151,7 @@ Once inference returns a posterior or a variational approximation, predictive di
 
 The composability we keep invoking is concrete, not rhetorical. Because a NumPyro model is a pure JAX function, it exposes a log-density that external inference engines can target directly, so the same model can be handed to other JAX inference libraries without being rewritten. BlackJAX provides a modular collection of samplers and variational methods \citep{cabezas2024blackjax}, and flowMC adds normalizing-flow enhanced Markov chain Monte Carlo \citep{wong2023flowmc}; both can run inference on a NumPyro model, which matters when a particularly difficult posterior geometry calls for samplers beyond the built-in menu; the NumPyro documentation includes a worked example that does exactly this \citep{numpyro_other_samplers}. A third form of composition concerns state-space inference itself. A sequential \texttt{scan} is one way to evaluate a recursive model, but when a component has linear-Gaussian structure, Kalman filter techniques marginalize latent states analytically and admit parallel-in-time implementations, so the time dimension can be parallelized on accelerators rather than stepped through sequentially. \texttt{cuthbert} \citep{cuthbert} decouples model specification from inference and provides filtering, smoothing, and parameter estimation; \texttt{dynestyx} \citep{dynestyx} specifies a state-space model as a NumPyro model and calls \texttt{cuthbert} for the filtering. The substrate therefore supports both sequential recursion when the model demands it and specialized state-space inference when the structure allows it.
 
-Neural networks compose equally directly: the M4-winning exponential-smoothing RNN is a structural model with neural components estimated end-to-end \citep{smyl2020esrnn}, and a Flax module can be embedded inside a NumPyro model \citep{orduz_hierarchical_3}. Composition with large pre-trained forecasters is harder: openly released model checkpoints make a frozen forecaster callable from the same pipeline \citep{ansari2025chronos2, cohen2025toto}, but wrapping one in calibrated Bayesian uncertainty remains open.
+Neural networks compose equally directly: the M4-winning exponential-smoothing RNN is a structural model with neural components estimated end-to-end \citep{smyl2020esrnn}, and a Flax module can be embedded inside a NumPyro model \citep{orduz_hierarchical_3}. Composition with large pre-trained forecasters is harder: openly released model checkpoints make a frozen forecaster callable from the same pipeline \citep{ansari2025chronos2, cohen2025toto}, but composing one with calibrated Bayesian uncertainty beyond a simple error model remains open, as we discuss in Section~\ref{sec:discussion}.
 
 \subsection{Scaling, qualitatively}
 
@@ -178,20 +178,32 @@ import jax.numpy as jnp
 import numpyro
 import numpyro.distributions as dist
 
-def event_basis(X, n_nodes):  # X: (time, cov, basis)
+def event_basis(X, n_nodes):
+    # X[t, c, b]: value of basis function b at time t for event covariate c.
+    # n_nodes: number of series in the panel.
     n_time, n_cov, n_basis = X.shape
+    # Non-centered pattern: sample standardized coefficients, then shift
+    # and scale them (better posterior geometry for NUTS).
     beta_loc = numpyro.sample("beta_loc", dist.Normal(0.0, 1.0))
     beta_scale = numpyro.sample("beta_scale", dist.HalfNormal(1.0))
     beta_raw = numpyro.sample("beta_raw", dist.Normal(0, 1).expand([n_cov, n_basis]))
-    beta = beta_loc + beta_scale * beta_raw  # shape per cov
+    # beta[c, b]: basis weights giving each event one temporal shape,
+    # shared by every series in the panel.
+    beta = beta_loc + beta_scale * beta_raw
 
+    # Same non-centered pattern, now per series and per event.
     load_loc = numpyro.sample("load_loc", dist.Normal(0.0, 1.0).expand([n_cov]))
     load_scale = numpyro.sample("load_scale", dist.HalfNormal(1.0).expand([n_cov]))
     load_raw = numpyro.sample("load_raw", dist.Normal(0, 1).expand([n_nodes, n_cov]))
-    loadings = load_loc + load_scale * load_raw  # per series
+    # loadings[j, c]: amplitude of event c for series j, partially pooled
+    # toward the per-event mean load_loc[c] with spread load_scale[c].
+    loadings = load_loc + load_scale * load_raw
 
+    # Collapse the basis dimension: one temporal shape per event.
     shape = jnp.einsum("tcb,cb->tc", X, beta)
-    return jnp.einsum("tc,jc->tj", shape, loadings)  # effect
+    # Scale shapes by the per-series amplitudes and sum over events:
+    # the total event effect for each series at each time.
+    return jnp.einsum("tc,jc->tj", shape, loadings)
 \end{lstlisting}
 
 Expressing this kind of non-time-series structure, rather than passing a covariate into a black-box slot, is in our experience the single most useful capability of a probabilistic substrate over a packaged forecaster. The basis is deliberately left abstract: one natural choice is a Hilbert-space Gaussian process, which we use for a nonlinear temperature response in Section~\ref{sec:hsgp}, and the same machinery extends to auxiliary observations that calibrate a covariate effect against an external reference, as in Section~\ref{sec:calib}. The case studies that follow can be read as instances of this one idea, each pairing a business-as-usual time series component with structure the practitioner controls.
@@ -207,12 +219,19 @@ This section surveys six case studies. Each subsection states the forecasting pr
 \subsection{Hierarchical pooling for sparse panels}
 \label{sec:hier}
 
-A canonical illustration uses the Australian tourism dataset, where each region's monthly visitor count exhibits regional level, regional trend, and seasonality with substantial cross-region variation. The model in our worked example is a hierarchical exponential smoothing specification \citep{orduz_hierarchical_exp, orduz_hierarchical_1}: each region has its own level, trend, and seasonal innovations, but the variance parameters governing those innovations are themselves drawn from population-level priors. We use non-centered reparameterization throughout, an idea that has become standard practice for hierarchical Bayesian models because it yields a posterior geometry that gradient-based samplers such as NUTS navigate more easily \citep{gorinova2019automatic}. In NumPyro, the entire model is a \texttt{plate} over regions wrapping a \texttt{scan} over time. Figure~\ref{fig:hier} shows the posterior predictive forecast for representative regions.
+A canonical illustration uses the Australian tourism dataset, where each region's monthly visitor count exhibits regional level, regional trend, and seasonality with substantial cross-region variation. The model in our worked example is a hierarchical exponential smoothing specification \citep{orduz_hierarchical_exp, orduz_hierarchical_1}: writing $j$ for the region and $m$ for the seasonal period, each region carries level $l_{j,t}$, trend $b_{j,t}$, and seasonal $s_{j,t}$ states that follow the Holt-Winters recursions in one-step-ahead form:
+\begin{align}
+y_{j,t} &\sim \operatorname{Normal}(l_{j,t-1} + b_{j,t-1} + s_{j,t-m},\ \sigma_j), \nonumber\\
+l_{j,t} &= \alpha_j (y_{j,t} - s_{j,t-m}) + (1-\alpha_j)(l_{j,t-1} + b_{j,t-1}), \nonumber\\
+b_{j,t} &= \beta_j (l_{j,t} - l_{j,t-1}) + (1-\beta_j)\, b_{j,t-1}, \nonumber\\
+s_{j,t} &= \gamma_j^{*} (y_{j,t} - l_{j,t-1} - b_{j,t-1}) + (1-\gamma_j^{*})\, s_{j,t-m}, && \gamma_j^{*} = \gamma_j (1-\alpha_j), \nonumber
+\end{align}
+where $\alpha_j$, $\beta_j$, and $\gamma_j$ are per-region smoothing rates for level, trend, and seasonality, $\gamma_j^{*}$ is the standard Holt-Winters adjustment, and $\sigma_j$ is the observation noise scale; beyond the training window the updates freeze, so forecasts extrapolate the last level and trend linearly and recycle the last seasonal cycle. The hierarchy sits in the priors rather than in the recursions: the level rate $\alpha_j \sim \operatorname{Beta}(1,1)$ is left unpooled; the trend rate $\beta_j \sim \operatorname{Beta}(c_{1,g(j)}, c_{0,g(j)})$ is pooled within states, where $g(j)$ maps each region to its state and the state-level concentrations $c_{1,s}, c_{0,s}$ are drawn from Gamma distributions with globally shared, Gamma-distributed parameters; the seasonal rate $\gamma_j \sim \operatorname{Beta}(c_1, c_0)$ shares one global pair of Gamma-distributed concentrations across all regions; and the noise scales $\sigma_j \sim \operatorname{HalfNormal}(\tau)$ share a global scale $\tau$ with a Gamma prior. The pooling above is centered, written directly through Beta and Gamma hyperpriors; when a hierarchy has location-scale form, as in the companion hierarchical series \citep{orduz_hierarchical_1, orduz_hierarchical_2, orduz_hierarchical_3} and the per-series event loadings of Listing~\ref{lst:event}, we use non-centered reparameterization instead, an idea that has become standard practice for hierarchical Bayesian models because it yields a posterior geometry that gradient-based samplers such as NUTS navigate more easily \citep{gorinova2019automatic}. In NumPyro, the entire model is a \texttt{plate} over regions wrapping a \texttt{scan} over time. Figure~\ref{fig:hier} shows the posterior predictive forecast for representative regions.
 
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.88\linewidth]{hierarchical_exponential_smoothing_69_0.png}
-\caption{Hierarchical exponential smoothing on Australian tourism data. Posterior predictive medians and credible intervals are shown for several regions sharing population-level innovation variances. Smaller regions borrow strength from larger ones without losing their distinctive seasonality.}
+\caption{Hierarchical exponential smoothing on Australian tourism data. Posterior predictive medians and credible intervals are shown for several regions sharing population-level hyperpriors on smoothing rates and noise scales. Smaller regions borrow strength from larger ones without losing their distinctive seasonality.}
 \label{fig:hier}
 \end{figure}
 
@@ -246,11 +265,14 @@ def availability_tsb(counts, available, future=0):
         z_prev, p_prev = carry
         pos = counts[t] > 0
         z = jnp.where(pos, z_sm * counts[t] + (1 - z_sm) * z_prev, z_prev)
-        # availability enters only the zero branch
+        # A zero signals fading demand only if the item was on the shelf
+        # (available[t] = 1); during a stockout the probability freezes.
         p = jnp.where(pos, p_sm + (1 - p_sm) * p_prev,
                       (1 - available[t] * p_sm) * p_prev)
         pred = numpyro.sample("pred", dist.Normal(z * p, noise))
-        return (z, p), available[t] * pred  # forecast gated
+        # No sales can occur while the item is off the shelf, so the
+        # predicted sales are zeroed whenever available[t] = 0.
+        return (z, p), available[t] * pred
 
     init = (counts[0], 0.5 * jnp.ones_like(counts[0]))
     scan(transition, init, jnp.arange(t_max + future))
@@ -305,7 +327,12 @@ The example is written against \texttt{numpyro\_forecast} rather than raw NumPyr
 \subsection{Bayesian vector autoregression}
 \label{sec:var}
 
-Our worked example \citep{orduz_var} fits a Bayesian VAR with NUTS using LKJ priors on the correlation structure of the innovation covariance and weakly informative priors on the autoregressive coefficients. Compared with a packaged VAR routine, what the substrate adds is direct control over this prior structure: shrinkage on the coefficient matrices and an LKJ prior on the innovation correlations are a few lines rather than a fork of someone else's estimator, and they yield full posteriors over derived quantities instead of point estimates. There is a trade-off worth stating: for a dense linear-Gaussian state-space model like this one, marginalizing the latent states with a Kalman filter can be more efficient than sampling them through \texttt{scan}, and JAX state-space libraries such as \texttt{cuthbert} \citep{cuthbert} and \texttt{dynestyx} \citep{dynestyx} compose here when that route is preferred. The recursive evaluation is, again, a single \texttt{scan} over the multivariate state. Once posterior samples are available, impulse-response functions are computed inside another \texttt{vmap} over posterior draws and shock sources, which yields uncertainty bands rather than point trajectories. Figure~\ref{fig:var} reports the resulting impulse-response functions for a small economic system.
+Our worked example \citep{orduz_var} fits a Bayesian VAR($p$) with NUTS, where the observation vector $y_t$ collects the $k$ series:
+\begin{align}
+y_t &= c + \sum_{l=1}^{p} \Phi_l\, y_{t-l} + \varepsilon_t, \qquad \varepsilon_t \sim \operatorname{Normal}(0, \Sigma), && \Sigma = \operatorname{diag}(\sigma)\, \Omega \operatorname{diag}(\sigma), \nonumber\\
+c_i &\sim \operatorname{Normal}(0, 1), \quad (\Phi_l)_{ij} \sim \operatorname{Normal}(0, 10), \quad \sigma_i \sim \operatorname{HalfNormal}(1), && \Omega \sim \operatorname{LKJ}(1), \nonumber
+\end{align}
+where $\sigma$ collects per-series scales and the correlation matrix $\Omega$ has a uniform LKJ prior, sampled through its Cholesky factor (\texttt{LKJCholesky}); the fitted example uses $p = 2$. Compared with a packaged VAR routine, what the substrate adds is direct control over this prior structure: shrinkage on the coefficient matrices and an LKJ prior on the innovation correlations are a few lines rather than a fork of someone else's estimator, and they yield full posteriors over derived quantities instead of point estimates. There is a trade-off worth stating: for a dense linear-Gaussian state-space model like this one, marginalizing the latent states with a Kalman filter can be more efficient than sampling them through \texttt{scan}, and JAX state-space libraries such as \texttt{cuthbert} \citep{cuthbert} and \texttt{dynestyx} \citep{dynestyx} compose here when that route is preferred. The recursive evaluation is, again, a single \texttt{scan} whose carry stacks the $p$ most recent observations. Once posterior samples are available, impulse-response functions are computed inside another \texttt{vmap} over posterior draws and shock sources, which yields uncertainty bands rather than point trajectories. Figure~\ref{fig:var} reports the resulting impulse-response functions for a small economic system.
 
 \begin{figure}[!htbp]
 \centering
@@ -319,12 +346,17 @@ Computing impulse-response functions across thousands of posterior samples is a 
 \subsection{Gaussian processes via Hilbert-space approximation}
 \label{sec:hsgp}
 
-Hilbert-space approximate Gaussian processes (HSGP) \citep{riutort2022practical} reformulate a GP as a linear-in-coefficients model that fits in linear time and composes cleanly with other components. Our electricity demand example \citep{orduz_electricity} uses an HSGP for the temperature-response curve combined with a level-and-seasonality state-space backbone. We apply the HSGP to the temperature covariate here for exposition, but nothing restricts it to covariate effects: the same basis construction can represent a smooth trend or a long-period seasonal component, and these uses compose additively within one model. Because the HSGP is a linear model in its basis coefficients, it slots into the larger forecasting model with no special inference treatment. Figure~\ref{fig:hsgp} shows the resulting hourly demand forecast with credible bands that respect the nonlinear temperature dependence.
+Hilbert-space approximate Gaussian processes (HSGP) \citep{riutort2022practical} reformulate a GP as a linear-in-coefficients model that fits in linear time and composes cleanly with other components. Our electricity demand example \citep{orduz_electricity} is an additive regression with heteroskedastic Student-t noise: hourly demand $y_t$ responds to temperature $T_t$ through a smooth varying coefficient, a temperature-dependent slope that multiplies $T_t$, plus zero-sum hour-of-day and day-of-week effects:
+\begin{align}
+y_t &\sim \operatorname{StudentT}(\nu,\ \mu_t,\ \sigma \sqrt{T_t}), \qquad \mu_t = \beta_0 + \beta(T_t)\, T_t + \delta_{h(t)} + \kappa_{d(t)}, \nonumber\\
+\beta(T) &\approx \sum_{m=1}^{M} S_{\theta}(\sqrt{\lambda_m})^{1/2}\, \phi_m(T)\, w_m, && w_m \sim \operatorname{Normal}(0, 1), \nonumber
+\end{align}
+where the hour-of-day effect $\delta$ (24 components) and day-of-week effect $\kappa$ (7 components) are \texttt{ZeroSumNormal} seasonal effects indexed by the hour $h(t)$ and weekday $d(t)$, $(\phi_m, \lambda_m)$ are Laplacian eigenpairs on $[-L, L]$, and $S_{\theta}$ is the Mat\'ern-$5/2$ spectral density whose amplitude and length scale carry InverseGamma hyperpriors; the worked example uses $M = 25$ and $L = 55$ through \texttt{hsgp\_matern} from \texttt{numpyro.contrib.hsgp.approximation}. We apply the HSGP to the temperature covariate here for exposition, but nothing restricts it to covariate effects: the same basis construction can represent a smooth trend or a long-period seasonal component, and these uses compose additively within one model. Because the HSGP is a linear model in its basis coefficients, it slots into the larger forecasting model with no special inference treatment. Figure~\ref{fig:hsgp} shows the resulting hourly demand forecast with credible bands that respect the nonlinear temperature dependence.
 
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.88\linewidth]{electricity_forecast_46_0.png}
-\caption{Electricity demand forecast combining a state-space level-and-seasonality backbone with an HSGP for the temperature-response curve. The credible interval reflects both the dynamic-state uncertainty and the nonlinear covariate uncertainty.}
+\caption{Electricity demand forecast from the additive model: an HSGP varying coefficient in temperature plus zero-sum hour-of-day and day-of-week effects, with heteroskedastic Student-t noise. The credible bands blend the nonlinear temperature response, the seasonal effects, and the heavy-tailed observation noise.}
 \label{fig:hsgp}
 \end{figure}
 
@@ -369,7 +401,7 @@ Building probabilistic forecasting models in NumPyro has a steep learning curve:
 A composable substrate is the right tool when the modeling assumption is the central design decision. When operational concerns dominate (friendly API, default hyperparameters, cross-validation, deployment), pre-packaged libraries such as the Nixtla ecosystem, sktime, GluonTS, and statsmodels \citep{nixtla2024, loning2019sktime, alexandrov2020gluonts, statsmodels} are the better fit. Engineering teams often want a stable \texttt{fit}/\texttt{predict} surface, and wrapping a bespoke NumPyro model is extra work a packaged library provides for free. The two layers occupy complementary positions in a healthy forecasting practice.
 
 \paragraph{Open problems.}
-Three open problems strike us as particularly relevant for the substrate-plus-community model of open-source forecasting. First, evaluation and benchmarking. There is no widely adopted benchmark suite that targets the kind of model the substrate makes natural, namely custom likelihoods, hierarchical structures, and prior calibration. The major forecasting competitions reward best-effort accuracy on standard datasets and do not directly reward the modeling flexibility that distinguishes a substrate from a library. Second, integration with large pre-trained forecasters. As large time-series foundation models become available, the question of how a probabilistic substrate composes with them, for example by using a pre-trained model as an informative prior or as a boosting layer within a structural time series model, is largely open. As noted in Section~\ref{sec:ecosystem}, released model checkpoints already make a frozen forecaster callable \citep{ansari2025chronos2, cohen2025toto}, but wrapping one in calibrated Bayesian uncertainty remains unresolved. Third, end-to-end probabilistic decision tooling. A posterior is only as useful as the downstream decision it supports, and the open-source landscape for translating posterior predictives into decisions under loss is far less mature than the landscape for producing the posteriors themselves.
+Three open problems strike us as particularly relevant for the substrate-plus-community model of open-source forecasting. First, evaluation and benchmarking. There is no widely adopted benchmark suite that targets the kind of model the substrate makes natural, namely custom likelihoods, hierarchical structures, and prior calibration. The major forecasting competitions reward best-effort accuracy on standard datasets and do not directly reward the modeling flexibility that distinguishes a substrate from a library. Second, integration with large pre-trained forecasters. A simple route exists today: as noted in Section~\ref{sec:ecosystem}, released checkpoints make a frozen forecaster callable \citep{ansari2025chronos2, cohen2025toto}, and treating its point output as the mean function of a NumPyro observation model, with an error model learned around it, is the additional-likelihood pattern of Section~\ref{sec:calib} applied to a foundation model. What remains genuinely open is composing the foundation model's own predictive distribution, its sampled trajectories or quantile heads, with structural components rather than discarding it: producing coherent joint trajectories across horizons and related series rather than per-step marginals, staying calibrated under distribution shift, and, when the pre-trained model instead enters as an informative prior over a latent component, avoiding double-counting the data already seen in pre-training. Promising directions include Bayesian stacking of substrate and foundation-model predictive distributions \citep{yao2018stacking} and hierarchical error models pooled across series. Third, end-to-end probabilistic decision tooling. A posterior is only as useful as the downstream decision it supports, and the open-source landscape for translating posterior predictives into decisions under loss is far less mature than the landscape for producing the posteriors themselves.
 
 \paragraph{Threats to validity.}
 The case studies surveyed in Section~\ref{sec:cases} are illustrative rather than exhaustive. They reflect models we have built and published in the course of practitioner-facing writing, and they are biased toward the patterns we have found useful. A different practitioner working in a different domain would surface different patterns. Our argument is therefore about plausibility and breadth: the same small set of primitives recurs across a wide variety of forecasting problems, which is evidence that the substrate is well factored, not a claim that any particular case study is the optimal solution to its underlying problem.
