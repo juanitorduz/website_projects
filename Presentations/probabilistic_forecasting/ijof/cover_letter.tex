@@ -1,0 +1,46 @@
+% Cover letter for the IJF Open-Source Forecasting special section submission.
+
+\documentclass[11pt]{article}
+
+\usepackage[a4paper, margin=1.1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{parskip}
+
+\begin{document}
+
+\begin{flushright}
+Juan Orduz\\
+PyMC Labs\\
+\texttt{juan.orduz@pymc-labs.com}\\[6pt]
+August 4, 2026
+\end{flushright}
+
+\noindent
+Dr. Mitchell O'Hara-Wild, Dr. Anastasios Panagiotelis, and Dr. Tim Januschowski\\
+Guest Editors, Special Section on Open-Source Forecasting\\
+International Journal of Forecasting
+
+\vspace{1em}
+
+Dear Guest Editors,
+
+We are pleased to submit our manuscript, ``Probabilistic Forecasting in the JAX Ecosystem: NumPyro, Composability, and Community,'' for consideration in the special section on Open-Source Forecasting (article type ``SI: Open-Source Forecasting'').
+
+The paper makes the case for composable probabilistic substrates as a complementary layer of the open-source forecasting stack, alongside the pre-packaged libraries that expose canonical models behind friendly APIs. Using NumPyro on the JAX ecosystem as the concrete subject, we isolate the small set of primitives that matter most for time series, show how they compose with the wider JAX inference and optimization stack, and single out structured covariate handling as the capability that most often justifies a substrate over a packaged forecaster. Six publicly available case studies exercise this flexibility across hierarchical pooling, intermittent and censored demand, Bayesian vector autoregression, approximate Gaussian processes, and prior calibration, and the paper treats the surrounding community layer of tutorials and worked examples as a first-class part of the open-source forecasting story.
+
+We believe the manuscript fits the scope of the special section directly. It is a study of mature open-source forecasting software at the intersection of software design and forecasting practice, it discusses how forecasting problems shape the abstractions a library exposes, and every case study is backed by an openly licensed, runnable notebook so that all figures can be regenerated end-to-end. The paper also engages the community dimension of open source explicitly, arguing that for substrate-style libraries the ecosystem of recipes, tutorials, and worked examples is not optional documentation but part of the software itself.
+
+One point deserves transparency regarding double-anonymized review. The submitted manuscript body contains no author names, affiliations, or acknowledgments. However, the paper is in part a survey of worked examples that the authors have published, and the corresponding self-citations cannot be anonymized without dismantling the structure of the paper: the case studies are the evidence for its argument. We have therefore left these references intact and we gladly defer to the editors on any further blinding you consider appropriate.
+
+This manuscript is original work, has not been published previously, and is not under consideration elsewhere. All authors have approved the manuscript and its submission to the International Journal of Forecasting.
+
+Thank you for your consideration. We look forward to your response.
+
+\vspace{1em}
+
+Sincerely,
+
+Juan Orduz (corresponding author), on behalf of all authors\\
+\texttt{juan.orduz@pymc-labs.com}
+
+\end{document}

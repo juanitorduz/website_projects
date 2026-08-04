@@ -1,0 +1,30 @@
+% Minimal title page: title, authors, and affiliations only.
+% The full title page with acknowledgments and declarations is title_page.tex.
+
+\documentclass[11pt,3p,authoryear]{elsarticle}
+
+\journal{International Journal of Forecasting}
+
+\usepackage{hyperref}
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{Probabilistic Forecasting in the JAX Ecosystem:
+NumPyro, Composability, and Community}
+
+\author[jo]{Juan Orduz\corref{cor}}
+\author[gdm]{Du Phan\fnref{dp}}
+\author[amzn]{Theo Rashid}
+
+\address[jo]{PyMC Labs, [Germany]}
+\address[gdm]{[United States]}
+\address[amzn]{Amazon, [United States]}
+
+\cortext[cor]{Corresponding author. Email: \texttt{juan.orduz@pymc-labs.com}.}
+\fntext[dp]{Currently at Google DeepMind.}
+
+\end{frontmatter}
+
+\end{document}

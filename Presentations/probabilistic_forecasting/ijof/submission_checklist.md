@@ -6,32 +6,32 @@ Working checklist for submitting `ijof.tex` to the International Journal of Fore
 
 - [ ] Submit via https://submit.elsevier.com/IJF selecting article type "SI: Open-Source Forecasting".
 - [ ] Submission window: opens 2026-03-03 (open now), deadline 2026-08-31.
-- [ ] Cover letter (explicitly required by the call): draft one summarizing the contribution and its fit to the special section scope.
+- [x] Cover letter (explicitly required by the call): drafted in `cover_letter.tex` (compiled to `cover_letter.pdf`); summarizes the contribution, the fit to the special section scope, and transparently flags the self-citation blinding caveat.
 - Guest editors: Mitchell O'Hara-Wild (Monash), Anastasios Panagiotelis (Monash), Tim Januschowski (Databricks).
 
 ## Double-anonymized review (IJF requirement, currently NOT satisfied)
 
-- [ ] Comment out the author block in `ijof.tex` (authors, affiliations, `\ead`, `\cortext`) exactly as `IJFTemplate/ijftemplate.tex` shows; the submitted manuscript body must contain no identifying information.
-- [ ] Prepare a separate title page file with: full author names, affiliations including department, city, and country (current `\address` entries are bare organization names), corresponding author email, acknowledgments, and all declarations.
-- [ ] Move the Acknowledgments section out of the manuscript body onto the title page (it names the authors' communities and collaborators).
-- [ ] Decide how to handle the 16 `orduz_*` self-citation keys (25 in-text occurrences) plus first-person phrasing ("our worked example"). The guide's convention is citing as [Anonymous, year] with "details omitted for double-blind review" in the reference list. Full anonymization is structurally awkward for this paper (the case studies are the authors' published blog posts), so consider asking the guest editors how they want survey-of-own-work papers handled before mechanically anonymizing.
+- [x] Comment out the author block in `ijof.tex` (authors, affiliations, `\ead`, `\cortext`) exactly as `IJFTemplate/ijftemplate.tex` shows; the submitted manuscript body must contain no identifying information. Done; `ijof.pdf` regenerated and verified (page 1 shows no authors or affiliations).
+- [x] Prepare a separate title page file with: full author names, affiliations including department, city, and country, corresponding author email, acknowledgments, and all declarations. Done in `title_page.tex` (compiled to `title_page.pdf`); `[TODO]` placeholders remain for coauthor emails, affiliation city/country details, and ORCID.
+- [x] Move the Acknowledgments section out of the manuscript body onto the title page (it names the authors' communities and collaborators). Done; the section is commented out in `ijof.tex` for restoration after acceptance.
+- [x] Decide how to handle the `orduz_*` self-citation keys plus first-person phrasing ("our worked example"). Decision: keep as-is; the cover letter transparently explains that the paper surveys the authors' published worked examples, that anonymizing the self-citations would dismantle the paper's structure, and defers to the guest editors on any further blinding.
 
 ## Declarations to prepare (title page / submission system)
 
-- [ ] Declaration of competing interest (note author affiliations: PyMC-Labs, Google, Amazon).
-- [ ] CRediT author-contribution statement for all three authors.
-- [ ] Funding statement (state "no external funding" if applicable).
-- [ ] Data availability statement: all case studies use public or simulated data; FreshRetailNet-50K is on Hugging Face (Dingdong-Inc/FreshRetailNet-50K); code is in public notebooks.
-- [ ] Generative-AI disclosure per Elsevier policy: required if AI tools were used in the writing process; decide and declare.
-- [ ] ORCID for the corresponding author (encouraged).
+- [x] Declaration of competing interest: drafted on the title page (notes employment at PyMC Labs, Google DeepMind, Amazon); confirm wording before submitting.
+- [x] CRediT author-contribution statement for all three authors: drafted on the title page; confirm role assignment with coauthors.
+- [x] Funding statement: "no external funding" wording on the title page.
+- [x] Data availability statement: on the title page (public or simulated data; FreshRetailNet-50K on Hugging Face; code in public notebooks).
+- [x] Generative-AI disclosure per Elsevier policy: standard statement included on the title page (AI used for readability and language; authors take full responsibility).
+- [ ] ORCID for the corresponding author (encouraged): `[TODO]` placeholder on the title page.
 
 ## Manuscript items
 
 - [x] Abstract within the 100-150 word limit (trimmed to 149 words; code notation removed per the no-jargon rule).
 - [x] At least five keywords (six present).
 - [x] elsarticle options `[11pt,3p,review,authoryear]` match the official IJF template; `model5-names` bibliography style.
-- [ ] Coauthor emails: two TODO placeholders remain in `ijof.tex` (Du Phan, Theo Rashid); collect and fill in on the title page.
-- [ ] Optional highlights file (3-5 bullets); "where applicable" per the guide, not mandatory.
+- [ ] Coauthor emails: `[TODO]` placeholders on the title page (Du Phan, Theo Rashid); collect and fill in before uploading.
+- [x] Optional highlights file (3-5 bullets): decided to skip; "where applicable" per the guide, not mandatory.
 
 ## Reproducibility hardening (recommended, not required)
 

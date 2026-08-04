@@ -1,0 +1,53 @@
+% Title page for the double-anonymized IJF submission.
+% This file accompanies ijof.tex, whose author block and acknowledgments are
+% commented out for review. Upload as a separate "Title Page" file.
+
+\documentclass[11pt,3p,authoryear]{elsarticle}
+
+\journal{International Journal of Forecasting}
+
+\usepackage{hyperref}
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{Probabilistic Forecasting in the JAX Ecosystem:
+NumPyro, Composability, and Community}
+
+\author[jo]{Juan Orduz\corref{cor}}
+\author[gdm]{Du Phan\fnref{dp}}
+\author[amzn]{Theo Rashid\fnref{tr}}
+
+\address[jo]{PyMC Labs, [Germany]}
+\address[gdm]{[United States]}
+\address[amzn]{Amazon, [United States]}
+
+\cortext[cor]{Corresponding author. Email: \texttt{juan.orduz@pymc-labs.com}. ORCID: [0000-0002-1097-6125].}
+\fntext[dp]{Currently at Google DeepMind. Email: \texttt{fehiepsi@gmail.com}.}
+\fntext[tr]{Email: \texttt{theoaorashid@proton.me}.}
+
+\end{frontmatter}
+
+\section*{Acknowledgments}
+
+This work stands on the shoulders of the open-source probabilistic-programming community. The authors thank the Pyro maintainers, including Eli Bingham, Fritz Obermeyer, Neeraj Pradhan, Martin Jankowiak, and many others, for the design choices and forecasting infrastructure on which NumPyro is built. The authors thank the NumPyro core team, in particular Neeraj Pradhan and Martin Jankowiak, for their ongoing maintenance and stewardship of the project. The JAX team and the broader DeepMind JAX ecosystem, including the Optax and Flax maintainers, provide the numerical foundations that make this work practical at scale. Finally, the authors thank the wider open-source forecasting and probabilistic-programming community, including the readers, commenters, issue reporters, and fellow practitioners whose feedback over many blog posts shaped the case studies surveyed in this paper. Any remaining errors are the authors' alone.
+
+\section*{Declaration of competing interest}
+
+The authors are employed by PyMC Labs, Google DeepMind, and Amazon, respectively. Beyond these affiliations, the authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper. 
+
+
+\section*{Funding}
+
+This research did not receive any specific grant from funding agencies in the public, commercial, or not-for-profit sectors.
+
+\section*{Data availability}
+
+All case studies use publicly available or simulated data. The FreshRetailNet-50K dataset is available on Hugging Face (\texttt{Dingdong-Inc/FreshRetailNet-50K}). All code underlying the case studies is available in public, openly licensed notebooks linked from the cited posts.
+
+\section*{Declaration of generative AI and AI-assisted technologies in the writing process}
+
+During the preparation of this work the authors used generative AI tools to improve the readability and language of the manuscript. After using these tools, the authors reviewed and edited the content as needed and take full responsibility for the content of the published article.
+
+\end{document}
