@@ -4,7 +4,7 @@ channels = ["conda-forge", "pytorch"]
 platforms = ["osx-arm64", "linux-64"]
 
 [dependencies]
-python = ">=3.13,<3.14"
+python = ">=3.14,<3.15"
 bambi = ">=0.16.0"
 cvxpy = "*"
 econml = "*"
@@ -12,6 +12,7 @@ preliz = "*"
 pymc = ">=6.0.0"
 pymc-bart = "*"
 pymc-extras = "*"
+pymc-marketing = ">=1.0.0"
 pyproj = "*"
 
 [pypi-dependencies]
@@ -47,6 +48,7 @@ nutpie = "*"
 openpyxl = "*"
 pandas = ">=2.2.3"
 pandera = { version = "*", extras = ["polars"] }
+pathmc = "*"
 polars = "<3.0"
 pre-commit = "*"
 pydantic = ">=2.11.7"
