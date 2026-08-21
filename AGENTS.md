@@ -25,6 +25,10 @@ Exceptions: code blocks, tables, YAML front matter, and anything where the newli
 
 Use American English spelling. Do not use British English spelling.
 
+## Writting Style
+
+- Work on using Language ASD-STE100 simplified technical english.
+
 ## No fake citations
 
 Do not use fake citations. If you need to cite a source, ensure it exists.
