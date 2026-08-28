@@ -14,7 +14,7 @@ When processing markdown blog posts, replace all markdown image references with 
 
 ```html
 <center>
-  <img src="/images/<PATH>" style="width: 800px;"/>
+  <img src="/images/<PATH>" style="width: 900px;"/>
 </center>
 ```
 
@@ -32,8 +32,12 @@ After:
 
 ```html
 <center>
-  <img src="/images/bayesian_power_ab_testing_files/bayesian_power_ab_testing_5_0.png" style="width: 800px;"/>
+  <img src="/images/bayesian_power_ab_testing_files/bayesian_power_ab_testing_5_0.png" style="width: 900px;"/>
 </center>
 ```
 
 Apply this to every `![png](...)` and `![svg](...)` occurrence in the file.
+
+# Tables
+
+Add <center> (and end </center>) to the beginning and end of the tables.
