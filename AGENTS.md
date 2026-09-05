@@ -39,7 +39,7 @@ Use ASD-STE100 simplified technical English as the baseline: short sentences, ac
 ### Math
 
 - Define every symbol in prose before it appears in a display formula (what is $n$, what is $N_j$). Introduce the abstract estimand before the estimator.
-- Write distributions as `\text{Normal}`, `\text{Binomial}`, `\text{HalfNormal}`, never `\mathcal{N}`. Use `\mathbb{E}` for expectations, `\perp` for independence and `\mid` for conditioning.
+- Write distributions as `\text{Normal}`, `\text{Binomial}`, `\text{HalfNormal}`, never `\mathcal{N}`. Use `\text{E}` for expectations, `\text{P}` for probabilities, `\perp` for independence and `\mid` for conditioning.
 - Add short remarks for the natural variants (for example, what changes if the outcome is continuous).
 - For the expected value, use the letter $\text{E}$ in math mode.
 - For the probability, use the letter $\text{P}$ in math mode.
