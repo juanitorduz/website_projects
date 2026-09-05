@@ -691,7 +691,10 @@ posteriors = {
     "original population": idata["posterior"].to_dataset(),
     "older population": posterior_target,
 }
-truths = {"original population": theta_ps_true, "older population": theta_ps_target_true}
+truths = {
+    "original population": theta_ps_true,
+    "older population": theta_ps_target_true,
+}
 
 rows = []
 for name, posterior in posteriors.items():
@@ -711,33 +714,37 @@ retargeting = pl.DataFrame(rows)
 retargeting
 
 # %%
-x = np.arange(retargeting.height)
-width = 0.35
+population_labels = list(posteriors)
+theta_ps_populations = np.stack(
+    [posterior["theta_ps"].to_numpy() for posterior in posteriors.values()], axis=-1
+)
+population_shape = (*theta_ps_populations.shape[:2], len(population_labels))
 
-fig, ax = plt.subplots()
-mrp_bars = ax.bar(
-    x - width / 2,
-    retargeting["mrp_mean"].to_numpy(),
-    width,
-    yerr=[
-        (retargeting["mrp_mean"] - retargeting["hdi_lower"]).to_numpy(),
-        (retargeting["hdi_upper"] - retargeting["mrp_mean"]).to_numpy(),
-    ],
-    capsize=6,
-    color="C0",
-    label=f"MRP posterior mean and {HDI_PROB:.0%} HDI",
+
+def as_population_datatree(values: np.ndarray) -> xr.DataTree:
+    """Wrap population-level values as a posterior group with dimensions (chain, draw, population)."""  # noqa: E501
+    return az.from_dict(
+        {"posterior": {"theta_ps": np.broadcast_to(values, population_shape)}},
+        dims={"theta_ps": ["population"]},
+        coords={"population": population_labels},
+    )
+
+
+comparison_populations = {
+    "MRP": as_population_datatree(theta_ps_populations),
+    "truth": as_population_datatree(np.array(list(truths.values()))),
+}
+
+pc = az.plot_forest(
+    comparison_populations,
+    var_names=["theta_ps"],
+    combined=True,
+    figure_kwargs={"figsize": (10, 4)},
 )
-truth_bars = ax.bar(
-    x + width / 2, retargeting["truth"].to_numpy(), width, color="C2", label="truth"
-)
-ax.bar_label(mrp_bars, fmt="%.3f", padding=4)
-ax.bar_label(truth_bars, fmt="%.3f", padding=4)
-ax.set_xticks(x, retargeting["population"].to_list())
-ax.set(ylabel="population share")
-ax.set_ylim(0, 1.4 * retargeting["hdi_upper"].max())
-ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.0, decimals=0))
-ax.legend(loc="upper center", ncols=2)
-fig.suptitle("Fit once, poststratify twice", fontsize=18, fontweight="bold");
+pc.add_legend("model")
+pc.viz["figure"].item().suptitle(
+    "Fit once, poststratify twice", fontsize=18, fontweight="bold"
+);
 
 # %% [markdown]
 # The older population leans more toward "yes", because the older age groups have the larger effects. In both cases the HDI covers the true value. The counts changed, the posterior draws did not.
@@ -745,9 +752,9 @@ fig.suptitle("Fit once, poststratify twice", fontsize=18, fontweight="bold");
 # %% [markdown]
 # ## MRP in the Language of Marginal Effects
 #
-# The [marginaleffects](https://marginaleffects.com/) package of [Arel-Bundock (2026)](https://marginaleffects.com/) organizes the interpretation of a fitted model around three quantities. A *prediction* is the expected outcome at one point of the covariate space. A *comparison* is the difference between two predictions that differ in one covariate. A *slope* is the derivative version of a comparison for a continuous covariate. The book has a [chapter on MRP](https://marginaleffects.com/chapters/mrp.html) that reduces the method to one call: `avg_predictions(model, newdata=frame, wts="N", by="state")`. It predicts the outcome for every cell of the frame, averages the predictions with the census counts as weights, and groups the average by state. Step 2 of MRP is a weighted average of predictions, and the `by` argument gives the subpopulation estimates.
+# The [marginaleffects](https://marginaleffects.com/) package of [Arel-Bundock (2026)](https://marginaleffects.com/) organizes the interpretation of a fitted model around three quantities. A *prediction* is the expected outcome at one point of the covariate space. A *comparison* is the difference between two predictions that differ in one covariate. A *slope* is the derivative version of a comparison for a continuous covariate. The book [Model to Meaning](https://marginaleffects.com/) has a [chapter on MRP](https://marginaleffects.com/chapters/mrp.html) that reduces the method to one call: `avg_predictions(model, newdata=frame, wts="N", by="state")`. It predicts the outcome for every cell of the frame, averages the predictions with the census counts as weights, and groups the average by state. Step 2 of MRP is a weighted average of predictions, and the `by` argument gives the subpopulation estimates.
 #
-# The Python package does not support PyMC models yet (version 0.6.1 supports statsmodels, linearmodels, scikit-learn and pyfixest). Its `datagrid` function does not depend on the model, so we use it to build the grids and we evaluate the posterior of $\theta_j$ on them ourselves, as we did for a Bambi model in [Ads, ROAS and Budgets](https://juanitorduz.github.io/ads_roas_interpret/). The posterior holds $\theta_j$ for every cell in the array `theta` with dimensions `age`, `eth` and `state`, so a prediction for a row of a grid is a lookup by label. We name the helpers after the marginaleffects functions they mimic.
+# We can use the `datagrid` function to build the grids and we evaluate the posterior of $\theta_j$ on them ourselves, as we did for a Bambi model in [Ads, ROAS and Budgets](https://juanitorduz.github.io/ads_roas_interpret/). The posterior holds $\theta_j$ for every cell in the array `theta` with dimensions `age`, `eth` and `state`, so a prediction for a row of a grid is a lookup by label. We name the helpers after the marginaleffects functions they mimic.
 #
 # ### Predictions on a Grid
 #
@@ -779,6 +786,7 @@ profiles
 
 # %%
 theta_profiles = predict(idata["posterior"]["theta"], profiles)
+
 hdi_profiles = az.hdi(
     xr.Dataset({"theta": theta_profiles}), var_names=["theta"], prob=HDI_PROB
 )["theta"]
@@ -827,12 +835,13 @@ checks = {
     ),
 }
 
-for name, (from_grid, from_model) in checks.items():
+for from_grid, from_model in checks.values():
     np.testing.assert_allclose(
         from_grid.transpose(*from_model.dims).to_numpy(), from_model.to_numpy()
     )
-    difference = np.abs(from_grid - from_model).max().item()
-    print(f"{name}: max abs difference {difference:.1e}")
+
+# %% [markdown]
+# Hence, the results are the same.
 
 # %% [markdown]
 # ### Comparisons on the Probability Scale
@@ -860,8 +869,8 @@ def avg_comparisons(
 ) -> xr.DataArray:
     """Weighted average of the difference in predictions between two values of one variable."""  # noqa: E501
     lo, hi = values
-    grid_lo = grid.filter(pl.col(variable) == lo).sort("rowidcf")
-    grid_hi = grid.filter(pl.col(variable) == hi).sort("rowidcf")
+    grid_lo = grid.filter(pl.col(variable).eq(lo)).sort("rowidcf")
+    grid_hi = grid.filter(pl.col(variable).eq(hi)).sort("rowidcf")
     diff = predict(theta, grid_hi) - predict(theta, grid_lo)
     w = xr.DataArray(grid_lo[wts].to_numpy(), dims="row")
     if by is None:
@@ -918,9 +927,9 @@ pc = az.plot_forest(
     comparison_age,
     var_names=["age_effect"],
     combined=True,
-    figure_kwargs={"figsize": (12, 7)},
+    figure_kwargs={"figsize": (10, 6)},
 )
-pc.add_legend("model")
+pc.add_legend("model", title_fontsize=16, loc="center left", bbox_to_anchor=(1, 0.5))
 pc.viz["figure"].item().suptitle(
     "State-level age contrast", fontsize=18, fontweight="bold"
 );
