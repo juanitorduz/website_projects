@@ -44,6 +44,37 @@ Use ASD-STE100 simplified technical English as the baseline: short sentences, ac
 - For the expected value, use the letter $\text{E}$ in math mode.
 - For the probability, use the letter $\text{P}$ in math mode.
 
+### Voice
+
+- Write as the analyst walking the reader through the work: "we" for what the notebook does, "let's" for transitions, "you" when giving advice. Do not write impersonally or in the passive voice.
+- Every code cell gets a one-sentence lead-in that says what we are about to do ("Next, let's look at the two SEM series over time.", "The same scores in tabular form:"). Every plot or table gets one or two sentences right after it that say what we see.
+- Open paragraphs with plain signposts: "First", "Next", "Now", "Finally", "Observe that", "Note that", "Recall", "In other words", "Here is an important observation:", "Here are two important remarks:", "Keep this in mind."
+- It is fine to introduce a step with a question and then answer it ("How should you read the mediator?", "What would we have planned without the funnel?"). A few times per notebook, not in every paragraph.
+- Say plainly whether a check passed: "which is good!", "The media parameters are stable!", "The two builds agree!", "quite reasonable", "not surprising", "remarkable". At most one exclamation mark per section, on a passed check or a genuine surprise. One or two emojis per notebook (🚀, 😎, 🙌, 😅) are fine at a celebratory or self-deprecating moment.
+
+### Sentences and paragraphs
+
+- One idea per paragraph, one to three sentences, about 30 words on average. Split anything longer.
+- Prefer full stops. Do not use semicolons. Use a colon only to introduce a list or a single explanation.
+- Every sentence has a subject and a verb. Do not open a paragraph with a verbless noun phrase and a colon. Not "The decision-relevant question: ...", "Same bar as the first iteration: ...", "Three planning choices, each stated so they can be challenged:". Write "Here we are interested in the following question:", "We hold the model to the same bar as the first iteration:", "We make three planning choices here, and you should feel free to challenge each of them:".
+- Do not use bold run-in pseudo-headings ("**Why this parametrization.** The spend term is linear because ..."). Use a real heading or a plain sentence.
+- No meta-commentary about the notebook or the writing ("They are boring, so we spell them out", "a result this notebook did not script", "Read the table for what it is", "measured rather than asserted"). State the observation.
+- Use modest claim verbs: "check", "confirm", "see", "support". Not "prove", "certify", "entitled to".
+- Emphasis: italics for a single word (*position*, *meaning*, *true*); bold for the one key term of a sentence (**before** fitting, the **direct** path). Do not bold whole clauses.
+
+### Formatting
+
+- Every number in prose goes in math mode: `$26.9\%$`, `$209$` weeks, `$0.67$`, `$94\%$` HDI, `$33K$`. Never a bare `26.9%`. Dates stay plain (`2018-08-05`).
+- Every channel, column, variable, parameter, and attribute name goes in backticks: `Direct Mail`, `sem_spend`, `funnel_lambda`, `mmm.channel_data_scaled`. Never bare "TV, Radio, and Newspaper".
+- Ground modeling decisions in a linked paper or blog post. Quote the relevant passage in a `>` block when it carries the argument.
+
+### Structure
+
+- Headings are short Title Case noun phrases (one to four words): "The SEM Funnel", "Model Fitting", "Budget Optimization", "Guardrail Sensitivity". No questions, no "vs", no colon subtitles at H2. Reuse the standard MMM section names and order: Prepare Notebook, Load Data, Exploratory Data Analysis, Model Specification, Prior Predictive Checks, Model Fitting, Model Diagnostics, Posterior Predictive Checks, Media Deep Dive (Channel Contributions, Saturation Curves, Return on Ad Spend (ROAS)), Budget Optimization, Conclusion, Next Steps.
+- The introduction states the business problem, then a numbered outline whose items match the H2 headings.
+- List items open with a bold lead phrase: `1. **Budget anchor.** We anchor ...`, `- **Additive channel effects**: ...`.
+- The Conclusion has `### Key Findings` (bullets with bold leads), `### Model Limitations` (bullets), `### Recommendations` (numbered), and then a `## Next Steps` numbered list with bold leads. Not a sequence of bold run-in paragraphs.
+
 
 ### Causal DAGs
 
