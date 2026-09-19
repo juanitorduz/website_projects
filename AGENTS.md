@@ -57,7 +57,7 @@ Use ASD-STE100 simplified technical English as the baseline: short sentences, ac
 - One idea per paragraph, one to three sentences, about 30 words on average. Split anything longer.
 - Prefer full stops. Do not use semicolons. Use a colon only to introduce a list or a single explanation.
 - Every sentence has a subject and a verb. Do not open a paragraph with a verbless noun phrase and a colon. Not "The decision-relevant question: ...", "Same bar as the first iteration: ...", "Three planning choices, each stated so they can be challenged:". Write "Here we are interested in the following question:", "We hold the model to the same bar as the first iteration:", "We make three planning choices here, and you should feel free to challenge each of them:".
-- Do not use bold run-in pseudo-headings ("**Why this parametrization.** The spend term is linear because ..."). Use a real heading, an admonition with a bold title line, or a plain sentence.
+- Do not use bold run-in pseudo-headings ("**Why this parametrization.** The spend term is linear because ..."). Use a real heading or a plain sentence.
 - No meta-commentary about the notebook or the writing ("They are boring, so we spell them out", "a result this notebook did not script", "Read the table for what it is", "measured rather than asserted"). State the observation.
 - Use modest claim verbs: "check", "confirm", "see", "support". Not "prove", "certify", "entitled to".
 - Emphasis: italics for a single word (*position*, *meaning*, *true*); bold for the one key term of a sentence (**before** fitting, the **direct** path). Do not bold whole clauses.
@@ -66,13 +66,12 @@ Use ASD-STE100 simplified technical English as the baseline: short sentences, ac
 
 - Every number in prose goes in math mode: `$26.9\%$`, `$209$` weeks, `$0.67$`, `$94\%$` HDI, `$33K$`. Never a bare `26.9%`. Dates stay plain (`2018-08-05`).
 - Every channel, column, variable, parameter, and attribute name goes in backticks: `Direct Mail`, `sem_spend`, `funnel_lambda`, `mmm.channel_data_scaled`. Never bare "TV, Radio, and Newspaper".
-- Cross-reference other notebooks with `{ref}` and the phrase "see {ref}`mmm_example` for more details". Reference API objects with `{class}`, `{meth}`, `{func}`.
 - Ground modeling decisions in a linked paper or blog post. Quote the relevant passage in a `>` block when it carries the argument.
 
 ### Structure
 
 - Headings are short Title Case noun phrases (one to four words): "The SEM Funnel", "Model Fitting", "Budget Optimization", "Guardrail Sensitivity". No questions, no "vs", no colon subtitles at H2. Reuse the standard MMM section names and order: Prepare Notebook, Load Data, Exploratory Data Analysis, Model Specification, Prior Predictive Checks, Model Fitting, Model Diagnostics, Posterior Predictive Checks, Media Deep Dive (Channel Contributions, Saturation Curves, Return on Ad Spend (ROAS)), Budget Optimization, Conclusion, Next Steps.
-- The introduction states the business problem, then a numbered outline whose items match the H2 headings, then a `{note}` pointing to the notebooks that cover the building blocks.
+- The introduction states the business problem, then a numbered outline whose items match the H2 headings.
 - List items open with a bold lead phrase: `1. **Budget anchor.** We anchor ...`, `- **Additive channel effects**: ...`.
 - The Conclusion has `### Key Findings` (bullets with bold leads), `### Model Limitations` (bullets), `### Recommendations` (numbered), and then a `## Next Steps` numbered list with bold leads. Not a sequence of bold run-in paragraphs.
 
