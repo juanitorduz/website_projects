@@ -32,7 +32,7 @@ format:
 1. Causal Inference and PPLs
 2. Bayesian A/B Testing
 3. Regression and the `do` Operator
-4. Hierarchies and Latent Confounders
+4. Hierarchical Models
 5. Marketing Mix Models
 6. Unobserved Confounders
 
@@ -42,7 +42,7 @@ format:
 
 7. Calibration with Experiments
 8. Funnel Models in Marketing
-9. Causal Identification in Funnel Models
+9. Budget Optimization
 10. Takeaways
 11. References
 
@@ -102,26 +102,26 @@ PPLs let us write generative models as code and run posterior inference automati
 
 :::
 
-## Causal Inference and PPLs {.smaller}
+## Causal Inference and PPLs
+
+::: {style="font-size: 92%;"}
 
 In industry, we estimate causal effects from limited data and under assumptions we cannot fully test. PPLs help in the following ways:
 
 ::: {.callout-tip appearance="simple"}
 
 - **The model is the DAG:** we write the data-generating process as code, so every causal assumption is explicit.
-
 - **Priors:** domain knowledge and past experiments enter the estimate.
-
 - **Uncertainty:** we get a posterior distribution for every causal quantity.
-
-- **The `do` operator:** we apply interventions to the model and compute counterfactual predictions (`pm.do` in PyMC, `numpyro.handlers.do` in NumPyro).
-
-- **Flexible structure:** non-linear likelihoods, hierarchical models, latent variables, and measurement models. The `do` operator still applies.
+- **The `do` operator:** we apply interventions to the model and compute counterfactual predictions.
+- **Flexible structure:** non-linear likelihoods, hierarchical models, latent variables, and measurement models.
 
 :::
 
 ::: {.callout-warning appearance="simple"}
-Every framework, Bayesian or frequentist, has assumptions and limitations. PPLs do not solve **identification**. They help with **estimation** once we state the causal assumptions.
+PPLs do not solve **identification**. They help with **estimation** once we state the causal assumptions.
+:::
+
 :::
 
 ## Bayesian A/B Testing {.smaller}
@@ -167,12 +167,6 @@ with pm.Model() as non_informative_model:
 
 ## Independent Priors {.smaller}
 
-::: {.callout-important}
-## Independent priors give implausible lifts.
-
-The relative lift is a ratio of two random variables. Flat priors on the two conversion rates allow a treatment that is $100$ times better than control. Informative priors that put both rates near $2.4\%$ still allow lifts of $50\%$, which are rare in practice.
-:::
-
 :::: {.columns}
 ::: {.column width="50%"}
 
@@ -190,13 +184,20 @@ The relative lift is a ratio of two random variables. Flat priors on the two con
 :::
 ::::
 
+::: {.callout-important}
+## Independent priors give implausible lifts.
+
+- The relative lift is a ratio of two random variables. Flat priors on the two conversion rates allow a treatment that is $100$ times better than control.
+- Informative priors that put both rates near $2.4\%$ still allow lifts of $50\%$, which are rare in practice.
+:::
+
 ::: footer
 [Prior Predictive Modeling in Bayesian AB Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
 :::
 
-## Correlated Priors {.smaller}
+## Correlated Priors {.smaller .nostretch}
 
-Most true lifts are small. So we set the prior on the **relative lift** itself, and the joint prior of the two rates concentrates on the diagonal.
+Most lifts are small, so we set the prior on the **relative lift** itself.
 
 :::: {.columns}
 ::: {.column width="55%"}
@@ -215,15 +216,14 @@ with pm.Model() as correlated_model:
     )
 ```
 
-![](hertie_2026_files/static/images/prior_predictive_ab_testing_37_0.png){fig-align="center" width="260"}
+![](hertie_2026_files/static/images/prior_predictive_ab_testing_39_0.png){fig-align="center" width="380"}
 
 :::
-
 ::: {.column width="45%"}
 
-![](hertie_2026_files/static/images/prior_predictive_ab_testing_31_0.svg){fig-align="center" width="360"}
+![](hertie_2026_files/static/images/prior_predictive_ab_testing_37_0.png){fig-align="center" width="400"}
 
-![](hertie_2026_files/static/images/prior_predictive_ab_testing_39_0.png){fig-align="center" width="380"}
+The joint prior of the two conversion rates concentrates on the diagonal.
 
 :::
 ::::
@@ -232,7 +232,7 @@ with pm.Model() as correlated_model:
 [Prior Predictive Modeling in Bayesian AB Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
 :::
 
-## Inference with Correlated Priors {.smaller}
+## Inference with Correlated Priors {.smaller .nostretch}
 
 We observe $200$ and $350$ conversions out of $10{,}000$ users per group (naive lift $75\%$).
 
@@ -243,20 +243,17 @@ with correlated_model:
 ```
 
 :::: {.columns}
-::: {.column width="50%"}
+::: {.column width="46%"}
 
-![](hertie_2026_files/static/images/prior_predictive_ab_testing_54_0.png){fig-align="center" width="380"}
+![](hertie_2026_files/static/images/prior_predictive_ab_testing_54_0.png){fig-align="center" width="469"}
 
 :::
+::: {.column width="54%"}
 
-::: {.column width="50%"}
-
-![](hertie_2026_files/static/images/prior_predictive_ab_testing_59_0.png){fig-align="center" width="380"}
+![](hertie_2026_files/static/images/prior_predictive_ab_testing_59_0.png){fig-align="center" width="546"}
 
 :::
 ::::
-
-The posterior lift is $31\%$ ($94\%$ HDI $[18\%, 43\%]$), and both observed rates fall outside their HDIs. Twyman's law says that any figure that looks interesting or different is usually wrong, so we check the experiment before we trust it.
 
 ::: footer
 [Prior Predictive Modeling in Bayesian AB Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
@@ -310,7 +307,9 @@ We have two ways to estimate the ATE:
 
 ## Pearl's `do` Operator
 
-$\text{P}(Y \mid \text{do}(T = t))$ is the distribution of $Y$ when we **set** $T = t$ for every unit. In the graph, it cuts all arrows into $T$, as in a randomized experiment.
+- **Conditioning:** $\text{P}(Y \mid T = t)$ describes the units that *happened* to receive $T = t$. They can differ from the others in their confounders.
+- **Intervening:** $\text{P}(Y \mid \text{do}(T = t))$ describes $Y$ when we **set** $T = t$ for every unit. In the graph, we cut all arrows into $T$, as in a randomized experiment.
+- **Adjustment:** if $X$ satisfies the backdoor criterion (it blocks every backdoor path from $T$ to $Y$ and contains no descendant of $T$), then $\text{P}(Y \mid \text{do}(T = t)) = \sum_{x} \text{P}(Y \mid T = t, X = x) \, \text{P}(X = x)$.
 
 :::
 
@@ -320,9 +319,12 @@ $\text{P}(Y \mid \text{do}(T = t))$ is the distribution of $Y$ when we **set** $
 
 ## The PyMC Model {.smaller}
 
-We write both parts of the DAG as code: covariates $\to$ `treat`, and `treat` plus covariates $\to$ earnings.
+We write both parts of the DAG as code:
 
-```{.python code-line-numbers="|1-2|3-8|9-18"}
+- covariates $\to$ `treat`
+- `treat` + covariates $\to$ earnings
+
+```{.python code-line-numbers="|1-2|3-8|9-19"}
 with pm.Model(coords=coords) as earnings_model:
     covariates = pm.Data("covariates_data", covariates_obs, dims=("obs_idx", "covariate"))
     # covariates -> treat
@@ -363,8 +365,6 @@ do_1_model = do(conditioned_model, {"treat": np.ones(n_obs, dtype=np.int32)})
 ```
 
 ![](hertie_2026_files/static/images/intro_causal_inference_ppl_pymc_45_0.svg){fig-align="center" width="1000"}
-
-In NumPyro, the `numpyro.handlers.do` effect handler does the same.
 
 ::: footer
 [Introduction to Causal Inference with PPLs](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/)
@@ -409,7 +409,7 @@ The randomized experiment gives $1{,}794$ USD for the treated group (Dehejia and
 - The `do` contrast still gives the ATE on the original scale: mean $0.58$ with $94\%$ HDI $[-0.1, 1.2]$.
 
 ::: {.callout-tip appearance="simple"}
-The same `do` code works with a non-linear link. A hurdle model for the zeros is one possible extension.
+The same `do` code works with a non-linear link.
 :::
 
 :::
@@ -419,9 +419,9 @@ The same `do` code works with a non-linear link. A hurdle model for the zeros is
 [Introduction to Causal Inference with PPLs](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/)
 :::
 
-## Hierarchies and Latent Confounders {.smaller}
+## Hierarchical Models {.smaller}
 
-We simulate $2{,}000$ individuals in $30$ groups. An unobserved group effect $G$ drives both $X$ and the binary outcome $Y$, and the true effect of $X$ on $Y$ is zero.
+An unobserved group effect $G$ drives $X$ and $Y$. The true effect of $X$ on $Y$ is zero.
 
 :::: {.columns}
 ::: {.column width="35%"}
@@ -436,55 +436,32 @@ We simulate $2{,}000$ individuals in $30$ groups. An unobserved group effect $G$
 :::
 ::::
 
-- The naive model ($0.68$, $94\%$ HDI $[0.61, 0.76]$) and the multilevel model with random intercepts ($0.21$, $[0.07, 0.38]$) are biased.
-- Fixed effects ($0.03$), the Mundlak model that adds the group mean of $X$ ($0.03$), and a latent group variable $u_g$ with its own likelihood for $X$ ($0.04$, best by LOO) all cover zero.
+- **Regularization:** hierarchies are an effective regularization. The group intercepts come from a common distribution, so partial pooling shrinks noisy group estimates toward the population mean.
+- **Fixed and random effects:** we can study both through this lens. A hierarchy alone does not make the model better. Here the random intercepts model is still biased.
 
 ::: footer
 [Fixed and Random Effects Models: A Simulated Study](https://juanitorduz.github.io/fixed_random/), after [Statistical Rethinking 2026, Lecture B04](https://www.youtube.com/watch?v=XNNcN8sU8us)
 :::
 
-## Latent Confounders in NumPyro {.smaller}
-
-We estimate the effect of side-quest engagement on in-game purchases in an online game. We treat the confounders we leave out as one unobserved confounder $Z$.
-
-:::: {.columns}
-::: {.column width="42%"}
-
-![](hertie_2026_files/static/images/online_game_ate_6_0.svg){fig-align="center" width="160"}
-
-$Z \sim \text{Normal}(0, 1)$ per player. Neural networks link $Z$ to engagement and purchases, and an encoder approximates its posterior (CEVAE, Louizos et al., 2017). We fit the model with variational inference. The predictive fit is skewed, so the model needs more work.
-
-:::
-::: {.column width="58%"}
-
-![](hertie_2026_files/static/images/online_game_ate_41_0.png){fig-align="center" width="440"}
-
-We sample $Z$ once and intervene on engagement with `numpyro.handlers.do`. The ATE has mean $109$ ($94\%$ HDI $[-46, 265]$), close to the DoWhy frontdoor estimate of $170$.
-
-:::
-::::
-
-::: footer
-[Causal Effect Estimation with Variational Inference and Latent Confounders](https://juanitorduz.github.io/online_game_ate/)
-:::
-
 ## Marketing Mix Models {.smaller}
-
-In marketing, budgets are rarely randomized, so we estimate channel effects from observational time series.
 
 ::: {.callout-tip appearance="simple"}
 How should we split next quarter's marketing budget across channels (TV, radio, search, and so on) to maximize sales?
 :::
 
+In marketing, budgets are rarely randomized, so we estimate channel effects from observational time series.
+
 A marketing mix model (MMM) is a regression of sales $y_t$ on transformed media spend $x_{m,t}$ and control variables $z_{k,t}$ (trend, seasonality, holidays):
 
 $$
-y_t = \beta_0 + \sum_{m} \beta_m f_m(x_{m,t}) + \sum_{k} \gamma_k z_{k,t} + \varepsilon_t
+y_t = \beta_0(t) + \sum_{m} \beta_m(t) f_m(x_{m,t}) + \sum_{k} \gamma_k z_{k,t} + \varepsilon_t
 $$
 
-where $f_m$ is the media transformation of channel $m$ (next slide).
+where $f_m$ is the media transformation of channel $m$ (next slide). The intercept $\beta_0(t)$ and the channel coefficients $\beta_m(t)$ can vary over time, for example with Gaussian processes.
 
+::: {.callout-note appearance="simple"}
 The data are short (typically $2$ to $3$ years of weekly data), the media channels are correlated, and some confounders are unobserved. Bayesian MMMs add domain knowledge through priors, calibration with experiments, and posterior uncertainty for budget decisions.
+:::
 
 ::: footer
 [Jin, Yuxue, et al. "Bayesian methods for media mix modeling with carryover and shape effects." (2017).](https://research.google/pubs/pub46001/)
@@ -552,7 +529,7 @@ $$
 
 ## Unobserved Confounders {.smaller}
 
-:::: {.columns}
+:::: {.columns style="display: flex; align-items: center;"}
 ::: {.column width="45%"}
 
 ![](hertie_2026_files/static/images/dag.svg){fig-align="center" width="420"}
@@ -578,28 +555,29 @@ This is the job training example again, but we cannot adjust for `z`, and the da
 [Media Mix Model and Experimental Calibration: A Simulation Study](https://juanitorduz.github.io/mmm_roas/)
 :::
 
-## Biased ROAS {.smaller}
+## Biased ROAS {.smaller .nostretch}
 
-A model without `z` estimates a ROAS of $198$ for `x1` against a true value of $93$ (orange line), and $142$ for `x2` against $171$. So the model ranks `x1` above `x2`, while the true ranking is the reverse.
-
-![](hertie_2026_files/static/images/roas_posterior_2.png){fig-align="center" width="600"}
+![](hertie_2026_files/static/images/roas_posterior_2.png){fig-align="center" width="640"}
 
 ::: {.callout-tip appearance="simple"}
-We bring experimental results into the model in one of two ways: priors on the ROAS (Zhang et al., 2024) or an additional likelihood for lift tests, which are experiments on one channel (PyMC-Marketing).
+We bring experimental results into the model in one of two ways:
+
+- Priors on the ROAS ([Zhang et al., 2024](https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/)).
+- An additional likelihood for lift tests, which are experiments on one channel ([PyMC-Marketing, Dean et al., 2026](https://doi.org/10.21105/joss.10805)).
 :::
 
 ::: footer
-[PyMC-Marketing v0.17.1: Case Study: Unobserved Confounders, ROAS and Lift Tests](https://www.pymc-marketing.io/en/0.17.1/notebooks/mmm/mmm_roas.html)
+[PyMC-Marketing: Mitigating Unobserved Confounders in MMMs with Lift Test Likelihoods](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_roas.html)
 :::
 
 ## Calibration with Experiments {.smaller}
 
-We use the same idea as the correlated priors in the A/B test: we put the prior on the quantity we know something about, here the ROAS.
+As in the A/B test, we put the prior on the quantity we know about: the ROAS.
 
 :::: {.columns}
 ::: {.column width="50%"}
 
-We write each media coefficient as a function of the channel's ROAS (simplified):
+We write each media coefficient as a function of the channel's ROAS (simplified, with a constant $\beta_m$):
 
 $$
 \beta_m = \frac{\text{ROAS}_m \sum_{t} x_{m,t}}{\sum_{t} \left(f(x_{m,t}) - f(\tilde{x}_{m,t})\right)}
@@ -607,20 +585,32 @@ $$
 
 where $f$ is the media transformation (adstock and saturation) and $\tilde{x}_{m}$ is the spend with channel $m$ turned off.
 
-With these priors and still without `z`, the ROAS of `x1` moves from about $200$ to about $120$ (true value $93$).
-
 :::
 ::: {.column width="50%"}
 
-Now we can put a prior on the ROAS of each channel, for example from a past experiment. In the simulation, we center the priors at $95$ and $170$, close to the truth (shown below on the scaled data).
+We can now put a prior on the ROAS of each channel, for example from a past experiment. Here we center the priors at $95$ and $170$, close to the truth (scaled data below).
 
-![](hertie_2026_files/static/images/roas_priors.png){fig-align="center" width="480"}
+![](hertie_2026_files/static/images/roas_priors.png){fig-align="center" width="400"}
 
 :::
 ::::
 
+::: {.callout-note appearance="simple"}
+The [frugal parameterization](https://juanitorduz.github.io/frugal_parametrization_pymc/) of [Evans and Didelez (2024)](https://doi.org/10.1093/jrsssb/qkad058) follows a related idea: it makes the causal effect a parameter of the model, so we can put a prior on it directly.
+:::
+
 ::: footer
 [Zhang et al. (2024)](https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/) and [Media Mix Model and Experimental Calibration: A Simulation Study](https://juanitorduz.github.io/mmm_roas/)
+:::
+
+## ROAS Prior Results {.smaller .nostretch}
+
+We keep `z` out and put ROAS priors on both channels (Model 3 in the blog post).
+
+![](hertie_2026_files/static/images/roas_posterior_3.png){fig-align="center" width="820"}
+
+::: footer
+[Media Mix Model and Experimental Calibration: A Simulation Study](https://juanitorduz.github.io/mmm_roas/)
 :::
 
 ## Lift Test Calibration {.smaller}
@@ -630,33 +620,32 @@ A **lift test** is an A/B test on one channel. We change the spend in some regio
 :::
 
 :::: {.columns}
-::: {.column width="58%"}
+::: {.column width="60%"}
 
-![](hertie_2026_files/static/images/lift_test_saturation.png){fig-align="center" width="560"}
+![](hertie_2026_files/static/images/lift_test_curves.png){fig-align="center" width="620"}
 
 :::
-::: {.column width="42%"}
+::: {.column width="40%"}
 
-- Each test measures how much the saturation curve rises from $x$ to $x + \Delta x$.
-- The model predicts this lift from the curve. The measured lift enters as an **additional likelihood**.
+- Each triangle is one lift test from $x$ to $x + \Delta x$. Its vertical side is the true change in contribution. The red point is the measured change with $\pm 1$ standard error.
+- The model predicts each lift from its saturation curve. The measured lift enters as an **additional likelihood**.
 - The saturation parameters must explain the sales and the experiments.
-- Each new test adds one more observation.
 
 :::
 ::::
 
 ::: footer
-[PyMC-Marketing v0.10.0: Lift Test Calibration](https://www.pymc-marketing.io/en/0.10.0/notebooks/mmm/mmm_lift_test.html)
+[PyMC-Marketing: Lift Test Calibration](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_lift_test.html)
 :::
 
-## Lift Test Results {.smaller}
+## Lift Test Results {.smaller .nostretch}
 
-![](hertie_2026_files/static/images/roas_posterior_4.png){fig-align="center" width="600"}
+We keep `z` out of the model and add the lift tests as an additional likelihood.
 
-With lift tests and still without `z`, the ROAS of `x1` moves from $198$ to $109$ ($94\%$ HDI $[98, 121]$, true value $93$, orange line). For `x2`, we get $161$ ($94\%$ HDI $[143, 179]$, true value $171$). The bias on `x1` drops from $+112\%$ to $+17\%$, and the ranking of the two channels is now correct.
+![](hertie_2026_files/static/images/roas_posterior_4.png){fig-align="center" width="780"}
 
 ::: footer
-[PyMC-Marketing v0.17.1: Case Study: Unobserved Confounders, ROAS and Lift Tests](https://www.pymc-marketing.io/en/0.17.1/notebooks/mmm/mmm_roas.html)
+[PyMC-Marketing: Mitigating Unobserved Confounders in MMMs with Lift Test Likelihoods](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_roas.html)
 :::
 
 ## Funnel Models in Marketing {.smaller}
@@ -684,7 +673,7 @@ Two stories fit the data: paid search drives sales, or it harvests demand that t
 :::
 
 ::: footer
-[PyMC-Marketing v1.2.0: MMM Case Study II](https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_case_study2.html)
+[PyMC-Marketing: MMM Case Study II](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html)
 :::
 
 ## The Funnel DAG {.smaller .nostretch}
@@ -697,33 +686,43 @@ Two stories fit the data: paid search drives sales, or it harvests demand that t
 - In practice, paid search spend also follows demand, so adding it as a channel conditions on the mediator ([Chan and Perry, 2017](https://storage.googleapis.com/gweb-research2023-media/pubtools/3803.pdf): *"Downstream ads should not be included with exogenously-determined ads in a single regression equation."*).
 
 ::: footer
-[PyMC-Marketing v1.2.0: MMM Case Study II](https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_case_study2.html)
+[PyMC-Marketing: MMM Case Study II](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html)
 :::
 
 ## Funnel Model Structure {.smaller}
 
-Let $U_{t,c}$ be the spend of upper funnel channel $c$ in week $t$, $B_t$ the paid search spend, and $I_t$ the search impressions ($uf$ and $lf$ mark the upper and lower funnel):
+Let $U_{t,c}$ be the spend of upper funnel channel $c$ in week $t$, $B_t$ the paid search spend, $I_t$ the search impressions, $\mu_t$ the mean of sales, and $\text{MMM}_t$ the direct terms of the other channels and the controls. The scales $s_B$ and $s_I$ are the maxima of $B_t$ and $I_t$, $\sigma_I$ is the measurement noise, and $uf$ and $lf$ mark the upper and lower funnel:
 
 $$
 \begin{align*}
 D_t & = \text{baseline} + \sum_{c \in \text{upper}} \text{sat}^{uf}\left(\text{adstock}^{uf}(U_{t,c})\right) \\
 M^{*}_t & = D_t + \lambda \, \frac{B_t}{s_{B}} \\
-I_t & \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{lower}=0\right)
+I_t & \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{lower}=0\right) \\
+\mu_t & = \text{MMM}_t + \text{sat}^{lf}\left(\text{adstock}^{lf}(M^{*}_t)\right)
 \end{align*}
 $$
 
-Sales get the extra term $\text{sat}^{lf}\left(\text{adstock}^{lf}(M^{*}_t)\right)$. Here $\lambda$ converts paid search spend into search demand, $s_{B}$ and $s_{I}$ are the series maxima, and $\sigma_I$ is the measurement noise.
+::: {.callout-note appearance="simple"}
+This is a structural equation model with a latent variable. The impressions equation is the **measurement model**, and we fix its loading at one to set the scale of $M^*_t$.
+:::
 
-::: {.callout-note}
+::: footer
+[PyMC-Marketing: MMM Case Study II](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html)
+:::
 
-## A Structural Equation Model
+## Funnel Model Intuition
 
-This is a structural equation model with a latent variable. The impressions equation is the **measurement model**. We fix its loading at one (on $I_t / s_I$) to set the scale of $M^*$.
+::: {style="font-size: 85%;"}
+
+- **Demand pool:** $D_t$ is the pool of people who look for the product. It is a baseline of ambient interest plus the interest that `TV`, `Radio`, and `Newspaper` add, with a lag and diminishing returns.
+- **Search demand:** $M^*_t$ is the demand that paid search reaches: the pool plus what the paid search spend adds. The parameter $\lambda$ is the exchange rate between search money and search demand.
+- **Measurement:** the impressions $I_t$ tell the model where $M^*_t$ is. They do not cause sales.
+- **Sales:** paid search has no direct term in $\mu_t$. Search demand turns into sales with its own lag and diminishing returns.
 
 :::
 
 ::: footer
-[PyMC-Marketing v1.2.0: MMM Case Study II](https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_case_study2.html)
+[PyMC-Marketing: MMM Case Study II](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html)
 :::
 
 ## Direct and Mediated Contributions {.smaller}
@@ -744,132 +743,56 @@ This is a structural equation model with a latent variable. The impressions equa
 ::::
 
 ::: footer
-[PyMC-Marketing v1.2.0: MMM Case Study II](https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_case_study2.html)
+[PyMC-Marketing: MMM Case Study II](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html)
 :::
 
-## Causal Identification in Funnel Models {.smaller}
+## Budget Optimization {.smaller}
 
-We make the funnel more realistic: paid search spend responds to demand, there are three geos (regions), and unobserved noise is shared across media plans. We simulate $130$ weeks from the funnel model with the true parameters fixed via `pm.do`, so we know the truth.
+Let $b_m$ be the weekly spend of channel $m$ that we hold over the planning window, $B$ the total weekly budget, $[l_m, u_m]$ the guardrails of channel $m$, and $R(b; \theta)$ the sales response over the window for the plan $b$ and the model parameters $\theta$. We solve
+
+$$
+\max_{b} \; \text{E}\left[R(b; \theta) \mid y\right] \quad \text{subject to} \quad \sum_{m} b_m = B, \quad l_m \le b_m \le u_m
+$$
+
+- Each plan is an intervention $\text{do}(x = b)$. The plan relies on the causal estimates of the response curves, so calibration matters here.
+- Because of saturation, the optimizer moves money from channels with a low marginal return to channels with a high marginal return, until the marginal returns match or a guardrail binds.
+- The guardrails keep the plan close to the spend we observed. The posterior gives a distribution of the response for each plan, so we can also optimize a risk-aware utility instead of the mean.
+
+::: footer
+[PyMC-Marketing: MMM Case Study II, Budget Optimization](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#budget-optimization)
+:::
+
+## Funnel-Aware Budget Optimization {.smaller}
 
 :::: {.columns}
-::: {.column width="56%"}
+::: {.column width="58%"}
 
-- **Mediator:** in the case study, paid search spend was the input $B$. Here `lower_spend` ($M$) measures the latent $M^* = D + \lambda B$, and $B$ is a separate budget `lf_budget`.
-- **Indicator:** branded search `search_volume` ($S$, searches for the brand name) measures latent demand $D$. It does not cause sales.
-- **Confounding:** `tv_spend`, `social_spend`, and category demand (demand for the product category) share seasonality, trend, and unobserved noise.
+![](hertie_2026_files/static/images/budget_allocation.png){fig-align="center" width="580"}
 
 :::
-::: {.column width="44%"}
+::: {.column width="42%"}
 
-![](hertie_2026_files/static/images/geo_funnel_latent_north.png){fig-align="center" width="400"}
-
-North geo. Yellow: $D$, magenta: $M^*$, thin pink: $M$, brown: $S$.
+- We plan the next $13$ weeks with one budget that includes paid search (`sem_spend`) and guardrails of $\pm 50\%$. The direct-only objective cannot see the path through $M^*$, so it keeps paid search at its historical level.
+- With paid search fixed, both objectives give the same plan. The funnel-aware plan cuts paid search by $16\%$ and moves the money to the other channels.
 
 :::
 ::::
 
-::: footer
-[PyMC-Marketing v1.2.0: Advanced Funnel-Aware MMM](https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_funnel_mueffect_advanced.html)
-:::
-
-## The Causal DAG {.smaller}
-
-![](hertie_2026_files/static/images/geo_funnel_dag.svg){fig-align="center" width="1000"}
-
-- **Mediator vs indicator:** we ask whether doubling the variable would move sales. For lower funnel spend it would, so it is a mediator. For branded search it would not, so it is an indicator.
-- **Exclusion restriction:** the budget $B$ enters $M^*$ but not $S$. This identifies $\lambda$, and nothing else in the model can replace it. That category demand $C$ enters $D$ but not $Y$ is a modeling convenience, because $C$ is observed.
-- The driver noise $N$ is unobserved. It confounds `tv_spend`, `social_spend`, and category demand.
+> In this model, the useful role of the funnel is that it tells us how much to spend on SEM, not that it changes the order of the other media channels.
 
 ::: footer
-[PyMC-Marketing v1.2.0: Advanced Funnel-Aware MMM](https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_funnel_mueffect_advanced.html)
+[PyMC-Marketing: MMM Case Study II, Budget Optimization](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#budget-optimization)
 :::
 
-## Identification by Model {.smaller}
+## Takeaways
 
-We use the DAG to check which conditioning sets satisfy the backdoor criterion for the **total** effect of `tv_spend` ($U_1$) on sales. Here $M$ is the observed `lower_spend` and $S$ is branded search. There are $43$ backdoor paths from $U_1$ to $Y$.
+::: {style="font-size: 92%;"}
 
-| Model                   | Conditions on            | Valid for the total effect?          |
-|:------------------------|:-------------------------|:-------------------------------------|
-| A: mediator as channel  | $M$, $U_2$, season       | No: $M$ is a descendant of $U_1$     |
-| B: mediator omitted     | $U_2$, season            | No: $4$ backdoor paths stay open      |
-| B+: demand as control   | $C$, $U_2$, season       | **Yes**: all backdoor paths blocked  |
-| B++: trend as control   | $t$, $U_2$, season       | No: $1$ backdoor path stays open      |
-| C: indicator as channel | $S$, $U_2$, season       | No: $S$ is a descendant of $U_1$     |
-| Funnel model            | models $D$, $M^*$, $S$   | Relies on the structural equations   |
-
-::: {.callout-note appearance="simple"}
-B++ leaves the path $U_1 \leftarrow N \to C \to D \to M^* \to Y$ open because the noise $N$ is unobserved. We run these checks with `networkx` on the same edge list that draws the DAG.
-:::
-
-::: footer
-[PyMC-Marketing v1.2.0: Advanced Funnel-Aware MMM](https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_funnel_mueffect_advanced.html)
-:::
-
-## Testable and Untestable Assumptions {.smaller}
-
-::: {.callout-warning}
-
-## Untestable
-
-The funnel model is correct only if the demand equation is right and nothing unobserved confounds $M^* \to Y$. The backdoor checks cannot verify these assumptions. Posterior predictive checks of `lower_spend` and `search_volume` can reveal some errors in the demand equation, but not an unobserved confounder of $M^* \to Y$.
-
-:::
-
-::: {.callout-tip}
-
-## Testable
-
-The DAG implies that the budget $B$ and branded search $S$ are independent ($B \perp S$), but not given $Y$ or $M$. In the data, the correlations per geo are $-0.070$, $+0.046$, and $-0.101$, against a standard error of about $0.09$. The data does not contradict the DAG.
-
-:::
-
-::: {.callout-note}
-
-## A Fair Comparison
-
-Here, the funnel model is the true data-generating process. It also fits two extra series (`lower_spend`, `search_volume`) and uses two extra inputs (`category_demand`, `lf_budget`). The gain comes from structure and information together.
-
-:::
-
-::: footer
-[PyMC-Marketing v1.2.0: Advanced Funnel-Aware MMM](https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_funnel_mueffect_advanced.html)
-:::
-
-## ROAS by Model {.smaller}
-
-![](hertie_2026_files/static/images/geo_funnel_national_roas.png){fig-align="center" width="680"}
-
-Against the true total ROAS (dashed line), the four naive models that target the total effect overstate the national ROAS by $18\%$ to $31\%$. The funnel model is $6\%$ above the truth, and even the valid adjustment set (B+) is $30\%$ above it. The rows below the separator target the direct effect (dotted line). The row "all incremental spend" also counts the paid search spend that the upper funnel induces.
-
-::: footer
-[PyMC-Marketing v1.2.0: Advanced Funnel-Aware MMM](https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_funnel_mueffect_advanced.html)
-:::
-
-## Predictive Fit {.smaller}
-
-- The in-sample $R^2$ of the six models ranges from $0.979$ to $0.987$, while their ROAS estimates differ by tens of percent.
-- **`tv_spend`:** category demand enters B+ as a linear control, while the media effects are flexible curves, so the curves absorb part of the demand effect. The invalid set B++ has a mean error of $4.4\%$, and the valid set B+ has $15.3\%$.
-- **`social_spend`:** every model overstates it in `south`, including the funnel model at $+27\%$. B+ is $100\%$ too high there and $40\%$ too high in `west`. The backdoor is open on the graph but at noise level in the data, so the control removes little. A separate response curve per channel cannot represent the shared, saturating mediated pool.
-
-> A valid adjustment set says which variables you need, not how they enter the model or which structure is missing.
->
-> [Advanced Funnel-Aware MMM](https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_funnel_mueffect_advanced.html)
-
-::: footer
-[PyMC-Marketing v1.2.0: Advanced Funnel-Aware MMM](https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_funnel_mueffect_advanced.html)
-:::
-
-## Takeaways {.smaller}
-
-::: {.callout-tip}
-
-## Causal Inference with PPLs
-
-- **The model states the assumptions.** We write the DAG as code: job training, MMM, and funnel models.
-- **Priors and experiments carry outside information.** Priors rule out implausible lifts in A/B tests. ROAS priors and lift test likelihoods reduce confounding bias in MMMs (on `x1`, from $+112\%$ to $+17\%$).
-- **The same `do` query works across models.** It applies to a linear regression, a Gamma GLM, a latent variable model in NumPyro, and a funnel model with latent demand.
-- **Hierarchies and latent variables extend the model.** A latent group variable removes group-level confounding, and measurement equations link impressions and branded search to latent demand.
-- **Identification comes first.** The DAG tells us which variables we need. The functional form still matters, and a good in-sample fit replaces neither.
+- **The model states the assumptions.** We write the DAG as code.
+- **Priors and experiments carry outside information.** Lift priors rule out implausible lifts in A/B tests. ROAS priors and lift tests reduce confounding bias in MMMs.
+- **The same `do` query works across models.** It applies to regressions, GLMs, MMMs, and funnel models.
+- **Hierarchies regularize.** They do not replace thinking about the DAG.
+- **The causal structure changes decisions.** The funnel model tells us how much to spend on paid search.
 
 :::
 
@@ -885,15 +808,14 @@ Against the true total ROAS (dashed line), the four naive models that target the
 - [Prior Predictive Modeling in Bayesian AB Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
 - [Introduction to Causal Inference with PPLs](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/)
 - [Fixed and Random Effects Models: A Simulated Study](https://juanitorduz.github.io/fixed_random/)
-- [Causal Effect Estimation with Variational Inference and Latent Confounders](https://juanitorduz.github.io/online_game_ate/)
 - [Media Mix Model and Experimental Calibration: A Simulation Study](https://juanitorduz.github.io/mmm_roas/)
+- [The Frugal Parameterization for Bayesian Causal Inference in PyMC](https://juanitorduz.github.io/frugal_parametrization_pymc/)
 
 #### PyMC-Marketing Notebooks
 
-- [Case Study: Unobserved Confounders, ROAS and Lift Tests (v0.17.1)](https://www.pymc-marketing.io/en/0.17.1/notebooks/mmm/mmm_roas.html)
-- [Lift Test Calibration (v0.10.0)](https://www.pymc-marketing.io/en/0.10.0/notebooks/mmm/mmm_lift_test.html)
-- [MMM Case Study II: Funnel-Aware Modeling, ROAS Calibration, and Budget Planning (v1.2.0)](https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_case_study2.html)
-- [Advanced Funnel-Aware MMM: Geo-Level Mediation Through Lower-Funnel Spend (v1.2.0)](https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_funnel_mueffect_advanced.html)
+- [Mitigating Unobserved Confounders in MMMs with Lift Test Likelihoods](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_roas.html)
+- [Lift Test Calibration](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_lift_test.html)
+- [MMM Case Study II: Funnel-Aware Modeling, ROAS Calibration, and Budget Planning](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html)
 
 :::
 ::: {.column width="30%"}
@@ -903,7 +825,12 @@ Against the true total ROAS (dashed line), the four naive models that target the
 - [CausalPy](https://causalpy.readthedocs.io/)
 - [NumPyro](https://num.pyro.ai/)
 - [PyMC](https://www.pymc.io/)
-- [PyMC-Marketing](https://www.pymc-marketing.io/)
+- [PyMC-Marketing](https://www.pymc-marketing.io/) (Dean et al., 2026)
+
+#### Books
+
+- Pearl, J., Glymour, M. & Jewell, N. P. (2016). [*Causal Inference in Statistics: A Primer*.](http://bayes.cs.ucla.edu/PRIMER/)
+- McElreath, R. (2020). [*Statistical Rethinking* (2nd ed.).](https://xcelab.net/rm/)
 
 :::
 ::::
@@ -921,20 +848,14 @@ Against the true total ROAS (dashed line), the four naive models that target the
 - LaLonde, R. J. (1986). [Evaluating the econometric evaluations of training programs with experimental data.](https://www.jstor.org/stable/1806062) *American Economic Review*.
 - Dehejia, R. H. & Wahba, S. (1999). [Causal effects in nonexperimental studies: reevaluating the evaluation of training programs.](https://doi.org/10.1080/01621459.1999.10473858) *Journal of the American Statistical Association*.
 - Dehejia, R. H. & Wahba, S. (2002). [Propensity score-matching methods for nonexperimental causal studies.](https://doi.org/10.1162/003465302317331982) *Review of Economics and Statistics*.
-- Louizos, C. et al. (2017). [Causal effect inference with deep latent-variable models.](https://proceedings.neurips.cc/paper_files/paper/2017/file/94b5bde6de888ddf9cde6748ad2523d1-Paper.pdf) *NeurIPS*.
 - Jin, Y. et al. (2017). [Bayesian methods for media mix modeling with carryover and shape effects.](https://research.google/pubs/pub46001/)
 - Chan, D. & Perry, M. (2017). [Challenges and opportunities in media mix modeling.](https://storage.googleapis.com/gweb-research2023-media/pubtools/3803.pdf)
 - Zhang, Y. et al. (2024). [Media mix model calibration with Bayesian priors.](https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/)
-
-#### Books
-
-- Pearl, J., Glymour, M. & Jewell, N. P. (2016). [*Causal Inference in Statistics: A Primer*.](http://bayes.cs.ucla.edu/PRIMER/)
-- McElreath, R. (2020). [*Statistical Rethinking* (2nd ed.).](https://xcelab.net/rm/)
+- Evans, R. J. & Didelez, V. (2024). [Parameterizing and simulating from causal models.](https://doi.org/10.1093/jrsssb/qkad058) *Journal of the Royal Statistical Society Series B*.
+- Dean, W., Orduz, J., et al. (2026). [PyMC-Marketing: Bayesian marketing mix models and customer analytics in Python.](https://doi.org/10.21105/joss.10805) *Journal of Open Source Software*.
 
 :::
 
 ## [Thank You!]{style="color: white;"} {background-image="hertie_2026_files/static/images/logos/pymc-labs-black.jpg"}
 
 #### [juan.orduz@pymc-labs.com](mailto:juan.orduz@pymc-labs.com){style="color: white;"}
-
-![](hertie_2026_files/static/images/logos/juanitorduz.png){.absolute top=400 right=0 width=250 height=250}
