@@ -198,7 +198,7 @@
   <div class="reveal">
     <div class="slides">
 
-<section id="title-slide" data-background-image="hertie_2026_files/static/images/logos/curves.png" data-background-opacity="0.10" data-background-size="cover" class="quarto-title-block center">
+<section id="title-slide" data-background-image="hertie_2026_files/static/images/logos/pymc_labs_icon.png" data-background-opacity="0.10" data-background-size="cover" class="quarto-title-block center">
   <h1 class="title">Causal Inference Through the Lens of Probabilistic Programming</h1>
   <p class="subtitle">Hertie School: Data Science Brown Bag 2026</p>
 
@@ -216,36 +216,35 @@
 <div class="columns">
 <div class="column" style="width:50%;">
 <ol type="1">
-<li>Causal Inference and Bayes</li>
+<li>Causal Inference and PPLs</li>
 <li>Bayesian A/B Testing</li>
 <li>Regression and the <code>do</code> Operator</li>
+<li>Hierarchies and Latent Confounders</li>
 <li>Marketing Mix Models</li>
 <li>Unobserved Confounders</li>
 </ol>
 </div><div class="column" style="width:50%;">
-<ol start="6" type="1">
-<li>ROAS and Lift Test Calibration</li>
+<ol start="7" type="1">
+<li>Calibration with Experiments</li>
 <li>Funnel Models in Marketing</li>
 <li>Causal Identification in Funnel Models</li>
+<li>Takeaways</li>
 <li>References</li>
 </ol>
 </div></div>
 </section>
-<section id="what-is-causal-inference" class="slide level2 smaller">
-<h2>What is Causal Inference?</h2>
+<section id="causal-inference" class="slide level2 smaller">
+<h2>Causal Inference</h2>
 <ul>
 <li><strong>Goal:</strong> Estimate the effect of a treatment <span class="math inline">\(T\)</span> on an outcome <span class="math inline">\(Y\)</span>.</li>
-<li><strong>Potential outcomes</strong> (Rubin, 1974): for each unit <span class="math inline">\(i\)</span> there are two potential outcomes:
+<li><strong>Potential outcomes</strong> (Neyman, 1923; Rubin, 1974): for each unit <span class="math inline">\(i\)</span> there are two potential outcomes:
 <ul>
 <li><span class="math inline">\(Y_i(1)\)</span>: outcome if treated</li>
 <li><span class="math inline">\(Y_i(0)\)</span>: outcome if not treated</li>
 </ul></li>
 <li><strong>Individual treatment effect:</strong> <span class="math inline">\(\tau_i = Y_i(1) - Y_i(0)\)</span></li>
-<li><strong>Average treatment effect (ATE):</strong></li>
+<li><strong>Average treatment effect:</strong> <span class="math inline">\(\text{ATE} = \text{E}[Y(1) - Y(0)]\)</span></li>
 </ul>
-<p><span class="math display">\[
-\text{ATE} = \text{E}[Y(1) - Y(0)]
-\]</span></p>
 <div class="callout callout-warning callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
@@ -264,8 +263,8 @@
 </div>
 </div>
 </section>
-<section id="what-is-bayesian-statistics" class="slide level2 smaller">
-<h2>What is Bayesian Statistics?</h2>
+<section id="bayesian-statistics" class="slide level2 smaller">
+<h2>Bayesian Statistics</h2>
 <p>We use Bayes’ theorem to update our beliefs about parameters <span class="math inline">\(\theta\)</span> after we observe data <span class="math inline">\(y\)</span>:</p>
 <p><span class="math display">\[
 \underbrace{p(\theta \mid y)}_{\text{posterior}} \propto \underbrace{p(y \mid \theta)}_{\text{likelihood}} \cdot \underbrace{p(\theta)}_{\text{prior}}
@@ -302,8 +301,8 @@
 </div>
 </div>
 </section>
-<section id="why-ppls-for-causal-inference" class="slide level2 smaller">
-<h2>Why PPLs for Causal Inference?</h2>
+<section id="causal-inference-and-ppls" class="slide level2 smaller">
+<h2>Causal Inference and PPLs</h2>
 <p>In industry, we estimate causal effects from limited data and under assumptions we cannot fully test. PPLs help in the following ways:</p>
 <div class="callout callout-tip callout-style-simple">
 <div class="callout-body">
@@ -313,10 +312,10 @@
 <div class="callout-content">
 <ul>
 <li><p><strong>The model is the DAG:</strong> we write the data-generating process as code, so every causal assumption is explicit.</p></li>
-<li><p><strong>Priors:</strong> domain knowledge and past experiments enter the estimate (A/B testing, ROAS calibration).</p></li>
+<li><p><strong>Priors:</strong> domain knowledge and past experiments enter the estimate.</p></li>
 <li><p><strong>Uncertainty:</strong> we get a posterior distribution for every causal quantity.</p></li>
-<li><p><strong>The <code>do</code> operator:</strong> we apply interventions to the model and compute counterfactuals (<code>pm.do</code> in PyMC, <code>numpyro.handlers.do</code> in NumPyro).</p></li>
-<li><p><strong>Flexible structure:</strong> non-linear likelihoods, latent variables, measurement models, and shared and geo-specific parameters. The <code>do</code> operator still applies.</p></li>
+<li><p><strong>The <code>do</code> operator:</strong> we apply interventions to the model and compute counterfactual predictions (<code>pm.do</code> in PyMC, <code>numpyro.handlers.do</code> in NumPyro).</p></li>
+<li><p><strong>Flexible structure:</strong> non-linear likelihoods, hierarchical models, latent variables, and measurement models. The <code>do</code> operator still applies.</p></li>
 </ul>
 </div>
 </div>
@@ -327,8 +326,7 @@
 <i class="callout-icon"></i>
 </div>
 <div class="callout-content">
-<p>This does not mean that Bayesian methods are better than frequentist methods. Every framework has assumptions and limitations.</p>
-<p>PPLs do not solve <strong>identification</strong>. They help with <strong>estimation</strong> once we state the causal assumptions.</p>
+<p>Every framework, Bayesian or frequentist, has assumptions and limitations. PPLs do not solve <strong>identification</strong>. They help with <strong>estimation</strong> once we state the causal assumptions.</p>
 </div>
 </div>
 </div>
@@ -341,13 +339,13 @@
 <i class="callout-icon"></i>
 </div>
 <div class="callout-content">
-<p>In an A/B test, we randomly assign users to a control group and a treatment group. Random assignment makes the treatment independent of all confounders, observed and unobserved. The hard part moves from identification to estimation under uncertainty. We observe <span class="math inline">\(N_\text{c}\)</span> and <span class="math inline">\(N_\text{t}\)</span> conversions out of <span class="math inline">\(N\)</span> users per group.</p>
+<p>In an A/B test, we randomly assign users to a control group and a treatment group. Random assignment makes the treatment independent of all confounders, observed and unobserved. The hard part moves from identification to estimation under uncertainty. We observe <span class="math inline">\(y_\text{c}\)</span> and <span class="math inline">\(y_\text{t}\)</span> conversions out of <span class="math inline">\(n\)</span> users per group, and we add a Binomial likelihood for them later.</p>
 </div>
 </div>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-code-line-numbers="|1|2-4|5-7|8-11|"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> non_informative_model:</span>
 <span id="cb1-2"><a href=""></a>    conversion_rate_control <span class="op">=</span> pm.Uniform(</span>
-<span id="cb1-3"><a href=""></a>      <span class="st">"conversion_rate_control"</span>, lower<span class="op">=</span><span class="dv">0</span>, upper<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb1-3"><a href=""></a>        <span class="st">"conversion_rate_control"</span>, lower<span class="op">=</span><span class="dv">0</span>, upper<span class="op">=</span><span class="dv">1</span></span>
 <span id="cb1-4"><a href=""></a>    )</span>
 <span id="cb1-5"><a href=""></a>    conversion_rate_treatment <span class="op">=</span> pm.Uniform(</span>
 <span id="cb1-6"><a href=""></a>        <span class="st">"conversion_rate_treatment"</span>, lower<span class="op">=</span><span class="dv">0</span>, upper<span class="op">=</span><span class="dv">1</span></span>
@@ -357,111 +355,73 @@
 <span id="cb1-10"><a href=""></a>        conversion_rate_treatment <span class="op">/</span> conversion_rate_control <span class="op">-</span> <span class="dv">1</span>,</span>
 <span id="cb1-11"><a href=""></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="columns">
-<div class="column" style="width:70%;">
+<div class="column" style="width:65%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
 <p><img data-src="hertie_2026_files/static/images/prior_predictive_ab_testing_5_0.svg" class="quarto-figure quarto-figure-center" width="480"></p>
 </figure>
 </div>
-</div><div class="column" style="width:30%;">
+</div><div class="column" style="width:35%;">
 <p><span class="math display">\[\begin{align*}
 \text{cr}_\text{c} &amp; \sim \text{Beta}(1, 1) \\
 \text{cr}_\text{t} &amp; \sim \text{Beta}(1, 1) \\
-\text{lift} &amp; = \text{cr}_\text{t} / \text{cr}_\text{c} - 1 \\
-N_{\text{c}} &amp; \sim \text{Binomial}(N, \text{cr}_\text{c}) \\
-N_{\text{t}} &amp; \sim \text{Binomial}(N, \text{cr}_\text{t}) \\
+\text{lift} &amp; = \text{cr}_\text{t} / \text{cr}_\text{c} - 1
 \end{align*}\]</span></p>
 </div></div>
 <div class="footer">
-<p><a href="https://juanitorduz.github.io/prior_predictive_ab_testing/">Prior Predictive Modeling in Bayesian A/B Testing</a></p>
+<p><a href="https://juanitorduz.github.io/prior_predictive_ab_testing/">Prior Predictive Modeling in Bayesian AB Testing</a></p>
 </div>
 </section>
-<section id="uninformative-priors" class="slide level2 smaller">
-<h2>Uninformative Priors</h2>
+<section id="independent-priors" class="slide level2 smaller">
+<h2>Independent Priors</h2>
 <div class="callout callout-important callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<p><strong>Uninformative priors give implausible values for the relative lift.</strong></p>
+<p><strong>Independent priors give implausible lifts.</strong></p>
 </div>
 <div class="callout-content">
-<p>The relative lift is a ratio of two random variables. With flat priors on the two conversion rates, the prior allows a treatment that is <span class="math inline">\(100\)</span> times better than control.</p>
+<p>The relative lift is a ratio of two random variables. Flat priors on the two conversion rates allow a treatment that is <span class="math inline">\(100\)</span> times better than control. Informative priors that put both rates near <span class="math inline">\(2.4\%\)</span> still allow lifts of <span class="math inline">\(50\%\)</span>, which are rare in practice.</p>
 </div>
 </div>
 </div>
 <div class="columns">
-<div class="column" style="width:40.5%;">
+<div class="column" style="width:50%;">
+<p><strong>Flat:</strong> <span class="math inline">\(\text{cr}_\text{c}, \text{cr}_\text{t} \sim \text{Beta}(1, 1)\)</span></p>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="hertie_2026_files/static/images/prior_predictive_ab_testing_11_0.png" class="quarto-figure quarto-figure-center" width="700"></p>
+<p><img data-src="hertie_2026_files/static/images/prior_predictive_ab_testing_14_0.png" class="quarto-figure quarto-figure-center" width="480"></p>
 </figure>
 </div>
-</div><div class="column" style="width:59.5%;">
+</div><div class="column" style="width:50%;">
+<p><strong>Informative:</strong> <span class="math inline">\(\text{cr}_\text{c}, \text{cr}_\text{t} \sim \text{Beta}(15, 600)\)</span></p>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="hertie_2026_files/static/images/prior_predictive_ab_testing_14_0.png" class="quarto-figure quarto-figure-center" width="700"></p>
-</figure>
-</div>
-</div></div>
-<div class="footer">
-<p><a href="https://juanitorduz.github.io/prior_predictive_ab_testing/">Prior Predictive Modeling in Bayesian A/B Testing</a></p>
-</div>
-</section>
-<section id="informative-priors" class="slide level2 smaller">
-<h2>Informative Priors</h2>
-<div class="columns">
-<div class="column" style="width:30%;">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="hertie_2026_files/static/images/prior_predictive_ab_testing_23_0.png" class="quarto-figure quarto-figure-center" width="260"></p>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="hertie_2026_files/static/images/prior_predictive_ab_testing_25_0.png" class="quarto-figure quarto-figure-center" width="260"></p>
-</figure>
-</div>
-</div><div class="column" style="width:70%;">
-<div class="callout callout-warning callout-titled callout-style-default">
-<div class="callout-body">
-<div class="callout-title">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<p><strong>Informative priors on each rate are not enough.</strong></p>
-</div>
-<div class="callout-content">
-<p>With <span class="math inline">\(\text{cr}_\text{c}, \text{cr}_\text{t} \sim \text{Beta}(15, 600)\)</span>, both conversion rates are close to <span class="math inline">\(2.4\%\)</span>. Still, the prior allows lifts of <span class="math inline">\(50\%\)</span>, which are rare in practice.</p>
-</div>
-</div>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="hertie_2026_files/static/images/prior_predictive_ab_testing_27_0.png" class="quarto-figure quarto-figure-center" width="620"></p>
+<p><img data-src="hertie_2026_files/static/images/prior_predictive_ab_testing_27_0.png" class="quarto-figure quarto-figure-center" width="480"></p>
 </figure>
 </div>
 </div></div>
 <div class="footer">
-<p><a href="https://juanitorduz.github.io/prior_predictive_ab_testing/">Prior Predictive Modeling in Bayesian A/B Testing</a></p>
+<p><a href="https://juanitorduz.github.io/prior_predictive_ab_testing/">Prior Predictive Modeling in Bayesian AB Testing</a></p>
 </div>
 </section>
 <section id="correlated-priors" class="slide level2 smaller">
 <h2>Correlated Priors</h2>
-<p>We know that most true lifts are small. So we set the prior on the <strong>relative lift</strong> itself.</p>
+<p>Most true lifts are small. So we set the prior on the <strong>relative lift</strong> itself, and the joint prior of the two rates concentrates on the diagonal.</p>
 <div class="columns">
 <div class="column" style="width:55%;">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-code-line-numbers="|2-4|5-7|8-11|"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href=""></a><span class="cf">with</span> pm.Model() <span class="im">as</span> correlated_model:</span>
 <span id="cb2-2"><a href=""></a>    conversion_rate_control <span class="op">=</span> pm.Beta(</span>
-<span id="cb2-3"><a href=""></a>      <span class="st">"conversion_rate_control"</span>, alpha<span class="op">=</span><span class="dv">15</span>, beta<span class="op">=</span><span class="dv">600</span></span>
+<span id="cb2-3"><a href=""></a>        <span class="st">"conversion_rate_control"</span>, alpha<span class="op">=</span><span class="dv">15</span>, beta<span class="op">=</span><span class="dv">600</span></span>
 <span id="cb2-4"><a href=""></a>    )</span>
 <span id="cb2-5"><a href=""></a>    relative_lift <span class="op">=</span> pm.Normal(</span>
-<span id="cb2-6"><a href=""></a>      <span class="st">"relative_lift"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="fl">0.1</span></span>
+<span id="cb2-6"><a href=""></a>        <span class="st">"relative_lift"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="fl">0.1</span></span>
 <span id="cb2-7"><a href=""></a>    )</span>
 <span id="cb2-8"><a href=""></a>    conversion_rate_treatment <span class="op">=</span> pm.Deterministic(</span>
 <span id="cb2-9"><a href=""></a>        <span class="st">"conversion_rate_treatment"</span>,</span>
-<span id="cb2-10"><a href=""></a>        conversion_rate_control <span class="op">*</span> (<span class="dv">1</span> <span class="op">+</span> relative_lift)</span>
+<span id="cb2-10"><a href=""></a>        conversion_rate_control <span class="op">*</span> (<span class="dv">1</span> <span class="op">+</span> relative_lift),</span>
 <span id="cb2-11"><a href=""></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="quarto-figure quarto-figure-center">
 <figure>
@@ -481,47 +441,44 @@ N_{\text{t}} &amp; \sim \text{Binomial}(N, \text{cr}_\text{t}) \\
 </div>
 </div></div>
 <div class="footer">
-<p><a href="https://juanitorduz.github.io/prior_predictive_ab_testing/">Prior Predictive Modeling in Bayesian A/B Testing</a></p>
+<p><a href="https://juanitorduz.github.io/prior_predictive_ab_testing/">Prior Predictive Modeling in Bayesian AB Testing</a></p>
 </div>
 </section>
 <section id="inference-with-correlated-priors" class="slide level2 smaller">
 <h2>Inference with Correlated Priors</h2>
-<p>We observe <span class="math inline">\(200\)</span> and <span class="math inline">\(350\)</span> conversions out of <span class="math inline">\(10{,}000\)</span> users per group (a naive lift of <span class="math inline">\(75\%\)</span>). The posterior shrinks both conversion rates toward the prior, so the lift estimate is more conservative.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" data-code-line-numbers="|2-4|5-7|"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href=""></a><span class="cf">with</span> correlated_model:</span>
-<span id="cb3-2"><a href=""></a>    pm.Binomial(</span>
-<span id="cb3-3"><a href=""></a>      <span class="st">"n_control"</span>, n<span class="op">=</span>n, p<span class="op">=</span>conversion_rate_control, observed<span class="op">=</span>n_c</span>
-<span id="cb3-4"><a href=""></a>    )</span>
-<span id="cb3-5"><a href=""></a>    pm.Binomial(</span>
-<span id="cb3-6"><a href=""></a>      <span class="st">"n_treatment"</span>, n<span class="op">=</span>n, p<span class="op">=</span>conversion_rate_treatment, observed<span class="op">=</span>n_t</span>
-<span id="cb3-7"><a href=""></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>We observe <span class="math inline">\(200\)</span> and <span class="math inline">\(350\)</span> conversions out of <span class="math inline">\(10{,}000\)</span> users per group (naive lift <span class="math inline">\(75\%\)</span>).</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" data-code-line-numbers="|2|3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href=""></a><span class="cf">with</span> correlated_model:</span>
+<span id="cb3-2"><a href=""></a>    pm.Binomial(<span class="st">"n_control"</span>, n<span class="op">=</span>n, p<span class="op">=</span>conversion_rate_control, observed<span class="op">=</span>n_c)</span>
+<span id="cb3-3"><a href=""></a>    pm.Binomial(<span class="st">"n_treatment"</span>, n<span class="op">=</span>n, p<span class="op">=</span>conversion_rate_treatment, observed<span class="op">=</span>n_t)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="columns">
-<div class="column" style="width:40%;">
+<div class="column" style="width:50%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="hertie_2026_files/static/images/prior_predictive_ab_testing_50_0.svg" class="quarto-figure quarto-figure-center" width="300"></p>
+<p><img data-src="hertie_2026_files/static/images/prior_predictive_ab_testing_54_0.png" class="quarto-figure quarto-figure-center" width="380"></p>
 </figure>
 </div>
-</div><div class="column" style="width:60%;">
+</div><div class="column" style="width:50%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="hertie_2026_files/static/images/prior_predictive_ab_testing_54_0.png" class="quarto-figure quarto-figure-center" width="420"></p>
+<p><img data-src="hertie_2026_files/static/images/prior_predictive_ab_testing_59_0.png" class="quarto-figure quarto-figure-center" width="380"></p>
 </figure>
 </div>
 </div></div>
+<p>The posterior lift is <span class="math inline">\(31\%\)</span> (<span class="math inline">\(94\%\)</span> HDI <span class="math inline">\([18\%, 43\%]\)</span>), and both observed rates fall outside their HDIs. Twyman’s law says that any figure that looks interesting or different is usually wrong, so we check the experiment before we trust it.</p>
 <div class="footer">
-<p><a href="https://juanitorduz.github.io/prior_predictive_ab_testing/">Prior Predictive Modeling in Bayesian A/B Testing</a></p>
+<p><a href="https://juanitorduz.github.io/prior_predictive_ab_testing/">Prior Predictive Modeling in Bayesian AB Testing</a></p>
 </div>
 </section>
-<section id="confounders-an-example" class="slide level2 smaller">
-<h2>Confounders: An Example</h2>
-<p>We use the LaLonde data from a job training program (National Supported Work Demonstration, 1970s). We ask whether job training increases earnings.</p>
+<section id="observed-confounders" class="slide level2 smaller">
+<h2>Observed Confounders</h2>
+<p>Without randomization, we must adjust for confounders. We use the LaLonde data from a job training program (National Supported Work Demonstration, 1970s) and ask whether job training increases earnings.</p>
 <div class="columns">
 <div class="column" style="width:60%;">
 <ul>
 <li><strong>Treatment:</strong> participation in the job training program (<code>treat</code>).</li>
 <li><strong>Outcome:</strong> earnings in 1978 (<code>re78</code>, in thousands of USD).</li>
 <li><strong>Covariates:</strong> education, age, earnings in 1975 (<code>re75</code>), race and ethnicity, marital status, degree.</li>
-<li><strong>Naive comparison:</strong> the treated group earned <span class="math inline">\(635\)</span> USD less than the comparison group. But the comparison group comes from an observational survey, so treatment was not randomly assigned.</li>
+<li><strong>Naive comparison:</strong> the treated group earned <span class="math inline">\(635\)</span> USD less than the comparison group. The <span class="math inline">\(185\)</span> treated units come from the experiment, but the <span class="math inline">\(429\)</span> comparison units come from an observational survey, so treatment was not randomly assigned.</li>
 </ul>
 </div><div class="column" style="width:40%;">
 <div class="quarto-figure quarto-figure-center">
@@ -544,13 +501,13 @@ N_{\text{t}} &amp; \sim \text{Binomial}(N, \text{cr}_\text{t}) \\
 <p><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></p>
 </div>
 </section>
-<section id="ate-estimation-strategies" class="slide level2 smaller">
-<h2>ATE Estimation Strategies</h2>
+<section id="regression-and-the-do-operator" class="slide level2 smaller">
+<h2>Regression and the <code>do</code> Operator</h2>
 <p>We have two ways to estimate the ATE:</p>
 <ol type="1">
 <li><p>We fit a linear regression and read the estimate of <span class="math inline">\(\beta_{\text{treat}}\)</span> as the ATE:</p>
 <p><span class="math display">\[
-\text{earnings} = \alpha + \beta_{\text{treat}} \cdot \text{treat} + \beta_{\text{covariates}}^{\top} \text{covariates} + \varepsilon
+\text{earnings} = \beta_0 + \beta_{\text{treat}} \cdot \text{treat} + \beta_{\text{covariates}}^{\top} \text{covariates} + \varepsilon
 \]</span></p></li>
 <li><p>We use the <code>do</code> operator:</p>
 <p><span class="math display">\[
@@ -574,111 +531,66 @@ N_{\text{t}} &amp; \sim \text{Binomial}(N, \text{cr}_\text{t}) \\
 <p><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></p>
 </div>
 </section>
-<section id="pymc-model-treatment-sub-model" class="slide level2 smaller">
-<h2>PyMC Model: Treatment Sub-model</h2>
-<p>The first part of the model encodes the arrows from the covariates to <code>treat</code>.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-code-line-numbers="|1|2-5|7-11|13-17|19-20"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>coords) <span class="im">as</span> earnings_model:</span>
-<span id="cb4-2"><a href=""></a>    <span class="co"># --- Data ---</span></span>
-<span id="cb4-3"><a href=""></a>    covariates_data <span class="op">=</span> pm.Data(</span>
-<span id="cb4-4"><a href=""></a>        <span class="st">"covariates_data"</span>, covariates_obs, dims<span class="op">=</span>(<span class="st">"obs_idx"</span>, <span class="st">"covariate"</span>)</span>
-<span id="cb4-5"><a href=""></a>    )</span>
-<span id="cb4-6"><a href=""></a></span>
-<span id="cb4-7"><a href=""></a>    <span class="co"># --- Priors ---</span></span>
-<span id="cb4-8"><a href=""></a>    intercept_treat <span class="op">=</span> pm.Normal(<span class="st">"intercept_treat"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">10</span>)</span>
-<span id="cb4-9"><a href=""></a>    beta_covariate_treat <span class="op">=</span> pm.Normal(</span>
-<span id="cb4-10"><a href=""></a>        <span class="st">"beta_covariate_treat"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>, dims<span class="op">=</span>(<span class="st">"covariate"</span>,)</span>
-<span id="cb4-11"><a href=""></a>    )</span>
-<span id="cb4-12"><a href=""></a></span>
-<span id="cb4-13"><a href=""></a>    <span class="co"># --- Parametrization ---</span></span>
-<span id="cb4-14"><a href=""></a>    logit_p_treat <span class="op">=</span> intercept_treat <span class="op">+</span> pm.math.dot(</span>
-<span id="cb4-15"><a href=""></a>        covariates_data, beta_covariate_treat</span>
-<span id="cb4-16"><a href=""></a>    )</span>
-<span id="cb4-17"><a href=""></a>    p_treat <span class="op">=</span> pm.math.sigmoid(logit_p_treat)</span>
-<span id="cb4-18"><a href=""></a></span>
-<span id="cb4-19"><a href=""></a>    <span class="co"># --- Likelihood ---</span></span>
-<span id="cb4-20"><a href=""></a>    treat <span class="op">=</span> pm.Bernoulli(<span class="st">"treat"</span>, p<span class="op">=</span>p_treat, dims<span class="op">=</span>(<span class="st">"obs_idx"</span>,))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="the-pymc-model" class="slide level2 smaller">
+<h2>The PyMC Model</h2>
+<p>We write both parts of the DAG as code: covariates <span class="math inline">\(\to\)</span> <code>treat</code>, and <code>treat</code> plus covariates <span class="math inline">\(\to\)</span> earnings.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-code-line-numbers="|1-2|3-8|9-18"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>coords) <span class="im">as</span> earnings_model:</span>
+<span id="cb4-2"><a href=""></a>    covariates <span class="op">=</span> pm.Data(<span class="st">"covariates_data"</span>, covariates_obs, dims<span class="op">=</span>(<span class="st">"obs_idx"</span>, <span class="st">"covariate"</span>))</span>
+<span id="cb4-3"><a href=""></a>    <span class="co"># covariates -&gt; treat</span></span>
+<span id="cb4-4"><a href=""></a>    intercept_treat <span class="op">=</span> pm.Normal(<span class="st">"intercept_treat"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb4-5"><a href=""></a>    beta_covariate_treat <span class="op">=</span> pm.Normal(<span class="st">"beta_covariate_treat"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>, dims<span class="op">=</span><span class="st">"covariate"</span>)</span>
+<span id="cb4-6"><a href=""></a>    treat <span class="op">=</span> pm.Bernoulli(</span>
+<span id="cb4-7"><a href=""></a>        <span class="st">"treat"</span>, logit_p<span class="op">=</span>intercept_treat <span class="op">+</span> covariates <span class="op">@</span> beta_covariate_treat, dims<span class="op">=</span><span class="st">"obs_idx"</span></span>
+<span id="cb4-8"><a href=""></a>    )</span>
+<span id="cb4-9"><a href=""></a>    <span class="co"># treat and covariates -&gt; earnings</span></span>
+<span id="cb4-10"><a href=""></a>    intercept_earnings <span class="op">=</span> pm.Normal(<span class="st">"intercept_earnings"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb4-11"><a href=""></a>    beta_treat_earnings <span class="op">=</span> pm.Normal(<span class="st">"beta_treat_earnings"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb4-12"><a href=""></a>    beta_covariate_earnings <span class="op">=</span> pm.Normal(<span class="st">"beta_covariate_earnings"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>, dims<span class="op">=</span><span class="st">"covariate"</span>)</span>
+<span id="cb4-13"><a href=""></a>    sigma_earnings <span class="op">=</span> pm.HalfNormal(<span class="st">"sigma_earnings"</span>, sigma<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb4-14"><a href=""></a>    mu_earnings <span class="op">=</span> pm.Deterministic(</span>
+<span id="cb4-15"><a href=""></a>        <span class="st">"mu_earnings"</span>,</span>
+<span id="cb4-16"><a href=""></a>        intercept_earnings <span class="op">+</span> beta_treat_earnings <span class="op">*</span> treat <span class="op">+</span> covariates <span class="op">@</span> beta_covariate_earnings,</span>
+<span id="cb4-17"><a href=""></a>        dims<span class="op">=</span><span class="st">"obs_idx"</span>,</span>
+<span id="cb4-18"><a href=""></a>    )</span>
+<span id="cb4-19"><a href=""></a>    pm.Normal(<span class="st">"earnings"</span>, mu<span class="op">=</span>mu_earnings, sigma<span class="op">=</span>sigma_earnings, dims<span class="op">=</span><span class="st">"obs_idx"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></p>
 </div>
 </section>
-<section id="pymc-model-earnings-sub-model" class="slide level2 smaller">
-<h2>PyMC Model: Earnings Sub-model</h2>
-<p>The second part encodes the arrows from <code>treat</code> and the covariates to earnings.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" data-code-line-numbers="|1-7|9-15|17-20"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href=""></a>    <span class="co"># --- Priors ---</span></span>
-<span id="cb5-2"><a href=""></a>    intercept_earnings <span class="op">=</span> pm.Normal(<span class="st">"intercept_earnings"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">10</span>)</span>
-<span id="cb5-3"><a href=""></a>    beta_treat_earnings <span class="op">=</span> pm.Normal(<span class="st">"beta_treat_earnings"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb5-4"><a href=""></a>    beta_covariate_earnings <span class="op">=</span> pm.Normal(</span>
-<span id="cb5-5"><a href=""></a>        <span class="st">"beta_covariate_earnings"</span>, mu<span class="op">=</span><span class="dv">0</span>, sigma<span class="op">=</span><span class="dv">1</span>, dims<span class="op">=</span>(<span class="st">"covariate"</span>,)</span>
-<span id="cb5-6"><a href=""></a>    )</span>
-<span id="cb5-7"><a href=""></a>    sigma_earnings <span class="op">=</span> pm.HalfNormal(<span class="st">"sigma_earnings"</span>, sigma<span class="op">=</span><span class="fl">10.0</span>)</span>
-<span id="cb5-8"><a href=""></a></span>
-<span id="cb5-9"><a href=""></a>    <span class="co"># --- Parametrization ---</span></span>
-<span id="cb5-10"><a href=""></a>    mu_earnings <span class="op">=</span> pm.Deterministic(</span>
-<span id="cb5-11"><a href=""></a>        <span class="st">"mu_earnings"</span>,</span>
-<span id="cb5-12"><a href=""></a>        intercept_earnings <span class="op">+</span> beta_treat_earnings <span class="op">*</span> treat</span>
-<span id="cb5-13"><a href=""></a>            <span class="op">+</span> pm.math.dot(covariates_data, beta_covariate_earnings),</span>
-<span id="cb5-14"><a href=""></a>        dims<span class="op">=</span>(<span class="st">"obs_idx"</span>,),</span>
-<span id="cb5-15"><a href=""></a>    )</span>
-<span id="cb5-16"><a href=""></a></span>
-<span id="cb5-17"><a href=""></a>    <span class="co"># --- Likelihood ---</span></span>
-<span id="cb5-18"><a href=""></a>    pm.Normal(</span>
-<span id="cb5-19"><a href=""></a>      <span class="st">"earnings"</span>, mu<span class="op">=</span>mu_earnings, sigma<span class="op">=</span>sigma_earnings, dims<span class="op">=</span>(<span class="st">"obs_idx"</span>,)</span>
-<span id="cb5-20"><a href=""></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="footer">
-<p><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></p>
-</div>
-</section>
-<section id="conditioning-on-observed-data" class="slide level2">
-<h2>Conditioning on Observed Data</h2>
-<p>We condition the generative model on the observed treatment and earnings. The same program now defines the likelihood.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a>conditioned_earnings_model <span class="op">=</span> observe(</span>
-<span id="cb6-2"><a href=""></a>    earnings_model, {<span class="st">"treat"</span>: training_obs, <span class="st">"earnings"</span>: earnings_obs}</span>
-<span id="cb6-3"><a href=""></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-
-<img data-src="hertie_2026_files/static/images/intro_causal_inference_ppl_pymc_28_0.svg" class="quarto-figure quarto-figure-center r-stretch" width="700"><div class="footer">
-<p><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></p>
-</div>
-</section>
-<section id="ate-from-the-regression-coefficient" class="slide level2 smaller">
-<h2>ATE from the Regression Coefficient</h2>
-<p>In the linear model, the posterior of <code>beta_treat_earnings</code> is the ATE: mean <span class="math inline">\(0.55\)</span> (about <span class="math inline">\(550\)</span> USD) with <span class="math inline">\(94\%\)</span> highest density interval (HDI) <span class="math inline">\([-0.55, 1.7]\)</span>.</p>
-
-<img data-src="hertie_2026_files/static/images/intro_causal_inference_ppl_pymc_42_0.png" class="quarto-figure quarto-figure-center r-stretch" width="800"><p>The vertical lines show the naive difference and the OLS and matching estimates from an <a href="https://rugg2.github.io/Lalonde%20dataset%20-%20Causal%20Inference.html">external analysis</a>. That analysis also adjusts for 1974 earnings (<code>re74</code>), which our model leaves out.</p>
-<div class="footer">
-<p><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></p>
-</div>
-</section>
-<section id="the-do-operator" class="slide level2 smaller">
-<h2>The <code>do</code> Operator</h2>
-<p>We set <code>treat</code> to <span class="math inline">\(0\)</span> and to <span class="math inline">\(1\)</span> for every unit. The arrows from the covariates into <code>treat</code> disappear from the graph.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" data-code-line-numbers="|1|2-4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href=""></a><span class="im">from</span> pymc.model.transform.conditioning <span class="im">import</span> do</span>
-<span id="cb7-2"><a href=""></a><span class="co"># Counterfactual interventions</span></span>
-<span id="cb7-3"><a href=""></a>do_0_model <span class="op">=</span> do(conditioned_earnings_model, {<span class="st">"treat"</span>: np.zeros(n_obs)})</span>
-<span id="cb7-4"><a href=""></a>do_1_model <span class="op">=</span> do(conditioned_earnings_model, {<span class="st">"treat"</span>: np.ones(n_obs)})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="conditioning-and-intervening" class="slide level2 smaller">
+<h2>Conditioning and Intervening</h2>
+<p><code>observe</code> conditions the generative model on the data, so the same program now defines the likelihood. <code>do</code> sets <code>treat</code> to <span class="math inline">\(0\)</span> or <span class="math inline">\(1\)</span> for every unit and removes the arrows from the covariates into <code>treat</code>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" data-code-line-numbers="|1|3-5|6-7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href=""></a><span class="im">from</span> pymc.model.transform.conditioning <span class="im">import</span> do, observe</span>
+<span id="cb5-2"><a href=""></a></span>
+<span id="cb5-3"><a href=""></a>conditioned_model <span class="op">=</span> observe(</span>
+<span id="cb5-4"><a href=""></a>    earnings_model, {<span class="st">"treat"</span>: training_obs, <span class="st">"earnings"</span>: earnings_obs}</span>
+<span id="cb5-5"><a href=""></a>)</span>
+<span id="cb5-6"><a href=""></a>do_0_model <span class="op">=</span> do(conditioned_model, {<span class="st">"treat"</span>: np.zeros(n_obs, dtype<span class="op">=</span>np.int32)})</span>
+<span id="cb5-7"><a href=""></a>do_1_model <span class="op">=</span> do(conditioned_model, {<span class="st">"treat"</span>: np.ones(n_obs, dtype<span class="op">=</span>np.int32)})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 <img data-src="hertie_2026_files/static/images/intro_causal_inference_ppl_pymc_45_0.svg" class="quarto-figure quarto-figure-center r-stretch" width="1000"><p>In NumPyro, the <code>numpyro.handlers.do</code> effect handler does the same.</p>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></p>
 </div>
 </section>
-<section id="counterfactual-predictions" class="slide level2 smaller">
-<h2>Counterfactual Predictions</h2>
+<section id="two-estimates-of-the-ate" class="slide level2 smaller">
+<h2>Two Estimates of the ATE</h2>
+<p>The coefficient and the <code>do</code> contrast agree: <span class="math inline">\(0.55\)</span> thousand USD (<span class="math inline">\(94\%\)</span> HDI <span class="math inline">\([-0.55, 1.7]\)</span>), our ATE estimate under the backdoor assumption.</p>
 <div class="columns">
-<div class="column" style="width:50%;">
+<div class="column" style="width:55%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="hertie_2026_files/static/images/intro_causal_inference_ppl_pymc_51_0.png" class="quarto-figure quarto-figure-center" width="340"></p>
+<p><img data-src="hertie_2026_files/static/images/intro_causal_inference_ppl_pymc_42_0.png" class="quarto-figure quarto-figure-center" width="470"></p>
 </figure>
 </div>
-</div><div class="column" style="width:50%;">
-<p>For each unit, we predict earnings under <span class="math inline">\(\text{do}(\text{treat} = 0)\)</span> and <span class="math inline">\(\text{do}(\text{treat} = 1)\)</span>. The ATE is the average of the differences.</p>
+</div><div class="column" style="width:45%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="hertie_2026_files/static/images/intro_causal_inference_ppl_pymc_58_0.png" class="quarto-figure quarto-figure-center" width="400"></p>
+<p><img data-src="hertie_2026_files/static/images/intro_causal_inference_ppl_pymc_58_0.png" class="quarto-figure quarto-figure-center" width="370"></p>
 </figure>
 </div>
-<p>In the linear model, the <code>do</code> operator and the regression coefficient give the <strong>same</strong> ATE, which is good!</p>
 </div></div>
+<p>The randomized experiment gives <span class="math inline">\(1{,}794\)</span> USD for the treated group (Dehejia and Wahba, 2002), outside our HDI. It is an effect on the treated, and our model leaves out 1974 earnings (<code>re74</code>). The OLS and matching lines (left) come from an <a href="https://rugg2.github.io/Lalonde%20dataset%20-%20Causal%20Inference.html">external analysis</a> with <code>re74</code>.</p>
 <div class="footer">
 <p><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></p>
 </div>
@@ -694,10 +606,10 @@ N_{\text{t}} &amp; \sim \text{Binomial}(N, \text{cr}_\text{t}) \\
 </div>
 </div><div class="column" style="width:45%;">
 <ul>
-<li>Earnings are non-negative and right-skewed.</li>
+<li>Earnings are non-negative and right-skewed. <span class="math inline">\(23\%\)</span> are exactly zero (we shift them by a small constant).</li>
 <li>We change two lines: a softplus link keeps the mean positive, and <code>pm.Gamma</code> replaces <code>pm.Normal</code>.</li>
 <li>With a non-linear link, the coefficient is <strong>not</strong> the ATE.</li>
-<li>The <code>do</code> operator still gives the ATE on the original scale: mean <span class="math inline">\(0.58\)</span> with <span class="math inline">\(94\%\)</span> HDI <span class="math inline">\([-0.1, 1.2]\)</span>.</li>
+<li>The <code>do</code> contrast still gives the ATE on the original scale: mean <span class="math inline">\(0.58\)</span> with <span class="math inline">\(94\%\)</span> HDI <span class="math inline">\([-0.1, 1.2]\)</span>.</li>
 </ul>
 <div class="callout callout-tip callout-style-simple">
 <div class="callout-body">
@@ -705,7 +617,7 @@ N_{\text{t}} &amp; \sim \text{Binomial}(N, \text{cr}_\text{t}) \\
 <i class="callout-icon"></i>
 </div>
 <div class="callout-content">
-<p>The same <code>do</code> code works for non-linear links and for individual counterfactuals.</p>
+<p>The same <code>do</code> code works with a non-linear link. A hurdle model for the zeros is one possible extension.</p>
 </div>
 </div>
 </div>
@@ -714,10 +626,57 @@ N_{\text{t}} &amp; \sim \text{Binomial}(N, \text{cr}_\text{t}) \\
 <p><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></p>
 </div>
 </section>
+<section id="hierarchies-and-latent-confounders" class="slide level2 smaller">
+<h2>Hierarchies and Latent Confounders</h2>
+<p>We simulate <span class="math inline">\(2{,}000\)</span> individuals in <span class="math inline">\(30\)</span> groups. An unobserved group effect <span class="math inline">\(G\)</span> drives both <span class="math inline">\(X\)</span> and the binary outcome <span class="math inline">\(Y\)</span>, and the true effect of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span> is zero.</p>
+<div class="columns">
+<div class="column" style="width:35%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="hertie_2026_files/static/images/fixed_random_2_0.svg" class="quarto-figure quarto-figure-center" width="200"></p>
+</figure>
+</div>
+</div><div class="column" style="width:65%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="hertie_2026_files/static/images/fixed_random_54_0_bxy.png" class="quarto-figure quarto-figure-center" width="520"></p>
+</figure>
+</div>
+</div></div>
+<ul>
+<li>The naive model (<span class="math inline">\(0.68\)</span>, <span class="math inline">\(94\%\)</span> HDI <span class="math inline">\([0.61, 0.76]\)</span>) and the multilevel model with random intercepts (<span class="math inline">\(0.21\)</span>, <span class="math inline">\([0.07, 0.38]\)</span>) are biased.</li>
+<li>Fixed effects (<span class="math inline">\(0.03\)</span>), the Mundlak model that adds the group mean of <span class="math inline">\(X\)</span> (<span class="math inline">\(0.03\)</span>), and a latent group variable <span class="math inline">\(u_g\)</span> with its own likelihood for <span class="math inline">\(X\)</span> (<span class="math inline">\(0.04\)</span>, best by LOO) all cover zero.</li>
+</ul>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/fixed_random/">Fixed and Random Effects Models: A Simulated Study</a>, after <a href="https://www.youtube.com/watch?v=XNNcN8sU8us">Statistical Rethinking 2026, Lecture B04</a></p>
+</div>
+</section>
+<section id="latent-confounders-in-numpyro" class="slide level2 smaller">
+<h2>Latent Confounders in NumPyro</h2>
+<p>We estimate the effect of side-quest engagement on in-game purchases in an online game. We treat the confounders we leave out as one unobserved confounder <span class="math inline">\(Z\)</span>.</p>
+<div class="columns">
+<div class="column" style="width:42%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="hertie_2026_files/static/images/online_game_ate_6_0.svg" class="quarto-figure quarto-figure-center" width="160"></p>
+</figure>
+</div>
+<p><span class="math inline">\(Z \sim \text{Normal}(0, 1)\)</span> per player. Neural networks link <span class="math inline">\(Z\)</span> to engagement and purchases, and an encoder approximates its posterior (CEVAE, Louizos et al., 2017). We fit the model with variational inference. The predictive fit is skewed, so the model needs more work.</p>
+</div><div class="column" style="width:58%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="hertie_2026_files/static/images/online_game_ate_41_0.png" class="quarto-figure quarto-figure-center" width="440"></p>
+</figure>
+</div>
+<p>We sample <span class="math inline">\(Z\)</span> once and intervene on engagement with <code>numpyro.handlers.do</code>. The ATE has mean <span class="math inline">\(109\)</span> (<span class="math inline">\(94\%\)</span> HDI <span class="math inline">\([-46, 265]\)</span>), close to the DoWhy frontdoor estimate of <span class="math inline">\(170\)</span>.</p>
+</div></div>
+<div class="footer">
+<p><a href="https://juanitorduz.github.io/online_game_ate/">Causal Effect Estimation with Variational Inference and Latent Confounders</a></p>
+</div>
+</section>
 <section id="marketing-mix-models" class="slide level2 smaller">
 <h2>Marketing Mix Models</h2>
-<div class="columns">
-<div class="column" style="width:45%;">
+<p>In marketing, budgets are rarely randomized, so we estimate channel effects from observational time series.</p>
 <div class="callout callout-tip callout-style-simple">
 <div class="callout-body">
 <div class="callout-icon-container">
@@ -728,42 +687,12 @@ N_{\text{t}} &amp; \sim \text{Binomial}(N, \text{cr}_\text{t}) \\
 </div>
 </div>
 </div>
-<p>We need the causal effect of each channel <span class="math inline">\(m\)</span> on sales <span class="math inline">\(y\)</span>. A marketing mix model (MMM) splits sales into a baseline, seasonality, and channel contributions.</p>
-</div><div class="column" style="width:55%;">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="hertie_2026_files/static/images/mmm_roas.png" class="quarto-figure quarto-figure-center" width="500"></p>
-</figure>
-</div>
-</div></div>
-<p>A common summary is the <strong>return on ad spend (ROAS)</strong>:</p>
+<p>A marketing mix model (MMM) is a regression of sales <span class="math inline">\(y_t\)</span> on transformed media spend <span class="math inline">\(x_{m,t}\)</span> and control variables <span class="math inline">\(z_{k,t}\)</span> (trend, seasonality, holidays):</p>
 <p><span class="math display">\[
-\text{ROAS}_m = \frac{\sum_t \left(\text{E}[y_t \mid \text{do}(x_m = x_m^{\text{obs}})] - \text{E}[y_t \mid \text{do}(x_m = 0)]\right)}{\sum_t x_{m,t}}
+y_t = \beta_0 + \sum_{m} \beta_m f_m(x_{m,t}) + \sum_{k} \gamma_k z_{k,t} + \varepsilon_t
 \]</span></p>
-<p>The ROAS is an ATE per unit of spend (a continuous treatment that was not randomized).</p>
-<div class="footer">
-<p><a href="https://www.pymc-marketing.io/">PyMC-Marketing</a></p>
-</div>
-</section>
-<section id="mmm-as-a-regression-model" class="slide level2">
-<h2>MMM as a Regression Model</h2>
-<p><span class="math display">\[
-y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m, t}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c}z_{c, t} + \varepsilon_{t},
-\]</span></p>
-<div class="callout callout-note no-icon callout-style-simple">
-<div class="callout-body">
-<div class="callout-content">
-<ul>
-<li><span class="math inline">\(y_{t}\)</span>: target variable at time <span class="math inline">\(t\)</span> (for example, sales or conversions)</li>
-<li><span class="math inline">\(b_{t}\)</span>: baseline sales at time <span class="math inline">\(t\)</span></li>
-<li><span class="math inline">\(\beta_{m, t}\)</span>: effect of media channel <span class="math inline">\(m\)</span> on sales at time <span class="math inline">\(t\)</span></li>
-<li><span class="math inline">\(f(x_{m, t})\)</span>: transformation of the spend <span class="math inline">\(x_{m, t}\)</span> on channel <span class="math inline">\(m\)</span> at time <span class="math inline">\(t\)</span></li>
-<li><span class="math inline">\(\gamma_{c}\)</span>: effect of control variable <span class="math inline">\(z_{c, t}\)</span> on sales</li>
-<li><span class="math inline">\(\varepsilon_{t}\)</span>: error term</li>
-</ul>
-</div>
-</div>
-</div>
+<p>where <span class="math inline">\(f_m\)</span> is the media transformation of channel <span class="math inline">\(m\)</span> (next slide).</p>
+<p>The data are short (typically <span class="math inline">\(2\)</span> to <span class="math inline">\(3\)</span> years of weekly data), the media channels are correlated, and some confounders are unobserved. Bayesian MMMs add domain knowledge through priors, calibration with experiments, and posterior uncertainty for budget decisions.</p>
 <div class="footer">
 <p><a href="https://research.google/pubs/pub46001/">Jin, Yuxue, et al.&nbsp;“Bayesian methods for media mix modeling with carryover and shape effects.” (2017).</a></p>
 </div>
@@ -774,46 +703,49 @@ y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m, t}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c
 <div class="column" style="width:50%;">
 <p>The <strong>adstock</strong> transformation models carryover: the effect of an ad persists and decays over time.</p>
 <p><span class="math display">\[
-\text{adstock}(x_{m, t}; \alpha, L) = \sum_{j=0}^{L} \alpha^{j} x_{m, t-j}
+\text{adstock}(x_{m, t}; \alpha, L) = \frac{\sum_{j=0}^{L-1} \alpha^{j} x_{m, t-j}}{\sum_{j=0}^{L-1} \alpha^{j}}
 \]</span></p>
 <p>for <span class="math inline">\(\alpha \in [0, 1]\)</span> and <span class="math inline">\(L\)</span> the maximum lag.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="hertie_2026_files/static/images/geometric_adstock.png" class="quarto-figure quarto-figure-center" width="410"></p>
+<p><img data-src="hertie_2026_files/static/images/geometric_adstock.png" class="quarto-figure quarto-figure-center" width="400"></p>
 </figure>
 </div>
 </div><div class="column" style="width:50%;">
 <p>The <strong>saturation</strong> transformation models diminishing returns: each extra unit of spend has a smaller effect.</p>
 <p><span class="math display">\[
-\text{saturation}(x_{m, t}; \lambda) = \frac{1 - \exp(-\lambda x_{m, t})}{1 + \exp(-\lambda x_{m, t})}
+\text{saturation}(x; \eta) = \frac{1 - \exp(-\eta x)}{1 + \exp(-\eta x)}
 \]</span></p>
-<p>for <span class="math inline">\(\lambda &gt; 0\)</span>.</p>
+<p>for <span class="math inline">\(\eta &gt; 0\)</span>.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="hertie_2026_files/static/images/logistic_saturation.png" class="quarto-figure quarto-figure-center" width="410"></p>
+<p><img data-src="hertie_2026_files/static/images/logistic_saturation.png" class="quarto-figure quarto-figure-center" width="400"></p>
 </figure>
 </div>
 </div></div>
 <div class="footer">
-<p><a href="https://research.google/pubs/pub46001/">Jin, Yuxue, et al.&nbsp;“Bayesian methods for media mix modeling with carryover and shape effects.” (2017).</a></p>
+<p>Adstock: <a href="https://research.google/pubs/pub46001/">Jin et al.&nbsp;(2017)</a>. Saturation: <a href="https://www.pymc-marketing.io/en/stable/api/generated/pymc_marketing.mmm.components.saturation.LogisticSaturation.html">PyMC-Marketing <code>LogisticSaturation</code></a>.</p>
 </div>
 </section>
-<section id="why-bayesian-mmms" class="slide level2 smaller">
-<h2>Why Bayesian MMMs?</h2>
-<h3 id="some-mmm-challenges">Some MMM Challenges</h3>
-<ul>
-<li class="fragment"><p>Limited data: typically <span class="math inline">\(2\)</span> to <span class="math inline">\(3\)</span> years of weekly data.</p></li>
-<li class="fragment"><p>Media spend series are often highly correlated.</p></li>
-<li class="fragment"><p>Unobserved confounders (for example, competitor activity).</p></li>
-</ul>
-<h3 id="bayesian-mmms">Bayesian MMMs</h3>
-<ul>
-<li class="fragment"><p>Uncertainty quantification.</p></li>
-<li class="fragment"><p>Domain knowledge through priors.</p></li>
-<li class="fragment"><p>Calibration with experiments (lift tests).</p></li>
-<li class="fragment"><p>Time-varying parameters with regularization (strong priors or hierarchies).</p></li>
-<li class="fragment"><p>Budget optimization that accounts for uncertainty.</p></li>
-</ul>
+<section id="return-on-ad-spend" class="slide level2 smaller">
+<h2>Return on Ad Spend</h2>
+<div class="columns">
+<div class="column" style="width:42%;">
+<p>An MMM splits sales into a baseline, seasonality, and channel contributions (right).</p>
+<p>The <strong>return on ad spend (ROAS)</strong> of channel <span class="math inline">\(m\)</span> compares the expected sales with and without the channel, per unit of spend. It is an ATE per unit of spend, for a continuous treatment that was not randomized.</p>
+</div><div class="column" style="width:58%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="hertie_2026_files/static/images/mmm_roas.png" class="quarto-figure quarto-figure-center" width="560"></p>
+</figure>
+</div>
+</div></div>
+<p><span class="math display">\[
+\text{ROAS}_m = \frac{\sum_t \left(\text{E}[y_t \mid \text{do}(x_m = x_m^{\text{obs}})] - \text{E}[y_t \mid \text{do}(x_m = 0)]\right)}{\sum_t x_{m,t}}
+\]</span></p>
+<div class="footer">
+<p><a href="https://www.pymc-marketing.io/">PyMC-Marketing</a></p>
+</div>
 </section>
 <section id="unobserved-confounders" class="slide level2 smaller">
 <h2>Unobserved Confounders</h2>
@@ -839,7 +771,7 @@ y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m, t}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c
 <i class="callout-icon"></i>
 </div>
 <div class="callout-content">
-<p>This is the job training example again, but now we cannot adjust for the confounder.</p>
+<p>This is the job training example again, but we cannot adjust for <code>z</code>, and the data offer no proxies to model it as a latent variable.</p>
 </div>
 </div>
 </div>
@@ -849,7 +781,7 @@ y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m, t}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c
 </section>
 <section id="biased-roas" class="slide level2 smaller">
 <h2>Biased ROAS</h2>
-<p>A model without <code>z</code> estimates a ROAS of <span class="math inline">\(198\)</span> for <code>x1</code> against a true value of <span class="math inline">\(93\)</span>, and <span class="math inline">\(142\)</span> for <code>x2</code> against a true value of <span class="math inline">\(171\)</span>. It ranks <code>x1</code> above <code>x2</code>. The truth is the opposite.</p>
+<p>A model without <code>z</code> estimates a ROAS of <span class="math inline">\(198\)</span> for <code>x1</code> against a true value of <span class="math inline">\(93\)</span> (orange line), and <span class="math inline">\(142\)</span> for <code>x2</code> against <span class="math inline">\(171\)</span>. So the model ranks <code>x1</code> above <code>x2</code>, while the true ranking is the reverse.</p>
 
 <img data-src="hertie_2026_files/static/images/roas_posterior_2.png" class="quarto-figure quarto-figure-center r-stretch" width="600"><div class="callout callout-tip callout-style-simple">
 <div class="callout-body">
@@ -857,24 +789,25 @@ y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m, t}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c
 <i class="callout-icon"></i>
 </div>
 <div class="callout-content">
-<p>How can we correct this? We bring experimental results into the model, in one of two ways: priors on the ROAS (Zhang et al., 2024) or an additional likelihood for lift tests, which are experiments on one channel (PyMC-Marketing).</p>
+<p>We bring experimental results into the model in one of two ways: priors on the ROAS (Zhang et al., 2024) or an additional likelihood for lift tests, which are experiments on one channel (PyMC-Marketing).</p>
 </div>
 </div>
 </div>
 <div class="footer">
-<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_roas.html">PyMC-Marketing: Mitigating Unobserved Confounders in MMMs with Lift Test Likelihoods</a></p>
+<p><a href="https://www.pymc-marketing.io/en/0.17.1/notebooks/mmm/mmm_roas.html">PyMC-Marketing v0.17.1: Case Study: Unobserved Confounders, ROAS and Lift Tests</a></p>
 </div>
 </section>
-<section id="roas-re-parametrization" class="slide level2 smaller">
-<h2>ROAS Re-parametrization</h2>
-<p>This is the same idea as the correlated priors in the A/B test: we put the prior on the quantity we know something about.</p>
+<section id="calibration-with-experiments" class="slide level2 smaller">
+<h2>Calibration with Experiments</h2>
+<p>We use the same idea as the correlated priors in the A/B test: we put the prior on the quantity we know something about, here the ROAS.</p>
 <div class="columns">
 <div class="column" style="width:50%;">
-<p>We write each media coefficient as a function of the channel’s ROAS:</p>
+<p>We write each media coefficient as a function of the channel’s ROAS (simplified):</p>
 <p><span class="math display">\[
 \beta_m = \frac{\text{ROAS}_m \sum_{t} x_{m,t}}{\sum_{t} \left(f(x_{m,t}) - f(\tilde{x}_{m,t})\right)}
 \]</span></p>
 <p>where <span class="math inline">\(f\)</span> is the media transformation (adstock and saturation) and <span class="math inline">\(\tilde{x}_{m}\)</span> is the spend with channel <span class="math inline">\(m\)</span> turned off.</p>
+<p>With these priors and still without <code>z</code>, the ROAS of <code>x1</code> moves from about <span class="math inline">\(200\)</span> to about <span class="math inline">\(120\)</span> (true value <span class="math inline">\(93\)</span>).</p>
 </div><div class="column" style="width:50%;">
 <p>Now we can put a prior on the ROAS of each channel, for example from a past experiment. In the simulation, we center the priors at <span class="math inline">\(95\)</span> and <span class="math inline">\(170\)</span>, close to the truth (shown below on the scaled data).</p>
 <div class="quarto-figure quarto-figure-center">
@@ -887,14 +820,6 @@ y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m, t}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c
 <p><a href="https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/">Zhang et al.&nbsp;(2024)</a> and <a href="https://juanitorduz.github.io/mmm_roas/">Media Mix Model and Experimental Calibration: A Simulation Study</a></p>
 </div>
 </section>
-<section id="roas-priors-model-comparison" class="slide level2 smaller">
-<h2>ROAS Priors: Model Comparison</h2>
-
-<img data-src="hertie_2026_files/static/images/roas_comparison.png" class="quarto-figure quarto-figure-center r-stretch" width="560"><p>Model 3 has ROAS priors and still leaves out <code>z</code>. It moves the ROAS of <code>x1</code> from about <span class="math inline">\(200\)</span> to about <span class="math inline">\(120\)</span>. The bias shrinks, but it does not go away. The posterior balances the prior and the evidence from the data.</p>
-<div class="footer">
-<p><a href="https://juanitorduz.github.io/mmm_roas/">Media Mix Model and Experimental Calibration: A Simulation Study</a></p>
-</div>
-</section>
 <section id="lift-test-calibration" class="slide level2 smaller">
 <h2>Lift Test Calibration</h2>
 <div class="callout callout-tip callout-style-simple">
@@ -903,7 +828,7 @@ y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m, t}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c
 <i class="callout-icon"></i>
 </div>
 <div class="callout-content">
-<p>A <strong>lift test</strong> is an A/B test on one channel. We change the spend in some regions or time periods and measure the change in sales.</p>
+<p>A <strong>lift test</strong> is an A/B test on one channel. We change the spend in some regions or time periods and measure the change in sales. Here the lift is an absolute change in sales, not a relative one.</p>
 </div>
 </div>
 </div>
@@ -923,32 +848,32 @@ y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m, t}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c
 </ul>
 </div></div>
 <div class="footer">
-<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_lift_test.html">PyMC-Marketing: Lift Test Calibration</a></p>
+<p><a href="https://www.pymc-marketing.io/en/0.10.0/notebooks/mmm/mmm_lift_test.html">PyMC-Marketing v0.10.0: Lift Test Calibration</a></p>
 </div>
 </section>
-<section id="lift-test-calibration-results" class="slide level2 smaller">
-<h2>Lift Test Calibration: Results</h2>
+<section id="lift-test-results" class="slide level2 smaller">
+<h2>Lift Test Results</h2>
 
-<img data-src="hertie_2026_files/static/images/roas_posterior_4.png" class="quarto-figure quarto-figure-center r-stretch" width="600"><p>With lift tests and still without <code>z</code>, the ROAS of <code>x1</code> moves from <span class="math inline">\(198\)</span> to <span class="math inline">\(109\)</span> (<span class="math inline">\(94\%\)</span> HDI <span class="math inline">\([98, 121]\)</span>, true value <span class="math inline">\(93\)</span>). For <code>x2</code>, we get <span class="math inline">\(161\)</span> (<span class="math inline">\(94\%\)</span> HDI <span class="math inline">\([143, 179]\)</span>, true value <span class="math inline">\(171\)</span>). The bias on <code>x1</code> drops from <span class="math inline">\(+112\%\)</span> to <span class="math inline">\(+17\%\)</span>, and the ranking of the two channels is now correct.</p>
+<img data-src="hertie_2026_files/static/images/roas_posterior_4.png" class="quarto-figure quarto-figure-center r-stretch" width="600"><p>With lift tests and still without <code>z</code>, the ROAS of <code>x1</code> moves from <span class="math inline">\(198\)</span> to <span class="math inline">\(109\)</span> (<span class="math inline">\(94\%\)</span> HDI <span class="math inline">\([98, 121]\)</span>, true value <span class="math inline">\(93\)</span>, orange line). For <code>x2</code>, we get <span class="math inline">\(161\)</span> (<span class="math inline">\(94\%\)</span> HDI <span class="math inline">\([143, 179]\)</span>, true value <span class="math inline">\(171\)</span>). The bias on <code>x1</code> drops from <span class="math inline">\(+112\%\)</span> to <span class="math inline">\(+17\%\)</span>, and the ranking of the two channels is now correct.</p>
 <div class="footer">
-<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_roas.html">PyMC-Marketing: Mitigating Unobserved Confounders in MMMs with Lift Test Likelihoods</a></p>
+<p><a href="https://www.pymc-marketing.io/en/0.17.1/notebooks/mmm/mmm_roas.html">PyMC-Marketing v0.17.1: Case Study: Unobserved Confounders, ROAS and Lift Tests</a></p>
 </div>
 </section>
 <section id="funnel-models-in-marketing" class="slide level2 smaller">
 <h2>Funnel Models in Marketing</h2>
-<p>So far, the bias came from a variable we left out. Now it can come from one we put in. We use the PyMC-Marketing MMM case study: <span class="math inline">\(209\)</span> weeks of synthetic sales data.</p>
+<p>An omitted confounder biased the previous models. Funnels add a different risk: a mediator that we add as a regressor. We use the PyMC-Marketing MMM case study (<span class="math inline">\(209\)</span> weeks of synthetic sales data).</p>
 <div class="columns">
-<div class="column" style="width:50%;">
+<div class="column" style="width:52%;">
 <ul>
 <li><strong>Upper funnel</strong> channels build awareness: <code>TV</code>, <code>Radio</code>, <code>Newspaper</code>.</li>
-<li><strong>Lower funnel</strong> channels capture existing demand, for example paid search (<code>sem_spend</code>).</li>
-<li>Paid search is <span class="math inline">\(26.9\%\)</span> of media spend. Should it be one more channel?</li>
-<li>Paid search spend and impressions (how often the ads show) both correlate with sales (<span class="math inline">\(0.59\)</span>).</li>
+<li><strong>Lower funnel</strong> channels capture existing demand, like paid search, also called search engine marketing (SEM): <code>sem_spend</code>.</li>
+<li>Paid search is <span class="math inline">\(26.9\%\)</span> of the modeled media spend.</li>
+<li>Its spend and impressions (how often the ads show) both correlate with sales (<span class="math inline">\(0.59\)</span>).</li>
 </ul>
-</div><div class="column" style="width:50%;">
+</div><div class="column" style="width:48%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="hertie_2026_files/static/images/sem_spend_impressions.png" class="quarto-figure quarto-figure-center" width="480"></p>
+<p><img data-src="hertie_2026_files/static/images/sem_spend_impressions.png" class="quarto-figure quarto-figure-center" width="440"></p>
 </figure>
 </div>
 </div></div>
@@ -958,34 +883,34 @@ y_{t} = b_{t} + \sum_{m=1}^{M}\beta_{m, t}f(x_{m, t}) +  \sum_{c=1}^{C}\gamma_{c
 <i class="callout-icon"></i>
 </div>
 <div class="callout-content">
-<p>Two stories fit the data: paid search drives sales, or paid search harvests demand that the upper funnel created. Correlation cannot separate them.</p>
+<p>Two stories fit the data: paid search drives sales, or it harvests demand that the upper funnel created. Correlation cannot separate them.</p>
 </div>
 </div>
 </div>
 <div class="footer">
-<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html">PyMC-Marketing: MMM Case Study II</a></p>
+<p><a href="https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_case_study2.html">PyMC-Marketing v1.2.0: MMM Case Study II</a></p>
 </div>
 </section>
 <section id="the-funnel-dag" class="slide level2 smaller nostretch">
 <h2>The Funnel DAG</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="hertie_2026_files/static/images/funnel_dag.svg" class="quarto-figure quarto-figure-center" width="800"></p>
+<p><img data-src="hertie_2026_files/static/images/funnel_dag.svg" class="quarto-figure quarto-figure-center" width="900"></p>
 </figure>
 </div>
 <ul>
 <li><code>TV</code>, <code>Radio</code>, and <code>Newspaper</code> act on sales directly and through <strong>latent demand</strong> <span class="math inline">\(D\)</span>.</li>
-<li>The paid search budget <span class="math inline">\(B\)</span> adds to <span class="math inline">\(D\)</span>. The sum is the <strong>mediator</strong> <span class="math inline">\(M^*\)</span>: the demand that paid search reaches. Here <span class="math inline">\(B\)</span> is exogenous.</li>
-<li>Search impressions measure <span class="math inline">\(M^*\)</span>. They do not cause sales. Dashed nodes are latent.</li>
-<li>In practice, paid search spend also follows demand. Then a model with paid search as one more channel conditions on the mediator and credits paid search with sales that the upper funnel created. <a href="https://storage.googleapis.com/gweb-research2023-media/pubtools/3803.pdf">Chan and Perry (2017)</a>: <em>“Downstream ads should not be included with exogenously-determined ads in a single regression equation.”</em></li>
+<li>The paid search budget <span class="math inline">\(B\)</span> adds to <span class="math inline">\(D\)</span>. The sum is the <strong>mediator</strong> <span class="math inline">\(M^*\)</span> (the demand that paid search reaches). Here <span class="math inline">\(B\)</span> is exogenous.</li>
+<li>Search impressions measure <span class="math inline">\(M^*\)</span> and do not cause sales. Dashed nodes are latent.</li>
+<li>In practice, paid search spend also follows demand, so adding it as a channel conditions on the mediator (<a href="https://storage.googleapis.com/gweb-research2023-media/pubtools/3803.pdf">Chan and Perry, 2017</a>: <em>“Downstream ads should not be included with exogenously-determined ads in a single regression equation.”</em>).</li>
 </ul>
 <div class="footer">
-<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html">PyMC-Marketing: MMM Case Study II</a></p>
+<p><a href="https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_case_study2.html">PyMC-Marketing v1.2.0: MMM Case Study II</a></p>
 </div>
 </section>
 <section id="funnel-model-structure" class="slide level2 smaller">
 <h2>Funnel Model Structure</h2>
-<p>Let <span class="math inline">\(U_{t,c}\)</span> be the spend of upper funnel channel <span class="math inline">\(c\)</span> in week <span class="math inline">\(t\)</span>, <span class="math inline">\(B_t\)</span> the paid search spend, and <span class="math inline">\(I_t\)</span> the search impressions:</p>
+<p>Let <span class="math inline">\(U_{t,c}\)</span> be the spend of upper funnel channel <span class="math inline">\(c\)</span> in week <span class="math inline">\(t\)</span>, <span class="math inline">\(B_t\)</span> the paid search spend, and <span class="math inline">\(I_t\)</span> the search impressions (<span class="math inline">\(uf\)</span> and <span class="math inline">\(lf\)</span> mark the upper and lower funnel):</p>
 <p><span class="math display">\[
 \begin{align*}
 D_t &amp; = \text{baseline} + \sum_{c \in \text{upper}} \text{sat}^{uf}\left(\text{adstock}^{uf}(U_{t,c})\right) \\
@@ -993,7 +918,7 @@ M^{*}_t &amp; = D_t + \lambda \, \frac{B_t}{s_{B}} \\
 I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{lower}=0\right)
 \end{align*}
 \]</span></p>
-<p>Sales get the extra term <span class="math inline">\(\text{sat}^{lf}\left(\text{adstock}^{lf}(M^{*}_t)\right)\)</span>. The parameter <span class="math inline">\(\lambda\)</span> converts paid search spend into search demand, and <span class="math inline">\(s_{B}\)</span>, <span class="math inline">\(s_{I}\)</span> are the maxima of the two series.</p>
+<p>Sales get the extra term <span class="math inline">\(\text{sat}^{lf}\left(\text{adstock}^{lf}(M^{*}_t)\right)\)</span>. Here <span class="math inline">\(\lambda\)</span> converts paid search spend into search demand, <span class="math inline">\(s_{B}\)</span> and <span class="math inline">\(s_{I}\)</span> are the series maxima, and <span class="math inline">\(\sigma_I\)</span> is the measurement noise.</p>
 <div class="callout callout-note callout-titled callout-style-default">
 <div class="callout-body">
 <div class="callout-title">
@@ -1008,7 +933,7 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 </div>
 </div>
 <div class="footer">
-<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html">PyMC-Marketing: MMM Case Study II</a></p>
+<p><a href="https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_case_study2.html">PyMC-Marketing v1.2.0: MMM Case Study II</a></p>
 </div>
 </section>
 <section id="direct-and-mediated-contributions" class="slide level2 smaller">
@@ -1022,128 +947,52 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 </div>
 </div><div class="column" style="width:45%;">
 <ul>
-<li>We compute the mediated part with the <code>do</code> operator: we set the spend of one upper funnel channel to zero and push the change through <span class="math inline">\(D\)</span> and <span class="math inline">\(M^*\)</span> to sales.</li>
+<li>We compute the mediated part with an intervention: we set the spend of one upper funnel channel to zero and push the change through <span class="math inline">\(D\)</span> and <span class="math inline">\(M^*\)</span> to sales.</li>
 <li>The mediated share of each channel’s total effect is about <span class="math inline">\(6\%\)</span> (<code>Newspaper</code>), <span class="math inline">\(12\%\)</span> (<code>TV</code>), and <span class="math inline">\(25\%\)</span> (<code>Radio</code>). The lower ends of the <span class="math inline">\(94\%\)</span> HDIs reach zero.</li>
-<li>Why so small? About <span class="math inline">\(41\%\)</span> of the mediator comes from the baseline and <span class="math inline">\(49\%\)</span> from paid search’s own spend. Only about <span class="math inline">\(10\%\)</span> comes from upper funnel media.</li>
+<li>The shares are small because about <span class="math inline">\(41\%\)</span> of the mediator comes from the baseline and <span class="math inline">\(49\%\)</span> from paid search’s own spend. Only about <span class="math inline">\(10\%\)</span> comes from upper funnel media.</li>
 </ul>
 </div></div>
 <div class="footer">
-<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html">PyMC-Marketing: MMM Case Study II</a></p>
+<p><a href="https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_case_study2.html">PyMC-Marketing v1.2.0: MMM Case Study II</a></p>
 </div>
 </section>
-<section id="structure-and-experiments-together" class="slide level2 smaller">
-<h2>Structure and Experiments Together</h2>
-<p>We compare the ROAS (mean and <span class="math inline">\(94\%\)</span> HDI) of two models. <strong>Part I</strong> is the MMM from the first part of the case study, without paid search, funnel, or calibration. <strong>Part II</strong> is the funnel model plus two hypothetical experiments.</p>
-<div style="font-size: 75%;">
-<table class="caption-top">
-<colgroup>
-<col style="width: 16%">
-<col style="width: 21%">
-<col style="width: 31%">
-<col style="width: 30%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">Role</th>
-<th style="text-align: left;">Channel</th>
-<th style="text-align: left;">Part I</th>
-<th style="text-align: left;">Part II</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Calibrated</td>
-<td style="text-align: left;"><code>Online Display</code></td>
-<td style="text-align: left;"><span class="math inline">\(56.4 \; [0.8, 118.8]\)</span></td>
-<td style="text-align: left;"><span class="math inline">\(27.9 \; [21.1, 35.1]\)</span></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Calibrated</td>
-<td style="text-align: left;"><code>Direct Mail</code></td>
-<td style="text-align: left;"><span class="math inline">\(7.3 \; [0.0, 19.5]\)</span></td>
-<td style="text-align: left;"><span class="math inline">\(4.7 \; [2.0, 7.3]\)</span></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Upper funnel</td>
-<td style="text-align: left;"><code>TV</code></td>
-<td style="text-align: left;"><span class="math inline">\(43.6 \; [0.7, 86.0]\)</span></td>
-<td style="text-align: left;"><span class="math inline">\(45.7 \; [3.6, 92.8]\)</span></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Upper funnel</td>
-<td style="text-align: left;"><code>Radio</code></td>
-<td style="text-align: left;"><span class="math inline">\(32.1 \; [0.0, 84.7]\)</span></td>
-<td style="text-align: left;"><span class="math inline">\(35.7 \; [1.8, 85.2]\)</span></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Upper funnel</td>
-<td style="text-align: left;"><code>Newspaper</code></td>
-<td style="text-align: left;"><span class="math inline">\(14.4 \; [0.2, 30.1]\)</span></td>
-<td style="text-align: left;"><span class="math inline">\(14.9 \; [0.4, 32.0]\)</span></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Control</td>
-<td style="text-align: left;"><code>Insert</code></td>
-<td style="text-align: left;"><span class="math inline">\(55.9 \; [0.1, 125.9]\)</span></td>
-<td style="text-align: left;"><span class="math inline">\(57.6 \; [0.4, 141.6]\)</span></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Control</td>
-<td style="text-align: left;"><code>Social Media</code></td>
-<td style="text-align: left;"><span class="math inline">\(30.7 \; [0.2, 74.0]\)</span></td>
-<td style="text-align: left;"><span class="math inline">\(26.8 \; [0.1, 67.4]\)</span></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p>The experiments shrink the <code>Online Display</code> interval to <span class="math inline">\(12\%\)</span> of its former width. The upper funnel channels now report the total effect. The control channels barely move.</p>
-<div class="callout callout-warning callout-style-simple">
-<div class="callout-body">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-content">
-<p>Match the calibration target to the estimand of the experiment. The calibration constrains the <strong>direct</strong> effect, which is valid because the calibrated channels have no funnel path.</p>
-</div>
-</div>
-</div>
-<div class="footer">
-<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html">PyMC-Marketing: MMM Case Study II</a></p>
-</div>
-</section>
-<section id="causal-identification-in-funnel-models" class="slide level2 smaller nostretch">
+<section id="causal-identification-in-funnel-models" class="slide level2 smaller">
 <h2>Causal Identification in Funnel Models</h2>
-<p>The case study has no ground truth. So we simulate a funnel from the funnel model itself, with the true parameters fixed via <code>pm.do</code>. Now paid search spend responds to demand.</p>
+<p>We make the funnel more realistic: paid search spend responds to demand, there are three geos (regions), and unobserved noise is shared across media plans. We simulate <span class="math inline">\(130\)</span> weeks from the funnel model with the true parameters fixed via <code>pm.do</code>, so we know the truth.</p>
+<div class="columns">
+<div class="column" style="width:56%;">
 <ul>
-<li><span class="math inline">\(3\)</span> geos (regions), <span class="math inline">\(130\)</span> weeks, and two upper funnel channels.</li>
-<li><strong>Mediator:</strong> paid search spend <code>lower_spend</code> measures the latent <span class="math inline">\(M^*\)</span>. Only its budget is exogenous.</li>
-<li><strong>Indicator:</strong> branded search <code>search_volume</code> measures latent demand <span class="math inline">\(D\)</span>. It does not cause sales.</li>
-<li><strong>Confounding:</strong> media plans and category demand share seasonality, trend, and noise.</li>
+<li><strong>Mediator:</strong> in the case study, paid search spend was the input <span class="math inline">\(B\)</span>. Here <code>lower_spend</code> (<span class="math inline">\(M\)</span>) measures the latent <span class="math inline">\(M^* = D + \lambda B\)</span>, and <span class="math inline">\(B\)</span> is a separate budget <code>lf_budget</code>.</li>
+<li><strong>Indicator:</strong> branded search <code>search_volume</code> (<span class="math inline">\(S\)</span>, searches for the brand name) measures latent demand <span class="math inline">\(D\)</span>. It does not cause sales.</li>
+<li><strong>Confounding:</strong> <code>tv_spend</code>, <code>social_spend</code>, and category demand (demand for the product category) share seasonality, trend, and unobserved noise.</li>
 </ul>
+</div><div class="column" style="width:44%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="hertie_2026_files/static/images/geo_funnel_latent.png" class="quarto-figure quarto-figure-center" width="620"></p>
+<p><img data-src="hertie_2026_files/static/images/geo_funnel_latent_north.png" class="quarto-figure quarto-figure-center" width="400"></p>
 </figure>
 </div>
+<p>North geo. Yellow: <span class="math inline">\(D\)</span>, magenta: <span class="math inline">\(M^*\)</span>, thin pink: <span class="math inline">\(M\)</span>, brown: <span class="math inline">\(S\)</span>.</p>
+</div></div>
 <div class="footer">
-<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_funnel_mueffect_advanced.html">PyMC-Marketing: Advanced Funnel-Aware MMM</a></p>
+<p><a href="https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_funnel_mueffect_advanced.html">PyMC-Marketing v1.2.0: Advanced Funnel-Aware MMM</a></p>
 </div>
 </section>
 <section id="the-causal-dag" class="slide level2 smaller">
 <h2>The Causal DAG</h2>
 
 <img data-src="hertie_2026_files/static/images/geo_funnel_dag.svg" class="quarto-figure quarto-figure-center r-stretch" width="1000"><ul>
-<li><strong>Mediator or indicator?</strong> We ask: “if we doubled this variable, would sales move?” Lower funnel spend: yes, so it is a mediator. Branded search: no, so it is an indicator.</li>
-<li><strong>Exclusion restrictions:</strong> the budget <span class="math inline">\(B\)</span> enters <span class="math inline">\(M^*\)</span> but not <span class="math inline">\(S\)</span>. This identifies <span class="math inline">\(\lambda\)</span>. Category demand <span class="math inline">\(C\)</span> enters <span class="math inline">\(D\)</span> but not <span class="math inline">\(Y\)</span>.</li>
+<li><strong>Mediator vs indicator:</strong> we ask whether doubling the variable would move sales. For lower funnel spend it would, so it is a mediator. For branded search it would not, so it is an indicator.</li>
+<li><strong>Exclusion restriction:</strong> the budget <span class="math inline">\(B\)</span> enters <span class="math inline">\(M^*\)</span> but not <span class="math inline">\(S\)</span>. This identifies <span class="math inline">\(\lambda\)</span>, and nothing else in the model can replace it. That category demand <span class="math inline">\(C\)</span> enters <span class="math inline">\(D\)</span> but not <span class="math inline">\(Y\)</span> is a modeling convenience, because <span class="math inline">\(C\)</span> is observed.</li>
 <li>The driver noise <span class="math inline">\(N\)</span> is unobserved. It confounds <code>tv_spend</code>, <code>social_spend</code>, and category demand.</li>
 </ul>
 <div class="footer">
-<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_funnel_mueffect_advanced.html">PyMC-Marketing: Advanced Funnel-Aware MMM</a></p>
+<p><a href="https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_funnel_mueffect_advanced.html">PyMC-Marketing v1.2.0: Advanced Funnel-Aware MMM</a></p>
 </div>
 </section>
-<section id="which-models-identify-what" class="slide level2 smaller">
-<h2>Which Models Identify What?</h2>
-<p>We use the DAG to check which conditioning sets satisfy the backdoor criterion for the <strong>total</strong> effect of <code>tv_spend</code> (<span class="math inline">\(U_1\)</span>) on sales. There are <span class="math inline">\(43\)</span> backdoor paths from <span class="math inline">\(U_1\)</span> to <span class="math inline">\(Y\)</span>.</p>
+<section id="identification-by-model" class="slide level2 smaller">
+<h2>Identification by Model</h2>
+<p>We use the DAG to check which conditioning sets satisfy the backdoor criterion for the <strong>total</strong> effect of <code>tv_spend</code> (<span class="math inline">\(U_1\)</span>) on sales. Here <span class="math inline">\(M\)</span> is the observed <code>lower_spend</code> and <span class="math inline">\(S\)</span> is branded search. There are <span class="math inline">\(43\)</span> backdoor paths from <span class="math inline">\(U_1\)</span> to <span class="math inline">\(Y\)</span>.</p>
 <table class="caption-top">
 <colgroup>
 <col style="width: 28%">
@@ -1201,7 +1050,7 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 </div>
 </div>
 <div class="footer">
-<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_funnel_mueffect_advanced.html">PyMC-Marketing: Advanced Funnel-Aware MMM</a></p>
+<p><a href="https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_funnel_mueffect_advanced.html">PyMC-Marketing v1.2.0: Advanced Funnel-Aware MMM</a></p>
 </div>
 </section>
 <section id="testable-and-untestable-assumptions" class="slide level2 smaller">
@@ -1215,7 +1064,7 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 <p><strong>Untestable</strong></p>
 </div>
 <div class="callout-content">
-<p>The funnel model is correct only if the demand equation is right and nothing unobserved confounds <span class="math inline">\(M^* \to Y\)</span>. Neither the backdoor checks nor the posterior predictive checks can reveal a violation.</p>
+<p>The funnel model is correct only if the demand equation is right and nothing unobserved confounds <span class="math inline">\(M^* \to Y\)</span>. The backdoor checks cannot verify these assumptions. Posterior predictive checks of <code>lower_spend</code> and <code>search_volume</code> can reveal some errors in the demand equation, but not an unobserved confounder of <span class="math inline">\(M^* \to Y\)</span>.</p>
 </div>
 </div>
 </div>
@@ -1241,38 +1090,38 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 <p><strong>A Fair Comparison</strong></p>
 </div>
 <div class="callout-content">
-<p>Here, the funnel model is the true data-generating process. It also sees two more series than the naive models. The gain comes from structure and information together.</p>
+<p>Here, the funnel model is the true data-generating process. It also fits two extra series (<code>lower_spend</code>, <code>search_volume</code>) and uses two extra inputs (<code>category_demand</code>, <code>lf_budget</code>). The gain comes from structure and information together.</p>
 </div>
 </div>
 </div>
 <div class="footer">
-<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_funnel_mueffect_advanced.html">PyMC-Marketing: Advanced Funnel-Aware MMM</a></p>
+<p><a href="https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_funnel_mueffect_advanced.html">PyMC-Marketing v1.2.0: Advanced Funnel-Aware MMM</a></p>
 </div>
 </section>
 <section id="roas-by-model" class="slide level2 smaller">
 <h2>ROAS by Model</h2>
 
-<img data-src="hertie_2026_files/static/images/geo_funnel_national_roas.png" class="quarto-figure quarto-figure-center r-stretch" width="680"><p>Against the true total ROAS, the four naive models that target the total effect overstate the national ROAS by <span class="math inline">\(18\%\)</span> to <span class="math inline">\(31\%\)</span>. The funnel model is <span class="math inline">\(6\%\)</span> above the truth. Even the valid adjustment set (B+) overstates it by <span class="math inline">\(30\%\)</span>.</p>
+<img data-src="hertie_2026_files/static/images/geo_funnel_national_roas.png" class="quarto-figure quarto-figure-center r-stretch" width="680"><p>Against the true total ROAS (dashed line), the four naive models that target the total effect overstate the national ROAS by <span class="math inline">\(18\%\)</span> to <span class="math inline">\(31\%\)</span>. The funnel model is <span class="math inline">\(6\%\)</span> above the truth, and even the valid adjustment set (B+) is <span class="math inline">\(30\%\)</span> above it. The rows below the separator target the direct effect (dotted line). The row “all incremental spend” also counts the paid search spend that the upper funnel induces.</p>
 <div class="footer">
-<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_funnel_mueffect_advanced.html">PyMC-Marketing: Advanced Funnel-Aware MMM</a></p>
+<p><a href="https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_funnel_mueffect_advanced.html">PyMC-Marketing v1.2.0: Advanced Funnel-Aware MMM</a></p>
 </div>
 </section>
-<section id="fit-does-not-rank-causal-models" class="slide level2 smaller">
-<h2>Fit Does Not Rank Causal Models</h2>
+<section id="predictive-fit" class="slide level2 smaller">
+<h2>Predictive Fit</h2>
 <ul>
-<li class="fragment">The in-sample <span class="math inline">\(R^2\)</span> of the six models ranges from <span class="math inline">\(0.979\)</span> to <span class="math inline">\(0.987\)</span>. Their ROAS estimates differ by tens of percent.</li>
-<li class="fragment">Why does the valid adjustment set (B+) still fail? It overstates the ROAS of <code>social_spend</code> by <span class="math inline">\(100\%\)</span> in <code>south</code> and <span class="math inline">\(40\%\)</span> in <code>west</code>. In <code>south</code>, every model overstates <code>social_spend</code>, the funnel model included (<span class="math inline">\(+27\%\)</span>).</li>
-<li class="fragment">Category demand enters B+ as a linear control, while the media effects are flexible curves. The media curves absorb part of the demand effect. On <code>tv_spend</code>, the invalid set B++ (<span class="math inline">\(4.4\%\)</span> mean error) beats the valid set B+ (<span class="math inline">\(15.3\%\)</span>).</li>
+<li>The in-sample <span class="math inline">\(R^2\)</span> of the six models ranges from <span class="math inline">\(0.979\)</span> to <span class="math inline">\(0.987\)</span>, while their ROAS estimates differ by tens of percent.</li>
+<li><strong><code>tv_spend</code>:</strong> category demand enters B+ as a linear control, while the media effects are flexible curves, so the curves absorb part of the demand effect. The invalid set B++ has a mean error of <span class="math inline">\(4.4\%\)</span>, and the valid set B+ has <span class="math inline">\(15.3\%\)</span>.</li>
+<li><strong><code>social_spend</code>:</strong> every model overstates it in <code>south</code>, including the funnel model at <span class="math inline">\(+27\%\)</span>. B+ is <span class="math inline">\(100\%\)</span> too high there and <span class="math inline">\(40\%\)</span> too high in <code>west</code>. The backdoor is open on the graph but at noise level in the data, so the control removes little. A separate response curve per channel cannot represent the shared, saturating mediated pool.</li>
 </ul>
 <blockquote>
 <p>A valid adjustment set says which variables you need, not how they enter the model or which structure is missing.</p>
-<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_funnel_mueffect_advanced.html">Advanced Funnel-Aware MMM</a></p>
+<p><a href="https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_funnel_mueffect_advanced.html">Advanced Funnel-Aware MMM</a></p>
 </blockquote>
 <div class="footer">
-<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_funnel_mueffect_advanced.html">PyMC-Marketing: Advanced Funnel-Aware MMM</a></p>
+<p><a href="https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_funnel_mueffect_advanced.html">PyMC-Marketing v1.2.0: Advanced Funnel-Aware MMM</a></p>
 </div>
 </section>
-<section id="takeaways" class="slide level2">
+<section id="takeaways" class="slide level2 smaller">
 <h2>Takeaways</h2>
 <div class="callout callout-tip callout-titled callout-style-default">
 <div class="callout-body">
@@ -1285,43 +1134,34 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 <div class="callout-content">
 <ul>
 <li><strong>The model states the assumptions.</strong> We write the DAG as code: job training, MMM, and funnel models.</li>
-<li><strong>Priors carry outside information.</strong> Domain knowledge rules out implausible lifts in A/B tests. Experiments reduce, but do not remove, confounding bias in MMMs.</li>
-<li><strong>The same <code>do</code> query works across models.</strong> It applies to a linear regression, a Gamma GLM, and a funnel model with latent demand.</li>
-<li><strong>Latent variables and measurements are part of the model.</strong> The funnel models treat search impressions and branded search as measurements of latent variables, not as causes.</li>
-<li><strong>Identification comes first.</strong> The DAG tells us what we can estimate and which assumptions we need. A good in-sample fit does not replace them.</li>
+<li><strong>Priors and experiments carry outside information.</strong> Priors rule out implausible lifts in A/B tests. ROAS priors and lift test likelihoods reduce confounding bias in MMMs (on <code>x1</code>, from <span class="math inline">\(+112\%\)</span> to <span class="math inline">\(+17\%\)</span>).</li>
+<li><strong>The same <code>do</code> query works across models.</strong> It applies to a linear regression, a Gamma GLM, a latent variable model in NumPyro, and a funnel model with latent demand.</li>
+<li><strong>Hierarchies and latent variables extend the model.</strong> A latent group variable removes group-level confounding, and measurement equations link impressions and branded search to latent demand.</li>
+<li><strong>Identification comes first.</strong> The DAG tells us which variables we need. The functional form still matters, and a good in-sample fit replaces neither.</li>
 </ul>
 </div>
 </div>
 </div>
 </section>
-<section id="pymc-marketing" class="slide level2">
-<h2>PyMC-Marketing</h2>
-
-<img data-src="hertie_2026_files/static/images/logos/marketing-logo-light.jpg" class="quarto-figure quarto-figure-center r-stretch" width="1000"><blockquote>
-<p>Bayesian marketing toolbox in PyMC. Media Mix (MMM), customer lifetime value (CLV), buy-till-you-die (BTYD) models and more.</p>
-</blockquote>
-<div class="footer">
-<p><a href="https://www.pymc-marketing.io/">PyMC-Marketing</a></p>
-</div>
-</section>
-<section id="references-posts-and-notebooks" class="slide level2 smaller">
-<h2>References: Posts and Notebooks</h2>
-<div style="font-size: 85%;">
+<section id="references" class="slide level2 smaller">
+<h2>References</h2>
+<div style="font-size: 80%;">
 <div class="columns">
 <div class="column" style="width:70%;">
 <h4 id="blog-posts">Blog Posts</h4>
 <ul>
-<li><a href="https://juanitorduz.github.io/prior_predictive_ab_testing/">Prior Predictive Modeling in Bayesian A/B Testing</a></li>
+<li><a href="https://juanitorduz.github.io/prior_predictive_ab_testing/">Prior Predictive Modeling in Bayesian AB Testing</a></li>
 <li><a href="https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/">Introduction to Causal Inference with PPLs</a></li>
+<li><a href="https://juanitorduz.github.io/fixed_random/">Fixed and Random Effects Models: A Simulated Study</a></li>
+<li><a href="https://juanitorduz.github.io/online_game_ate/">Causal Effect Estimation with Variational Inference and Latent Confounders</a></li>
 <li><a href="https://juanitorduz.github.io/mmm_roas/">Media Mix Model and Experimental Calibration: A Simulation Study</a></li>
-<li><a href="https://juanitorduz.github.io/online_game_ate/">Causal Effect Estimation with Variational Inference and Latent Confounders</a> (NumPyro)</li>
 </ul>
 <h4 id="pymc-marketing-notebooks">PyMC-Marketing Notebooks</h4>
 <ul>
-<li><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_lift_test.html">Lift Test Calibration</a></li>
-<li><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_roas.html">Mitigating Unobserved Confounders in MMMs with Lift Test Likelihoods</a></li>
-<li><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html">MMM Case Study II: Funnel-Aware Modeling, ROAS Calibration, and Budget Planning</a></li>
-<li><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_funnel_mueffect_advanced.html">Advanced Funnel-Aware MMM: Geo-Level Mediation Through Lower-Funnel Spend</a></li>
+<li><a href="https://www.pymc-marketing.io/en/0.17.1/notebooks/mmm/mmm_roas.html">Case Study: Unobserved Confounders, ROAS and Lift Tests (v0.17.1)</a></li>
+<li><a href="https://www.pymc-marketing.io/en/0.10.0/notebooks/mmm/mmm_lift_test.html">Lift Test Calibration (v0.10.0)</a></li>
+<li><a href="https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_case_study2.html">MMM Case Study II: Funnel-Aware Modeling, ROAS Calibration, and Budget Planning (v1.2.0)</a></li>
+<li><a href="https://www.pymc-marketing.io/en/1.2.0/notebooks/mmm/mmm_funnel_mueffect_advanced.html">Advanced Funnel-Aware MMM: Geo-Level Mediation Through Lower-Funnel Spend (v1.2.0)</a></li>
 </ul>
 </div><div class="column" style="width:30%;">
 <h4 id="packages">Packages</h4>
@@ -1334,14 +1174,17 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 </div></div>
 </div>
 </section>
-<section id="references-papers-and-books" class="slide level2 smaller">
-<h2>References: Papers and Books</h2>
-<div style="font-size: 85%;">
+<section id="references-1" class="slide level2 smaller">
+<h2>References</h2>
+<div style="font-size: 70%;">
 <h4 id="papers">Papers</h4>
 <ul>
+<li>Splawa-Neyman, J. (1923, translated 1990). <a href="https://doi.org/10.1214/ss/1177012031">On the application of probability theory to agricultural experiments.</a> <em>Statistical Science</em>.</li>
 <li>Rubin, D. B. (1974). <a href="https://doi.org/10.1037/h0037350">Estimating causal effects of treatments in randomized and nonrandomized studies.</a> <em>Journal of Educational Psychology</em>.</li>
 <li>LaLonde, R. J. (1986). <a href="https://www.jstor.org/stable/1806062">Evaluating the econometric evaluations of training programs with experimental data.</a> <em>American Economic Review</em>.</li>
 <li>Dehejia, R. H. &amp; Wahba, S. (1999). <a href="https://doi.org/10.1080/01621459.1999.10473858">Causal effects in nonexperimental studies: reevaluating the evaluation of training programs.</a> <em>Journal of the American Statistical Association</em>.</li>
+<li>Dehejia, R. H. &amp; Wahba, S. (2002). <a href="https://doi.org/10.1162/003465302317331982">Propensity score-matching methods for nonexperimental causal studies.</a> <em>Review of Economics and Statistics</em>.</li>
+<li>Louizos, C. et al.&nbsp;(2017). <a href="https://proceedings.neurips.cc/paper_files/paper/2017/file/94b5bde6de888ddf9cde6748ad2523d1-Paper.pdf">Causal effect inference with deep latent-variable models.</a> <em>NeurIPS</em>.</li>
 <li>Jin, Y. et al.&nbsp;(2017). <a href="https://research.google/pubs/pub46001/">Bayesian methods for media mix modeling with carryover and shape effects.</a></li>
 <li>Chan, D. &amp; Perry, M. (2017). <a href="https://storage.googleapis.com/gweb-research2023-media/pubtools/3803.pdf">Challenges and opportunities in media mix modeling.</a></li>
 <li>Zhang, Y. et al.&nbsp;(2024). <a href="https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/">Media mix model calibration with Bayesian priors.</a></li>
@@ -1356,7 +1199,7 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 <section id="thank-you" class="slide level2" data-background-image="hertie_2026_files/static/images/logos/pymc-labs-black.jpg">
 <h2><span style="color: white;">Thank You!</span></h2>
 <h4 id="juan.orduzpymc-labs.com"><a href="mailto:juan.orduz@pymc-labs.com" style="color: white;">juan.orduz@pymc-labs.com</a></h4>
-<p><img data-src="hertie_2026_files/static/images/logos/juanitorduz.png" class="absolute" style="top: 400px; right: -100px; width: 250px; height: 250px; "></p>
+<p><img data-src="hertie_2026_files/static/images/logos/juanitorduz.png" class="absolute" style="top: 400px; right: 0px; width: 250px; height: 250px; "></p>
 
 </section>
     </div>
