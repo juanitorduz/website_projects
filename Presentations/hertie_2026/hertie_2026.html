@@ -1094,6 +1094,57 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 <p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html">PyMC-Marketing: MMM Case Study II</a></p>
 </div>
 </section>
+<section id="funnel-model-in-pymc-marketing" class="slide level2 smaller">
+<h2>Funnel Model in PyMC-Marketing</h2>
+<p>The funnel is a custom <code>MuEffect</code> on top of the MMM. The order matters: we build the model, keep the contributions in sales units, add the calibration, and then fit.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" data-code-line-numbers="|1-3|5-11|13-20|22"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a><span class="co"># base MMM + funnel effect (demand pool, mediator, impressions likelihood)</span></span>
+<span id="cb6-2"><a href=""></a>mmm <span class="op">=</span> make_mmm(X)</span>
+<span id="cb6-3"><a href=""></a>mmm.build_model(X<span class="op">=</span>make_funnel_dataset(X, y))</span>
+<span id="cb6-4"><a href=""></a></span>
+<span id="cb6-5"><a href=""></a><span class="co"># keep the contributions in sales units (the ROAS calibration needs them)</span></span>
+<span id="cb6-6"><a href=""></a>mmm.add_original_scale_contribution_variable(</span>
+<span id="cb6-7"><a href=""></a>    var<span class="op">=</span>[</span>
+<span id="cb6-8"><a href=""></a>        <span class="st">"channel_contribution"</span>, <span class="st">"control_contribution"</span>, <span class="st">"intercept_contribution"</span>,</span>
+<span id="cb6-9"><a href=""></a>        <span class="st">"yearly_seasonality_contribution"</span>, <span class="st">"funnel_effect_contribution"</span>, <span class="st">"y"</span>,</span>
+<span id="cb6-10"><a href=""></a>    ]</span>
+<span id="cb6-11"><a href=""></a>)</span>
+<span id="cb6-12"><a href=""></a></span>
+<span id="cb6-13"><a href=""></a><span class="co"># calibration: experiment ROAS ~ Normal(model ROAS, sigma) per tested channel</span></span>
+<span id="cb6-14"><a href=""></a>mmm.add_cost_per_target_calibration(</span>
+<span id="cb6-15"><a href=""></a>    data<span class="op">=</span>X,  <span class="co"># spend in original units</span></span>
+<span id="cb6-16"><a href=""></a>    calibration_data<span class="op">=</span>roas_calibration_df,  <span class="co"># columns: channel, roas, sigma</span></span>
+<span id="cb6-17"><a href=""></a>    name_prefix<span class="op">=</span><span class="st">"roas_calibration"</span>,</span>
+<span id="cb6-18"><a href=""></a>    target_column<span class="op">=</span><span class="st">"roas"</span>,</span>
+<span id="cb6-19"><a href=""></a>    target_per_cost<span class="op">=</span><span class="va">True</span>,  <span class="co"># contribution / spend, so ROAS</span></span>
+<span id="cb6-20"><a href=""></a>)</span>
+<span id="cb6-21"><a href=""></a></span>
+<span id="cb6-22"><a href=""></a>pm.model_to_graphviz(mmm.model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="footer">
+<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#final-model">PyMC-Marketing: MMM Case Study II, Final Model</a> and <a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_roas_calibration.html">Calibrating an MMM with ROAS Estimates</a></p>
+</div>
+</section>
+<section id="funnel-model-graph" class="slide level2 smaller nostretch">
+<h2>Funnel Model Graph</h2>
+<p>The model fits three data sources at once (gray nodes): the sales <code>y</code>, the SEM impressions, and the two experiments in <code>roas_calibration</code>. The nodes <code>funnel_demand</code> and <code>funnel_mediator</code> are <span class="math inline">\(D_t\)</span> and <span class="math inline">\(M^*_t\)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="hertie_2026_files/static/images/funnel_model_graph.svg" class="quarto-figure quarto-figure-center" width="960"></p>
+</figure>
+</div>
+<div class="callout callout-note callout-style-simple">
+<div class="callout-body">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-content">
+<p>The experiments calibrate <code>Online Display</code> and <code>Direct Mail</code>, which have a direct path only. This calibration constrains the direct contribution, but an experiment on an upper funnel channel measures the direct plus the mediated effect.</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#final-model">PyMC-Marketing: MMM Case Study II, Final Model</a></p>
+</div>
+</section>
 <section id="direct-and-mediated-contributions" class="slide level2 smaller">
 <h2>Direct and Mediated Contributions</h2>
 <div class="columns">
@@ -1112,6 +1163,23 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 </div></div>
 <div class="footer">
 <p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html">PyMC-Marketing: MMM Case Study II</a></p>
+</div>
+</section>
+<section id="channel-synergies" class="slide level2 smaller nostretch">
+<h2>Channel Synergies</h2>
+<p>The <strong>givers</strong> <code>TV</code>, <code>Radio</code>, <code>Newspaper</code>, and <code>sem_spend</code> feed the search demand. We set one giver to zero and read what the SEM path into sales loses.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="hertie_2026_files/static/images/sem_path_shares.png" class="quarto-figure quarto-figure-center" width="840"></p>
+</figure>
+</div>
+<ul>
+<li><strong>Main sources:</strong> paid search’s own spend and the no-media demand dominate.</li>
+<li><strong>Pass-through:</strong> the upper funnel adds small shares, with HDIs that reach zero.</li>
+<li><strong>Direction:</strong> the DAG assumes it, and only an upper funnel experiment can test it.</li>
+</ul>
+<div class="footer">
+<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#channel-synergies">PyMC-Marketing: MMM Case Study II, Channel Synergies</a></p>
 </div>
 </section>
 <section id="budget-optimization" class="slide level2 smaller">
