@@ -1028,9 +1028,49 @@ y_t = \beta_0(t) + \sum_{m} \beta_m(t) f_m(x_{m,t}) + \sum_{k} \gamma_k z_{k,t} 
 <p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html">PyMC-Marketing: MMM Case Study II</a></p>
 </div>
 </section>
+<section id="funnel-model-intuition" class="slide level2">
+<h2>Funnel Model Intuition</h2>
+<div style="font-size: 85%;">
+<p>Let’s follow the demand for the product through the funnel in one week.</p>
+<ul>
+<li><strong>Interest:</strong> some people look for the product anyway. <code>TV</code>, <code>Radio</code>, and <code>Newspaper</code> bring more of them, with a lag.</li>
+<li><strong>Search:</strong> paid search ads reach these people. More search spend buys more queries and higher positions, so it reaches extra people.</li>
+<li><strong>Measurement:</strong> we never see this demand. Search impressions grow with it, but they do not cause sales.</li>
+<li><strong>Sales:</strong> the demand that paid search reaches turns into sales. All other channels also act on sales directly.</li>
+</ul>
+<div class="callout callout-tip callout-style-simple">
+<div class="callout-body">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-content">
+<p>Search sales are not all search’s doing. The model splits the demand behind them into interest that exists anyway, the upper funnel, and the paid search spend itself.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="footer">
+<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html">PyMC-Marketing: MMM Case Study II</a></p>
+</div>
+</section>
+<section id="funnel-model-components" class="slide level2">
+<h2>Funnel Model Components</h2>
+<div style="font-size: 85%;">
+<p>We now give each part a symbol. The index <span class="math inline">\(t\)</span> is the week.</p>
+<ul>
+<li><strong>Demand pool</strong> <span class="math inline">\(D_t\)</span>: a baseline plus what the spend <span class="math inline">\(U_{t,c}\)</span> of each upper funnel channel <span class="math inline">\(c\)</span> adds.</li>
+<li><strong>Search demand</strong> <span class="math inline">\(M^*_t\)</span>: the pool <span class="math inline">\(D_t\)</span> plus what the paid search spend <span class="math inline">\(B_t\)</span> adds. The parameter <span class="math inline">\(\lambda\)</span> is the exchange rate between search money and search demand.</li>
+<li><strong>Measurement</strong> <span class="math inline">\(I_t\)</span>: the search impressions measure <span class="math inline">\(M^*_t\)</span>. They do not enter the sales equation.</li>
+<li><strong>Sales</strong> <span class="math inline">\(\mu_t\)</span>: the mean of sales is <span class="math inline">\(\text{MMM}_t\)</span> (the direct terms of the other channels and the controls) plus the sales that <span class="math inline">\(M^*_t\)</span> turns into. Paid search has no direct term.</li>
+</ul>
+</div>
+<div class="footer">
+<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html">PyMC-Marketing: MMM Case Study II</a></p>
+</div>
+</section>
 <section id="funnel-model-structure" class="slide level2 smaller">
 <h2>Funnel Model Structure</h2>
-<p>Let <span class="math inline">\(U_{t,c}\)</span> be the spend of upper funnel channel <span class="math inline">\(c\)</span> in week <span class="math inline">\(t\)</span>, <span class="math inline">\(B_t\)</span> the paid search spend, <span class="math inline">\(I_t\)</span> the search impressions, <span class="math inline">\(\mu_t\)</span> the mean of sales, and <span class="math inline">\(\text{MMM}_t\)</span> the direct terms of the other channels and the controls. The scales <span class="math inline">\(s_B\)</span> and <span class="math inline">\(s_I\)</span> are the maxima of <span class="math inline">\(B_t\)</span> and <span class="math inline">\(I_t\)</span>, <span class="math inline">\(\sigma_I\)</span> is the measurement noise, and <span class="math inline">\(uf\)</span> and <span class="math inline">\(lf\)</span> mark the upper and lower funnel:</p>
+<p>We write the four components as equations:</p>
 <p><span class="math display">\[
 \begin{align*}
 D_t &amp; = \text{baseline} + \sum_{c \in \text{upper}} \text{sat}^{uf}\left(\text{adstock}^{uf}(U_{t,c})\right) \\
@@ -1039,6 +1079,7 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 \mu_t &amp; = \text{MMM}_t + \text{sat}^{lf}\left(\text{adstock}^{lf}(M^{*}_t)\right)
 \end{align*}
 \]</span></p>
+<p>The scales <span class="math inline">\(s_B\)</span> and <span class="math inline">\(s_I\)</span> are the maxima of <span class="math inline">\(B_t\)</span> and <span class="math inline">\(I_t\)</span>, <span class="math inline">\(\sigma_I\)</span> is the measurement noise, and <span class="math inline">\(uf\)</span> and <span class="math inline">\(lf\)</span> mark the upper and lower funnel.</p>
 <div class="callout callout-note callout-style-simple">
 <div class="callout-body">
 <div class="callout-icon-container">
@@ -1048,20 +1089,6 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 <p>This is a structural equation model with a latent variable. The impressions equation is the <strong>measurement model</strong>, and we fix its loading at one to set the scale of <span class="math inline">\(M^*_t\)</span>.</p>
 </div>
 </div>
-</div>
-<div class="footer">
-<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html">PyMC-Marketing: MMM Case Study II</a></p>
-</div>
-</section>
-<section id="funnel-model-intuition" class="slide level2">
-<h2>Funnel Model Intuition</h2>
-<div style="font-size: 85%;">
-<ul>
-<li><strong>Demand pool:</strong> <span class="math inline">\(D_t\)</span> is the pool of people who look for the product. It is a baseline of ambient interest plus the interest that <code>TV</code>, <code>Radio</code>, and <code>Newspaper</code> add, with a lag and diminishing returns.</li>
-<li><strong>Search demand:</strong> <span class="math inline">\(M^*_t\)</span> is the demand that paid search reaches: the pool plus what the paid search spend adds. The parameter <span class="math inline">\(\lambda\)</span> is the exchange rate between search money and search demand.</li>
-<li><strong>Measurement:</strong> the impressions <span class="math inline">\(I_t\)</span> tell the model where <span class="math inline">\(M^*_t\)</span> is. They do not cause sales.</li>
-<li><strong>Sales:</strong> paid search has no direct term in <span class="math inline">\(\mu_t\)</span>. Search demand turns into sales with its own lag and diminishing returns.</li>
-</ul>
 </div>
 <div class="footer">
 <p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html">PyMC-Marketing: MMM Case Study II</a></p>

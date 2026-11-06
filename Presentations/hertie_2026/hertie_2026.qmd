@@ -769,9 +769,47 @@ Two stories fit the data: paid search drives sales, or it harvests demand that t
 [PyMC-Marketing: MMM Case Study II](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html)
 :::
 
+## Funnel Model Intuition
+
+::: {style="font-size: 85%;"}
+
+Let's follow the demand for the product through the funnel in one week.
+
+- **Interest:** some people look for the product anyway. `TV`, `Radio`, and `Newspaper` bring more of them, with a lag.
+- **Search:** paid search ads reach these people. More search spend buys more queries and higher positions, so it reaches extra people.
+- **Measurement:** we never see this demand. Search impressions grow with it, but they do not cause sales.
+- **Sales:** the demand that paid search reaches turns into sales. All other channels also act on sales directly.
+
+::: {.callout-tip appearance="simple"}
+Search sales are not all search's doing. The model splits the demand behind them into interest that exists anyway, the upper funnel, and the paid search spend itself.
+:::
+
+:::
+
+::: footer
+[PyMC-Marketing: MMM Case Study II](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html)
+:::
+
+## Funnel Model Components
+
+::: {style="font-size: 85%;"}
+
+We now give each part a symbol. The index $t$ is the week.
+
+- **Demand pool** $D_t$: a baseline plus what the spend $U_{t,c}$ of each upper funnel channel $c$ adds.
+- **Search demand** $M^*_t$: the pool $D_t$ plus what the paid search spend $B_t$ adds. The parameter $\lambda$ is the exchange rate between search money and search demand.
+- **Measurement** $I_t$: the search impressions measure $M^*_t$. They do not enter the sales equation.
+- **Sales** $\mu_t$: the mean of sales is $\text{MMM}_t$ (the direct terms of the other channels and the controls) plus the sales that $M^*_t$ turns into. Paid search has no direct term.
+
+:::
+
+::: footer
+[PyMC-Marketing: MMM Case Study II](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html)
+:::
+
 ## Funnel Model Structure {.smaller}
 
-Let $U_{t,c}$ be the spend of upper funnel channel $c$ in week $t$, $B_t$ the paid search spend, $I_t$ the search impressions, $\mu_t$ the mean of sales, and $\text{MMM}_t$ the direct terms of the other channels and the controls. The scales $s_B$ and $s_I$ are the maxima of $B_t$ and $I_t$, $\sigma_I$ is the measurement noise, and $uf$ and $lf$ mark the upper and lower funnel:
+We write the four components as equations:
 
 $$
 \begin{align*}
@@ -782,23 +820,10 @@ I_t & \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{lower
 \end{align*}
 $$
 
+The scales $s_B$ and $s_I$ are the maxima of $B_t$ and $I_t$, $\sigma_I$ is the measurement noise, and $uf$ and $lf$ mark the upper and lower funnel.
+
 ::: {.callout-note appearance="simple"}
 This is a structural equation model with a latent variable. The impressions equation is the **measurement model**, and we fix its loading at one to set the scale of $M^*_t$.
-:::
-
-::: footer
-[PyMC-Marketing: MMM Case Study II](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html)
-:::
-
-## Funnel Model Intuition
-
-::: {style="font-size: 85%;"}
-
-- **Demand pool:** $D_t$ is the pool of people who look for the product. It is a baseline of ambient interest plus the interest that `TV`, `Radio`, and `Newspaper` add, with a lag and diminishing returns.
-- **Search demand:** $M^*_t$ is the demand that paid search reaches: the pool plus what the paid search spend adds. The parameter $\lambda$ is the exchange rate between search money and search demand.
-- **Measurement:** the impressions $I_t$ tell the model where $M^*_t$ is. They do not cause sales.
-- **Sales:** paid search has no direct term in $\mu_t$. Search demand turns into sales with its own lag and diminishing returns.
-
 :::
 
 ::: footer
