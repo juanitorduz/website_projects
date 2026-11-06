@@ -1160,13 +1160,14 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 </section>
 <section id="takeaways" class="slide level2">
 <h2>Takeaways</h2>
-<div style="font-size: 92%;">
+<div style="font-size: 85%;">
 <ul>
 <li><strong>The model states the assumptions.</strong> We write the DAG as code.</li>
 <li><strong>Priors and experiments carry outside information.</strong> Lift priors rule out implausible lifts in A/B tests. ROAS priors and lift tests reduce confounding bias in MMMs.</li>
 <li><strong>The same <code>do</code> query works across models.</strong> It applies to regressions, GLMs, MMMs, and funnel models.</li>
 <li><strong>Hierarchies regularize.</strong> They do not replace thinking about the DAG.</li>
 <li><strong>The causal structure changes decisions.</strong> The funnel model tells us how much to spend on paid search.</li>
+<li><strong>Amortized inference trains once.</strong> Amortized Bayesian inference and MFM learn from simulations, then handle new data in seconds.</li>
 </ul>
 </div>
 </section>

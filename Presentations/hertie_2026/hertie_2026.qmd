@@ -894,13 +894,14 @@ Marketing Foundational Models (MFM) apply this idea to MMMs. A model trained on 
 
 ## Takeaways
 
-::: {style="font-size: 92%;"}
+::: {style="font-size: 85%;"}
 
 - **The model states the assumptions.** We write the DAG as code.
 - **Priors and experiments carry outside information.** Lift priors rule out implausible lifts in A/B tests. ROAS priors and lift tests reduce confounding bias in MMMs.
 - **The same `do` query works across models.** It applies to regressions, GLMs, MMMs, and funnel models.
 - **Hierarchies regularize.** They do not replace thinking about the DAG.
 - **The causal structure changes decisions.** The funnel model tells us how much to spend on paid search.
+- **Amortized inference trains once.** Amortized Bayesian inference and MFM learn from simulations, then handle new data in seconds.
 
 :::
 
