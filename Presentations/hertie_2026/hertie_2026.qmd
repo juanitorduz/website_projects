@@ -43,8 +43,9 @@ format:
 7. Calibration with Experiments
 8. Funnel Models in Marketing
 9. Budget Optimization
-10. Takeaways
-11. References
+10. Amortized Bayesian Inference
+11. Takeaways
+12. References
 
 :::
 ::::
@@ -165,42 +166,63 @@ with pm.Model() as non_informative_model:
 [Prior Predictive Modeling in Bayesian AB Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
 :::
 
-## Independent Priors {.smaller}
+## Uninformative Priors {.smaller}
 
 :::: {.columns}
-::: {.column width="50%"}
+::: {.column width="40.5%"}
 
-**Flat:** $\text{cr}_\text{c}, \text{cr}_\text{t} \sim \text{Beta}(1, 1)$
-
-![](hertie_2026_files/static/images/prior_predictive_ab_testing_14_0.png){fig-align="center" width="480"}
+![](hertie_2026_files/static/images/prior_predictive_ab_testing_11_0.png){fig-align="center" width="393"}
 
 :::
-::: {.column width="50%"}
+::: {.column width="59.5%"}
 
-**Informative:** $\text{cr}_\text{c}, \text{cr}_\text{t} \sim \text{Beta}(15, 600)$
-
-![](hertie_2026_files/static/images/prior_predictive_ab_testing_27_0.png){fig-align="center" width="480"}
+![](hertie_2026_files/static/images/prior_predictive_ab_testing_14_0.png){fig-align="center" width="579"}
 
 :::
 ::::
 
 ::: {.callout-important}
-## Independent priors give implausible lifts.
+## Uninformative priors give implausible lifts.
 
-- The relative lift is a ratio of two random variables. Flat priors on the two conversion rates allow a treatment that is $100$ times better than control.
-- Informative priors that put both rates near $2.4\%$ still allow lifts of $50\%$, which are rare in practice.
+The relative lift is a ratio of two random variables. With $\text{Beta}(1, 1)$ priors on both conversion rates, a treatment can be $100$ times better than control.
 :::
 
 ::: footer
 [Prior Predictive Modeling in Bayesian AB Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
 :::
 
-## Correlated Priors {.smaller .nostretch}
+## Informative Priors {.smaller}
 
-Most lifts are small, so we set the prior on the **relative lift** itself.
+We now put informative priors on both conversion rates: $\text{cr}_\text{c}, \text{cr}_\text{t} \sim \text{Beta}(15, 600)$.
 
 :::: {.columns}
-::: {.column width="55%"}
+::: {.column width="30%"}
+
+![](hertie_2026_files/static/images/prior_predictive_ab_testing_23_0.png){fig-align="center" width="250"}
+
+![](hertie_2026_files/static/images/prior_predictive_ab_testing_25_0.png){fig-align="center" width="250"}
+
+:::
+::: {.column width="70%"}
+
+![](hertie_2026_files/static/images/prior_predictive_ab_testing_27_0.png){fig-align="center" width="600"}
+
+::: {.callout-warning}
+## Informative priors still allow large lifts.
+
+Both conversion rates are near $2.4\%$, but the prior still allows lifts of $50\%$, which are rare in practice.
+:::
+
+:::
+::::
+
+::: footer
+[Prior Predictive Modeling in Bayesian AB Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
+:::
+
+## Correlated Priors {.smaller}
+
+Most lifts are small, so we set the prior on the **relative lift** itself.
 
 ```{.python code-line-numbers="|2-4|5-7|8-11|"}
 with pm.Model() as correlated_model:
@@ -216,14 +238,19 @@ with pm.Model() as correlated_model:
     )
 ```
 
-![](hertie_2026_files/static/images/prior_predictive_ab_testing_39_0.png){fig-align="center" width="380"}
+:::: {.columns}
+::: {.column width="65%"}
+
+![](hertie_2026_files/static/images/prior_predictive_ab_testing_31_0.svg){fig-align="center" width="400"}
 
 :::
-::: {.column width="45%"}
+::: {.column width="35%"}
 
-![](hertie_2026_files/static/images/prior_predictive_ab_testing_37_0.png){fig-align="center" width="400"}
-
-The joint prior of the two conversion rates concentrates on the diagonal.
+\begin{align*}
+\text{cr}_\text{c} & \sim \text{Beta}(15, 600) \\
+\text{lift} & \sim \text{Normal}(0, 0.1) \\
+\text{cr}_\text{t} & = \text{cr}_\text{c} (1 + \text{lift})
+\end{align*}
 
 :::
 ::::
@@ -232,17 +259,64 @@ The joint prior of the two conversion rates concentrates on the diagonal.
 [Prior Predictive Modeling in Bayesian AB Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
 :::
 
-## Inference with Correlated Priors {.smaller .nostretch}
+## Correlated Prior Predictive {.smaller}
+
+:::: {.columns}
+::: {.column width="40.5%"}
+
+![](hertie_2026_files/static/images/prior_predictive_ab_testing_37_0.png){fig-align="center" width="393"}
+
+:::
+::: {.column width="59.5%"}
+
+![](hertie_2026_files/static/images/prior_predictive_ab_testing_39_0.png){fig-align="center" width="579"}
+
+:::
+::::
+
+::: {.callout-tip}
+## Correlated priors give plausible lifts.
+
+We set the prior on the relative lift directly, so the joint prior of the two conversion rates concentrates on the diagonal.
+:::
+
+::: footer
+[Prior Predictive Modeling in Bayesian AB Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
+:::
+
+## Inference with Correlated Priors {.smaller}
 
 We observe $200$ and $350$ conversions out of $10{,}000$ users per group (naive lift $75\%$).
 
 ```{.python code-line-numbers="|2|3"}
 with correlated_model:
-    pm.Binomial("n_control", n=n, p=conversion_rate_control, observed=n_c)
-    pm.Binomial("n_treatment", n=n, p=conversion_rate_treatment, observed=n_t)
+    pm.Binomial("n_control", n=n, p=conversion_rate_control, observed=y_c)
+    pm.Binomial("n_treatment", n=n, p=conversion_rate_treatment, observed=y_t)
 ```
 
-:::: {.columns}
+:::: {.columns style="display: flex; align-items: center;"}
+::: {.column width="65%"}
+
+![](hertie_2026_files/static/images/prior_predictive_ab_testing_50_0.svg){fig-align="center" width="400"}
+
+:::
+::: {.column width="35%"}
+
+\begin{align*}
+y_\text{c} & \sim \text{Binomial}(n, \text{cr}_\text{c}) \\
+y_\text{t} & \sim \text{Binomial}(n, \text{cr}_\text{t})
+\end{align*}
+
+:::
+::::
+
+::: footer
+[Prior Predictive Modeling in Bayesian AB Testing](https://juanitorduz.github.io/prior_predictive_ab_testing/)
+:::
+
+## A/B Test Results {.smaller .nostretch}
+
+:::: {.columns style="display: flex; align-items: center; min-height: 540px;"}
 ::: {.column width="46%"}
 
 ![](hertie_2026_files/static/images/prior_predictive_ab_testing_54_0.png){fig-align="center" width="469"}
@@ -294,7 +368,7 @@ We have two ways to estimate the ATE:
 1. We fit a linear regression and read the estimate of $\beta_{\text{treat}}$ as the ATE:
 
     $$
-    \text{earnings} = \beta_0 + \beta_{\text{treat}} \cdot \text{treat} + \beta_{\text{covariates}}^{\top} \text{covariates} + \varepsilon
+    \text{earnings} = \beta_0 + \beta_{\text{treat}} \cdot \text{treat} + \beta_{\text{covariates}} \cdot \text{covariates} + \varepsilon
     $$
 
 2. We use the `do` operator:
@@ -350,6 +424,14 @@ with pm.Model(coords=coords) as earnings_model:
 [Introduction to Causal Inference with PPLs](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/)
 :::
 
+## The PyMC Model Graph {.nostretch}
+
+![](hertie_2026_files/static/images/intro_causal_inference_ppl_pymc_19_0.svg){fig-align="center" width="820"}
+
+::: footer
+[Introduction to Causal Inference with PPLs](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/)
+:::
+
 ## Conditioning and Intervening {.smaller}
 
 `observe` conditions the generative model on the data, so the same program now defines the likelihood. `do` sets `treat` to $0$ or $1$ for every unit and removes the arrows from the covariates into `treat`.
@@ -374,23 +456,21 @@ do_1_model = do(conditioned_model, {"treat": np.ones(n_obs, dtype=np.int32)})
 
 The coefficient and the `do` contrast agree: $0.55$ thousand USD ($94\%$ HDI $[-0.55, 1.7]$), our ATE estimate under the backdoor assumption.
 
-:::: {.columns}
-::: {.column width="55%"}
+:::: {.columns style="display: flex; align-items: center; min-height: 480px;"}
+::: {.column width="54%"}
 
-![](hertie_2026_files/static/images/intro_causal_inference_ppl_pymc_42_0.png){fig-align="center" width="470"}
+![](hertie_2026_files/static/images/intro_causal_inference_ppl_pymc_42_0.png){fig-align="center" width="527"}
 
 :::
-::: {.column width="45%"}
+::: {.column width="46%"}
 
-![](hertie_2026_files/static/images/intro_causal_inference_ppl_pymc_58_0.png){fig-align="center" width="370"}
+![](hertie_2026_files/static/images/intro_causal_inference_ppl_pymc_58_0.png){fig-align="center" width="445"}
 
 :::
 ::::
 
-The randomized experiment gives $1{,}794$ USD for the treated group (Dehejia and Wahba, 2002), outside our HDI. It is an effect on the treated, and our model leaves out 1974 earnings (`re74`). The OLS and matching lines (left) come from an [external analysis](https://rugg2.github.io/Lalonde%20dataset%20-%20Causal%20Inference.html) with `re74`.
-
 ::: footer
-[Introduction to Causal Inference with PPLs](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/)
+[Introduction to Causal Inference with PPLs](https://juanitorduz.github.io/intro_causal_inference_ppl_pymc/) and [ChiRho: Backdoor Adjustment, Results](https://basisresearch.github.io/chirho/backdoor.html#Results)
 :::
 
 ## A Gamma GLM {.smaller}
@@ -784,6 +864,34 @@ $$
 [PyMC-Marketing: MMM Case Study II, Budget Optimization](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#budget-optimization)
 :::
 
+## Amortized Bayesian Inference {.smaller .nostretch}
+
+Markov chain Monte Carlo (MCMC) starts from scratch for every new dataset. Amortized Bayesian inference trains a neural network once on simulations from the model.
+
+![](hertie_2026_files/static/images/abi_approximation_loop.png){fig-align="center" width="580"}
+
+- **Simulator only:** we need draws from the model, not a tractable likelihood.
+- **Many refits:** after the training cost, each new posterior takes milliseconds.
+- **Trust:** on data outside the simulations, the network can fail silently.
+
+::: footer
+[PyMC Labs: Amortized Bayesian Inference](https://www.pymc-labs.com/blog-posts/amortized-bayesian-inference), figure from Stefan Radev's PyMC Labs webinar
+:::
+
+## Marketing Foundational Models {.smaller .nostretch}
+
+Marketing Foundational Models (MFM) apply this idea to MMMs. A model trained on simulated marketing worlds returns the sales contributions of a new dataset in one pass.
+
+![](hertie_2026_files/static/images/mfm_simulate_train_use.png){fig-align="center" width="860"}
+
+- **Causal graphs:** each draw samples a plausible causal graph and the sales split under it.
+- **Latent truth:** contributions are latent, so all tests so far use simulated worlds.
+- **Early prototype:** it is not yet ready to drive budget decisions on its own.
+
+::: footer
+[PyMC Labs: Marketing Foundational Models](https://www.pymc-labs.com/marketing-foundation-models)
+:::
+
 ## Takeaways
 
 ::: {style="font-size: 92%;"}
@@ -817,12 +925,18 @@ $$
 - [Lift Test Calibration](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_lift_test.html)
 - [MMM Case Study II: Funnel-Aware Modeling, ROAS Calibration, and Budget Planning](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html)
 
+#### Current Research
+
+- [PyMC Labs: Amortized Bayesian Inference](https://www.pymc-labs.com/blog-posts/amortized-bayesian-inference)
+- [PyMC Labs: Marketing Foundational Models](https://www.pymc-labs.com/marketing-foundation-models)
+
 :::
 ::: {.column width="30%"}
 
 #### Packages
 
 - [CausalPy](https://causalpy.readthedocs.io/)
+- [ChiRho](https://basisresearch.github.io/chirho/)
 - [NumPyro](https://num.pyro.ai/)
 - [PyMC](https://www.pymc.io/)
 - [PyMC-Marketing](https://www.pymc-marketing.io/) (Dean et al., 2026)
@@ -847,7 +961,6 @@ $$
 - Rubin, D. B. (1974). [Estimating causal effects of treatments in randomized and nonrandomized studies.](https://doi.org/10.1037/h0037350) *Journal of Educational Psychology*.
 - LaLonde, R. J. (1986). [Evaluating the econometric evaluations of training programs with experimental data.](https://www.jstor.org/stable/1806062) *American Economic Review*.
 - Dehejia, R. H. & Wahba, S. (1999). [Causal effects in nonexperimental studies: reevaluating the evaluation of training programs.](https://doi.org/10.1080/01621459.1999.10473858) *Journal of the American Statistical Association*.
-- Dehejia, R. H. & Wahba, S. (2002). [Propensity score-matching methods for nonexperimental causal studies.](https://doi.org/10.1162/003465302317331982) *Review of Economics and Statistics*.
 - Jin, Y. et al. (2017). [Bayesian methods for media mix modeling with carryover and shape effects.](https://research.google/pubs/pub46001/)
 - Chan, D. & Perry, M. (2017). [Challenges and opportunities in media mix modeling.](https://storage.googleapis.com/gweb-research2023-media/pubtools/3803.pdf)
 - Zhang, Y. et al. (2024). [Media mix model calibration with Bayesian priors.](https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/)
