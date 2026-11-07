@@ -231,9 +231,9 @@
 <li>Funnel Models in Marketing</li>
 <li>Budget Optimization</li>
 <li>Amortized Bayesian Inference</li>
+<li>OSS Bayesian Causal Inference</li>
 <li>Takeaways</li>
 <li>References</li>
-<li>OSS Bayesian Causal Inference</li>
 </ol>
 </div></div>
 </div>
@@ -1309,6 +1309,52 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 <p><a href="https://www.pymc-labs.com/marketing-foundation-models">PyMC Labs: Marketing Foundational Models</a></p>
 </div>
 </section>
+<section id="oss-bayesian-causal-inference" class="slide level2 smaller">
+<h2>OSS Bayesian Causal Inference</h2>
+<p>PyMC Labs maintains three open-source packages for Bayesian causal inference, all built on <a href="https://www.pymc.io/">PyMC</a>.</p>
+<div class="columns" style="text-align: center; font-size: 80%;">
+<div class="column" style="width:33%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="hertie_2026_files/static/images/logos/causalpy.png" class="quarto-figure quarto-figure-center" height="150"></p>
+</figure>
+</div>
+<p><strong><a href="https://github.com/pymc-labs/CausalPy">CausalPy</a></strong></p>
+<p>Quasi-experiments: difference-in-differences, synthetic control, regression discontinuity, and more.</p>
+<p><a href="https://causalpy.readthedocs.io/">Documentation</a></p>
+</div><div class="column" style="width:33%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="hertie_2026_files/static/images/logos/pathmc.png" class="quarto-figure quarto-figure-center" height="150"></p>
+</figure>
+</div>
+<p><strong><a href="https://github.com/pymc-labs/pathmc">PathMC</a></strong></p>
+<p>Structural causal models with identification checks and <code>do</code> interventions.</p>
+<p><a href="https://pathmc.pymc-labs.com/">Documentation</a></p>
+</div><div class="column" style="width:33%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="hertie_2026_files/static/images/logos/pymc-marketing.jpg" class="quarto-figure quarto-figure-center" height="150"></p>
+</figure>
+</div>
+<p><strong><a href="https://github.com/pymc-labs/pymc-marketing">PyMC-Marketing</a></strong></p>
+<p>Marketing mix models with lift test calibration, budget optimization, and customer lifetime value.</p>
+<p><a href="https://www.pymc-marketing.io/">Documentation</a></p>
+</div></div>
+<div class="callout callout-tip callout-style-simple">
+<div class="callout-body">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-content">
+<p>All three packages are open source under the Apache 2.0 license. We welcome issues and contributions.</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<p><a href="https://github.com/pymc-labs">github.com/pymc-labs</a></p>
+</div>
+</section>
 <section id="takeaways" class="slide level2">
 <h2>Takeaways</h2>
 <div style="font-size: 85%;">
@@ -1381,52 +1427,6 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 <li>Dean, W., Orduz, J., et al.&nbsp;(2026). <a href="https://doi.org/10.21105/joss.10805">PyMC-Marketing: Bayesian marketing mix models and customer analytics in Python.</a> <em>Journal of Open Source Software</em>.</li>
 </ul>
 </section>
-</section>
-<section id="oss-bayesian-causal-inference" class="slide level2 smaller">
-<h2>OSS Bayesian Causal Inference</h2>
-<p>PyMC Labs maintains three open-source packages for Bayesian causal inference, all built on <a href="https://www.pymc.io/">PyMC</a>.</p>
-<div class="columns" style="text-align: center; font-size: 80%;">
-<div class="column" style="width:33%;">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="hertie_2026_files/static/images/logos/causalpy.png" class="quarto-figure quarto-figure-center" height="150"></p>
-</figure>
-</div>
-<p><strong><a href="https://github.com/pymc-labs/CausalPy">CausalPy</a></strong></p>
-<p>Quasi-experiments: difference-in-differences, synthetic control, regression discontinuity, and more.</p>
-<p><a href="https://causalpy.readthedocs.io/">Documentation</a></p>
-</div><div class="column" style="width:33%;">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="hertie_2026_files/static/images/logos/pathmc.png" class="quarto-figure quarto-figure-center" height="150"></p>
-</figure>
-</div>
-<p><strong><a href="https://github.com/pymc-labs/pathmc">PathMC</a></strong></p>
-<p>Structural causal models with identification checks and <code>do</code> interventions.</p>
-<p><a href="https://pathmc.pymc-labs.com/">Documentation</a></p>
-</div><div class="column" style="width:33%;">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="hertie_2026_files/static/images/logos/pymc-marketing.jpg" class="quarto-figure quarto-figure-center" height="150"></p>
-</figure>
-</div>
-<p><strong><a href="https://github.com/pymc-labs/pymc-marketing">PyMC-Marketing</a></strong></p>
-<p>Marketing mix models with lift test calibration, budget optimization, and customer lifetime value.</p>
-<p><a href="https://www.pymc-marketing.io/">Documentation</a></p>
-</div></div>
-<div class="callout callout-tip callout-style-simple">
-<div class="callout-body">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-content">
-<p>All three packages are open source under the Apache 2.0 license. We welcome issues and contributions.</p>
-</div>
-</div>
-</div>
-<div class="footer">
-<p><a href="https://github.com/pymc-labs">github.com/pymc-labs</a></p>
-</div>
 </section>
 <section id="thank-you" class="slide level2" data-background-image="hertie_2026_files/static/images/logos/pymc-labs-black.jpg">
 <h2><span style="color: white;">Thank You!</span></h2>

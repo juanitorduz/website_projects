@@ -47,9 +47,9 @@ format:
 9. Funnel Models in Marketing
 10. Budget Optimization
 11. Amortized Bayesian Inference
-12. Takeaways
-13. References
-14. OSS Bayesian Causal Inference
+12. OSS Bayesian Causal Inference
+13. Takeaways
+14. References
 
 :::
 ::::
@@ -1010,6 +1010,54 @@ Marketing Foundational Models (MFM) apply this idea to MMMs. A model trained on 
 [PyMC Labs: Marketing Foundational Models](https://www.pymc-labs.com/marketing-foundation-models)
 :::
 
+## OSS Bayesian Causal Inference {.smaller}
+
+PyMC Labs maintains three open-source packages for Bayesian causal inference, all built on [PyMC](https://www.pymc.io/).
+
+:::: {.columns style="text-align: center; font-size: 80%;"}
+::: {.column width="33%"}
+
+![](hertie_2026_files/static/images/logos/causalpy.png){fig-align="center" height="150"}
+
+**[CausalPy](https://github.com/pymc-labs/CausalPy)**
+
+Quasi-experiments: difference-in-differences, synthetic control, regression discontinuity, and more.
+
+[Documentation](https://causalpy.readthedocs.io/)
+
+:::
+::: {.column width="33%"}
+
+![](hertie_2026_files/static/images/logos/pathmc.png){fig-align="center" height="150"}
+
+**[PathMC](https://github.com/pymc-labs/pathmc)**
+
+Structural causal models with identification checks and `do` interventions.
+
+[Documentation](https://pathmc.pymc-labs.com/)
+
+:::
+::: {.column width="33%"}
+
+![](hertie_2026_files/static/images/logos/pymc-marketing.jpg){fig-align="center" height="150"}
+
+**[PyMC-Marketing](https://github.com/pymc-labs/pymc-marketing)**
+
+Marketing mix models with lift test calibration, budget optimization, and customer lifetime value.
+
+[Documentation](https://www.pymc-marketing.io/)
+
+:::
+::::
+
+::: {.callout-tip appearance="simple"}
+All three packages are open source under the Apache 2.0 license. We welcome issues and contributions.
+:::
+
+::: footer
+[github.com/pymc-labs](https://github.com/pymc-labs)
+:::
+
 ## Takeaways
 
 ::: {style="font-size: 85%;"}
@@ -1088,54 +1136,6 @@ Marketing Foundational Models (MFM) apply this idea to MMMs. A model trained on 
 - Evans, R. J. & Didelez, V. (2024). [Parameterizing and simulating from causal models.](https://doi.org/10.1093/jrsssb/qkad058) *Journal of the Royal Statistical Society Series B*.
 - Dean, W., Orduz, J., et al. (2026). [PyMC-Marketing: Bayesian marketing mix models and customer analytics in Python.](https://doi.org/10.21105/joss.10805) *Journal of Open Source Software*.
 
-:::
-
-## OSS Bayesian Causal Inference {.smaller}
-
-PyMC Labs maintains three open-source packages for Bayesian causal inference, all built on [PyMC](https://www.pymc.io/).
-
-:::: {.columns style="text-align: center; font-size: 80%;"}
-::: {.column width="33%"}
-
-![](hertie_2026_files/static/images/logos/causalpy.png){fig-align="center" height="150"}
-
-**[CausalPy](https://github.com/pymc-labs/CausalPy)**
-
-Quasi-experiments: difference-in-differences, synthetic control, regression discontinuity, and more.
-
-[Documentation](https://causalpy.readthedocs.io/)
-
-:::
-::: {.column width="33%"}
-
-![](hertie_2026_files/static/images/logos/pathmc.png){fig-align="center" height="150"}
-
-**[PathMC](https://github.com/pymc-labs/pathmc)**
-
-Structural causal models with identification checks and `do` interventions.
-
-[Documentation](https://pathmc.pymc-labs.com/)
-
-:::
-::: {.column width="33%"}
-
-![](hertie_2026_files/static/images/logos/pymc-marketing.jpg){fig-align="center" height="150"}
-
-**[PyMC-Marketing](https://github.com/pymc-labs/pymc-marketing)**
-
-Marketing mix models with lift test calibration, budget optimization, and customer lifetime value.
-
-[Documentation](https://www.pymc-marketing.io/)
-
-:::
-::::
-
-::: {.callout-tip appearance="simple"}
-All three packages are open source under the Apache 2.0 license. We welcome issues and contributions.
-:::
-
-::: footer
-[github.com/pymc-labs](https://github.com/pymc-labs)
 :::
 
 ## [Thank You!]{style="color: white;"} {background-image="hertie_2026_files/static/images/logos/pymc-labs-black.jpg"}
