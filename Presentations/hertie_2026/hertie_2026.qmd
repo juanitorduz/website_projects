@@ -26,29 +26,35 @@ format:
 
 ## Outline
 
+::: {style="font-size: 85%;"}
+
 :::: {.columns}
-::: {.column width="50%"}
+::: {.column width="53%"}
 
 1. Causal Inference and PPLs
 2. Bayesian A/B Testing
 3. Regression and the `do` Operator
 4. Hierarchical Models
-5. Marketing Mix Models
-6. Unobserved Confounders
+5. Marketing Measurement Problem
+6. Marketing Mix Models
+7. Unobserved Confounders
 
 :::
 
-::: {.column width="50%"}
+::: {.column width="47%"}
 
-7. Calibration with Experiments
-8. Funnel Models in Marketing
-9. Budget Optimization
-10. Amortized Bayesian Inference
-11. Takeaways
-12. References
+8. Calibration with Experiments
+9. Funnel Models in Marketing
+10. Budget Optimization
+11. Amortized Bayesian Inference
+12. Takeaways
+13. References
+14. OSS Bayesian Causal Inference
 
 :::
 ::::
+
+:::
 
 ## Causal Inference {.smaller}
 
@@ -523,13 +529,39 @@ An unobserved group effect $G$ drives $X$ and $Y$. The true effect of $X$ on $Y$
 [Fixed and Random Effects Models: A Simulated Study](https://juanitorduz.github.io/fixed_random/), after [Statistical Rethinking 2026, Lecture B04](https://www.youtube.com/watch?v=XNNcN8sU8us)
 :::
 
-## Marketing Mix Models {.smaller}
+## Marketing Measurement Problem {.smaller}
 
-::: {.callout-tip appearance="simple"}
-How should we split next quarter's marketing budget across channels (TV, radio, search, and so on) to maximize sales?
+::: {.callout-tip}
+## The Business Question
+
+How should we split next quarter's marketing budget across channels to maximize sales? To answer it, we need the **efficiency** of each channel: the extra sales that one more unit of spend brings.
 :::
 
-In marketing, budgets are rarely randomized, so we estimate channel effects from observational time series.
+::: {style="font-size: 85%;"}
+
+Attribution assigns each conversion to the ads in the user's path. **Last-touch** attribution gives all the credit to the last ad. **Multi-touch** attribution splits it across the tracked ads, with a rule or a data-driven model. Consider a user who sees a `Social` ad, opens an `Email`, clicks a `Search` ad, and buys:
+
+| Credit | `Social` | `Email` | `Search` |
+|:--|:-:|:-:|:-:|
+| Last touch | $0\%$ | $0\%$ | $100\%$ |
+| Multi-touch (equal shares) | $33\%$ | $33\%$ | $33\%$ |
+
+:::
+
+::: {.callout-warning}
+## Attribution Does Not Measure Incrementality
+
+- **Privacy:** consent rules ([GDPR](https://eur-lex.europa.eu/eli/reg/2016/679/oj)) and platform changes ([Apple's App Tracking Transparency](https://developer.apple.com/documentation/apptrackingtransparency)) remove touchpoints from the paths. Offline channels such as TV were never in them.
+- **Incrementality:** attribution gives credit for every sale, even when the user would have bought without any ad. We want the extra sales that a channel *causes*: a `do` contrast.
+:::
+
+::: footer
+[Gordon et al. (2019), *Marketing Science*: observational methods often fail to recover the lift of field experiments.](https://doi.org/10.1287/mksc.2018.1135)
+:::
+
+## Marketing Mix Models {.smaller}
+
+In marketing, budgets are rarely randomized, so we estimate channel effects from observational time series. These are aggregate data, for example weekly spend and sales. We need no user-level tracking, and offline channels such as TV are in the data.
 
 A marketing mix model (MMM) is a regression of sales $y_t$ on transformed media spend $x_{m,t}$ and control variables $z_{k,t}$ (trend, seasonality, holidays):
 
@@ -1025,6 +1057,7 @@ Marketing Foundational Models (MFM) apply this idea to MMMs. A model trained on 
 - [CausalPy](https://causalpy.readthedocs.io/)
 - [ChiRho](https://basisresearch.github.io/chirho/)
 - [NumPyro](https://num.pyro.ai/)
+- [PathMC](https://github.com/pymc-labs/pathmc)
 - [PyMC](https://www.pymc.io/)
 - [PyMC-Marketing](https://www.pymc-marketing.io/) (Dean et al., 2026)
 
@@ -1050,10 +1083,59 @@ Marketing Foundational Models (MFM) apply this idea to MMMs. A model trained on 
 - Dehejia, R. H. & Wahba, S. (1999). [Causal effects in nonexperimental studies: reevaluating the evaluation of training programs.](https://doi.org/10.1080/01621459.1999.10473858) *Journal of the American Statistical Association*.
 - Jin, Y. et al. (2017). [Bayesian methods for media mix modeling with carryover and shape effects.](https://research.google/pubs/pub46001/)
 - Chan, D. & Perry, M. (2017). [Challenges and opportunities in media mix modeling.](https://storage.googleapis.com/gweb-research2023-media/pubtools/3803.pdf)
+- Gordon, B. R., Zettelmeyer, F., Bhargava, N. & Chapsky, D. (2019). [A comparison of approaches to advertising measurement: evidence from big field experiments at Facebook.](https://doi.org/10.1287/mksc.2018.1135) *Marketing Science*.
 - Zhang, Y. et al. (2024). [Media mix model calibration with Bayesian priors.](https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/)
 - Evans, R. J. & Didelez, V. (2024). [Parameterizing and simulating from causal models.](https://doi.org/10.1093/jrsssb/qkad058) *Journal of the Royal Statistical Society Series B*.
 - Dean, W., Orduz, J., et al. (2026). [PyMC-Marketing: Bayesian marketing mix models and customer analytics in Python.](https://doi.org/10.21105/joss.10805) *Journal of Open Source Software*.
 
+:::
+
+## OSS Bayesian Causal Inference {.smaller}
+
+PyMC Labs maintains three open-source packages for Bayesian causal inference, all built on [PyMC](https://www.pymc.io/).
+
+:::: {.columns style="text-align: center; font-size: 80%;"}
+::: {.column width="33%"}
+
+![](hertie_2026_files/static/images/logos/causalpy.png){fig-align="center" height="150"}
+
+**[CausalPy](https://github.com/pymc-labs/CausalPy)**
+
+Quasi-experiments: difference-in-differences, synthetic control, regression discontinuity, and more.
+
+[Documentation](https://causalpy.readthedocs.io/)
+
+:::
+::: {.column width="33%"}
+
+![](hertie_2026_files/static/images/logos/pathmc.png){fig-align="center" height="150"}
+
+**[PathMC](https://github.com/pymc-labs/pathmc)**
+
+Structural causal models with identification checks and `do` interventions.
+
+[Documentation](https://pathmc.pymc-labs.com/)
+
+:::
+::: {.column width="33%"}
+
+![](hertie_2026_files/static/images/logos/pymc-marketing.jpg){fig-align="center" height="150"}
+
+**[PyMC-Marketing](https://github.com/pymc-labs/pymc-marketing)**
+
+Marketing mix models with lift test calibration, budget optimization, and customer lifetime value.
+
+[Documentation](https://www.pymc-marketing.io/)
+
+:::
+::::
+
+::: {.callout-tip appearance="simple"}
+All three packages are open source under the Apache 2.0 license. We welcome issues and contributions.
+:::
+
+::: footer
+[github.com/pymc-labs](https://github.com/pymc-labs)
 :::
 
 ## [Thank You!]{style="color: white;"} {background-image="hertie_2026_files/static/images/logos/pymc-labs-black.jpg"}
