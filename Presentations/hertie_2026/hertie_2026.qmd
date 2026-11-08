@@ -1080,12 +1080,8 @@ In a simulated market with known true curves, we re-fit the MMM every week for a
 :::
 ::::
 
-::: {style="font-size: 75%;"}
-The bars show the extra revenue per year over `greedy` (median of $20$ runs, $\$50\text{M}$ of annual revenue).
-:::
-
 ::: {.callout-tip appearance="simple"}
-Pure exploitation never finds the underrated channel. Aimed exploration costs about $\$178\text{K}$ a year in a stable market and earns about $\$15\text{M}$ a year when the model is wrong.
+Pure exploitation never finds the underrated channel. Aimed exploration costs about $\$178\text{K}$ a year in a stable market. When the model underrates a channel that it does not fund, aimed exploration earns about $\$15\text{M}$ a year more than `greedy`.
 :::
 
 ::: footer
