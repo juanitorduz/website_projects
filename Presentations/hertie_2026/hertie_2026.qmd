@@ -849,15 +849,15 @@ We write the four components as equations, plus the sales likelihood:
 
 $$
 \begin{align*}
-D_t & = \text{baseline} + \sum_{c \in \text{upper}} \text{sat}^{uf}\left(\text{adstock}^{uf}({\color{#d55e00} U_{t,c}})\right) \\
-M^{*}_t & = D_t + \lambda \, \frac{{\color{#d55e00} B_t}}{s_{B}} \\
-{\color{#d55e00} I_t} & \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{lower}=0\right) \\
+D_t & = \text{baseline} + \sum_{c \in \text{upper}} \text{sat}^{uf}\left(\text{adstock}^{uf}({\color{red} U_{t,c}})\right) \\
+M^{*}_t & = D_t + \lambda \, \frac{{\color{red} B_t}}{s_{B}} \\
+{\color{red} I_t} & \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{lower}=0\right) \\
 \mu_t & = \text{MMM}_t + \text{sat}^{lf}\left(\text{adstock}^{lf}(M^{*}_t)\right) \\
-{\color{#d55e00} y_t} & \sim \text{TruncatedNormal}\left(\mu_t, \sigma, \text{lower}=0\right)
+{\color{red} y_t} & \sim \text{TruncatedNormal}\left(\mu_t, \sigma, \text{lower}=0\right)
 \end{align*}
 $$
 
-The [orange]{style="color: #d55e00;"} quantities are observed (spend, impressions, and sales), and $D_t$ and $M^*_t$ are latent. The scales $s_B$ and $s_I$ are the maxima of $B_t$ and $I_t$. The noise scales are $\sigma_I$ and $\sigma$, and $uf$ and $lf$ mark the upper and lower funnel.
+The [red]{style="color: red;"} quantities are observed (spend, impressions, and sales), and $D_t$ and $M^*_t$ are latent. The scales $s_B$ and $s_I$ are the maxima of $B_t$ and $I_t$. The noise scales are $\sigma_I$ and $\sigma$, and $uf$ and $lf$ mark the upper and lower funnel.
 
 ::: {.callout-note appearance="simple"}
 This is a structural equation model with a latent variable. The impressions equation is the **measurement model**, and we fix its loading at one to set the scale of $M^*_t$.

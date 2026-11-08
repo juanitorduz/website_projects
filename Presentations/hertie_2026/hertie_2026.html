@@ -1139,14 +1139,14 @@ y_t = \beta_0(t) + \sum_{m} \beta_m(t) f_m(x_{m,t}) + \sum_{k} \gamma_k z_{k,t} 
 <p>We write the four components as equations, plus the sales likelihood:</p>
 <p><span class="math display">\[
 \begin{align*}
-D_t &amp; = \text{baseline} + \sum_{c \in \text{upper}} \text{sat}^{uf}\left(\text{adstock}^{uf}({\color{#d55e00} U_{t,c}})\right) \\
-M^{*}_t &amp; = D_t + \lambda \, \frac{{\color{#d55e00} B_t}}{s_{B}} \\
-{\color{#d55e00} I_t} &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{lower}=0\right) \\
+D_t &amp; = \text{baseline} + \sum_{c \in \text{upper}} \text{sat}^{uf}\left(\text{adstock}^{uf}({\color{red} U_{t,c}})\right) \\
+M^{*}_t &amp; = D_t + \lambda \, \frac{{\color{red} B_t}}{s_{B}} \\
+{\color{red} I_t} &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{lower}=0\right) \\
 \mu_t &amp; = \text{MMM}_t + \text{sat}^{lf}\left(\text{adstock}^{lf}(M^{*}_t)\right) \\
-{\color{#d55e00} y_t} &amp; \sim \text{TruncatedNormal}\left(\mu_t, \sigma, \text{lower}=0\right)
+{\color{red} y_t} &amp; \sim \text{TruncatedNormal}\left(\mu_t, \sigma, \text{lower}=0\right)
 \end{align*}
 \]</span></p>
-<p>The <span style="color: #d55e00;">orange</span> quantities are observed (spend, impressions, and sales), and <span class="math inline">\(D_t\)</span> and <span class="math inline">\(M^*_t\)</span> are latent. The scales <span class="math inline">\(s_B\)</span> and <span class="math inline">\(s_I\)</span> are the maxima of <span class="math inline">\(B_t\)</span> and <span class="math inline">\(I_t\)</span>. The noise scales are <span class="math inline">\(\sigma_I\)</span> and <span class="math inline">\(\sigma\)</span>, and <span class="math inline">\(uf\)</span> and <span class="math inline">\(lf\)</span> mark the upper and lower funnel.</p>
+<p>The <span style="color: red;">red</span> quantities are observed (spend, impressions, and sales), and <span class="math inline">\(D_t\)</span> and <span class="math inline">\(M^*_t\)</span> are latent. The scales <span class="math inline">\(s_B\)</span> and <span class="math inline">\(s_I\)</span> are the maxima of <span class="math inline">\(B_t\)</span> and <span class="math inline">\(I_t\)</span>. The noise scales are <span class="math inline">\(\sigma_I\)</span> and <span class="math inline">\(\sigma\)</span>, and <span class="math inline">\(uf\)</span> and <span class="math inline">\(lf\)</span> mark the upper and lower funnel.</p>
 <div class="callout callout-note callout-style-simple">
 <div class="callout-body">
 <div class="callout-icon-container">
