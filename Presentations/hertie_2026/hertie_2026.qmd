@@ -1080,33 +1080,16 @@ In a simulated market with known true curves, we re-fit the MMM every week for a
 :::
 ::::
 
-::: {style="font-size: 85%;"}
-The bars show the extra revenue per year over `greedy`: the median of $20$ runs, on $\$50\text{M}$ of annual revenue.
+::: {style="font-size: 75%;"}
+The bars show the extra revenue per year over `greedy` (median of $20$ runs, $\$50\text{M}$ of annual revenue).
+:::
+
+::: {.callout-tip appearance="simple"}
+Pure exploitation never finds the underrated channel. Aimed exploration costs about $\$178\text{K}$ a year in a stable market and earns about $\$15\text{M}$ a year when the model is wrong.
 :::
 
 ::: footer
 [Orduz & De Rosa (2026): Earning and Learning in Media Mix Models](https://cdn.jsdelivr.net/gh/pymc-labs/mmm-bandits-opt@main/earning-and-learning-in-media-mix-models.pdf)
-:::
-
-## Simulation Learnings {.smaller}
-
-We compare the policies on what they earn and on what the model learns:
-
-::: {style="font-size: 85%;"}
-
-1. **Pure exploitation stops learning.** Under `greedy`, the uncertainty about the largest channel stops shrinking after about two months. When the model underrates a channel, `greedy` never funds it in any of the $20$ runs, so it never learns that the model is wrong.
-2. **Aim matters more than amount.** `directed` and `eps-greedy` move a slice equally often, from the same menu of moves. `directed` aims at what the model is least sure about and finds the underrated channel within weeks. `eps-greedy` moves at random and finds it in only $10$ of $20$ runs.
-3. **Bandit rules aim at revenue, not at learning.** In a stable market, `thompson` and `ucb` end the year with about as much uncertainty as `greedy`, but they are the cheapest explorers. When the model underrates a channel, `ucb` finds it as fast as `directed`.
-4. **Exploration is cheap insurance.** On $\$50\text{M}$ of revenue, `directed` costs about $\$178\text{K}$ a year more than `greedy` in a stable market. When the model underrates an unfunded channel, the four fast policies (`directed`, `annealed`, `aggressive`, and `ucb`) earn about $\$15\text{M}$ a year more.
-
-:::
-
-::: {.callout-tip appearance="simple"}
-If the saturation intervals of your MMM stop narrowing from quarter to quarter, the loop has stopped learning.
-:::
-
-::: footer
-[PyMC Labs: Exploration vs Exploitation in Marketing Budget Allocation](https://www.pymc-labs.com/blog-posts/exploration-vs-exploitation-marketing-budget-allocation) and [Orduz & De Rosa (2026)](https://cdn.jsdelivr.net/gh/pymc-labs/mmm-bandits-opt@main/earning-and-learning-in-media-mix-models.pdf)
 :::
 
 ## Amortized Bayesian Inference {.smaller .nostretch}

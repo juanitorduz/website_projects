@@ -1367,23 +1367,8 @@ M^{*}_t &amp; = D_t + \lambda \, \frac{{\color{red} B_t}}{s_{B}} \\
 </ul>
 </div>
 </div></div>
-<div style="font-size: 85%;">
-<p>The bars show the extra revenue per year over <code>greedy</code>: the median of <span class="math inline">\(20\)</span> runs, on <span class="math inline">\(\$50\text{M}\)</span> of annual revenue.</p>
-</div>
-<div class="footer">
-<p><a href="https://cdn.jsdelivr.net/gh/pymc-labs/mmm-bandits-opt@main/earning-and-learning-in-media-mix-models.pdf">Orduz &amp; De Rosa (2026): Earning and Learning in Media Mix Models</a></p>
-</div>
-</section>
-<section id="simulation-learnings" class="slide level2 smaller">
-<h2>Simulation Learnings</h2>
-<p>We compare the policies on what they earn and on what the model learns:</p>
-<div style="font-size: 85%;">
-<ol type="1">
-<li><strong>Pure exploitation stops learning.</strong> Under <code>greedy</code>, the uncertainty about the largest channel stops shrinking after about two months. When the model underrates a channel, <code>greedy</code> never funds it in any of the <span class="math inline">\(20\)</span> runs, so it never learns that the model is wrong.</li>
-<li><strong>Aim matters more than amount.</strong> <code>directed</code> and <code>eps-greedy</code> move a slice equally often, from the same menu of moves. <code>directed</code> aims at what the model is least sure about and finds the underrated channel within weeks. <code>eps-greedy</code> moves at random and finds it in only <span class="math inline">\(10\)</span> of <span class="math inline">\(20\)</span> runs.</li>
-<li><strong>Bandit rules aim at revenue, not at learning.</strong> In a stable market, <code>thompson</code> and <code>ucb</code> end the year with about as much uncertainty as <code>greedy</code>, but they are the cheapest explorers. When the model underrates a channel, <code>ucb</code> finds it as fast as <code>directed</code>.</li>
-<li><strong>Exploration is cheap insurance.</strong> On <span class="math inline">\(\$50\text{M}\)</span> of revenue, <code>directed</code> costs about <span class="math inline">\(\$178\text{K}\)</span> a year more than <code>greedy</code> in a stable market. When the model underrates an unfunded channel, the four fast policies (<code>directed</code>, <code>annealed</code>, <code>aggressive</code>, and <code>ucb</code>) earn about <span class="math inline">\(\$15\text{M}\)</span> a year more.</li>
-</ol>
+<div style="font-size: 75%;">
+<p>The bars show the extra revenue per year over <code>greedy</code> (median of <span class="math inline">\(20\)</span> runs, <span class="math inline">\(\$50\text{M}\)</span> of annual revenue).</p>
 </div>
 <div class="callout callout-tip callout-style-simple">
 <div class="callout-body">
@@ -1391,12 +1376,12 @@ M^{*}_t &amp; = D_t + \lambda \, \frac{{\color{red} B_t}}{s_{B}} \\
 <i class="callout-icon"></i>
 </div>
 <div class="callout-content">
-<p>If the saturation intervals of your MMM stop narrowing from quarter to quarter, the loop has stopped learning.</p>
+<p>Pure exploitation never finds the underrated channel. Aimed exploration costs about <span class="math inline">\(\$178\text{K}\)</span> a year in a stable market and earns about <span class="math inline">\(\$15\text{M}\)</span> a year when the model is wrong.</p>
 </div>
 </div>
 </div>
 <div class="footer">
-<p><a href="https://www.pymc-labs.com/blog-posts/exploration-vs-exploitation-marketing-budget-allocation">PyMC Labs: Exploration vs Exploitation in Marketing Budget Allocation</a> and <a href="https://cdn.jsdelivr.net/gh/pymc-labs/mmm-bandits-opt@main/earning-and-learning-in-media-mix-models.pdf">Orduz &amp; De Rosa (2026)</a></p>
+<p><a href="https://cdn.jsdelivr.net/gh/pymc-labs/mmm-bandits-opt@main/earning-and-learning-in-media-mix-models.pdf">Orduz &amp; De Rosa (2026): Earning and Learning in Media Mix Models</a></p>
 </div>
 </section>
 <section id="amortized-bayesian-inference" class="slide level2 smaller nostretch">
