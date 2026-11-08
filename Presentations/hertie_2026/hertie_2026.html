@@ -1121,11 +1121,11 @@ y_t = \beta_0(t) + \sum_{m} \beta_m(t) f_m(x_{m,t}) + \sum_{k} \gamma_k z_{k,t} 
 </section>
 <section id="funnel-model-components" class="slide level2">
 <h2>Funnel Model Components</h2>
-<div style="font-size: 80%;">
+<div style="font-size: 76%;">
 <p>We now give each part a symbol. The index <span class="math inline">\(t\)</span> is the week.</p>
 <ul>
 <li><strong>Demand pool</strong> <span class="math inline">\(D_t\)</span>: a baseline plus what the spend <span class="math inline">\(U_{t,c}\)</span> of each upper funnel channel <span class="math inline">\(c\)</span> adds.</li>
-<li><strong>Search demand</strong> <span class="math inline">\(M^*_t\)</span>: the pool <span class="math inline">\(D_t\)</span> plus the demand that the paid search spend <span class="math inline">\(B_t\)</span> adds. The parameter <span class="math inline">\(\lambda \ge 0\)</span> sets the size of this addition. With <span class="math inline">\(\lambda = 0\)</span>, paid search only harvests the pool. We estimate <span class="math inline">\(\lambda\)</span> to split search demand into what was already there and what the spend added.</li>
+<li><strong>Search demand</strong> <span class="math inline">\(M^*_t\)</span>: the pool <span class="math inline">\(D_t\)</span> plus the demand that the paid search spend <span class="math inline">\(B_t\)</span> adds. A parameter <span class="math inline">\(\lambda \ge 0\)</span> sets the size of this addition. If <span class="math inline">\(\lambda = 0\)</span>, paid search creates no new demand, and its ads only reach people who would search anyway. We estimate <span class="math inline">\(\lambda\)</span> to split search demand into what was already there and what the spend added.</li>
 <li><strong>Measurement</strong> <span class="math inline">\(I_t\)</span>: the search impressions measure <span class="math inline">\(M^*_t\)</span>. They do not enter the sales equation.</li>
 <li><strong>Sales</strong> <span class="math inline">\(\mu_t\)</span>: the mean of sales is <span class="math inline">\(\text{MMM}_t\)</span> (the direct terms of the other channels and the controls) plus the sales that <span class="math inline">\(M^*_t\)</span> turns into. Paid search has no direct term.</li>
 </ul>
