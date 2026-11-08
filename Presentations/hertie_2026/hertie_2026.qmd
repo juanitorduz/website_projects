@@ -763,20 +763,23 @@ We keep `z` out of the model and add the lift tests as an additional likelihood.
 
 ## Funnel Models in Marketing {.smaller}
 
-An omitted confounder biased the previous models. Funnels add a different risk: a mediator that we add as a regressor. We use the PyMC-Marketing MMM case study ($209$ weeks of synthetic sales data).
+An omitted confounder biased the previous models. Funnels add a different risk: a mediator that we add as a regressor.
+
+::: {.callout-note appearance="simple"}
+We use the PyMC-Marketing MMM case study ($209$ weeks of synthetic sales data).
+:::
 
 :::: {.columns}
-::: {.column width="52%"}
+::: {.column width="58%"}
 
 - **Upper funnel** channels build awareness: `TV`, `Radio`, `Newspaper`.
-- **Lower funnel** channels capture existing demand, like paid search, also called search engine marketing (SEM): `sem_spend`.
-- Paid search is $26.9\%$ of the modeled media spend.
-- Its spend and impressions (how often the ads show) both correlate with sales ($0.59$).
+- **Lower funnel** channels capture existing demand, like paid search (search engine marketing, SEM): `sem_spend`.
+- Paid search is $26.9\%$ of the modeled media spend. Its spend and impressions (how often the ads show) both correlate with sales ($0.59$).
 
 :::
-::: {.column width="48%"}
+::: {.column width="42%"}
 
-![](hertie_2026_files/static/images/sem_spend_impressions.png){fig-align="center" width="440"}
+![](hertie_2026_files/static/images/sem_spend_impressions.png){fig-align="center" width="400"}
 
 :::
 ::::
@@ -825,12 +828,12 @@ Search sales are not all search's doing. The model splits the demand behind them
 
 ## Funnel Model Components
 
-::: {style="font-size: 85%;"}
+::: {style="font-size: 76%;"}
 
 We now give each part a symbol. The index $t$ is the week.
 
 - **Demand pool** $D_t$: a baseline plus what the spend $U_{t,c}$ of each upper funnel channel $c$ adds.
-- **Search demand** $M^*_t$: the pool $D_t$ plus what the paid search spend $B_t$ adds. The parameter $\lambda$ is the exchange rate between search money and search demand.
+- **Search demand** $M^*_t$: the pool $D_t$ plus the demand that the paid search spend $B_t$ adds. A parameter $\lambda \ge 0$ sets the size of this addition. If $\lambda = 0$, paid search creates no new demand, and its ads only reach people who would search anyway. We estimate $\lambda$ to split search demand into what was already there and what the spend added.
 - **Measurement** $I_t$: the search impressions measure $M^*_t$. They do not enter the sales equation.
 - **Sales** $\mu_t$: the mean of sales is $\text{MMM}_t$ (the direct terms of the other channels and the controls) plus the sales that $M^*_t$ turns into. Paid search has no direct term.
 
@@ -842,21 +845,22 @@ We now give each part a symbol. The index $t$ is the week.
 
 ## Funnel Model Structure {.smaller}
 
-We write the four components as equations:
+We write the four components as equations, plus the sales likelihood:
 
 $$
 \begin{align*}
-D_t & = \text{baseline} + \sum_{c \in \text{upper}} \text{sat}^{uf}\left(\text{adstock}^{uf}(U_{t,c})\right) \\
-M^{*}_t & = D_t + \lambda \, \frac{B_t}{s_{B}} \\
-I_t & \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{lower}=0\right) \\
-\mu_t & = \text{MMM}_t + \text{sat}^{lf}\left(\text{adstock}^{lf}(M^{*}_t)\right)
+D_t & = \text{baseline} + \sum_{c \in \text{upper}} \text{sat}^{uf}\left(\text{adstock}^{uf}({\color{#fa7c17} U_{t,c}})\right) \\
+M^{*}_t & = D_t + \lambda \, \frac{{\color{#fa7c17} B_t}}{{\color{#328c06} s_{B}}} \\
+{\color{#fa7c17} I_t} & \sim \text{TruncatedNormal}\left({\color{#328c06} s_{I}} \, M^{*}_t, \sigma_{I}, \text{lower}=0\right) \\
+\mu_t & = \text{MMM}_t + \text{sat}^{lf}\left(\text{adstock}^{lf}(M^{*}_t)\right) \\
+{\color{#fa7c17} y_t} & \sim \text{TruncatedNormal}\left(\mu_t, \sigma, \text{lower}=0\right)
 \end{align*}
 $$
 
-The scales $s_B$ and $s_I$ are the maxima of $B_t$ and $I_t$, $\sigma_I$ is the measurement noise, and $uf$ and $lf$ mark the upper and lower funnel.
+The [orange]{style="color: #fa7c17;"} quantities are observed (spend, impressions, and sales), and $D_t$ and $M^*_t$ are latent. The [green]{style="color: #328c06;"} scales ${\color{#328c06} s_B}$ and ${\color{#328c06} s_I}$ are fixed constants: the maxima of $B_t$ and $I_t$ in the data. The noise scales are $\sigma_I$ and $\sigma$, and $uf$ and $lf$ mark the upper and lower funnel.
 
 ::: {.callout-note appearance="simple"}
-This is a structural equation model with a latent variable. The impressions equation is the **measurement model**, and we fix its loading at one to set the scale of $M^*_t$.
+The impressions equation is the **measurement model** of a structural equation model. $M^*_t$ has no natural unit, so we fix its coefficient at one (times $s_I$): $M^*_t = 1$ is the busiest week of impressions.
 :::
 
 ::: footer
@@ -865,10 +869,52 @@ This is a structural equation model with a latent variable. The impressions equa
 
 ## Funnel Model in PyMC-Marketing {.smaller}
 
-The funnel is a custom `MuEffect` on top of the MMM. The order matters: we build the model, keep the contributions in sales units, add the calibration, and then fit.
+The funnel is a custom `MuEffect`. Its `create_effect` method builds $D_t$, $M^*_t$, and the impressions likelihood, and returns the term that the MMM adds to $\mu_t$.
+
+::: {style="font-size: 90%;"}
+
+```{.python code-line-numbers="|1-2|3-6|7-10|11-15|16-23|24-27"}
+class FunnelEffect(DataVarMuEffect):
+    def create_effect(self, mmm: MMM) -> XTensorVariable:  # term added to mu_t
+        # upper funnel spend (TV, Radio, Newspaper), read from the MMM's own channel data
+        channel_index = [mmm.channel_columns.index(c) for c in self.upper_channels]
+        upper = mmm.channel_data_scaled.isel(channel=channel_index)
+        upper = upper.rename({"channel": "channel_upper"})
+        # demand pool D_t
+        baseline = pmd.HalfNormal("funnel_baseline", sigma=1.0)
+        upper_on_demand = self.upper_transform(upper, dim="date").sum(dim="channel_upper")
+        demand = pmd.Deterministic("funnel_demand", baseline + upper_on_demand)
+        # search demand M*_t
+        lam = pmd.HalfNormal("funnel_lambda", sigma=0.5)
+        mediator = pmd.Deterministic(
+            "funnel_mediator", demand + lam * mmm.model["sem_spend"] / self.sem_scale
+        )
+        # measurement I_t: the impressions likelihood
+        pmd.TruncatedNormal(
+            "funnel_sem_impressions_likelihood",
+            mu=self.impressions_scale * mediator,
+            sigma=pmd.HalfNormal("funnel_sigma_s", sigma=0.2 * self.impressions_scale),
+            lower=0.0,
+            observed=mmm.model["sem_impressions"],
+        )
+        # sat_lf(adstock_lf(M*_t)): the term that the MMM adds to mu_t
+        return pmd.Deterministic(
+            "funnel_effect_contribution", self.demand_transform(mediator, dim="date")
+        )
+```
+
+:::
+
+::: footer
+[PyMC-Marketing: MMM Case Study II, The Funnel Effect](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#the-funnel-effect) (condensed)
+:::
+
+## Model Building and Calibration {.smaller}
+
+We attach the funnel effect to the MMM. The order matters: we build the model, keep the contributions in sales units, add the calibration, and then fit.
 
 ```{.python code-line-numbers="|1-3|5-11|13-20|22"}
-# base MMM + funnel effect (demand pool, mediator, impressions likelihood)
+# base MMM + FunnelEffect (make_mmm calls mmm.add_mu_effect)
 mmm = make_mmm(X)
 mmm.build_model(X=make_funnel_dataset(X, y))
 
@@ -935,11 +981,15 @@ The experiments calibrate `Online Display` and `Direct Mail`, which have a direc
 
 The **givers** `TV`, `Radio`, `Newspaper`, and `sem_spend` feed the search demand. We set one giver to zero and read what the SEM path into sales loses.
 
-![](hertie_2026_files/static/images/sem_path_shares.png){fig-align="center" width="840"}
+![](hertie_2026_files/static/images/sem_path_shares.png){fig-align="center" width="640"}
 
-- **Main sources:** paid search's own spend and the no-media demand dominate.
-- **Pass-through:** the upper funnel adds small shares, with HDIs that reach zero.
-- **Direction:** the DAG assumes it, and only an upper funnel experiment can test it.
+::: {style="font-size: 80%;"}
+
+- **No media (intercept):** the baseline of $D_t$, the search demand that exists with all spend at zero (people who look for the product anyway).
+- **Reading the $41\%$:** about $41\%$ of the sales on the search path come from people who search anyway. No channel gets credit for them, so search sales overstate what paid search causes.
+- **Pass-through:** paid search's own spend adds $48\%$. `TV`, `Radio`, and `Newspaper` add about $10\%$ together, each with an HDI that reaches zero. Only an upper funnel experiment can test this path.
+
+:::
 
 ::: footer
 [PyMC-Marketing: MMM Case Study II, Channel Synergies](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#channel-synergies)
@@ -953,9 +1003,35 @@ $$
 \max_{b} \; \text{E}\left[R(b; \theta) \mid y\right] \quad \text{subject to} \quad \sum_{m} b_m = B, \quad l_m \le b_m \le u_m
 $$
 
-- Each plan is an intervention $\text{do}(x = b)$. The plan relies on the causal estimates of the response curves, so calibration matters here.
-- Because of saturation, the optimizer moves money from channels with a low marginal return to channels with a high marginal return, until the marginal returns match or a guardrail binds.
-- The guardrails keep the plan close to the spend we observed. The posterior gives a distribution of the response for each plan, so we can also optimize a risk-aware utility instead of the mean.
+:::: {.columns .equal-callouts}
+::: {.column width="33%"}
+
+::: {.callout-important}
+## Plans Are Interventions
+
+Each plan is an intervention $\text{do}(x = b)$. The plan relies on the causal estimates of the response curves, so calibration matters here.
+:::
+
+:::
+::: {.column width="33%"}
+
+::: {.callout-tip}
+## Marginal Returns
+
+Because of saturation, the optimizer moves money from channels with a low marginal return to channels with a high marginal return, until the marginal returns match or a guardrail binds.
+:::
+
+:::
+::: {.column width="33%"}
+
+::: {.callout-note}
+## Guardrails and Risk
+
+The guardrails keep the plan close to the spend we observed. The posterior gives a distribution of the response for each plan, so we can also optimize a risk-aware utility instead of the mean.
+:::
+
+:::
+::::
 
 ::: footer
 [PyMC-Marketing: MMM Case Study II, Budget Optimization](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#budget-optimization)
@@ -963,21 +1039,33 @@ $$
 
 ## Funnel-Aware Budget Optimization {.smaller}
 
-:::: {.columns}
-::: {.column width="58%"}
+All three plans share the posterior, budget, $13$-week window, and $\pm 50\%$ guardrails.
 
-![](hertie_2026_files/static/images/budget_allocation.png){fig-align="center" width="580"}
+:::: {.columns}
+::: {.column width="55%"}
+
+![](hertie_2026_files/static/images/budget_allocation.png){fig-align="center" width="450"}
 
 :::
-::: {.column width="42%"}
+::: {.column width="45%"}
 
-- We plan the next $13$ weeks with one budget that includes paid search (`sem_spend`) and guardrails of $\pm 50\%$. The direct-only objective cannot see the path through $M^*$, so it keeps paid search at its historical level.
-- With paid search fixed, both objectives give the same plan. The funnel-aware plan cuts paid search by $16\%$ and moves the money to the other channels.
+:::: {style="font-size: 80%;"}
+
+- [**Direct-only:**]{style="color: #2a2eec;"} maximizes the direct media contribution. It cannot see the path through $M^*$, so `sem_spend` stays at its historical level.
+- [**Funnel, SEM pinned:**]{style="color: #328c06;"} maximizes the total response, direct plus mediated. **Pinned** means that `sem_spend` is fixed at its historical level, so only the media channels move.
+- [**Funnel-aware:**]{style="color: #fa7c17;"} maximizes the total response, and `sem_spend` can move within its own $\pm 50\%$ band.
+
+::::
 
 :::
 ::::
 
-> In this model, the useful role of the funnel is that it tells us how much to spend on SEM, not that it changes the order of the other media channels.
+::: {.callout-tip appearance="simple"}
+::: {style="font-size: 90%;"}
+- **Pinned against direct-only:** both spend the same on paid search. Direct-only counts only the sales that a `TV` dollar brings directly. Pinned also counts the sales that it brings through paid search. Any difference between the two plans comes from counting these extra sales.
+- **Funnel-aware against pinned:** both count these extra sales, but only funnel-aware can change `sem_spend`. Any difference comes from changing the paid search budget.
+:::
+:::
 
 ::: footer
 [PyMC-Marketing: MMM Case Study II, Budget Optimization](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#budget-optimization)
@@ -1021,8 +1109,8 @@ In a simulated market with known true curves, we re-fit the MMM every week for a
 :::
 ::::
 
-::: {style="font-size: 80%;"}
-> In $20$ runs, `greedy` never finds the channel. The four fast policies earn about $\$15\text{M}$ a year more than `greedy` on $\$50\text{M}$ of revenue. In a stable market, `directed` costs about $\$178\text{K}$ a year more.
+::: {.callout-tip appearance="simple"}
+Pure exploitation never finds the underrated channel. Aimed exploration costs about $\$178\text{K}$ a year in a stable market. When the model underrates a channel that it does not fund, aimed exploration earns about $\$15\text{M}$ a year more than `greedy`.
 :::
 
 ::: footer
@@ -1105,18 +1193,15 @@ All three packages are open source under the Apache 2.0 license. We welcome issu
 [github.com/pymc-labs](https://github.com/pymc-labs)
 :::
 
-## Takeaways
-
-::: {style="font-size: 85%;"}
+## Takeaways {.smaller}
 
 - **The model states the assumptions.** We write the DAG as code.
 - **Priors and experiments carry outside information.** Lift priors rule out implausible lifts in A/B tests. ROAS priors and lift tests reduce confounding bias in MMMs.
 - **The same `do` query works across models.** It applies to regressions, GLMs, MMMs, and funnel models.
 - **Hierarchies regularize.** They do not replace thinking about the DAG.
 - **The causal structure changes decisions.** The funnel model tells us how much to spend on paid search.
+- **An MMM is a decision loop, not just a model.** We fit, calibrate, optimize the budget, spend, and re-fit. Each budget trades earning now against learning for the next fit, and a small, aimed exploration budget keeps the loop learning.
 - **Amortized inference trains once.** Amortized Bayesian inference and MFM learn from simulations, then handle new data in seconds.
-
-:::
 
 ## References {.smaller}
 

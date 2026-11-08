@@ -5,3 +5,19 @@
 .reveal h2 {
   color: #0379ea;
 }
+
+/* stretch callouts in a row of columns to the height of the tallest one */
+.reveal .equal-callouts {
+  display: flex;
+  align-items: stretch;
+  gap: 1%;
+}
+
+.reveal .equal-callouts .column {
+  display: flex;
+  flex-direction: column;
+}
+
+.reveal .equal-callouts .column > .callout {
+  flex: 1;
+}
