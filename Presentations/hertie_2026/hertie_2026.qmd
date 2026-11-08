@@ -38,18 +38,19 @@ format:
 5. Marketing Measurement Problem
 6. Marketing Mix Models
 7. Unobserved Confounders
+8. Calibration with Experiments
 
 :::
 
 ::: {.column width="47%"}
 
-8. Calibration with Experiments
 9. Funnel Models in Marketing
 10. Budget Optimization
-11. Amortized Bayesian Inference
-12. OSS Bayesian Causal Inference
-13. Takeaways
-14. References
+11. Exploration and Exploitation
+12. Amortized Bayesian Inference
+13. OSS Bayesian Causal Inference
+14. Takeaways
+15. References
 
 :::
 ::::
@@ -982,6 +983,52 @@ $$
 [PyMC-Marketing: MMM Case Study II, Budget Optimization](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#budget-optimization)
 :::
 
+## Exploration and Exploitation {.smaller .nostretch}
+
+We do not fit an MMM once. We re-fit it, usually every quarter, and the budget split decides what the next fit can learn.
+
+![](hertie_2026_files/static/images/mmm_loop_rl_cycle.png){fig-align="center" width="700"}
+
+- **Exploitation:** spend where the model already sees the best return.
+- **Exploration:** spend at other levels so that the next fit can trace the saturation curves.
+
+::: footer
+[PyMC Labs: Exploration vs Exploitation in Marketing Budget Allocation](https://www.pymc-labs.com/blog-posts/exploration-vs-exploitation-marketing-budget-allocation)
+:::
+
+## Exploration Policies {.smaller}
+
+In a simulated market with known true curves, we re-fit the MMM every week for a year. The model starts out wrong about a channel that the optimizer does not fund.
+
+:::: {.columns}
+::: {.column width="55%"}
+
+![](hertie_2026_files/static/images/mmm_loop_dollars_bar.png){fig-align="center" width="560"}
+
+:::
+::: {.column width="45%"}
+
+:::: {style="font-size: 75%;"}
+
+- **Baseline:** `greedy` only exploits.
+- **Unaimed:** `eps-greedy` moves a slice at random.
+- **Aimed at revenue:** `thompson` and `ucb` are bandit rules (Thompson sampling, upper confidence bound). `aggressive` re-plans every week.
+- **Aimed at learning:** `directed` moves the slice to where the posterior curves disagree most (Bayesian experimental design). `annealed` explores less over time.
+- **Measurement ceiling:** `spread` keeps every channel's spend moving.
+
+::::
+
+:::
+::::
+
+::: {style="font-size: 80%;"}
+> In $20$ runs, `greedy` never finds the channel. The four fast policies earn about $\$15\text{M}$ a year more than `greedy` on $\$50\text{M}$ of revenue. In a stable market, `directed` costs about $\$178\text{K}$ a year more.
+:::
+
+::: footer
+[Orduz & De Rosa (2026): Earning and Learning in Media Mix Models](https://cdn.jsdelivr.net/gh/pymc-labs/mmm-bandits-opt@main/earning-and-learning-in-media-mix-models.pdf)
+:::
+
 ## Amortized Bayesian Inference {.smaller .nostretch}
 
 Markov chain Monte Carlo (MCMC) starts from scratch for every new dataset. Amortized Bayesian inference trains a neural network once on simulations from the model.
@@ -1096,6 +1143,7 @@ All three packages are open source under the Apache 2.0 license. We welcome issu
 
 - [PyMC Labs: Amortized Bayesian Inference](https://www.pymc-labs.com/blog-posts/amortized-bayesian-inference)
 - [PyMC Labs: Marketing Foundational Models](https://www.pymc-labs.com/marketing-foundation-models)
+- [PyMC Labs: Exploration vs Exploitation in Marketing Budget Allocation](https://www.pymc-labs.com/blog-posts/exploration-vs-exploitation-marketing-budget-allocation)
 
 :::
 ::: {.column width="30%"}
@@ -1134,6 +1182,7 @@ All three packages are open source under the Apache 2.0 license. We welcome issu
 - Gordon, B. R., Zettelmeyer, F., Bhargava, N. & Chapsky, D. (2019). [A comparison of approaches to advertising measurement: evidence from big field experiments at Facebook.](https://doi.org/10.1287/mksc.2018.1135) *Marketing Science*.
 - Zhang, Y. et al. (2024). [Media mix model calibration with Bayesian priors.](https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/)
 - Evans, R. J. & Didelez, V. (2024). [Parameterizing and simulating from causal models.](https://doi.org/10.1093/jrsssb/qkad058) *Journal of the Royal Statistical Society Series B*.
+- Orduz, J. & De Rosa, R. (2026). [Earning and learning in media mix models.](https://cdn.jsdelivr.net/gh/pymc-labs/mmm-bandits-opt@main/earning-and-learning-in-media-mix-models.pdf) PyMC Labs.
 - Dean, W., Orduz, J., et al. (2026). [PyMC-Marketing: Bayesian marketing mix models and customer analytics in Python.](https://doi.org/10.21105/joss.10805) *Journal of Open Source Software*.
 
 :::

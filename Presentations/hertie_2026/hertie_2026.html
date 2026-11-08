@@ -224,12 +224,13 @@
 <li>Marketing Measurement Problem</li>
 <li>Marketing Mix Models</li>
 <li>Unobserved Confounders</li>
+<li>Calibration with Experiments</li>
 </ol>
 </div><div class="column" style="width:47%;">
-<ol start="8" type="1">
-<li>Calibration with Experiments</li>
+<ol start="9" type="1">
 <li>Funnel Models in Marketing</li>
 <li>Budget Optimization</li>
+<li>Exploration and Exploitation</li>
 <li>Amortized Bayesian Inference</li>
 <li>OSS Bayesian Causal Inference</li>
 <li>Takeaways</li>
@@ -1275,6 +1276,52 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 <p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#budget-optimization">PyMC-Marketing: MMM Case Study II, Budget Optimization</a></p>
 </div>
 </section>
+<section id="exploration-and-exploitation" class="slide level2 smaller nostretch">
+<h2>Exploration and Exploitation</h2>
+<p>We do not fit an MMM once. We re-fit it, usually every quarter, and the budget split decides what the next fit can learn.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="hertie_2026_files/static/images/mmm_loop_rl_cycle.png" class="quarto-figure quarto-figure-center" width="700"></p>
+</figure>
+</div>
+<ul>
+<li><strong>Exploitation:</strong> spend where the model already sees the best return.</li>
+<li><strong>Exploration:</strong> spend at other levels so that the next fit can trace the saturation curves.</li>
+</ul>
+<div class="footer">
+<p><a href="https://www.pymc-labs.com/blog-posts/exploration-vs-exploitation-marketing-budget-allocation">PyMC Labs: Exploration vs Exploitation in Marketing Budget Allocation</a></p>
+</div>
+</section>
+<section id="exploration-policies" class="slide level2 smaller">
+<h2>Exploration Policies</h2>
+<p>In a simulated market with known true curves, we re-fit the MMM every week for a year. The model starts out wrong about a channel that the optimizer does not fund.</p>
+<div class="columns">
+<div class="column" style="width:55%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="hertie_2026_files/static/images/mmm_loop_dollars_bar.png" class="quarto-figure quarto-figure-center" width="560"></p>
+</figure>
+</div>
+</div><div class="column" style="width:45%;">
+<div style="font-size: 75%;">
+<ul>
+<li><strong>Baseline:</strong> <code>greedy</code> only exploits.</li>
+<li><strong>Unaimed:</strong> <code>eps-greedy</code> moves a slice at random.</li>
+<li><strong>Aimed at revenue:</strong> <code>thompson</code> and <code>ucb</code> are bandit rules (Thompson sampling, upper confidence bound). <code>aggressive</code> re-plans every week.</li>
+<li><strong>Aimed at learning:</strong> <code>directed</code> moves the slice to where the posterior curves disagree most (Bayesian experimental design). <code>annealed</code> explores less over time.</li>
+<li><strong>Measurement ceiling:</strong> <code>spread</code> keeps every channel’s spend moving.</li>
+</ul>
+</div>
+</div></div>
+<div style="font-size: 80%;">
+<blockquote>
+<p>In <span class="math inline">\(20\)</span> runs, <code>greedy</code> never finds the channel. The four fast policies earn about <span class="math inline">\(\$15\text{M}\)</span> a year more than <code>greedy</code> on <span class="math inline">\(\$50\text{M}\)</span> of revenue. In a stable market, <code>directed</code> costs about <span class="math inline">\(\$178\text{K}\)</span> a year more.</p>
+</blockquote>
+</div>
+<div class="footer">
+<p><a href="https://cdn.jsdelivr.net/gh/pymc-labs/mmm-bandits-opt@main/earning-and-learning-in-media-mix-models.pdf">Orduz &amp; De Rosa (2026): Earning and Learning in Media Mix Models</a></p>
+</div>
+</section>
 <section id="amortized-bayesian-inference" class="slide level2 smaller nostretch">
 <h2>Amortized Bayesian Inference</h2>
 <p>Markov chain Monte Carlo (MCMC) starts from scratch for every new dataset. Amortized Bayesian inference trains a neural network once on simulations from the model.</p>
@@ -1391,6 +1438,7 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 <ul>
 <li><a href="https://www.pymc-labs.com/blog-posts/amortized-bayesian-inference">PyMC Labs: Amortized Bayesian Inference</a></li>
 <li><a href="https://www.pymc-labs.com/marketing-foundation-models">PyMC Labs: Marketing Foundational Models</a></li>
+<li><a href="https://www.pymc-labs.com/blog-posts/exploration-vs-exploitation-marketing-budget-allocation">PyMC Labs: Exploration vs Exploitation in Marketing Budget Allocation</a></li>
 </ul>
 </div><div class="column" style="width:30%;">
 <h4 id="packages">Packages</h4>
@@ -1424,6 +1472,7 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 <li>Gordon, B. R., Zettelmeyer, F., Bhargava, N. &amp; Chapsky, D. (2019). <a href="https://doi.org/10.1287/mksc.2018.1135">A comparison of approaches to advertising measurement: evidence from big field experiments at Facebook.</a> <em>Marketing Science</em>.</li>
 <li>Zhang, Y. et al.&nbsp;(2024). <a href="https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/">Media mix model calibration with Bayesian priors.</a></li>
 <li>Evans, R. J. &amp; Didelez, V. (2024). <a href="https://doi.org/10.1093/jrsssb/qkad058">Parameterizing and simulating from causal models.</a> <em>Journal of the Royal Statistical Society Series B</em>.</li>
+<li>Orduz, J. &amp; De Rosa, R. (2026). <a href="https://cdn.jsdelivr.net/gh/pymc-labs/mmm-bandits-opt@main/earning-and-learning-in-media-mix-models.pdf">Earning and learning in media mix models.</a> PyMC Labs.</li>
 <li>Dean, W., Orduz, J., et al.&nbsp;(2026). <a href="https://doi.org/10.21105/joss.10805">PyMC-Marketing: Bayesian marketing mix models and customer analytics in Python.</a> <em>Journal of Open Source Software</em>.</li>
 </ul>
 </section>
