@@ -213,26 +213,31 @@
 </section>
 <section id="outline" class="slide level2">
 <h2>Outline</h2>
+<div style="font-size: 85%;">
 <div class="columns">
-<div class="column" style="width:50%;">
+<div class="column" style="width:53%;">
 <ol type="1">
 <li>Causal Inference and PPLs</li>
 <li>Bayesian A/B Testing</li>
 <li>Regression and the <code>do</code> Operator</li>
 <li>Hierarchical Models</li>
+<li>Marketing Measurement Problem</li>
 <li>Marketing Mix Models</li>
 <li>Unobserved Confounders</li>
-</ol>
-</div><div class="column" style="width:50%;">
-<ol start="7" type="1">
 <li>Calibration with Experiments</li>
+</ol>
+</div><div class="column" style="width:47%;">
+<ol start="9" type="1">
 <li>Funnel Models in Marketing</li>
 <li>Budget Optimization</li>
+<li>Exploration and Exploitation</li>
 <li>Amortized Bayesian Inference</li>
+<li>OSS Bayesian Causal Inference</li>
 <li>Takeaways</li>
 <li>References</li>
 </ol>
 </div></div>
+</div>
 </section>
 <section id="causal-inference" class="slide level2 smaller">
 <h2>Causal Inference</h2>
@@ -754,19 +759,71 @@ y_\text{t} &amp; \sim \text{Binomial}(n, \text{cr}_\text{t})
 <p><a href="https://juanitorduz.github.io/fixed_random/">Fixed and Random Effects Models: A Simulated Study</a>, after <a href="https://www.youtube.com/watch?v=XNNcN8sU8us">Statistical Rethinking 2026, Lecture B04</a></p>
 </div>
 </section>
-<section id="marketing-mix-models" class="slide level2 smaller">
-<h2>Marketing Mix Models</h2>
-<div class="callout callout-tip callout-style-simple">
+<section id="marketing-measurement-problem" class="slide level2 smaller">
+<h2>Marketing Measurement Problem</h2>
+<div class="callout callout-tip callout-titled callout-style-default">
 <div class="callout-body">
+<div class="callout-title">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
+<p><strong>The Business Question</strong></p>
+</div>
 <div class="callout-content">
-<p>How should we split next quarter’s marketing budget across channels (TV, radio, search, and so on) to maximize sales?</p>
+<p>How should we split next quarter’s marketing budget across channels to maximize sales? To answer it, we need the <strong>efficiency</strong> of each channel: the extra sales that one more unit of spend brings.</p>
 </div>
 </div>
 </div>
-<p>In marketing, budgets are rarely randomized, so we estimate channel effects from observational time series.</p>
+<div style="font-size: 85%;">
+<p>Attribution assigns each conversion to the ads in the user’s path. <strong>Last-touch</strong> attribution gives all the credit to the last ad. <strong>Multi-touch</strong> attribution splits it across the tracked ads, with a rule or a data-driven model. Consider a user who sees a <code>Social</code> ad, opens an <code>Email</code>, clicks a <code>Search</code> ad, and buys:</p>
+<table class="caption-top">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Credit</th>
+<th style="text-align: center;"><code>Social</code></th>
+<th style="text-align: center;"><code>Email</code></th>
+<th style="text-align: center;"><code>Search</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Last touch</td>
+<td style="text-align: center;"><span class="math inline">\(0\%\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(0\%\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(100\%\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Multi-touch (equal shares)</td>
+<td style="text-align: center;"><span class="math inline">\(33\%\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(33\%\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(33\%\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="callout callout-warning callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Attribution Does Not Measure Incrementality</strong></p>
+</div>
+<div class="callout-content">
+<ul>
+<li><strong>Privacy:</strong> consent rules (<a href="https://eur-lex.europa.eu/eli/reg/2016/679/oj">GDPR</a>) and platform changes (<a href="https://developer.apple.com/documentation/apptrackingtransparency">Apple’s App Tracking Transparency</a>) remove touchpoints from the paths. Offline channels such as TV were never in them.</li>
+<li><strong>Incrementality:</strong> attribution gives credit for every sale, even when the user would have bought without any ad. We want the extra sales that a channel <em>causes</em>: a <code>do</code> contrast.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="footer">
+<p><a href="https://doi.org/10.1287/mksc.2018.1135">Gordon et al.&nbsp;(2019), <em>Marketing Science</em>: observational methods often fail to recover the lift of field experiments.</a></p>
+</div>
+</section>
+<section id="marketing-mix-models" class="slide level2 smaller">
+<h2>Marketing Mix Models</h2>
+<p>In marketing, budgets are rarely randomized, so we estimate channel effects from observational time series. These are aggregate data, for example weekly spend and sales. We need no user-level tracking, and offline channels such as TV are in the data.</p>
 <p>A marketing mix model (MMM) is a regression of sales <span class="math inline">\(y_t\)</span> on transformed media spend <span class="math inline">\(x_{m,t}\)</span> and control variables <span class="math inline">\(z_{k,t}\)</span> (trend, seasonality, holidays):</p>
 <p><span class="math display">\[
 y_t = \beta_0(t) + \sum_{m} \beta_m(t) f_m(x_{m,t}) + \sum_{k} \gamma_k z_{k,t} + \varepsilon_t
@@ -1219,6 +1276,52 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 <p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#budget-optimization">PyMC-Marketing: MMM Case Study II, Budget Optimization</a></p>
 </div>
 </section>
+<section id="exploration-and-exploitation" class="slide level2 smaller nostretch">
+<h2>Exploration and Exploitation</h2>
+<p>We do not fit an MMM once. We re-fit it, usually every quarter, and the budget split decides what the next fit can learn.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="hertie_2026_files/static/images/mmm_loop_rl_cycle.png" class="quarto-figure quarto-figure-center" width="700"></p>
+</figure>
+</div>
+<ul>
+<li><strong>Exploitation:</strong> spend where the model already sees the best return.</li>
+<li><strong>Exploration:</strong> spend at other levels so that the next fit can trace the saturation curves.</li>
+</ul>
+<div class="footer">
+<p><a href="https://www.pymc-labs.com/blog-posts/exploration-vs-exploitation-marketing-budget-allocation">PyMC Labs: Exploration vs Exploitation in Marketing Budget Allocation</a></p>
+</div>
+</section>
+<section id="exploration-policies" class="slide level2 smaller">
+<h2>Exploration Policies</h2>
+<p>In a simulated market with known true curves, we re-fit the MMM every week for a year. The model starts out wrong about a channel that the optimizer does not fund.</p>
+<div class="columns">
+<div class="column" style="width:55%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="hertie_2026_files/static/images/mmm_loop_dollars_bar.png" class="quarto-figure quarto-figure-center" width="560"></p>
+</figure>
+</div>
+</div><div class="column" style="width:45%;">
+<div style="font-size: 75%;">
+<ul>
+<li><strong>Baseline:</strong> <code>greedy</code> only exploits.</li>
+<li><strong>Unaimed:</strong> <code>eps-greedy</code> moves a slice at random.</li>
+<li><strong>Aimed at revenue:</strong> <code>thompson</code> and <code>ucb</code> are bandit rules (Thompson sampling, upper confidence bound). <code>aggressive</code> re-plans every week.</li>
+<li><strong>Aimed at learning:</strong> <code>directed</code> moves the slice to where the posterior curves disagree most (Bayesian experimental design). <code>annealed</code> explores less over time.</li>
+<li><strong>Measurement ceiling:</strong> <code>spread</code> keeps every channel’s spend moving.</li>
+</ul>
+</div>
+</div></div>
+<div style="font-size: 80%;">
+<blockquote>
+<p>In <span class="math inline">\(20\)</span> runs, <code>greedy</code> never finds the channel. The four fast policies earn about <span class="math inline">\(\$15\text{M}\)</span> a year more than <code>greedy</code> on <span class="math inline">\(\$50\text{M}\)</span> of revenue. In a stable market, <code>directed</code> costs about <span class="math inline">\(\$178\text{K}\)</span> a year more.</p>
+</blockquote>
+</div>
+<div class="footer">
+<p><a href="https://cdn.jsdelivr.net/gh/pymc-labs/mmm-bandits-opt@main/earning-and-learning-in-media-mix-models.pdf">Orduz &amp; De Rosa (2026): Earning and Learning in Media Mix Models</a></p>
+</div>
+</section>
 <section id="amortized-bayesian-inference" class="slide level2 smaller nostretch">
 <h2>Amortized Bayesian Inference</h2>
 <p>Markov chain Monte Carlo (MCMC) starts from scratch for every new dataset. Amortized Bayesian inference trains a neural network once on simulations from the model.</p>
@@ -1251,6 +1354,52 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 </ul>
 <div class="footer">
 <p><a href="https://www.pymc-labs.com/marketing-foundation-models">PyMC Labs: Marketing Foundational Models</a></p>
+</div>
+</section>
+<section id="oss-bayesian-causal-inference" class="slide level2 smaller">
+<h2>OSS Bayesian Causal Inference</h2>
+<p>PyMC Labs maintains three open-source packages for Bayesian causal inference, all built on <a href="https://www.pymc.io/">PyMC</a>.</p>
+<div class="columns" style="text-align: center; font-size: 80%;">
+<div class="column" style="width:33%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="hertie_2026_files/static/images/logos/causalpy.png" class="quarto-figure quarto-figure-center" height="150"></p>
+</figure>
+</div>
+<p><strong><a href="https://github.com/pymc-labs/CausalPy">CausalPy</a></strong></p>
+<p>Quasi-experiments: difference-in-differences, synthetic control, regression discontinuity, and more.</p>
+<p><a href="https://causalpy.readthedocs.io/">Documentation</a></p>
+</div><div class="column" style="width:33%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="hertie_2026_files/static/images/logos/pathmc.png" class="quarto-figure quarto-figure-center" height="150"></p>
+</figure>
+</div>
+<p><strong><a href="https://github.com/pymc-labs/pathmc">PathMC</a></strong></p>
+<p>Structural causal models with identification checks and <code>do</code> interventions.</p>
+<p><a href="https://pathmc.pymc-labs.com/">Documentation</a></p>
+</div><div class="column" style="width:33%;">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="hertie_2026_files/static/images/logos/pymc-marketing.jpg" class="quarto-figure quarto-figure-center" height="150"></p>
+</figure>
+</div>
+<p><strong><a href="https://github.com/pymc-labs/pymc-marketing">PyMC-Marketing</a></strong></p>
+<p>Marketing mix models with lift test calibration, budget optimization, and customer lifetime value.</p>
+<p><a href="https://www.pymc-marketing.io/">Documentation</a></p>
+</div></div>
+<div class="callout callout-tip callout-style-simple">
+<div class="callout-body">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-content">
+<p>All three packages are open source under the Apache 2.0 license. We welcome issues and contributions.</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<p><a href="https://github.com/pymc-labs">github.com/pymc-labs</a></p>
 </div>
 </section>
 <section id="takeaways" class="slide level2">
@@ -1289,6 +1438,7 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 <ul>
 <li><a href="https://www.pymc-labs.com/blog-posts/amortized-bayesian-inference">PyMC Labs: Amortized Bayesian Inference</a></li>
 <li><a href="https://www.pymc-labs.com/marketing-foundation-models">PyMC Labs: Marketing Foundational Models</a></li>
+<li><a href="https://www.pymc-labs.com/blog-posts/exploration-vs-exploitation-marketing-budget-allocation">PyMC Labs: Exploration vs Exploitation in Marketing Budget Allocation</a></li>
 </ul>
 </div><div class="column" style="width:30%;">
 <h4 id="packages">Packages</h4>
@@ -1296,6 +1446,7 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 <li><a href="https://causalpy.readthedocs.io/">CausalPy</a></li>
 <li><a href="https://basisresearch.github.io/chirho/">ChiRho</a></li>
 <li><a href="https://num.pyro.ai/">NumPyro</a></li>
+<li><a href="https://github.com/pymc-labs/pathmc">PathMC</a></li>
 <li><a href="https://www.pymc.io/">PyMC</a></li>
 <li><a href="https://www.pymc-marketing.io/">PyMC-Marketing</a> (Dean et al., 2026)</li>
 </ul>
@@ -1318,8 +1469,10 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 <li>Dehejia, R. H. &amp; Wahba, S. (1999). <a href="https://doi.org/10.1080/01621459.1999.10473858">Causal effects in nonexperimental studies: reevaluating the evaluation of training programs.</a> <em>Journal of the American Statistical Association</em>.</li>
 <li>Jin, Y. et al.&nbsp;(2017). <a href="https://research.google/pubs/pub46001/">Bayesian methods for media mix modeling with carryover and shape effects.</a></li>
 <li>Chan, D. &amp; Perry, M. (2017). <a href="https://storage.googleapis.com/gweb-research2023-media/pubtools/3803.pdf">Challenges and opportunities in media mix modeling.</a></li>
+<li>Gordon, B. R., Zettelmeyer, F., Bhargava, N. &amp; Chapsky, D. (2019). <a href="https://doi.org/10.1287/mksc.2018.1135">A comparison of approaches to advertising measurement: evidence from big field experiments at Facebook.</a> <em>Marketing Science</em>.</li>
 <li>Zhang, Y. et al.&nbsp;(2024). <a href="https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/">Media mix model calibration with Bayesian priors.</a></li>
 <li>Evans, R. J. &amp; Didelez, V. (2024). <a href="https://doi.org/10.1093/jrsssb/qkad058">Parameterizing and simulating from causal models.</a> <em>Journal of the Royal Statistical Society Series B</em>.</li>
+<li>Orduz, J. &amp; De Rosa, R. (2026). <a href="https://cdn.jsdelivr.net/gh/pymc-labs/mmm-bandits-opt@main/earning-and-learning-in-media-mix-models.pdf">Earning and learning in media mix models.</a> PyMC Labs.</li>
 <li>Dean, W., Orduz, J., et al.&nbsp;(2026). <a href="https://doi.org/10.21105/joss.10805">PyMC-Marketing: Bayesian marketing mix models and customer analytics in Python.</a> <em>Journal of Open Source Software</em>.</li>
 </ul>
 </section>
