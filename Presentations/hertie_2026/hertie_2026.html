@@ -1293,11 +1293,50 @@ M^{*}_t &amp; = D_t + \lambda \, \frac{{\color{#fa7c17} B_t}}{{\color{#328c06} s
 <p><span class="math display">\[
 \max_{b} \; \text{E}\left[R(b; \theta) \mid y\right] \quad \text{subject to} \quad \sum_{m} b_m = B, \quad l_m \le b_m \le u_m
 \]</span></p>
-<ul>
-<li>Each plan is an intervention <span class="math inline">\(\text{do}(x = b)\)</span>. The plan relies on the causal estimates of the response curves, so calibration matters here.</li>
-<li>Because of saturation, the optimizer moves money from channels with a low marginal return to channels with a high marginal return, until the marginal returns match or a guardrail binds.</li>
-<li>The guardrails keep the plan close to the spend we observed. The posterior gives a distribution of the response for each plan, so we can also optimize a risk-aware utility instead of the mean.</li>
-</ul>
+<div class="columns">
+<div class="column" style="width:33%;">
+<div class="callout callout-important callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Plans Are Interventions</strong></p>
+</div>
+<div class="callout-content">
+<p>Each plan is an intervention <span class="math inline">\(\text{do}(x = b)\)</span>. The plan relies on the causal estimates of the response curves, so calibration matters here.</p>
+</div>
+</div>
+</div>
+</div><div class="column" style="width:33%;">
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Marginal Returns</strong></p>
+</div>
+<div class="callout-content">
+<p>Because of saturation, the optimizer moves money from channels with a low marginal return to channels with a high marginal return, until the marginal returns match or a guardrail binds.</p>
+</div>
+</div>
+</div>
+</div><div class="column" style="width:33%;">
+<div class="callout callout-note callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Guardrails and Risk</strong></p>
+</div>
+<div class="callout-content">
+<p>The guardrails keep the plan close to the spend we observed. The posterior gives a distribution of the response for each plan, so we can also optimize a risk-aware utility instead of the mean.</p>
+</div>
+</div>
+</div>
+</div></div>
 <div class="footer">
 <p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#budget-optimization">PyMC-Marketing: MMM Case Study II, Budget Optimization</a></p>
 </div>

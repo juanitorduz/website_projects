@@ -1003,9 +1003,35 @@ $$
 \max_{b} \; \text{E}\left[R(b; \theta) \mid y\right] \quad \text{subject to} \quad \sum_{m} b_m = B, \quad l_m \le b_m \le u_m
 $$
 
-- Each plan is an intervention $\text{do}(x = b)$. The plan relies on the causal estimates of the response curves, so calibration matters here.
-- Because of saturation, the optimizer moves money from channels with a low marginal return to channels with a high marginal return, until the marginal returns match or a guardrail binds.
-- The guardrails keep the plan close to the spend we observed. The posterior gives a distribution of the response for each plan, so we can also optimize a risk-aware utility instead of the mean.
+:::: {.columns}
+::: {.column width="33%"}
+
+::: {.callout-important}
+## Plans Are Interventions
+
+Each plan is an intervention $\text{do}(x = b)$. The plan relies on the causal estimates of the response curves, so calibration matters here.
+:::
+
+:::
+::: {.column width="33%"}
+
+::: {.callout-tip}
+## Marginal Returns
+
+Because of saturation, the optimizer moves money from channels with a low marginal return to channels with a high marginal return, until the marginal returns match or a guardrail binds.
+:::
+
+:::
+::: {.column width="33%"}
+
+::: {.callout-note}
+## Guardrails and Risk
+
+The guardrails keep the plan close to the spend we observed. The posterior gives a distribution of the response for each plan, so we can also optimize a risk-aware utility instead of the mean.
+:::
+
+:::
+::::
 
 ::: footer
 [PyMC-Marketing: MMM Case Study II, Budget Optimization](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#budget-optimization)
