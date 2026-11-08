@@ -1038,19 +1038,28 @@ y_t = \beta_0(t) + \sum_{m} \beta_m(t) f_m(x_{m,t}) + \sum_{k} \gamma_k z_{k,t} 
 </section>
 <section id="funnel-models-in-marketing" class="slide level2 smaller">
 <h2>Funnel Models in Marketing</h2>
-<p>An omitted confounder biased the previous models. Funnels add a different risk: a mediator that we add as a regressor. We use the PyMC-Marketing MMM case study (<span class="math inline">\(209\)</span> weeks of synthetic sales data).</p>
+<p>An omitted confounder biased the previous models. Funnels add a different risk: a mediator that we add as a regressor.</p>
+<div class="callout callout-note callout-style-simple">
+<div class="callout-body">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-content">
+<p>We use the PyMC-Marketing MMM case study (<span class="math inline">\(209\)</span> weeks of synthetic sales data).</p>
+</div>
+</div>
+</div>
 <div class="columns">
-<div class="column" style="width:52%;">
+<div class="column" style="width:58%;">
 <ul>
 <li><strong>Upper funnel</strong> channels build awareness: <code>TV</code>, <code>Radio</code>, <code>Newspaper</code>.</li>
-<li><strong>Lower funnel</strong> channels capture existing demand, like paid search, also called search engine marketing (SEM): <code>sem_spend</code>.</li>
-<li>Paid search is <span class="math inline">\(26.9\%\)</span> of the modeled media spend.</li>
-<li>Its spend and impressions (how often the ads show) both correlate with sales (<span class="math inline">\(0.59\)</span>).</li>
+<li><strong>Lower funnel</strong> channels capture existing demand, like paid search (search engine marketing, SEM): <code>sem_spend</code>.</li>
+<li>Paid search is <span class="math inline">\(26.9\%\)</span> of the modeled media spend. Its spend and impressions (how often the ads show) both correlate with sales (<span class="math inline">\(0.59\)</span>).</li>
 </ul>
-</div><div class="column" style="width:48%;">
+</div><div class="column" style="width:42%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="hertie_2026_files/static/images/sem_spend_impressions.png" class="quarto-figure quarto-figure-center" width="440"></p>
+<p><img data-src="hertie_2026_files/static/images/sem_spend_impressions.png" class="quarto-figure quarto-figure-center" width="400"></p>
 </figure>
 </div>
 </div></div>
@@ -1112,11 +1121,11 @@ y_t = \beta_0(t) + \sum_{m} \beta_m(t) f_m(x_{m,t}) + \sum_{k} \gamma_k z_{k,t} 
 </section>
 <section id="funnel-model-components" class="slide level2">
 <h2>Funnel Model Components</h2>
-<div style="font-size: 85%;">
+<div style="font-size: 80%;">
 <p>We now give each part a symbol. The index <span class="math inline">\(t\)</span> is the week.</p>
 <ul>
 <li><strong>Demand pool</strong> <span class="math inline">\(D_t\)</span>: a baseline plus what the spend <span class="math inline">\(U_{t,c}\)</span> of each upper funnel channel <span class="math inline">\(c\)</span> adds.</li>
-<li><strong>Search demand</strong> <span class="math inline">\(M^*_t\)</span>: the pool <span class="math inline">\(D_t\)</span> plus what the paid search spend <span class="math inline">\(B_t\)</span> adds. The parameter <span class="math inline">\(\lambda\)</span> is the exchange rate between search money and search demand.</li>
+<li><strong>Search demand</strong> <span class="math inline">\(M^*_t\)</span>: the pool <span class="math inline">\(D_t\)</span> plus the demand that the paid search spend <span class="math inline">\(B_t\)</span> adds. The parameter <span class="math inline">\(\lambda \ge 0\)</span> sets the size of this addition. With <span class="math inline">\(\lambda = 0\)</span>, paid search only harvests the pool. We estimate <span class="math inline">\(\lambda\)</span> to split search demand into what was already there and what the spend added.</li>
 <li><strong>Measurement</strong> <span class="math inline">\(I_t\)</span>: the search impressions measure <span class="math inline">\(M^*_t\)</span>. They do not enter the sales equation.</li>
 <li><strong>Sales</strong> <span class="math inline">\(\mu_t\)</span>: the mean of sales is <span class="math inline">\(\text{MMM}_t\)</span> (the direct terms of the other channels and the controls) plus the sales that <span class="math inline">\(M^*_t\)</span> turns into. Paid search has no direct term.</li>
 </ul>
@@ -1127,16 +1136,17 @@ y_t = \beta_0(t) + \sum_{m} \beta_m(t) f_m(x_{m,t}) + \sum_{k} \gamma_k z_{k,t} 
 </section>
 <section id="funnel-model-structure" class="slide level2 smaller">
 <h2>Funnel Model Structure</h2>
-<p>We write the four components as equations:</p>
+<p>We write the four components as equations, plus the sales likelihood:</p>
 <p><span class="math display">\[
 \begin{align*}
-D_t &amp; = \text{baseline} + \sum_{c \in \text{upper}} \text{sat}^{uf}\left(\text{adstock}^{uf}(U_{t,c})\right) \\
-M^{*}_t &amp; = D_t + \lambda \, \frac{B_t}{s_{B}} \\
-I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{lower}=0\right) \\
-\mu_t &amp; = \text{MMM}_t + \text{sat}^{lf}\left(\text{adstock}^{lf}(M^{*}_t)\right)
+D_t &amp; = \text{baseline} + \sum_{c \in \text{upper}} \text{sat}^{uf}\left(\text{adstock}^{uf}({\color{#d55e00} U_{t,c}})\right) \\
+M^{*}_t &amp; = D_t + \lambda \, \frac{{\color{#d55e00} B_t}}{s_{B}} \\
+{\color{#d55e00} I_t} &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{lower}=0\right) \\
+\mu_t &amp; = \text{MMM}_t + \text{sat}^{lf}\left(\text{adstock}^{lf}(M^{*}_t)\right) \\
+{\color{#d55e00} y_t} &amp; \sim \text{TruncatedNormal}\left(\mu_t, \sigma, \text{lower}=0\right)
 \end{align*}
 \]</span></p>
-<p>The scales <span class="math inline">\(s_B\)</span> and <span class="math inline">\(s_I\)</span> are the maxima of <span class="math inline">\(B_t\)</span> and <span class="math inline">\(I_t\)</span>, <span class="math inline">\(\sigma_I\)</span> is the measurement noise, and <span class="math inline">\(uf\)</span> and <span class="math inline">\(lf\)</span> mark the upper and lower funnel.</p>
+<p>The <span style="color: #d55e00;">orange</span> quantities are observed (spend, impressions, and sales), and <span class="math inline">\(D_t\)</span> and <span class="math inline">\(M^*_t\)</span> are latent. The scales <span class="math inline">\(s_B\)</span> and <span class="math inline">\(s_I\)</span> are the maxima of <span class="math inline">\(B_t\)</span> and <span class="math inline">\(I_t\)</span>. The noise scales are <span class="math inline">\(\sigma_I\)</span> and <span class="math inline">\(\sigma\)</span>, and <span class="math inline">\(uf\)</span> and <span class="math inline">\(lf\)</span> mark the upper and lower funnel.</p>
 <div class="callout callout-note callout-style-simple">
 <div class="callout-body">
 <div class="callout-icon-container">
@@ -1153,29 +1163,65 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 </section>
 <section id="funnel-model-in-pymc-marketing" class="slide level2 smaller">
 <h2>Funnel Model in PyMC-Marketing</h2>
-<p>The funnel is a custom <code>MuEffect</code> on top of the MMM. The order matters: we build the model, keep the contributions in sales units, add the calibration, and then fit.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" data-code-line-numbers="|1-3|5-11|13-20|22"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a><span class="co"># base MMM + funnel effect (demand pool, mediator, impressions likelihood)</span></span>
-<span id="cb6-2"><a href=""></a>mmm <span class="op">=</span> make_mmm(X)</span>
-<span id="cb6-3"><a href=""></a>mmm.build_model(X<span class="op">=</span>make_funnel_dataset(X, y))</span>
-<span id="cb6-4"><a href=""></a></span>
-<span id="cb6-5"><a href=""></a><span class="co"># keep the contributions in sales units (the ROAS calibration needs them)</span></span>
-<span id="cb6-6"><a href=""></a>mmm.add_original_scale_contribution_variable(</span>
-<span id="cb6-7"><a href=""></a>    var<span class="op">=</span>[</span>
-<span id="cb6-8"><a href=""></a>        <span class="st">"channel_contribution"</span>, <span class="st">"control_contribution"</span>, <span class="st">"intercept_contribution"</span>,</span>
-<span id="cb6-9"><a href=""></a>        <span class="st">"yearly_seasonality_contribution"</span>, <span class="st">"funnel_effect_contribution"</span>, <span class="st">"y"</span>,</span>
-<span id="cb6-10"><a href=""></a>    ]</span>
-<span id="cb6-11"><a href=""></a>)</span>
-<span id="cb6-12"><a href=""></a></span>
-<span id="cb6-13"><a href=""></a><span class="co"># calibration: experiment ROAS ~ Normal(model ROAS, sigma) per tested channel</span></span>
-<span id="cb6-14"><a href=""></a>mmm.add_cost_per_target_calibration(</span>
-<span id="cb6-15"><a href=""></a>    data<span class="op">=</span>X,  <span class="co"># spend in original units</span></span>
-<span id="cb6-16"><a href=""></a>    calibration_data<span class="op">=</span>roas_calibration_df,  <span class="co"># columns: channel, roas, sigma</span></span>
-<span id="cb6-17"><a href=""></a>    name_prefix<span class="op">=</span><span class="st">"roas_calibration"</span>,</span>
-<span id="cb6-18"><a href=""></a>    target_column<span class="op">=</span><span class="st">"roas"</span>,</span>
-<span id="cb6-19"><a href=""></a>    target_per_cost<span class="op">=</span><span class="va">True</span>,  <span class="co"># contribution / spend, so ROAS</span></span>
-<span id="cb6-20"><a href=""></a>)</span>
-<span id="cb6-21"><a href=""></a></span>
-<span id="cb6-22"><a href=""></a>pm.model_to_graphviz(mmm.model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The funnel is a custom <code>MuEffect</code>. Its <code>create_effect</code> method builds <span class="math inline">\(D_t\)</span>, <span class="math inline">\(M^*_t\)</span>, and the impressions likelihood, and returns the term that the MMM adds to <span class="math inline">\(\mu_t\)</span>.</p>
+<div style="font-size: 90%;">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" data-code-line-numbers="|1-2|3-6|7-10|11-15|16-23|24-27"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a><span class="kw">class</span> FunnelEffect(DataVarMuEffect):</span>
+<span id="cb6-2"><a href=""></a>    <span class="kw">def</span> create_effect(<span class="va">self</span>, mmm):  <span class="co"># adds a term to the sales mean mu_t</span></span>
+<span id="cb6-3"><a href=""></a>        <span class="co"># upper funnel spend (TV, Radio, Newspaper), read from the MMM's own channel data</span></span>
+<span id="cb6-4"><a href=""></a>        channel_index <span class="op">=</span> [mmm.channel_columns.index(c) <span class="cf">for</span> c <span class="kw">in</span> <span class="va">self</span>.upper_channels]</span>
+<span id="cb6-5"><a href=""></a>        upper <span class="op">=</span> mmm.channel_data_scaled.isel(channel<span class="op">=</span>channel_index)</span>
+<span id="cb6-6"><a href=""></a>        upper <span class="op">=</span> upper.rename({<span class="st">"channel"</span>: <span class="st">"channel_upper"</span>})</span>
+<span id="cb6-7"><a href=""></a>        <span class="co"># demand pool D_t</span></span>
+<span id="cb6-8"><a href=""></a>        baseline <span class="op">=</span> pmd.HalfNormal(<span class="st">"funnel_baseline"</span>, sigma<span class="op">=</span><span class="fl">1.0</span>)</span>
+<span id="cb6-9"><a href=""></a>        upper_on_demand <span class="op">=</span> <span class="va">self</span>.upper_transform(upper, dim<span class="op">=</span><span class="st">"date"</span>).<span class="bu">sum</span>(dim<span class="op">=</span><span class="st">"channel_upper"</span>)</span>
+<span id="cb6-10"><a href=""></a>        demand <span class="op">=</span> pmd.Deterministic(<span class="st">"funnel_demand"</span>, baseline <span class="op">+</span> upper_on_demand)</span>
+<span id="cb6-11"><a href=""></a>        <span class="co"># search demand M*_t</span></span>
+<span id="cb6-12"><a href=""></a>        lam <span class="op">=</span> pmd.HalfNormal(<span class="st">"funnel_lambda"</span>, sigma<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb6-13"><a href=""></a>        mediator <span class="op">=</span> pmd.Deterministic(</span>
+<span id="cb6-14"><a href=""></a>            <span class="st">"funnel_mediator"</span>, demand <span class="op">+</span> lam <span class="op">*</span> mmm.model[<span class="st">"sem_spend"</span>] <span class="op">/</span> <span class="va">self</span>.sem_scale</span>
+<span id="cb6-15"><a href=""></a>        )</span>
+<span id="cb6-16"><a href=""></a>        <span class="co"># measurement I_t: the impressions likelihood</span></span>
+<span id="cb6-17"><a href=""></a>        pmd.TruncatedNormal(</span>
+<span id="cb6-18"><a href=""></a>            <span class="st">"funnel_sem_impressions_likelihood"</span>,</span>
+<span id="cb6-19"><a href=""></a>            mu<span class="op">=</span><span class="va">self</span>.impressions_scale <span class="op">*</span> mediator,</span>
+<span id="cb6-20"><a href=""></a>            sigma<span class="op">=</span>pmd.HalfNormal(<span class="st">"funnel_sigma_s"</span>, sigma<span class="op">=</span><span class="fl">0.2</span> <span class="op">*</span> <span class="va">self</span>.impressions_scale),</span>
+<span id="cb6-21"><a href=""></a>            lower<span class="op">=</span><span class="fl">0.0</span>,</span>
+<span id="cb6-22"><a href=""></a>            observed<span class="op">=</span>mmm.model[<span class="st">"sem_impressions"</span>],</span>
+<span id="cb6-23"><a href=""></a>        )</span>
+<span id="cb6-24"><a href=""></a>        <span class="co"># sat_lf(adstock_lf(M*_t)): the term that the MMM adds to mu_t</span></span>
+<span id="cb6-25"><a href=""></a>        <span class="cf">return</span> pmd.Deterministic(</span>
+<span id="cb6-26"><a href=""></a>            <span class="st">"funnel_effect_contribution"</span>, <span class="va">self</span>.demand_transform(mediator, dim<span class="op">=</span><span class="st">"date"</span>)</span>
+<span id="cb6-27"><a href=""></a>        )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="footer">
+<p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#the-funnel-effect">PyMC-Marketing: MMM Case Study II, The Funnel Effect</a> (condensed)</p>
+</div>
+</section>
+<section id="model-building-and-calibration" class="slide level2 smaller">
+<h2>Model Building and Calibration</h2>
+<p>We attach the funnel effect to the MMM. The order matters: we build the model, keep the contributions in sales units, add the calibration, and then fit.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" data-code-line-numbers="|1-3|5-11|13-20|22"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href=""></a><span class="co"># base MMM + FunnelEffect (make_mmm calls mmm.add_mu_effect)</span></span>
+<span id="cb7-2"><a href=""></a>mmm <span class="op">=</span> make_mmm(X)</span>
+<span id="cb7-3"><a href=""></a>mmm.build_model(X<span class="op">=</span>make_funnel_dataset(X, y))</span>
+<span id="cb7-4"><a href=""></a></span>
+<span id="cb7-5"><a href=""></a><span class="co"># keep the contributions in sales units (the ROAS calibration needs them)</span></span>
+<span id="cb7-6"><a href=""></a>mmm.add_original_scale_contribution_variable(</span>
+<span id="cb7-7"><a href=""></a>    var<span class="op">=</span>[</span>
+<span id="cb7-8"><a href=""></a>        <span class="st">"channel_contribution"</span>, <span class="st">"control_contribution"</span>, <span class="st">"intercept_contribution"</span>,</span>
+<span id="cb7-9"><a href=""></a>        <span class="st">"yearly_seasonality_contribution"</span>, <span class="st">"funnel_effect_contribution"</span>, <span class="st">"y"</span>,</span>
+<span id="cb7-10"><a href=""></a>    ]</span>
+<span id="cb7-11"><a href=""></a>)</span>
+<span id="cb7-12"><a href=""></a></span>
+<span id="cb7-13"><a href=""></a><span class="co"># calibration: experiment ROAS ~ Normal(model ROAS, sigma) per tested channel</span></span>
+<span id="cb7-14"><a href=""></a>mmm.add_cost_per_target_calibration(</span>
+<span id="cb7-15"><a href=""></a>    data<span class="op">=</span>X,  <span class="co"># spend in original units</span></span>
+<span id="cb7-16"><a href=""></a>    calibration_data<span class="op">=</span>roas_calibration_df,  <span class="co"># columns: channel, roas, sigma</span></span>
+<span id="cb7-17"><a href=""></a>    name_prefix<span class="op">=</span><span class="st">"roas_calibration"</span>,</span>
+<span id="cb7-18"><a href=""></a>    target_column<span class="op">=</span><span class="st">"roas"</span>,</span>
+<span id="cb7-19"><a href=""></a>    target_per_cost<span class="op">=</span><span class="va">True</span>,  <span class="co"># contribution / spend, so ROAS</span></span>
+<span id="cb7-20"><a href=""></a>)</span>
+<span id="cb7-21"><a href=""></a></span>
+<span id="cb7-22"><a href=""></a>pm.model_to_graphviz(mmm.model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="footer">
 <p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#final-model">PyMC-Marketing: MMM Case Study II, Final Model</a> and <a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_roas_calibration.html">Calibrating an MMM with ROAS Estimates</a></p>
 </div>
@@ -1227,14 +1273,16 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 <p>The <strong>givers</strong> <code>TV</code>, <code>Radio</code>, <code>Newspaper</code>, and <code>sem_spend</code> feed the search demand. We set one giver to zero and read what the SEM path into sales loses.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="hertie_2026_files/static/images/sem_path_shares.png" class="quarto-figure quarto-figure-center" width="840"></p>
+<p><img data-src="hertie_2026_files/static/images/sem_path_shares.png" class="quarto-figure quarto-figure-center" width="640"></p>
 </figure>
 </div>
+<div style="font-size: 80%;">
 <ul>
-<li><strong>Main sources:</strong> paid search’s own spend and the no-media demand dominate.</li>
-<li><strong>Pass-through:</strong> the upper funnel adds small shares, with HDIs that reach zero.</li>
-<li><strong>Direction:</strong> the DAG assumes it, and only an upper funnel experiment can test it.</li>
+<li><strong>No media (intercept):</strong> the baseline of <span class="math inline">\(D_t\)</span>, the search demand that exists with all spend at zero (people who look for the product anyway).</li>
+<li><strong>Reading the <span class="math inline">\(41\%\)</span>:</strong> about <span class="math inline">\(41\%\)</span> of the sales on the search path come from people who search anyway. No channel gets credit for them, so search sales overstate what paid search causes.</li>
+<li><strong>Pass-through:</strong> paid search’s own spend adds <span class="math inline">\(48\%\)</span>. <code>TV</code>, <code>Radio</code>, and <code>Newspaper</code> add about <span class="math inline">\(10\%\)</span> together, each with an HDI that reaches zero. Only an upper funnel experiment can test this path.</li>
 </ul>
+</div>
 <div class="footer">
 <p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#channel-synergies">PyMC-Marketing: MMM Case Study II, Channel Synergies</a></p>
 </div>
@@ -1256,22 +1304,28 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 </section>
 <section id="funnel-aware-budget-optimization" class="slide level2 smaller">
 <h2>Funnel-Aware Budget Optimization</h2>
+<p>All three plans share the posterior, the <span class="math inline">\(13\)</span>-week window, the total weekly budget, and the <span class="math inline">\(\pm 50\%\)</span> guardrails. They differ in the objective and in whether <code>sem_spend</code> can move:</p>
 <div class="columns">
-<div class="column" style="width:58%;">
+<div class="column" style="width:55%;">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="hertie_2026_files/static/images/budget_allocation.png" class="quarto-figure quarto-figure-center" width="580"></p>
+<p><img data-src="hertie_2026_files/static/images/budget_allocation.png" class="quarto-figure quarto-figure-center" width="520"></p>
 </figure>
 </div>
-</div><div class="column" style="width:42%;">
+</div><div class="column" style="width:45%;">
+<div style="font-size: 85%;">
 <ul>
-<li>We plan the next <span class="math inline">\(13\)</span> weeks with one budget that includes paid search (<code>sem_spend</code>) and guardrails of <span class="math inline">\(\pm 50\%\)</span>. The direct-only objective cannot see the path through <span class="math inline">\(M^*\)</span>, so it keeps paid search at its historical level.</li>
-<li>With paid search fixed, both objectives give the same plan. The funnel-aware plan cuts paid search by <span class="math inline">\(16\%\)</span> and moves the money to the other channels.</li>
+<li><span style="color: #2a2eec;"><strong>Direct-only:</strong></span> maximizes the direct media contribution. It cannot see the path through <span class="math inline">\(M^*\)</span>, so <code>sem_spend</code> stays fixed.</li>
+<li><span style="color: #328c06;"><strong>Funnel, SEM pinned:</strong></span> maximizes the total response, direct plus mediated, with <code>sem_spend</code> fixed.</li>
+<li><span style="color: #fa7c17;"><strong>Funnel-aware:</strong></span> maximizes the total response, and <code>sem_spend</code> can move within its own <span class="math inline">\(\pm 50\%\)</span> band.</li>
 </ul>
+</div>
 </div></div>
+<div style="font-size: 80%;">
 <blockquote>
-<p>In this model, the useful role of the funnel is that it tells us how much to spend on SEM, not that it changes the order of the other media channels.</p>
+<p>Comparing pinned with direct-only isolates the objective. Comparing funnel-aware with pinned isolates the paid search budget.</p>
 </blockquote>
+</div>
 <div class="footer">
 <p><a href="https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_case_study2.html#budget-optimization">PyMC-Marketing: MMM Case Study II, Budget Optimization</a></p>
 </div>
@@ -1313,13 +1367,36 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 </ul>
 </div>
 </div></div>
-<div style="font-size: 80%;">
-<blockquote>
-<p>In <span class="math inline">\(20\)</span> runs, <code>greedy</code> never finds the channel. The four fast policies earn about <span class="math inline">\(\$15\text{M}\)</span> a year more than <code>greedy</code> on <span class="math inline">\(\$50\text{M}\)</span> of revenue. In a stable market, <code>directed</code> costs about <span class="math inline">\(\$178\text{K}\)</span> a year more.</p>
-</blockquote>
+<div style="font-size: 85%;">
+<p>The bars show the extra revenue per year over <code>greedy</code>: the median of <span class="math inline">\(20\)</span> runs, on <span class="math inline">\(\$50\text{M}\)</span> of annual revenue.</p>
 </div>
 <div class="footer">
 <p><a href="https://cdn.jsdelivr.net/gh/pymc-labs/mmm-bandits-opt@main/earning-and-learning-in-media-mix-models.pdf">Orduz &amp; De Rosa (2026): Earning and Learning in Media Mix Models</a></p>
+</div>
+</section>
+<section id="simulation-learnings" class="slide level2 smaller">
+<h2>Simulation Learnings</h2>
+<p>We compare the policies on what they earn and on what the model learns:</p>
+<div style="font-size: 85%;">
+<ol type="1">
+<li><strong>Pure exploitation stops learning.</strong> Under <code>greedy</code>, the uncertainty about the largest channel stops shrinking after about two months. When the model underrates a channel, <code>greedy</code> never funds it in any of the <span class="math inline">\(20\)</span> runs, so it never learns that the model is wrong.</li>
+<li><strong>Aim matters more than amount.</strong> <code>directed</code> and <code>eps-greedy</code> move a slice equally often, from the same menu of moves. <code>directed</code> aims at what the model is least sure about and finds the underrated channel within weeks. <code>eps-greedy</code> moves at random and finds it in only <span class="math inline">\(10\)</span> of <span class="math inline">\(20\)</span> runs.</li>
+<li><strong>Bandit rules aim at revenue, not at learning.</strong> In a stable market, <code>thompson</code> and <code>ucb</code> end the year with about as much uncertainty as <code>greedy</code>, but they are the cheapest explorers. When the model underrates a channel, <code>ucb</code> finds it as fast as <code>directed</code>.</li>
+<li><strong>Exploration is cheap insurance.</strong> On <span class="math inline">\(\$50\text{M}\)</span> of revenue, <code>directed</code> costs about <span class="math inline">\(\$178\text{K}\)</span> a year more than <code>greedy</code> in a stable market. When the model underrates an unfunded channel, the four fast policies (<code>directed</code>, <code>annealed</code>, <code>aggressive</code>, and <code>ucb</code>) earn about <span class="math inline">\(\$15\text{M}\)</span> a year more.</li>
+</ol>
+</div>
+<div class="callout callout-tip callout-style-simple">
+<div class="callout-body">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-content">
+<p>If the saturation intervals of your MMM stop narrowing from quarter to quarter, the loop has stopped learning.</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<p><a href="https://www.pymc-labs.com/blog-posts/exploration-vs-exploitation-marketing-budget-allocation">PyMC Labs: Exploration vs Exploitation in Marketing Budget Allocation</a> and <a href="https://cdn.jsdelivr.net/gh/pymc-labs/mmm-bandits-opt@main/earning-and-learning-in-media-mix-models.pdf">Orduz &amp; De Rosa (2026)</a></p>
 </div>
 </section>
 <section id="amortized-bayesian-inference" class="slide level2 smaller nostretch">
@@ -1402,18 +1479,17 @@ I_t &amp; \sim \text{TruncatedNormal}\left(s_{I} \, M^{*}_t, \sigma_{I}, \text{l
 <p><a href="https://github.com/pymc-labs">github.com/pymc-labs</a></p>
 </div>
 </section>
-<section id="takeaways" class="slide level2">
+<section id="takeaways" class="slide level2 smaller">
 <h2>Takeaways</h2>
-<div style="font-size: 85%;">
 <ul>
 <li><strong>The model states the assumptions.</strong> We write the DAG as code.</li>
 <li><strong>Priors and experiments carry outside information.</strong> Lift priors rule out implausible lifts in A/B tests. ROAS priors and lift tests reduce confounding bias in MMMs.</li>
 <li><strong>The same <code>do</code> query works across models.</strong> It applies to regressions, GLMs, MMMs, and funnel models.</li>
 <li><strong>Hierarchies regularize.</strong> They do not replace thinking about the DAG.</li>
 <li><strong>The causal structure changes decisions.</strong> The funnel model tells us how much to spend on paid search.</li>
+<li><strong>An MMM is a decision loop, not just a model.</strong> We fit, calibrate, optimize the budget, spend, and re-fit. Each budget trades earning now against learning for the next fit, and a small, aimed exploration budget keeps the loop learning.</li>
 <li><strong>Amortized inference trains once.</strong> Amortized Bayesian inference and MFM learn from simulations, then handle new data in seconds.</li>
 </ul>
-</div>
 </section>
 <section id="references" class="slide level2 smaller">
 <h2>References</h2>
