@@ -1343,7 +1343,7 @@ M^{*}_t &amp; = D_t + \lambda \, \frac{{\color{#fa7c17} B_t}}{{\color{#328c06} s
 </section>
 <section id="funnel-aware-budget-optimization" class="slide level2 smaller">
 <h2>Funnel-Aware Budget Optimization</h2>
-<p>All three plans share the posterior, the <span class="math inline">\(13\)</span>-week window, the total weekly budget, and the <span class="math inline">\(\pm 50\%\)</span> guardrails. They differ in the objective and in whether <code>sem_spend</code> can move:</p>
+<p>All three plans share the posterior, budget, <span class="math inline">\(13\)</span>-week window, and <span class="math inline">\(\pm 50\%\)</span> guardrails.</p>
 <div class="columns">
 <div class="column" style="width:55%;">
 <div class="quarto-figure quarto-figure-center">
@@ -1352,10 +1352,10 @@ M^{*}_t &amp; = D_t + \lambda \, \frac{{\color{#fa7c17} B_t}}{{\color{#328c06} s
 </figure>
 </div>
 </div><div class="column" style="width:45%;">
-<div style="font-size: 85%;">
+<div style="font-size: 80%;">
 <ul>
-<li><span style="color: #2a2eec;"><strong>Direct-only:</strong></span> maximizes the direct media contribution. It cannot see the path through <span class="math inline">\(M^*\)</span>, so <code>sem_spend</code> stays fixed.</li>
-<li><span style="color: #328c06;"><strong>Funnel, SEM pinned:</strong></span> maximizes the total response, direct plus mediated, with <code>sem_spend</code> fixed.</li>
+<li><span style="color: #2a2eec;"><strong>Direct-only:</strong></span> maximizes the direct media contribution. It cannot see the path through <span class="math inline">\(M^*\)</span>, so <code>sem_spend</code> stays at its historical level.</li>
+<li><span style="color: #328c06;"><strong>Funnel, SEM pinned:</strong></span> maximizes the total response, direct plus mediated. <strong>Pinned</strong> means that <code>sem_spend</code> is fixed at its historical level, so only the media channels move.</li>
 <li><span style="color: #fa7c17;"><strong>Funnel-aware:</strong></span> maximizes the total response, and <code>sem_spend</code> can move within its own <span class="math inline">\(\pm 50\%\)</span> band.</li>
 </ul>
 </div>
@@ -1366,10 +1366,12 @@ M^{*}_t &amp; = D_t + \lambda \, \frac{{\color{#fa7c17} B_t}}{{\color{#328c06} s
 <i class="callout-icon"></i>
 </div>
 <div class="callout-content">
+<div style="font-size: 90%;">
 <ul>
-<li><strong>Pinned against direct-only:</strong> both keep <code>sem_spend</code> fixed. Only pinned counts the sales that <code>TV</code>, <code>Radio</code>, and <code>Newspaper</code> drive through paid search, so the gap shows what counting those sales changes.</li>
-<li><strong>Funnel-aware against pinned:</strong> only <code>sem_spend</code> differs, so the gap is the effect of moving the paid search budget.</li>
+<li><strong>Pinned against direct-only:</strong> both spend the same on paid search. Direct-only counts only the sales that a <code>TV</code> dollar brings directly. Pinned also counts the sales that it brings through paid search. Any difference between the two plans comes from counting these extra sales.</li>
+<li><strong>Funnel-aware against pinned:</strong> both count these extra sales, but only funnel-aware can change <code>sem_spend</code>. Any difference comes from changing the paid search budget.</li>
 </ul>
+</div>
 </div>
 </div>
 </div>
