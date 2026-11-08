@@ -860,7 +860,7 @@ $$
 The [orange]{style="color: #fa7c17;"} quantities are observed (spend, impressions, and sales), and $D_t$ and $M^*_t$ are latent. The [green]{style="color: #328c06;"} scales ${\color{#328c06} s_B}$ and ${\color{#328c06} s_I}$ are fixed constants: the maxima of $B_t$ and $I_t$ in the data. The noise scales are $\sigma_I$ and $\sigma$, and $uf$ and $lf$ mark the upper and lower funnel.
 
 ::: {.callout-note appearance="simple"}
-This is a structural equation model with a latent variable. The impressions equation is the **measurement model**, and we fix its loading at one to set the scale of $M^*_t$.
+The impressions equation is the **measurement model** of a structural equation model. $M^*_t$ has no natural unit, so we fix its coefficient at one (times $s_I$): $M^*_t = 1$ is the busiest week of impressions.
 :::
 
 ::: footer
