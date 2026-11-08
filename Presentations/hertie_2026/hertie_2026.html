@@ -1166,7 +1166,7 @@ M^{*}_t &amp; = D_t + \lambda \, \frac{{\color{red} B_t}}{s_{B}} \\
 <p>The funnel is a custom <code>MuEffect</code>. Its <code>create_effect</code> method builds <span class="math inline">\(D_t\)</span>, <span class="math inline">\(M^*_t\)</span>, and the impressions likelihood, and returns the term that the MMM adds to <span class="math inline">\(\mu_t\)</span>.</p>
 <div style="font-size: 90%;">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" data-code-line-numbers="|1-2|3-6|7-10|11-15|16-23|24-27"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href=""></a><span class="kw">class</span> FunnelEffect(DataVarMuEffect):</span>
-<span id="cb6-2"><a href=""></a>    <span class="kw">def</span> create_effect(<span class="va">self</span>, mmm):  <span class="co"># adds a term to the sales mean mu_t</span></span>
+<span id="cb6-2"><a href=""></a>    <span class="kw">def</span> create_effect(<span class="va">self</span>, mmm: MMM) <span class="op">-&gt;</span> XTensorVariable:  <span class="co"># term added to mu_t</span></span>
 <span id="cb6-3"><a href=""></a>        <span class="co"># upper funnel spend (TV, Radio, Newspaper), read from the MMM's own channel data</span></span>
 <span id="cb6-4"><a href=""></a>        channel_index <span class="op">=</span> [mmm.channel_columns.index(c) <span class="cf">for</span> c <span class="kw">in</span> <span class="va">self</span>.upper_channels]</span>
 <span id="cb6-5"><a href=""></a>        upper <span class="op">=</span> mmm.channel_data_scaled.isel(channel<span class="op">=</span>channel_index)</span>

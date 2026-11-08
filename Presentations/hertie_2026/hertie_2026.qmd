@@ -875,7 +875,7 @@ The funnel is a custom `MuEffect`. Its `create_effect` method builds $D_t$, $M^*
 
 ```{.python code-line-numbers="|1-2|3-6|7-10|11-15|16-23|24-27"}
 class FunnelEffect(DataVarMuEffect):
-    def create_effect(self, mmm):  # adds a term to the sales mean mu_t
+    def create_effect(self, mmm: MMM) -> XTensorVariable:  # term added to mu_t
         # upper funnel spend (TV, Radio, Newspaper), read from the MMM's own channel data
         channel_index = [mmm.channel_columns.index(c) for c in self.upper_channels]
         upper = mmm.channel_data_scaled.isel(channel=channel_index)
