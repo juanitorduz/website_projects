@@ -1044,7 +1044,7 @@ All three plans share the posterior, the $13$-week window, the total weekly budg
 :::: {.columns}
 ::: {.column width="55%"}
 
-![](hertie_2026_files/static/images/budget_allocation.png){fig-align="center" width="480"}
+![](hertie_2026_files/static/images/budget_allocation.png){fig-align="center" width="450"}
 
 :::
 ::: {.column width="45%"}
@@ -1061,7 +1061,7 @@ All three plans share the posterior, the $13$-week window, the total weekly budg
 ::::
 
 ::: {.callout-tip appearance="simple"}
-- **Pinned against direct-only:** only the objective differs, so the gap is the effect of pricing the mediated path.
+- **Pinned against direct-only:** both keep `sem_spend` fixed. Only pinned counts the sales that `TV`, `Radio`, and `Newspaper` drive through paid search, so the gap shows what counting those sales changes.
 - **Funnel-aware against pinned:** only `sem_spend` differs, so the gap is the effect of moving the paid search budget.
 :::
 
