@@ -6,9 +6,19 @@ alwaysApply: false
 
 # Blog Image Formatter
 
-When processing markdown blog posts, replace all markdown image references with centered HTML image tags.
+## Step 1 Convert to md file and extract the images
+
+Inside the pixi environment, run the following command:
+
+```bash
+jupyter nbconvert --to markdown <FILE_NAME>.ipynb
+```
 
 ## Transformation
+
+When processing markdown blog posts, replace all markdown image references with centered HTML image tags.
+
+On the images:
 
 `![png](<PATH>)` and `![svg](<PATH>)` become:
 
@@ -62,3 +72,9 @@ After:
 - Item 2
 
 - Item 3
+
+## Move to the blog post folder
+
+- Convert the md file to Rmd file
+- Move the Rmd file to /Users/juanitorduz/Documents/juanitorduz_blogdown/content/post/<FILE_NAME>.Rmd
+- Mode the images folder to /Users/juanitorduz/Documents/juanitorduz_blogdown/static/images/<FILE_NAME>_files
