@@ -261,6 +261,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/xarray-2026.9.0-pyh5ded981_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/xarray-einstats-0.11.0-pyhd8ed1ab_0.conda
+      - pypi: git+https://github.com/geomstats/geomstats.git?branch=main#1b42ec9fa9879cdfedf79cadc5adaeca300bf51b
       - pypi: https://files.pythonhosted.org/packages/02/08/9c41fb51ab5b43eb21674aff13df270e8ba6c4b29c8624e328dc7a9482af/distlib-0.4.3-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/04/96/92447566d16df59b2a776c0fb82dbc4d9e07cd95062562af01e408583fc4/itsdangerous-2.2.0-py3-none-any.whl
@@ -684,6 +685,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/yaml-0.2.5-h74c22ad_3.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-ng-2.3.3-h31dac16_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
+      - pypi: git+https://github.com/geomstats/geomstats.git?branch=main#1b42ec9fa9879cdfedf79cadc5adaeca300bf51b
       - pypi: https://files.pythonhosted.org/packages/02/08/9c41fb51ab5b43eb21674aff13df270e8ba6c4b29c8624e328dc7a9482af/distlib-0.4.3-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/04/37/b751de2b59b0197a1d92a5dd491de88e8a5e928c2e6562581974f1e85263/rpds_py-2026.9.1-cp314-cp314-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl
@@ -7309,6 +7311,47 @@ packages:
     - zstd >=1.5.7,<1.6.0a0
   size: 433687
   timestamp: 1786599629846
+- pypi: git+https://github.com/geomstats/geomstats.git?branch=main#1b42ec9fa9879cdfedf79cadc5adaeca300bf51b
+  name: geomstats
+  version: 2.8.0
+  requires_dist:
+  - joblib>=0.17.0
+  - matplotlib>=3.3.4
+  - numpy>=1.18.1
+  - pandas>=1.1.5
+  - scikit-learn>=0.22.1
+  - scipy>=1.9
+  - jupyter ; extra == 'doc'
+  - nbsphinx ; extra == 'doc'
+  - nbsphinx-link @ git+https://github.com/maurerle/nbsphinx-link.git@fix_paths ; extra == 'doc'
+  - sphinx ; extra == 'doc'
+  - sphinx-gallery ; extra == 'doc'
+  - pydata-sphinx-theme ; extra == 'doc'
+  - ruff ; extra == 'lint'
+  - pre-commit ; extra == 'lint'
+  - pytest ; extra == 'test'
+  - pytest-cov ; extra == 'test'
+  - coverage ; extra == 'test'
+  - jupyter ; extra == 'test'
+  - ipython ; extra == 'test'
+  - pytest-github-actions-annotate-failures ; extra == 'ci'
+  - geomstats[test-scripts] ; extra == 'test-scripts-all'
+  - scikeras ; extra == 'test-scripts-all'
+  - tensorflow ; extra == 'test-scripts-all'
+  - networkx ; extra == 'graph'
+  - networkx ; extra == 'bhv'
+  - biopython ; extra == 'bhv'
+  - pygraphviz ; extra == 'bhv'
+  - pykeops ; extra == 'pykeops'
+  - autograd>=1.3 ; extra == 'autograd'
+  - torch>=1.9.1 ; extra == 'pytorch'
+  - geomstats[autograd,pytorch] ; extra == 'backends'
+  - geomstats[pytorch] ; extra == 'optim-pytorch'
+  - pytorch-minimize ; extra == 'optim-pytorch'
+  - geomstats[bhv,graph,optim-pytorch,pykeops] ; extra == 'opt'
+  - geomstats[doc,lint,test,test-scripts] ; extra == 'dev'
+  - geomstats[backends,dev,opt] ; extra == 'all'
+  requires_python: '>=3.9'
 - pypi: https://files.pythonhosted.org/packages/02/08/9c41fb51ab5b43eb21674aff13df270e8ba6c4b29c8624e328dc7a9482af/distlib-0.4.3-py2.py3-none-any.whl
   name: distlib
   version: 0.4.3
