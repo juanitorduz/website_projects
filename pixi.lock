@@ -2,13 +2,13 @@ version: 7
 platforms:
 - name: linux-64
   virtual-packages:
-  - __unix=0=0
+  - __unix=0
   - __linux=4.18
   - __glibc=2.28
   - __archspec=0=x86_64
 - name: osx-arm64
   virtual-packages:
-  - __unix=0=0
+  - __unix=0
   - __osx=13.0
   - __archspec=0=m1
 environments:
@@ -295,6 +295,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/2d/1e/65b59cf518c106aa755e7f7da3099027738687a862ec785060702a481320/ipython-9.17.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/2e/24/d1558f3b68b1d26e706813b1d10aa1d785e4698c425af8db8edc3dced472/nvidia_cuda_runtime-13.0.96-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/2f/b2/bd9bfa6d77641bd3be57c7cd6ce10294d26db20cb9aedf19ac5d78845886/htmltools-0.7.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/30/2a/6155ddd198b25e165508fa7d9eef1df4b27ad2f88b6ae8258db25f36b7a5/pymc_forecast-0.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/30/b8/2f5de2ec4026aa2e121a5da3d25b1d20f653bffdd569dfb74df6732ab99d/fastexcel-0.21.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/31/e9/f07767b26916e5b6548e9892f87d7d77767b3a86d22e934f7c745ac4e270/dowhy-0.14-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/33/6d/737d164b4837a9bbd202f5ae3078975f0525a55730fe871d8ed4e3b952b0/nvidia_cuda_cupti-13.0.85-py3-none-manylinux_2_25_x86_64.whl
@@ -372,7 +373,6 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/8a/cf/e3ad894ed5909a7c44b0707e89bc25d19a3d78b3a7aec846119443b6ae56/watchfiles-1.3.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/8a/db/55a262f3606bebcae07cc14095338471ad7c0bbcaa37707e6f0ee49725b7/importlib_resources-7.1.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/8b/38/c66bbdc5047f4776c2bd3e47e5295a350e3fa44d5b8942105e71c2a876a0/jaxtyping-0.3.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/8c/a5/8fad53b5c047f2de6bcd35bc0e369e0f0b024b711d70d081dde72d3e7fd9/pymc_forecast-0.3.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/8d/61/1c5d1229fa21da4cff5365e41e57177aaac57c563c727f35419b8513d1c1/pyarrow-25.0.1-cp314-cp314-manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/8d/96/04e7b441807b26b794da5b11e59ed7f83b2cf8af202bd7eba8ad2fa6046e/wadler_lindig-0.1.7-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/8f/eb/461d5f167b6f5c7d97696f397c82f82e3480e003fce3f0a1cd1dd26e2eb2/typeguard-4.6.0-py3-none-any.whl
@@ -719,6 +719,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/2c/58/ca301544e1fa93ed4f80d724bf5b194f6e4b945841c5bfd555878eea9fcb/referencing-0.37.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/2d/1e/65b59cf518c106aa755e7f7da3099027738687a862ec785060702a481320/ipython-9.17.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/2f/b2/bd9bfa6d77641bd3be57c7cd6ce10294d26db20cb9aedf19ac5d78845886/htmltools-0.7.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/30/2a/6155ddd198b25e165508fa7d9eef1df4b27ad2f88b6ae8258db25f36b7a5/pymc_forecast-0.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/30/fc/5e7c4cb443370f2090a3aba0453a07384d29ff66b7435bb90e77e1037599/httptools-0.8.0-cp314-cp314-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/31/e9/f07767b26916e5b6548e9892f87d7d77767b3a86d22e934f7c745ac4e270/dowhy-0.14-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/32/72/98342feb672507c8f3a69e34b4fa8961f608edba5c1a48a6f47156d92cb5/protobuf-7.36.2-cp310-abi3-macosx_10_9_universal2.whl
@@ -795,7 +796,6 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/8a/7f/e409f76bb955ecdcb746b80350b945fbb808846d797346d647a37e1790ca/cython-3.3.0-cp314-cp314-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/8a/db/55a262f3606bebcae07cc14095338471ad7c0bbcaa37707e6f0ee49725b7/importlib_resources-7.1.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/8b/38/c66bbdc5047f4776c2bd3e47e5295a350e3fa44d5b8942105e71c2a876a0/jaxtyping-0.3.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/8c/a5/8fad53b5c047f2de6bcd35bc0e369e0f0b024b711d70d081dde72d3e7fd9/pymc_forecast-0.3.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/8d/96/04e7b441807b26b794da5b11e59ed7f83b2cf8af202bd7eba8ad2fa6046e/wadler_lindig-0.1.7-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/8f/eb/43ea41f4061a1cad87b2b6559c98e960e45bf551fe66f83d833b98aaf0c9/google_crc32c-1.9.0-cp314-cp314-macosx_12_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/8f/eb/461d5f167b6f5c7d97696f397c82f82e3480e003fce3f0a1cd1dd26e2eb2/typeguard-4.6.0-py3-none-any.whl
@@ -7933,6 +7933,20 @@ packages:
   - typing-extensions>=4.12.0
   - packaging>=20.9
   requires_python: '>=3.10'
+- pypi: https://files.pythonhosted.org/packages/30/2a/6155ddd198b25e165508fa7d9eef1df4b27ad2f88b6ae8258db25f36b7a5/pymc_forecast-0.4.0-py3-none-any.whl
+  name: pymc-forecast
+  version: 0.4.0
+  sha256: 42fbc3381324af62e53964f0a28e44d4f08a148e611821fd3d23ce746d5012ad
+  requires_dist:
+  - arviz>=0.20
+  - numpy>=1.25
+  - pooch
+  - pymc>=5.20
+  - xarray>=2024.10
+  - pandas ; extra == 'dataframes'
+  - pymc-extras>=0.10 ; extra == 'extras'
+  - jax ; extra == 'jax'
+  requires_python: '>=3.11'
 - pypi: https://files.pythonhosted.org/packages/30/b8/2f5de2ec4026aa2e121a5da3d25b1d20f653bffdd569dfb74df6732ab99d/fastexcel-0.21.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
   name: fastexcel
   version: 0.21.0
@@ -9634,20 +9648,6 @@ packages:
   sha256: 8a4bedc4e3f963fa82df41bd13c7ebc2bad925601eb48614c65798f21329d4e3
   requires_dist:
   - wadler-lindig>=0.1.3
-  requires_python: '>=3.11'
-- pypi: https://files.pythonhosted.org/packages/8c/a5/8fad53b5c047f2de6bcd35bc0e369e0f0b024b711d70d081dde72d3e7fd9/pymc_forecast-0.3.0-py3-none-any.whl
-  name: pymc-forecast
-  version: 0.3.0
-  sha256: 98642f1fc58b7776845db556a081916f313e0736ce77aea384a5afe7de7e1772
-  requires_dist:
-  - arviz>=0.20
-  - numpy
-  - pooch
-  - pymc>=5.20
-  - xarray>=2024.10
-  - pandas ; extra == 'dataframes'
-  - pymc-extras>=0.10 ; extra == 'extras'
-  - jax ; extra == 'jax'
   requires_python: '>=3.11'
 - pypi: https://files.pythonhosted.org/packages/8d/61/1c5d1229fa21da4cff5365e41e57177aaac57c563c727f35419b8513d1c1/pyarrow-25.0.1-cp314-cp314-manylinux_2_28_x86_64.whl
   name: pyarrow
