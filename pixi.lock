@@ -261,6 +261,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/xarray-2026.9.0-pyh5ded981_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/xarray-einstats-0.11.0-pyhd8ed1ab_0.conda
+      - pypi: git+https://github.com/juanitorduz/numpyro_forecast?rev=58a32714e97e42c70ade00bd310b8b3340ec5800#58a32714e97e42c70ade00bd310b8b3340ec5800
       - pypi: https://files.pythonhosted.org/packages/02/08/9c41fb51ab5b43eb21674aff13df270e8ba6c4b29c8624e328dc7a9482af/distlib-0.4.3-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/04/96/92447566d16df59b2a776c0fb82dbc4d9e07cd95062562af01e408583fc4/itsdangerous-2.2.0-py3-none-any.whl
@@ -472,7 +473,6 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/f2/96/2f709aa4d4ddcfe5ae699fb4319d8613ca4e90c928c7911c366b8506777e/momentchi2-0.1.8-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/f4/40/3592ba5232475778ab690cdbfbc38e73886c26c361a82484b49fab427e60/adagio-0.2.6-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/f5/2b/d4122179ef4ef96dc74e1a6a6a8bef5d75d6b23cc54a6d6d2af2eb74c9ed/cuthbertlib-0.1.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/f5/56/6c66d53d1d245138568dbf20802f099820712f89e04e0d963e4308ff66e7/numpyro_forecast-0.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/f8/e5/8d54118bc228e64e1087f1729647b93bbea225eda4a3f914663a6f410bca/multidict-6.9.1-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/fa/18/623c77619c31d62efd55302939756966f3ecc8d724a14dab2b75f1508850/nvidia_cusparse-12.6.3.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/fa/70/fffc9613501877c0a10a1ef73a165e6ded3e53f6e7502227fef56d973933/identify-2.6.20-py2.py3-none-any.whl
@@ -694,6 +694,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/yaml-0.2.5-h74c22ad_3.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-ng-2.3.3-h31dac16_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
+      - pypi: git+https://github.com/juanitorduz/numpyro_forecast?rev=58a32714e97e42c70ade00bd310b8b3340ec5800#58a32714e97e42c70ade00bd310b8b3340ec5800
       - pypi: https://files.pythonhosted.org/packages/02/08/9c41fb51ab5b43eb21674aff13df270e8ba6c4b29c8624e328dc7a9482af/distlib-0.4.3-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/04/37/b751de2b59b0197a1d92a5dd491de88e8a5e928c2e6562581974f1e85263/rpds_py-2026.9.1-cp314-cp314-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl
@@ -888,7 +889,6 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/f2/96/2f709aa4d4ddcfe5ae699fb4319d8613ca4e90c928c7911c366b8506777e/momentchi2-0.1.8-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/f4/40/3592ba5232475778ab690cdbfbc38e73886c26c361a82484b49fab427e60/adagio-0.2.6-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/f5/2b/d4122179ef4ef96dc74e1a6a6a8bef5d75d6b23cc54a6d6d2af2eb74c9ed/cuthbertlib-0.1.1-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/f5/56/6c66d53d1d245138568dbf20802f099820712f89e04e0d963e4308ff66e7/numpyro_forecast-0.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/f7/94/e5c37a8972ad780edc1d8459d1931356344ca133f7f99ba9cfda516b5bba/xgboost-3.4.1-py3-none-macosx_12_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/f9/b4/8e6d950f02ca6ecc00ecf671f2ddb5dab7017671a8d197326f75621f5786/multidict-6.9.1-cp314-cp314-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/fa/70/fffc9613501877c0a10a1ef73a165e6ded3e53f6e7502227fef56d973933/identify-2.6.20-py2.py3-none-any.whl
@@ -7329,6 +7329,44 @@ packages:
     - zstd >=1.5.7,<1.6.0a0
   size: 433687
   timestamp: 1786599629846
+- pypi: git+https://github.com/juanitorduz/numpyro_forecast?rev=58a32714e97e42c70ade00bd310b8b3340ec5800#58a32714e97e42c70ade00bd310b8b3340ec5800
+  name: numpyro-forecast
+  version: 0.4.0
+  requires_dist:
+  - arviz>=1.2.0
+  - beartype>=0.22
+  - equinox>=0.13
+  - jax>=0.10.0,<0.12.1
+  - jaxtyping>=0.3.11
+  - numpyro>=0.22.0
+  - pandas>=2.2 ; extra == 'dataframes'
+  - polars>=1.0 ; extra == 'dataframes'
+  - optax>=0.2 ; extra == 'optax'
+  - blackjax>=1.6,<2 ; extra == 'blackjax'
+  - graphviz>=0.20 ; extra == 'dev'
+  - matplotlib>=3.8,<3.11 ; extra == 'dev'
+  - ipykernel>=6.29 ; extra == 'dev'
+  - jupytext>=1.16 ; extra == 'dev'
+  - nbmake>=1.5 ; extra == 'dev'
+  - prek>=0.4.5 ; extra == 'dev'
+  - preliz>=0.16 ; extra == 'dev'
+  - pytest-cov>=5.0 ; extra == 'dev'
+  - pytest-split>=0.10 ; extra == 'dev'
+  - pytest-xdist ; extra == 'dev'
+  - pytest>=8.0 ; extra == 'dev'
+  - ruff==0.17.5 ; extra == 'dev'
+  - ty==0.0.104 ; extra == 'dev'
+  - optax>=0.2 ; extra == 'dev'
+  - blackjax>=1.6,<2 ; extra == 'dev'
+  - huggingface-hub>=1.22.0 ; extra == 'dev'
+  - scikit-learn>=1.6 ; extra == 'dev'
+  - great-docs==0.17.0 ; extra == 'docs'
+  - numpyro-forecast[dynestyx] ; extra == 'docs'
+  - dynestyx>=0.9.0,<0.10 ; extra == 'dynestyx'
+  - jax[cuda12] ; sys_platform == 'linux' and extra == 'cuda'
+  - numpyro-forecast[dataframes,optax,blackjax,dynestyx,dev,docs] ; extra == 'all'
+  - numpyro-forecast[dataframes,optax,blackjax,dynestyx,dev,docs,cuda] ; extra == 'all-cuda'
+  requires_python: '>=3.12'
 - pypi: https://files.pythonhosted.org/packages/02/08/9c41fb51ab5b43eb21674aff13df270e8ba6c4b29c8624e328dc7a9482af/distlib-0.4.3-py2.py3-none-any.whl
   name: distlib
   version: 0.4.3
@@ -11388,85 +11426,6 @@ packages:
   - jax>=0.4.35
   - numba>=0.60.0
   requires_python: '>=3.10'
-- pypi: https://files.pythonhosted.org/packages/f5/56/6c66d53d1d245138568dbf20802f099820712f89e04e0d963e4308ff66e7/numpyro_forecast-0.4.0-py3-none-any.whl
-  name: numpyro-forecast
-  version: 0.4.0
-  sha256: 47d2bd3c63a9b47edf027aed2e7cb02c5b4a19b4a0df7cce3cc2f1b0c5b7c050
-  requires_dist:
-  - arviz>=1.2.0
-  - beartype>=0.22
-  - equinox>=0.13
-  - jax>=0.10.0,<0.11.3
-  - jaxtyping>=0.3.11
-  - numpyro>=0.22.0
-  - blackjax>=1.6,<2 ; extra == 'all'
-  - dynestyx>=0.5.1 ; extra == 'all'
-  - graphviz>=0.20 ; extra == 'all'
-  - great-docs==0.17.0 ; extra == 'all'
-  - huggingface-hub>=1.22.0 ; extra == 'all'
-  - ipykernel>=6.29 ; extra == 'all'
-  - jupytext>=1.16 ; extra == 'all'
-  - matplotlib>=3.8,<3.11 ; extra == 'all'
-  - nbmake>=1.5 ; extra == 'all'
-  - optax>=0.2 ; extra == 'all'
-  - pandas>=2.2 ; extra == 'all'
-  - polars>=1.0 ; extra == 'all'
-  - prek>=0.4.5 ; extra == 'all'
-  - preliz>=0.16 ; extra == 'all'
-  - pytest-cov>=5.0 ; extra == 'all'
-  - pytest-split>=0.10 ; extra == 'all'
-  - pytest-xdist ; extra == 'all'
-  - pytest>=8.0 ; extra == 'all'
-  - ruff==0.16.9 ; extra == 'all'
-  - scikit-learn>=1.6 ; extra == 'all'
-  - ty==0.0.84 ; extra == 'all'
-  - blackjax>=1.6,<2 ; extra == 'all-cuda'
-  - dynestyx>=0.5.1 ; extra == 'all-cuda'
-  - graphviz>=0.20 ; extra == 'all-cuda'
-  - great-docs==0.17.0 ; extra == 'all-cuda'
-  - huggingface-hub>=1.22.0 ; extra == 'all-cuda'
-  - ipykernel>=6.29 ; extra == 'all-cuda'
-  - jax[cuda12] ; sys_platform == 'linux' and extra == 'all-cuda'
-  - jupytext>=1.16 ; extra == 'all-cuda'
-  - matplotlib>=3.8,<3.11 ; extra == 'all-cuda'
-  - nbmake>=1.5 ; extra == 'all-cuda'
-  - optax>=0.2 ; extra == 'all-cuda'
-  - pandas>=2.2 ; extra == 'all-cuda'
-  - polars>=1.0 ; extra == 'all-cuda'
-  - prek>=0.4.5 ; extra == 'all-cuda'
-  - preliz>=0.16 ; extra == 'all-cuda'
-  - pytest-cov>=5.0 ; extra == 'all-cuda'
-  - pytest-split>=0.10 ; extra == 'all-cuda'
-  - pytest-xdist ; extra == 'all-cuda'
-  - pytest>=8.0 ; extra == 'all-cuda'
-  - ruff==0.16.9 ; extra == 'all-cuda'
-  - scikit-learn>=1.6 ; extra == 'all-cuda'
-  - ty==0.0.84 ; extra == 'all-cuda'
-  - blackjax>=1.6,<2 ; extra == 'blackjax'
-  - jax[cuda12] ; sys_platform == 'linux' and extra == 'cuda'
-  - pandas>=2.2 ; extra == 'dataframes'
-  - polars>=1.0 ; extra == 'dataframes'
-  - blackjax>=1.6,<2 ; extra == 'dev'
-  - graphviz>=0.20 ; extra == 'dev'
-  - huggingface-hub>=1.22.0 ; extra == 'dev'
-  - ipykernel>=6.29 ; extra == 'dev'
-  - jupytext>=1.16 ; extra == 'dev'
-  - matplotlib>=3.8,<3.11 ; extra == 'dev'
-  - nbmake>=1.5 ; extra == 'dev'
-  - optax>=0.2 ; extra == 'dev'
-  - prek>=0.4.5 ; extra == 'dev'
-  - preliz>=0.16 ; extra == 'dev'
-  - pytest-cov>=5.0 ; extra == 'dev'
-  - pytest-split>=0.10 ; extra == 'dev'
-  - pytest-xdist ; extra == 'dev'
-  - pytest>=8.0 ; extra == 'dev'
-  - ruff==0.16.9 ; extra == 'dev'
-  - scikit-learn>=1.6 ; extra == 'dev'
-  - ty==0.0.84 ; extra == 'dev'
-  - dynestyx>=0.5.1 ; extra == 'docs'
-  - great-docs==0.17.0 ; extra == 'docs'
-  - optax>=0.2 ; extra == 'optax'
-  requires_python: '>=3.12'
 - pypi: https://files.pythonhosted.org/packages/f7/94/e5c37a8972ad780edc1d8459d1931356344ca133f7f99ba9cfda516b5bba/xgboost-3.4.1-py3-none-macosx_12_0_arm64.whl
   name: xgboost
   version: 3.4.1
